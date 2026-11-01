@@ -2,6 +2,12 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Production preflight for e-mail authentication
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Read-only production inspection found release `sha-c15cb47` healthy with its rollback release intact, 48% disk usage and all public neighbour checks returning 200. The app database password and current compose are already present; only the #98 deploy-script update and the approved RowLens authentication variables remain before merge/deploy.
+
 ## 2026-11-01 — CI accepts Codex branch names
 
 **Session**: codex/feat/28-30-email-auth
