@@ -65,7 +65,9 @@ What the spike changed in the design:
   1 ms: frame 10 at 30 fps starts at 0.333 s → 9.99 → floored to frame 9). `currentTime`, which can be
   anywhere inside a frame, is still floored.
 - **A pending step target is cleared on `seeked`**, not only when the presented frame equals it;
-  otherwise one mis-mapped frame made every later step count from a stale base.
+  otherwise one mis-mapped frame made every later step count from a stale base. Amended (#59):
+  only when no newer seek is in flight (`video.seeking`), and the next step then counts from that
+  seek's target; otherwise quick presses lost steps (BUG-004).
 - **Looping pauses, seeks while paused, then resumes.** Seeking while playing took ~1 s in Chromium and
   overshot the loop by ~60 frames at 1×; re-seeking on every frame during a seek cancelled it repeatedly.
 - **Hidden tabs/panes don't paint frames**, so `requestVideoFrameCallback` doesn't fire there; timing

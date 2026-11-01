@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
-import { Player } from '../player/Player.tsx';
+import { type Note, NotesPanel } from '../notes/NotesPanel.tsx';
+import { notesStrings } from '../notes/strings.ts';
+import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
 
 interface VideoDetail {
@@ -38,8 +40,32 @@ export function VideoPage() {
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [rendition, setRendition] = useState<string | null>(null);
-  // The frame on screen, carried over when switching rendition.
+  // The frame on screen: carried over when switching rendition, and where a new note goes.
   const frame = useRef(0);
+  const [current, setCurrent] = useState(0);
+  const player = useRef<PlayerHandle>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  const loadNotes = useCallback(() => {
+    api(`/api/videos/${id}/annotations`)
+      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Note[] }>) : null))
+      .then((body) => {
+        if (body !== null) setNotes(body.annotations);
+      })
+      .catch(() => {
+        // The player still works; the panel shows what it has.
+      });
+  }, [id]);
+  useEffect(loadNotes, [loadNotes]);
+
+  const markers = useMemo(() => {
+    const nt = notesStrings();
+    return notes.map((n) => ({
+      id: n.id,
+      frame: n.frame,
+      label: nt.marker(n.frame, n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body),
+    }));
+  }, [notes]);
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -90,7 +116,10 @@ export function VideoPage() {
             startFrame={frame.current}
             onFrame={(f) => {
               frame.current = f;
+              setCurrent(f);
             }}
+            markers={markers}
+            handle={player}
           />
           {video.renditions.length > 1 && (
             <div className="quality" role="group" aria-label={t.quality}>
@@ -115,6 +144,20 @@ export function VideoPage() {
               <span className="muted">{t.qualityHint}</span>
             </div>
           )}
+          <NotesPanel
+            videoId={video.id}
+            fps={video.fpsNum / video.fpsDen}
+            frame={current}
+            notes={notes}
+            onChanged={loadNotes}
+            onJump={(f) => {
+              player.current?.seekToFrame(f);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onWriting={() => {
+              player.current?.pause();
+            }}
+          />
         </>
       )}
     </main>

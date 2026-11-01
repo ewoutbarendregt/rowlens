@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-004] Quick frame steps get lost (player) — high
+**Location**: apps/web/src/client/player/usePlayer.ts:102
+**Status**: fixed (in production until the next deploy)
+**Found**: 2026-11-01, by the notes E2E (10 quick `.` presses ended at frame 4, 7 or 9)
+**Description**: `onSeeked` cleared the pending step target unconditionally. A `seeked` of a seek that a newer step had already replaced, or a step right after a seek but before requestVideoFrameCallback reported the new frame, made the next step count from an older frame. Every lost step is a wrong frame for a rower or coach pressing or holding the step buttons.
+**Fix**: ignore `seeked` while a newer seek is in flight (`video.seeking`); on a finished seek, count on from the seek's target. Regression test: 20 quick presses must land on frame 20 (fails 12/12 with the old code, passes 12/12 now).
+
 ### [BUG-003] Renditions 3× larger than low-bitrate phone uploads — medium
 **Location**: worker/src/rowlens_worker/video/transcode.py:34
 **Status**: fixed

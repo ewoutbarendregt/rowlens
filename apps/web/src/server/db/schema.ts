@@ -2,6 +2,7 @@ import { type SQL, type SQLWrapper, sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   date,
   foreignKey,
   index,
@@ -136,6 +137,8 @@ export const video = pgTable(
       foreignColumns: [rowingSession.clubId, rowingSession.id],
     }).onDelete('cascade'),
     index('video_session_idx').on(t.sessionId),
+    // Target of annotation's (club_id, video_id) key, like rowing_session's for video.
+    unique('video_club_id_id_unique').on(t.clubId, t.id),
     tenantPolicy('video_tenant', t.clubId),
   ],
 ).enableRLS();
@@ -168,4 +171,40 @@ export const job = pgTable(
     finishedAt: timestamp('finished_at', { withTimezone: true }),
   },
   (t) => [index('job_ready_idx').on(t.status, t.runAfter), tenantPolicy('job_tenant', t.clubId)],
+).enableRLS();
+
+/** What an annotation is: a text note (#59); line, arrow and angle drawings follow with #60. */
+export const annotationKind = pgEnum('annotation_kind', ['note', 'line', 'arrow', 'angle']);
+
+/**
+ * Something said or drawn at one exact frame of a video (#59, #60). Frame indices refer to the CFR
+ * renditions (ADR-0007). The author is a typed name while the pilot has no accounts (#84).
+ */
+export const annotation = pgTable(
+  'annotation',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').notNull(),
+    frame: integer('frame').notNull(),
+    kind: annotationKind('kind').notNull().default('note'),
+    body: text('body').notNull().default(''),
+    /** Drawings only: points normalised to 0–1 of the picture (#60). */
+    shape: jsonb('shape'),
+    authorName: text('author_name').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'annotation_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    index('annotation_video_frame_idx').on(t.videoId, t.frame),
+    check('annotation_frame_check', sql`${t.frame} >= 0`),
+    check('annotation_body_check', sql`char_length(${t.body}) <= 2000`),
+    check('annotation_author_check', sql`char_length(${t.authorName}) between 1 and 60`),
+    tenantPolicy('annotation_tenant', t.clubId),
+  ],
 ).enableRLS();
