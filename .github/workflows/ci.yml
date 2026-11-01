@@ -62,7 +62,8 @@ jobs:
       - name: Production bundle contains no demo code
         run: |
           rm -rf apps/web/dist && pnpm build
-          if grep -rl "PlayerDemo\|demo-media\|requestVideoFrameCallback" apps/web/dist/client --include=*.js; then
+          # Demo-only markers: the player itself (requestVideoFrameCallback) ships on purpose since #49.
+          if grep -rl "PlayerDemo\|demo-media\|measure-start" apps/web/dist/client --include=*.js; then
             echo "::error::Feature-flagged demo code leaked into the production bundle"
             exit 1
           fi
