@@ -1,3 +1,12 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Install scripts stay off unless a package needs one (supply-chain policy). None of these do:
+# esbuild ships its binary as an optional dependency; ssh2/cpu-features (via Testcontainers' Docker
+# client) and protobufjs only try optional native or post-install steps.
+allowBuilds:
+  cpu-features: false
+  esbuild: false
+  protobufjs: false
+  ssh2: false

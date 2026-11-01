@@ -21,11 +21,14 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | Area | Tests | Status |
 |---|---|---|
 | `shared/base-path.ts` | 17 unit cases | ✅ passing |
-| `server/config.ts` | 8 (defaults, normalisation, production PUBLIC_ORIGIN, invalid values) | ✅ passing |
+| `server/config.ts` | 9 (defaults, normalisation, production PUBLIC_ORIGIN + DATABASE_URL, invalid values) | ✅ passing |
+| `server/db/tenant.ts` (`tenant.db.test.ts`, real Postgres 16) | 7: settings per transaction; nothing left on a reused pooled connection after commit and rollback (mutation-checked: session-wide `set_config` fails it); club A reads only A; can't insert into, update, delete or move rows to club B; club table shows only own club; malformed context rejected | ✅ passing |
+| DB roles + schema (`schema.db.test.ts`) | 6: `rowlens_app` no superuser/BYPASSRLS/CREATEDB/CREATEROLE, owns nothing, can't CREATE or ALTER tables, can't read the migrations journal; re-migrate is a no-op; unsafe password refused; **every `club_id` table has RLS + a policy** | ✅ passing |
+| Readiness with DB (`readiness.db.test.ts`) | 3: 200 when Postgres answers; 503 within 5 s when unreachable; 503 on a wrong password | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
 | `infra/deploy/rowlens-deploy` unit (`test/run.sh`, stubbed docker, Ubuntu) | 71 checks: input validation and forced-command injection, token handling, deploy/redeploy, rollback on unhealthy or failed `up`, first-deploy failure, pull failure, DB backup + retention, migrations, rollback/status, locking | ✅ passing |
-| `rowlens-deploy` rehearsal (`test/rehearse.sh`, real Docker) | first deploy, second deploy with real `pg_dump`, broken release auto-rollback (exit 3), manual rollback, status | ✅ passing |
+| `rowlens-deploy` rehearsal (`test/rehearse.sh`, real Docker) | first deploy, second deploy with real `pg_dump`, real migrations (journal written, `rowlens_app` without BYPASSRLS), broken release auto-rollback (exit 3), manual rollback, status | ✅ passing |
 | `client/player/frames.ts` | 24: round-trips for every frame at 24–240 fps and 59.94, presentation timestamps at 1 ms / 1/15360 / 1/90000 precision, clamping, ±seconds, time format, loop range and jump | ✅ passing |
 | E2E player (`e2e/player.spec.ts`, VP9 fixture, desktop + mobile Chromium) | 6: ±1 frame over 20 frames and back across keyframes (readout and `currentTime` agree), buttons ±1f/±0.1s/±1s and bounds, speed buttons, loop at 0.25×/0.5×/1× stays ≤ 1 frame past its end | ✅ passing |
 | E2E smoke (`e2e/smoke.spec.ts`) | 3 × desktop + mobile Chromium (home + API under base, deep link shell, nothing outside base) | ✅ passing |
@@ -40,6 +43,8 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
+| 2026-11-01 | claude/feat/31-database | `pnpm test`, `pnpm e2e:edge`, `run.sh`, `rehearse.sh` | 79 passed (16 db); 8 passed; 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/31-database (CI fix) | `pnpm --filter @rowlens/web e2e` (server with Testcontainers Postgres) | 18 passed, 12 edge-only skipped |
 
 ## Playwright prompts
 

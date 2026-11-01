@@ -4,7 +4,10 @@
 #
 #   ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status
 #
-# Worker (#33) and MinIO media storage (#32) are added with their stories.
+# Worker (#33) and media storage (#32) are added with their stories.
+#
+# Database roles (ADR-0005): `migrate` connects as the owner, `web` as rowlens_app (no BYPASSRLS).
+# Both passwords come from /opt/rowlens/.env, which Compose also reads for the variables below.
 name: rowlens
 
 x-defaults: &defaults
@@ -18,6 +21,8 @@ services:
     <<: *defaults
     image: ghcr.io/ewoutbarendregt/rowlens-web:${ROWLENS_TAG:?set ROWLENS_TAG}
     env_file: /opt/rowlens/.env
+    environment:
+      DATABASE_URL: postgres://rowlens_app:${ROWLENS_APP_DB_PASSWORD:?ROWLENS_APP_DB_PASSWORD is required}@db:5432/rowlens
     networks:
       internal: {}
       # Shared with trustable's Caddy, which routes /projects/rowlens/* here (trustable.nl#377).
@@ -28,6 +33,18 @@ services:
     deploy:
       resources:
         limits: { cpus: '1.0', memory: 512M }
+
+  # Run by rowlens-deploy before `up` (`compose --profile migrate run --rm migrate`), never kept running.
+  migrate:
+    image: ghcr.io/ewoutbarendregt/rowlens-web:${ROWLENS_TAG:?set ROWLENS_TAG}
+    profiles: [migrate]
+    command: ['node', 'dist/server/db/migrate-cli.js']
+    environment:
+      DATABASE_OWNER_URL: postgres://rowlens_owner:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/rowlens
+      ROWLENS_APP_DB_PASSWORD: ${ROWLENS_APP_DB_PASSWORD:?ROWLENS_APP_DB_PASSWORD is required}
+    networks: [internal]
+    depends_on:
+      db: { condition: service_healthy }
 
   db:
     <<: *defaults

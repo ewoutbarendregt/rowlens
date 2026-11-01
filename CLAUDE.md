@@ -69,6 +69,10 @@ uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest
 
 # Local infrastructure (Postgres :5433, MinIO :9000/:9001)
 docker compose -f infra/compose/docker-compose.dev.yml up -d
+cp apps/web/.env.example apps/web/.env && pnpm db:migrate   # then dev:server uses the database
+pnpm --filter @rowlens/web db:generate                       # new migration from db/schema.ts
+pnpm test                    # unit + db tests (db: Postgres via Testcontainers, needs Docker)
+pnpm --filter @rowlens/web exec vitest run --project unit    # without Docker
 
 # Server, read-only
 ssh trustable-prod 'docker ps; df -h /'

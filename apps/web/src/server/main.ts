@@ -3,6 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BUILD_INFO_FILE, buildApp } from './app.ts';
 import { loadConfig } from './config.ts';
+import { connectDatabase } from './db/client.ts';
 
 const config = loadConfig();
 
@@ -11,10 +12,15 @@ const config = loadConfig();
 const defaultClientDir = resolve(dirname(fileURLToPath(import.meta.url)), '../client');
 const clientDir = config.clientDir ?? defaultClientDir;
 
+const database = config.databaseUrl === undefined ? null : connectDatabase(config.databaseUrl);
+
 const app = await buildApp({
   config,
   clientDir: existsSync(join(clientDir, BUILD_INFO_FILE)) ? clientDir : null,
+  readinessChecks: database === null ? [] : [database.readiness],
 });
+if (database !== null) app.addHook('onClose', database.close);
+else app.log.warn('DATABASE_URL not set: running without a database');
 
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.once(signal, () => {
