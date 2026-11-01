@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Player demo enabled in production images
+
+**Session**: claude/feat/51-player-demo
+**Changed**: apps/web/Dockerfile (demo-media stage, VITE_FEATURE_PLAYER_DEMO build arg), .github/workflows/{images,ci}.yml, BUILD.md, DOCUMENTATION.md
+**Summary**: Ewout asked to deploy and chose to include the player demo. The image can now generate the synthetic demo clips in a build stage (no laptop files) and build the SPA with the demo flag; main's images do so. Verified locally on linux/amd64: page 200, 7 clips, range requests 206, image 143 MB. Off by default in the Dockerfile; CI keeps proving the off state has no demo code.
+**Prompts used**: "Deploy to prod" → chose "Placeholder + player demo".
+
 ## 2026-11-01 — Player demo (#51 spike): frame-accurate player, demo clips, measurements
 
 **Session**: claude/feat/51-player-demo

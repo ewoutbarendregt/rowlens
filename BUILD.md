@@ -66,7 +66,11 @@ pause → seek → play, fullscreen with an iPhone CSS fallback, start/step meas
   production build contains no demo code; `dropUnreachableChunks` in `vite.config.ts` removes chunks that
   Rolldown emits for eliminated dynamic imports.
 - Demo clips: `pnpm demo:media [clip …]` (ffmpeg in Docker, `scripts/demo-media/`) writes to the
-  gitignored `apps/web/public/demo-media/`; `.dockerignore` keeps them out of images.
+  gitignored `apps/web/public/demo-media/`; `.dockerignore` keeps local clips out of images.
+- **Production currently runs with the demo on** (Ewout, 2026-11-01, to try it on phones):
+  `images.yml` builds with `VITE_FEATURE_PLAYER_DEMO=true`, and the Dockerfile's `demo-media` stage
+  generates the synthetic clips inside the image (~70 MB). It's public (no login yet) and contains no
+  user data. To turn it off, drop that build arg; the bundle check in CI proves the off state.
 
 ## Local edge stack (`infra/compose/docker-compose.edge.yml`)
 
