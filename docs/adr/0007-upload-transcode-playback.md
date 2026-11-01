@@ -78,7 +78,7 @@ What the spike changed in the design:
 - One ffmpeg run per video: decode once, `split` into the renditions. Each is H.264 High, `veryfast`,
   CRF 21 (play-1080) / 25 (play-540), `-fps_mode cfr -r <nominal>`, `-g = -keyint_min = round(fps/4)`,
   `-sc_threshold 0`, closed GOP, AAC 128k stereo, `+faststart`. Shorter side ≤ 1080 / ≤ 540, never
-  upscaled; a source with a shorter side ≤ 540 gets play-540 only. ffmpeg auto-rotates, so portrait
+  upscaled; play-1080 only for sources with a shorter side ≥ 720 (amended below). ffmpeg auto-rotates, so portrait
   phone video comes out upright.
 - **Metadata is stripped** from renditions and poster (`-map_metadata -1`): phone videos carry GPS
   location and device names. The original keeps it but is never served.
@@ -98,6 +98,18 @@ guard and an RLS read; byte ranges for seeking, `Cache-Control: private, max-age
 the default on narrow screens and on `saveData`/2g/3g connections, play-1080 otherwise, switchable
 at the same frame. Checked on the worker's output: the frame number burned into the picture equals
 the player's readout after stepping (desktop Chrome E2E and a phone-sized Chrome run).
+
+### Rendition size, after the first production clip (2026-11-01)
+
+A 1024×576, 29.97 fps, ~0.76 Mbit/s phone clip (8 MB) produced 27 MB of renditions: play-1080 at
+576p next to a near-identical play-540, and CRF without a ceiling spends more than the source had
+(the short GOP costs bits too). Changed:
+- play-1080 only when the source's shorter side is ≥ 4/3 × 540 = 720.
+- Capped CRF: `-maxrate` = min(ceiling × √(fps/30), max(ceiling/4, 1.5 × source bitrate)),
+  `-bufsize` = 2 × maxrate; ceilings 8 Mbit/s (play-1080) and 2.5 Mbit/s (play-540) at 30 fps.
+- Measured with the worker image: a 576p 0.78 Mbit/s sample now gets play-540 only at 1.7× the
+  source (incl. 128k audio), down from 3.3×; a 4K60 HEVC 40 Mbit/s sample gets play-1080 at
+  5.0 Mbit/s and play-540 at 0.7 Mbit/s (0.14× the source). All frames kept.
 
 ## Consequences
 

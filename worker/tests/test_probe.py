@@ -85,3 +85,11 @@ def test_refusals(payload: dict[str, Any], reason: str) -> None:
     with pytest.raises(PermanentError) as err:
         parse_probe(payload)
     assert err.value.reason == reason
+
+
+def test_bitrate_from_the_format_or_from_size_and_duration() -> None:
+    with_rate = {"streams": [video_stream()], "format": {"duration": "84", "bit_rate": "760000"}}
+    assert parse_probe(with_rate).bitrate == 760_000
+    from_size = {"streams": [video_stream()], "format": {"duration": "80", "size": "8000000"}}
+    assert parse_probe(from_size).bitrate == 800_000
+    assert parse_probe(data(video_stream())).bitrate is None

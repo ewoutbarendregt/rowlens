@@ -5,6 +5,7 @@ from rowlens_worker.video.probe import Probe
 from rowlens_worker.video.transcode import (
     RENDITIONS,
     gop,
+    max_kbps,
     poster_args,
     renditions_for,
     transcode_args,
@@ -78,5 +79,35 @@ def test_renditions_never_duplicate_a_small_source() -> None:
     assert names(3840, 2160) == ["play-1080", "play-540"]
     assert names(2160, 3840) == ["play-1080", "play-540"]
     assert names(1280, 720) == ["play-1080", "play-540"]  # play-1080 is then the 720p source size
+    # Seen on production: a 1024x576 source got two near-identical renditions.
+    assert names(1024, 576) == ["play-540"]
+    assert names(576, 1024) == ["play-540"]
     assert names(960, 540) == ["play-540"]
     assert names(640, 360) == ["play-540"]
+
+
+def probe(**changes: object) -> Probe:
+    return Probe(**{**PROBE.__dict__, **changes})
+
+
+def test_bitrate_ceiling_scales_with_frame_rate() -> None:
+    p1080, p540 = RENDITIONS
+    high = probe(fps=Fraction(30), bitrate=50_000_000)
+    assert (max_kbps(p1080, high), max_kbps(p540, high)) == (8000, 2500)
+    sixty = probe(fps=Fraction(60), bitrate=50_000_000)
+    assert (max_kbps(p1080, sixty), max_kbps(p540, sixty)) == (11314, 3536)
+    assert max_kbps(p540, probe(fps=Fraction(30), bitrate=None)) == 2500
+
+
+def test_low_bitrate_sources_are_not_inflated() -> None:
+    # The production clip: 8 MB over 84 s, ~0.76 Mbit/s.
+    clip = probe(fps=Fraction(30000, 1001), bitrate=760_000)
+    assert max_kbps(RENDITIONS[1], clip) == 1140
+    # A quarter of the ceiling is the floor, so tiny sources stay watchable.
+    assert max_kbps(RENDITIONS[1], probe(fps=Fraction(30), bitrate=100_000)) == 625
+
+
+def test_maxrate_and_bufsize_in_the_command() -> None:
+    clip = probe(fps=Fraction(30), bitrate=760_000, width=1024, height=576)
+    args = transcode_args(Path("/in"), [(RENDITIONS[1], Path("/out"))], clip, threads=2)
+    assert (option(args, "-maxrate"), option(args, "-bufsize")) == ("1140k", "2280k")

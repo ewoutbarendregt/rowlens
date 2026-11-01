@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Smaller renditions: no near-duplicates, bitrate capped to the source (#47)
+
+**Session**: claude/fix/47-rendition-size
+**Changed**: worker/src/rowlens_worker/video/{probe,transcode}.py, worker/tests/{test_probe,test_transcode}.py, docs/adr/0007, BUILD.md, TEST.md, BUGS.md
+**Summary**: The first real clip on production (576p, 0.76 Mbit/s, 8 MB) produced 27 MB of renditions: a near-identical play-1080 next to play-540, and uncapped CRF. Now play-1080 only from 720p up, and capped CRF (≤ 1.5× the source bitrate, ceilings scaled by frame rate). Measured in the worker image: 3.3× → 1.7× for that kind of clip; 4K60 HEVC → 0.14×.
+**Prompts used**: "yes" (to fixing both findings from the production clip).
+
 ## 2026-11-01 — Player on the club's own videos (#49, #52)
 
 **Session**: claude/feat/49-player-own-videos
