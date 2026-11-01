@@ -4,6 +4,7 @@ import { api } from '../api.ts';
 import {
   formatBytes,
   formatDate,
+  formatVideoFacts,
   type Perspective,
   sessionStrings,
   type VideoStatus,
@@ -15,9 +16,20 @@ interface SessionVideo {
   filename: string;
   perspective: Perspective;
   status: VideoStatus;
+  statusReason: string | null;
+  processingProgress: number | null;
+  fpsNum: number | null;
+  fpsDen: number | null;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
   sizeBytes: number;
   uploadedBytes: number;
 }
+
+/** While the worker has videos of this session, the page refreshes itself (#48). */
+const POLL_MS = 3000;
+const BUSY: VideoStatus[] = ['uploaded', 'processing'];
 
 interface SessionDetail {
   id: string;
@@ -46,6 +58,15 @@ export function SessionPage() {
       });
   }, [id]);
   useEffect(load, [load]);
+
+  const busy = session?.videos.some((v) => BUSY.includes(v.status)) ?? false;
+  useEffect(() => {
+    if (!busy) return;
+    const timer = window.setInterval(load, POLL_MS);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [busy, load]);
 
   const uploads = useUploads(id, load);
   // Videos this tab is uploading right now are shown in the queue, not as "stopped".
@@ -87,8 +108,20 @@ export function SessionPage() {
                   {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
                 </span>
                 <span className={`badge badge--${v.status}`} data-testid="video-status">
-                  {t.status[v.status]}
+                  {v.status === 'processing' && v.processingProgress !== null
+                    ? t.processingAt(v.processingProgress)
+                    : t.status[v.status]}
                 </span>
+                {v.status === 'ready' && (
+                  <span className="muted" data-testid="video-facts">
+                    {formatVideoFacts(v)}
+                  </span>
+                )}
+                {v.status === 'failed' && v.statusReason !== null && (
+                  <span className="error">
+                    {t.failReasons[v.statusReason] ?? t.failReasons['processing_failed']}
+                  </span>
+                )}
                 {stopped && (
                   <span className="muted">
                     {t.incomplete(Math.floor((v.uploadedBytes / v.sizeBytes) * 100))}

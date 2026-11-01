@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Worker: job queue, probe and transcode (#47, #33, #48)
+
+**Session**: claude/feat/47-worker-transcode
+**Changed**: worker/src/rowlens_worker/{__main__,config,db,errors,media,queue}.py, worker/src/rowlens_worker/video/{probe,transcode,process}.py, worker/tests/*, worker/{pyproject.toml,uv.lock,Dockerfile}, apps/web/src/server/db/{schema.ts,migrations/0003_jobs_video_metadata.sql,jobs.db.test.ts}, apps/web/src/server/api/{uploads,sessions}.ts (+ upload test), apps/web/src/client/sessions/{SessionPage.tsx,strings.ts}, apps/web/Dockerfile, apps/web/e2e/upload.spec.ts, infra/compose/docker-compose.{prod,edge}.yml, infra/deploy/test/rehearse.sh, .github/workflows/ci.yml, docs/adr/{0007,0008}, docs/privacy/processors.md, BUILD.md, TEST.md
+**Summary**: PR 4 of the upload plan. Postgres job queue with a SECURITY DEFINER claim (RLS shows one club at a time), enqueued with the upload's completion. Python worker probes (fps, rotation, VFR heuristic), transcodes once into CFR H.264 play-1080/play-540 with ~0.25 s closed GOPs and strips location metadata, writes a poster, reports progress and retries with backoff. Session page shows processing and video facts. Verified in the edge stack and on a synthetic 4K60 HEVC portrait clip.
+**Prompts used**: "Yes, start PR 4".
+
 ## 2026-11-01 — Sessions and resumable upload (#45, #46, #44 minimal, #50)
 
 **Session**: claude/feat/45-upload

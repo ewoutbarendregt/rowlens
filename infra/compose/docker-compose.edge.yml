@@ -35,12 +35,26 @@ services:
       SESSION_SECRET: e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0
       PILOT_ATTEMPTS_PER_MINUTE: '100'
       MEDIA_DIR: /media
-    # The image runs as node (uid 1000), like production's bind mount owner.
-    tmpfs: ['/media:uid=1000,gid=1000,mode=0750']
+    volumes: [media:/media]
     networks:
       proxy:
         aliases: [rowlens-web]
       internal: {}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  # Same image and settings as production's worker; shares the media volume with rowlens-web.
+  worker:
+    build:
+      context: ../../worker
+    image: rowlens-worker:edge
+    environment:
+      DATABASE_URL: postgres://rowlens_app:edge_app_password_only@db:5432/rowlens
+      MEDIA_DIR: /media
+      FFMPEG_THREADS: '2'
+      JOB_POLL_SECONDS: '2'
+    volumes: [media:/media]
+    networks: [internal]
     depends_on:
       migrate: { condition: service_completed_successfully }
 
@@ -84,3 +98,6 @@ networks:
   proxy: {}
   internal:
     internal: true
+
+volumes:
+  media: {}

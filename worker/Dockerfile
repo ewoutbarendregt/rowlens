@@ -15,8 +15,10 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
 RUN uv sync --frozen --no-dev
 
-RUN useradd -m -u 1000 worker
+# uid 1000 owns /opt/rowlens/media on the server (ADR-0006); /media pre-created so a named volume
+# (edge stack) starts out writable.
+RUN useradd -m -u 1000 worker && install -d -o worker -g worker /media
 USER worker
-ENV PATH="/app/.venv/bin:${PATH}"
-# Placeholder until the job loop lands (M0 "worker skeleton"): verifies the image and ffmpeg.
-CMD ["sh", "-c", "python -c 'import rowlens_worker' && ffmpeg -hide_banner -version | head -1"]
+ENV PATH="/app/.venv/bin:${PATH}" PYTHONUNBUFFERED=1
+# Claims jobs from Postgres until SIGTERM (ADR-0008).
+CMD ["python", "-m", "rowlens_worker"]
