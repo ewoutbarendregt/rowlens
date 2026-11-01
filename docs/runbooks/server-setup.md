@@ -11,8 +11,9 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | Backup of the previous `authorized_keys` | `/home/deploy/.ssh/authorized_keys.bak-20261101-rowlens` (4 keys) | Claude, 2026-11-01 |
 | Private key | `~/.ssh/rowlens_deploy` on Ewout's laptop | Claude, 2026-11-01 |
 | GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ⏳ **to do, Ewout** (the agent isn't allowed to write secret stores) | — |
-| `/opt/rowlens` (`deploy:deploy`, 750) with `media/` and `.docker/` | ⏳ **to do, Ewout**: needs sudo, which `deploy` can't use without a password | — |
-| `/opt/rowlens/.env` (640) | ⏳ after `/opt/rowlens` exists (agent, generated on the server) | — |
+| `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
+| `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
+| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
 | Caddy route `/projects/rowlens/*` | ⏳ [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) open against `develop`; live after the next trustable `develop` → `main` release | Claude, 2026-11-01, approved (#24) |
 | RowLens containers | ❌ none yet; first deploy is #26, which needs separate approval | — |
 
@@ -20,22 +21,31 @@ Nothing under `/opt/trustable` has been changed.
 
 ## Steps for Ewout
 
-1. Create the directory (prompts for the `deploy` sudo password):
-
-   ```bash
-   ssh -t trustable-prod 'sudo install -d -o deploy -g deploy -m 750 /opt/rowlens && install -d -m 750 /opt/rowlens/media /opt/rowlens/.docker && ls -la /opt/rowlens'
-   ```
-
-2. Store the deploy key as a GitHub Actions secret (the value goes straight from the file to GitHub):
+1. Store the deploy key as a GitHub Actions secret (the value goes straight from the file to GitHub):
 
    ```bash
    gh secret set ROWLENS_SSH_PRIVATE_KEY -R ewoutbarendregt/rowlens < ~/.ssh/rowlens_deploy
    ```
 
-3. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
+2. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
    goes live with the next trustable release, which also redeploys trustable's web and api.
 
-## Creating `/opt/rowlens/.env` (after step 1)
+## Root access
+
+`deploy` has no passwordless sudo and root can't log in over SSH (`PermitRootLogin no`). For root-only
+steps, switch with `su` inside a `deploy` session (asks for the root password):
+
+```bash
+ssh -t trustable-prod "su -c '<command>'"
+```
+
+How `/opt/rowlens` was created (2026-11-01):
+
+```bash
+ssh -t trustable-prod "su -c 'install -d -o deploy -g deploy -m 750 /opt/rowlens'"
+```
+
+## How `/opt/rowlens/.env` was created
 
 Secrets are generated on the server and never printed:
 

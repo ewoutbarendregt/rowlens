@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — /opt/rowlens and .env created on trustable-prod (#23)
+
+**Session**: claude/docs/23-server-setup-runbook
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; on trustable-prod: /opt/rowlens (created by Ewout with su), /opt/rowlens/{media,.docker}/, /opt/rowlens/.env
+**Summary**: Ewout created /opt/rowlens as root via `su` (no sudo for deploy, no root SSH). I added media/ and .docker/ and generated .env on the server (password never printed). /opt/trustable untouched, disk unchanged at 46 %. Still pending: the ROWLENS_SSH_PRIVATE_KEY secret and merging trustable.nl#377.
+**Prompts used**: "i have the password for root, not deploy"; the user's pasted `su -c 'install -d …'` session output.
+
 ## 2026-11-01 — Server setup started: deploy key installed, Caddy route PR opened (#23, #24)
 
 **Session**: claude/docs/23-server-setup-runbook (stacked on claude/test/22-local-edge-stack)
