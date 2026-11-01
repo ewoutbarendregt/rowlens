@@ -6,8 +6,10 @@ it receives data, and linked from the privacy statement.
 | Processor | Purpose | Data | Location | Status |
 |---|---|---|---|---|
 | Hetzner Online GmbH | Server hosting (trustable-prod), backups | all application data | Germany (nbg1) | in use (shared server) |
-| Hetzner Object Storage *or* Volume | Video storage (ADR-0006) | videos, analysis artefacts | Germany/Finland | to decide |
-| Resend | Transactional e-mail (OTP, notifications) | e-mail address, display name, notification text | to verify (EU region?) | proposed |
+| Resend | Transactional e-mail (OTP, notifications), sender rowlens@trustable.nl | e-mail address, display name, notification text | to verify (EU region?) | decided |
 | GitHub (GHCR, Actions) | Source code, container images | no user data | US | in use |
-| Error tracking (Sentry EU / GlitchTip) | Exceptions | pseudonymous ids, no video, no e-mail | EU | to decide |
-| LLM provider | Plain-language explanations (opt-in per club) | pseudonymous structured metrics only | EU required | to decide (ADR-0010) |
+| Error tracking | none, logs only on our own server (ADR-0004) | — | — | not used |
+| LLM provider | Plain-language explanations (opt-in per club) | pseudonymous structured metrics only | EU required | deferred to M2 (ADR-0010) |
+
+Videos are stored on the same Hetzner server (MinIO on local disk) and are **not backed up** during the
+pilot (ADR-0006). The privacy statement must say so.

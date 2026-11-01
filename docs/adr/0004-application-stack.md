@@ -29,7 +29,7 @@ Monorepo (pnpm workspaces + a uv-managed Python project):
 | Object storage | S3 API (ADR-0006) | portable |
 | E-mail | Resend via SMTP (nodemailer), as AudioScribe | existing verified domain |
 | Logging | pino (JSON) / structlog (JSON); request id propagated web → job → worker | structured logs |
-| Errors | Sentry SDK pointed at an EU Sentry or self-hosted GlitchTip (**your choice**) | error tracking |
+| Errors | **Logs only for now** (decided 2026-11-01): errors are logged at `error` level with a stable fingerprint, counted in metrics, and the daily health mail reports new fingerprints. No external error tracker, so no extra processor. Revisit if errors get missed | error tracking |
 | Metrics | Prometheus text endpoint on the internal network only | uploads, processing time, failures |
 | Tests | Vitest (unit/integration with Testcontainers Postgres), Playwright (mobile + desktop), pytest | |
 | Lint/format | ESLint + Prettier; Ruff + mypy | |

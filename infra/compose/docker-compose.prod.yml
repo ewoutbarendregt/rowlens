@@ -57,14 +57,13 @@ services:
       resources:
         limits: { cpus: '1.0', memory: 1G }
 
-  # Only if ADR-0006 settles on Volume + MinIO; omit when using Hetzner Object Storage.
+  # Media on the local root disk, capped at 30 GB (ADR-0006): app check + `mc quota set --size 30GiB`.
   minio:
     <<: *small
-    profiles: ['minio']
     image: minio/minio:latest
     command: server /data
     env_file: /opt/rowlens/minio.env
-    volumes: ['/mnt/rowlens-media:/data']
+    volumes: ['/opt/rowlens/media:/data']
     networks: [internal]
     deploy:
       resources:

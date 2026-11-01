@@ -36,8 +36,11 @@ would own our containers.
    (`docker image prune` filtered by `label=org.opencontainers.image.source=…/rowlens`).
 7. CD (prepared in M0, enabled after your approval): GitHub Actions → GHCR → SSH as `deploy` with a
    **new, RowLens-only deploy key** → `docker compose -p rowlens pull && run migrate && up -d` → health
-   check → roll back to the previous tag on failure. A `production` GitHub environment with manual approval
-   gates it. A `staging` target is defined but disabled.
+   check → roll back to the previous tag on failure. A staging target is defined but disabled.
+   **Approval gate**: the repo stays private on the free plan (decided 2026-11-01), so GitHub environment
+   reviewers and branch protection are not available. Instead, merges to `main` only build and push images;
+   **deploying is a separate `workflow_dispatch` workflow** that only the repo owner can trigger, given an
+   image tag. Merging to `main` is by convention only: agents never push or merge to `main` (CLAUDE.md).
 
 ## Consequences
 

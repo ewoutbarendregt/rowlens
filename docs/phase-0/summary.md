@@ -26,38 +26,44 @@ Base path: **`https://trustable.nl/projects/rowlens`** (changed from `/projects/
 | Base path (0003) | App mounted at `/projects/rowlens`, prefix **not** stripped, a single URL-builder module |
 | Stack (0004) | TypeScript: React 19 + Vite SPA and Fastify API in one container, Drizzle + Postgres 16, Zod, i18next. Python 3.12 worker |
 | Tenancy (0005) | Repository layer with `TenantContext` plus Postgres RLS, and cross-club tests that must pass |
-| Storage (0006) | S3 interface. **Video off the shared disk** (Hetzner Object Storage recommended). Quotas, disk alerts, off-site backups with restore tests |
+| Storage (0006) | S3 interface. Pilot: MinIO on local disk, **30 GB hard cap**, disk alerts, no video backup. DB backups with restore tests |
 | Video (0007) | tus upload. CFR H.264 renditions with about 0.25 s GOP at the source fps. `requestVideoFrameCallback` stepping. iPhone immersive mode |
 | Queue (0008) | Postgres job table (`SKIP LOCKED` + `NOTIFY`), shared by Node and Python |
 | Analysis (0009) | RTMPose / RTMDet (Apache-2.0) via ONNX, manual seat assignment, a rule table per perspective, value with evidence or refusal |
 | LLM (0010) | OpenAI-compatible adapter. Pseudonymous metrics only, opt-in per club, versioned prompts |
 | Auth (0011) | E-mail OTP without enumeration, hashed codes, `__Secure-` cookie with `Path=/projects/rowlens`, CSRF, rate limits |
 
-## Decisions needed from you
+## Decisions taken (2026-11-01)
 
-1. **Approve or amend the ADRs** (especially 0002, 0004 and 0005).
-2. **Video storage backend**: Hetzner Object Storage, or a Hetzner Volume + MinIO? Monthly budget? (ADR-0006)
-3. **Video backup**: back up originals only (renditions can be regenerated)? Is a deletion lag of 24 h or less in the
-   backup replica acceptable?
-4. **OTP sender**: e.g. `RowLens <rowlens@trustable.nl>` through the existing Resend account?
-5. **LLM provider** for M2 (Mistral, Claude via an EU cloud region, Azure OpenAI EU, or self-hosted). (ADR-0010)
-6. **Error tracking**: Sentry (EU region) or self-hosted GlitchTip?
-7. **Reference stroke model**: which coach validates it, and what's the source?
-8. **Same-origin risk**: OK to run on `trustable.nl/projects/rowlens` for the first club and move to an own host
-   (`rowlens.trustable.nl` or a product domain) before club 2? (ADR-0003)
-9. **Shared-component changes**, each shown in full before I apply it:
+| Topic | Decision | Recorded in |
+|---|---|---|
+| Video storage | **Local disk** (MinIO on the root disk), **hard cap 30 GB** of RowLens media; uploads pause at 85 % disk | ADR-0006, #32, #36 |
+| Video backup | **None during the pilot**; stated plainly in the privacy statement; database backups continue | ADR-0006, #37, #64 |
+| E-mail sender | **`RowLens <rowlens@trustable.nl>`** via the existing Resend account | ADR-0011, #30 |
+| Origin | **Subpath `trustable.nl/projects/rowlens` now**; own host before a second club | ADR-0003, #16 |
+| Error tracking | **Logs only for now**: error fingerprints in metrics and the daily health mail | ADR-0004, #35 |
+| Branch protection | **None (private, free plan), by convention**: agents never push or merge to `main`; production deploys are a manual `workflow_dispatch` | ADR-0002, #18, #25 |
+| LLM provider | **Deferred to M2** | ADR-0010 |
+
+## Still open
+
+1. **Approve or amend the remaining proposed ADRs** (especially 0002, 0004 and 0005).
+2. **Reference stroke model** (M2): which coach validates it, and what's the source?
+3. **Shared-component changes**, each shown in full before I apply it:
    - adding a RowLens-only CI deploy key to `deploy`'s `authorized_keys` (#23)
    - a Caddyfile route in the trustable.nl repo, diff in ADR-0003 (#24)
    - `web` joining the existing `trustable_proxy` network (ADR-0002)
-10. **GitHub**: branch protection on a private repo needs **GitHub Pro** (or a public repo) (#18). The
-    project board needs `gh auth refresh -s project` before I can create it.
-11. **YOLO-pose is AGPL-3.0**. I've excluded it unless you accept the licence terms.
+4. **DB backup off-server destination** (Storage Box or a small bucket), in #37.
+5. **Project board**: needs `gh auth refresh -s project` before I can create it.
+6. **YOLO-pose is AGPL-3.0**. It stays excluded unless you accept the licence terms.
 
 ## Risks
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| Video fills the shared disk (about 1 GB per 4K clip, 80 GB free) | trustable.nl + AudioScribe go down | object storage, quotas, alerts at 75/85 %, uploads pause at 90 % |
+| Video fills the shared disk (about 1 GB per 4K clip, 80 GB free) | trustable.nl + AudioScribe go down | 30 GB media cap (app + MinIO quota), alerts at 75 % disk, uploads pause at 85 % |
+| No video backup during the pilot | a disk or server loss loses all videos | stated in the privacy statement; revisit before raising the cap or club 2 |
+| No branch protection | an accidental push to main | agents never push to main; deploys are manual `workflow_dispatch` only |
 | Same origin as two other apps | an XSS elsewhere could reach RowLens | CSP, CSRF, Origin checks; own host before club 2 |
 | CPU contention while transcoding 4K | slow pages for the other apps | 2-vCPU limit, `nice`, queue |
 | iPhone fullscreen hides custom controls | poor frame stepping on iPhone | CSS immersive mode; covered by the spike (#51) |
@@ -68,13 +74,12 @@ Base path: **`https://trustable.nl/projects/rowlens`** (changed from `/projects/
 ## Proposed first sprint (2 weeks, M0)
 
 1. #17 Phase 0 PR: review and merge
-2. #18 Branch protection (after the plan/visibility decision)
-3. #19 Web app skeleton (Fastify + React under the base path)
-4. #22 E2E harness behind Caddy, mobile + desktop
-5. #31 Database: migrations, roles, tenant transaction helper
-6. #34 i18n framework NL/EN
-7. #23, #24, #25, #26 Provision, Caddy route, CD, hello-world live (each server step after your approval)
-8. #32 Storage decision + `BlobStore` (as soon as you decide)
-9. #51 Player spike (can run in parallel: it only needs a static page and test clips)
+2. #19 Web app skeleton (Fastify + React under the base path)
+3. #22 E2E harness behind Caddy, mobile + desktop
+4. #31 Database: migrations, roles, tenant transaction helper
+5. #34 i18n framework NL/EN
+6. #23, #24, #25, #26 Provision, Caddy route, CD, hello-world live (each server step after your approval)
+7. #32 `BlobStore` + MinIO on local disk with the 30 GB cap
+8. #51 Player spike (can run in parallel: it only needs a static page and test clips)
 
-OTP login (#28–#30) starts once the e-mail sender is confirmed.
+OTP login (#28–#30) can start now that the sender is confirmed.

@@ -25,8 +25,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   AudioScribe. Caddy (owned by trustable.nl) routes `/projects/rowlens/*` unchanged to `rowlens-web:3000`.
 - Own Compose project `rowlens` in `/opt/rowlens`: `web`, `worker`, `db` (Postgres 16), optional `minio`.
   Internal network for everything; only `web` joins `trustable_proxy`. CPU/memory limits on all services.
-- Video bytes in S3-compatible object storage behind a `BlobStore` interface; recommended Hetzner Object
-  Storage (decision pending) so media never fills the shared disk.
+- Video bytes behind a `BlobStore` interface (S3 API), served by MinIO on the local disk for the pilot,
+  **hard-capped at 30 GB**; uploads pause at 85 % root-disk use. No video backup during the pilot (ADR-0006).
 - Jobs: Postgres table with `SKIP LOCKED` + `LISTEN/NOTIFY`, consumed by the Python worker.
 - Tenancy: app-layer policies + Postgres RLS; `club_id` on every tenant table; cross-club tests.
 - Auth: e-mail OTP + invitations; `__Secure-rowlens_sid` cookie with `Path=/projects/rowlens`.
@@ -37,7 +37,8 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 policy (PR title + branch name) · web (format, lint, typecheck, test, build, audit) · worker (ruff,
 mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test).
-`release.yml`: release-please (changelog + semver tags). No deployment workflow yet.
+`release.yml`: release-please (changelog + semver tags). No deployment workflow yet; production deploys
+will be a manual `workflow_dispatch` (no branch protection on the free private plan, ADR-0002).
 
 ## Known constraints
 

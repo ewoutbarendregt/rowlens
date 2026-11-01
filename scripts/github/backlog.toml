@@ -77,7 +77,7 @@ key = "hosting"
 milestone = "M0 Foundation"
 title = "Epic: Hosting & deployment on trustable-prod"
 labels = ["infra", "must"]
-goal = "RowLens runs as an isolated Compose project at /opt/rowlens, served at https://trustable.nl/projects/rowlens, deployed by an approval-gated pipeline with health check and rollback — without touching trustable.nl or AudioScribe (ADR-0002, ADR-0003)."
+goal = "RowLens runs as an isolated Compose project at /opt/rowlens, served at https://trustable.nl/projects/rowlens, deployed by a manually triggered pipeline with health check and rollback — without touching trustable.nl or AudioScribe (ADR-0002, ADR-0003)."
 
 [[epic]]
 key = "auth"
@@ -193,15 +193,15 @@ ac = [
 
 [[story]]
 epic = "foundation"
-title = "Repository settings: branch protection on main"
+title = "Repository settings: merge policy without branch protection"
 labels = ["infra", "must"]
-story = "As the product owner, I want main protected, so that nothing lands without green CI and my review."
+story = "As the product owner, I want a consistent merge policy, so that main stays deployable even though it isn't technically protected."
 ac = [
-  "main requires a PR, passing `ci` checks and one approving review; force pushes and deletion blocked",
-  "Squash merge only; PR title used as commit message (Conventional Commits)",
+  "Squash merge only; PR title used as commit message (Conventional Commits); head branches deleted after merge",
   "Actions allowed to open PRs (release-please)",
+  "CLAUDE.md states that agents never push, commit or merge to main",
 ]
-notes = "Branch protection on a private repo needs GitHub Pro (or making the repo public)."
+notes = "Decided 2026-11-01: private repo on the free plan, so no branch protection rules or environments (they need GitHub Pro). Revisit if more people get write access."
 
 [[story]]
 epic = "foundation"
@@ -277,12 +277,12 @@ ac = [
 
 [[story]]
 epic = "hosting"
-title = "CD: approval-gated deploy to production with health check and rollback"
+title = "CD: manually triggered deploy to production with health check and rollback"
 labels = ["infra", "must"]
-story = "As the product owner, I want merges to main deployable with one approval, so that releases are safe and repeatable."
+story = "As the product owner, I want to deploy a built image with one deliberate action, so that releases are safe and repeatable."
 ac = [
-  "On merge to main: build + push rowlens-web/worker images (immutable tags) to GHCR",
-  "Deploy job uses a protected `production` environment requiring manual approval",
+  "On merge to main: build + push rowlens-web/worker images (immutable tags) to GHCR; no automatic deploy",
+  "Deploy is a separate `workflow_dispatch` workflow taking an image tag, runnable only by the repo owner (no GitHub environments on the free private plan, ADR-0002)",
   "Steps: pull → DB backup → migrate → up -d → health check via the public URL",
   "Failed health check rolls back to the previous image tag automatically",
   "Only RowLens images are pruned",
@@ -304,7 +304,7 @@ title = "Prepare (disabled) staging deployment target"
 labels = ["infra", "should"]
 story = "As an operator, I want a staging target defined, so that we can switch it on when the staging server is ready."
 ac = [
-  "`staging` GitHub environment and workflow input exist; disabled by default",
+  "Deploy workflow accepts a `staging` target input; disabled until the staging server has room",
   "Deploy script parameterised by host and base URL",
 ]
 
@@ -336,10 +336,10 @@ ac = [
 [[story]]
 epic = "auth"
 title = "E-mail delivery: Resend SMTP, localised templates, sender domain"
-labels = ["feature", "must", "i18n", "decision-needed"]
+labels = ["feature", "must", "i18n"]
 story = "As a user, I want e-mails from RowLens to arrive and be in my language."
 ac = [
-  "Sender address confirmed by Ewout; SPF/DKIM/DMARC verified in Resend",
+  "Sender `RowLens <rowlens@trustable.nl>` via the existing Resend account (decided); SPF/DKIM/DMARC for trustable.nl verified in Resend",
   "HTML + text templates in NL/EN; all links absolute under the base path",
   "Dev mode logs codes when SMTP is unset; prod refuses to start without SMTP",
 ]
@@ -358,14 +358,16 @@ notes = "ADR-0005."
 
 [[story]]
 epic = "platform"
-title = "Object storage: decide backend, BlobStore interface, buckets"
-labels = ["infra", "must", "decision-needed"]
-story = "As an operator, I want video bytes off the shared server disk, so that RowLens can't take the other apps down."
+title = "Media storage: BlobStore interface, MinIO on local disk, 30 GB cap"
+labels = ["infra", "must"]
+story = "As an operator, I want video storage that can never take the other apps on the server down."
 ac = [
-  "Ewout decides Hetzner Object Storage vs. Volume + MinIO (ADR-0006 accepted)",
-  "`BlobStore` interface (put/get range/presign/delete prefix) with S3 implementation; MinIO in dev/CI",
-  "Per-club quota and per-upload size cap enforced",
+  "`BlobStore` interface (put/get range/presign/delete prefix) with an S3 implementation; MinIO in prod (data in /opt/rowlens/media), dev and CI",
+  "Hard cap of 30 GB RowLens media (MEDIA_CAP_BYTES) checked against tus Upload-Length before accepting bytes; MinIO bucket quota as a backstop",
+  "Per-upload cap of 4 GB; per-club quota defaults to the global cap",
+  "Usage against the cap visible to coaches",
 ]
+notes = "ADR-0006 (accepted): local disk for the pilot; Hetzner Object Storage is the preferred next step."
 
 [[story]]
 epic = "platform"
@@ -392,12 +394,12 @@ ac = [
 
 [[story]]
 epic = "platform"
-title = "Observability: structured logs, error tracking, metrics"
-labels = ["infra", "must", "decision-needed"]
+title = "Observability: structured logs, error fingerprints, metrics"
+labels = ["infra", "must"]
 story = "As an operator, I want to see failures and throughput, so that I can fix problems before users report them."
 ac = [
   "JSON logs (pino / structlog) with request id propagated web → job → worker; no personal data in logs",
-  "Error tracking via Sentry SDK to an EU endpoint (provider chosen by Ewout)",
+  "No external error tracker (decided): errors logged with a stable fingerprint, counted as a metric, and new fingerprints listed in a daily health e-mail",
   "Internal metrics endpoint: uploads, processing time, job failures, queue depth",
 ]
 
@@ -408,20 +410,23 @@ labels = ["infra", "must"]
 story = "As an operator, I want an alert before the disk fills, so that the shared server stays up."
 ac = [
   "RowLens-owned cron checks root disk and media storage usage",
-  "E-mail alert at 75 % and 85 %; uploads paused at 90 % with a clear message",
+  "E-mail alert at 75 % root disk or 80 % of the 30 GB media cap",
+  "Uploads paused at 85 % root disk (whoever uses the space) with a clear message",
   "Usage exported as a metric",
 ]
 
 [[story]]
 epic = "platform"
 title = "Database backups off-server with weekly restore test"
-labels = ["infra", "must"]
+labels = ["infra", "must", "decision-needed"]
 story = "As the product owner, I want backups I know I can restore, so that a server loss doesn't lose club data."
 ac = [
-  "Nightly encrypted pg_dump copied off-server; 30 daily + 12 monthly retained",
+  "Nightly encrypted pg_dump; 30 daily + 12 monthly retained",
+  "Off-server destination chosen by Ewout (Storage Box or a small bucket) and copies verified",
   "Weekly automated restore into a throwaway container with sanity checks; failure alerts",
-  "Video originals replicated per ADR-0006; restore runbook in docs/",
+  "Restore runbook in docs/",
 ]
+notes = "No video backup during the pilot (ADR-0006, decided 2026-11-01)."
 
 # ---------------------------------------------------------------- M1 stories
 
@@ -518,7 +523,7 @@ labels = ["security", "must"]
 story = "As an operator, I want only real videos within limits accepted."
 ac = [
   "Magic-byte + ffprobe validation; non-video rejected and deleted",
-  "Per-upload size cap and per-club quota enforced before accepting bytes",
+  "Per-upload size cap, per-club quota and the 30 GB global media cap enforced before accepting bytes",
   "Rate limit per user; tests for each rejection path",
 ]
 
@@ -708,6 +713,7 @@ story = "As a user, I want to know what happens with my data and video."
 ac = [
   "Privacy statement in NL and EN linked from login and footer",
   "Lists processors from docs/privacy/processors.md, retention, deletion windows and contact",
+  "States plainly that videos are not backed up during the pilot (ADR-0006)",
 ]
 
 [[story]]

@@ -1,6 +1,6 @@
 # ADR-0003: Serve under `/projects/rowlens` without prefix stripping
 
-- **Status**: proposed
+- **Status**: proposed. Hosting choice accepted 2026-11-01: run on the shared `trustable.nl` origin for the first club, and move to an own host before a second club onboards.
 - **Date**: 2026-11-01
 
 ## Context

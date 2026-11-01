@@ -15,7 +15,10 @@ Read first, every session: `PLAN.md`, `BUILD.md`, latest entry of `DOCUMENTATION
   showing the exact diff/command.
 - No destructive commands (drop DB, delete volumes, `rm -rf`, force push, `docker system prune`) without
   explicit approval. Read-only inspection of the server is fine.
-- No deploy to production without approval. CD runs through the approval-gated `production` environment.
+- **`main` is not technically protected** (private repo, free plan): never push, commit or merge to
+  `main`; everything goes through a PR that Ewout merges. Production deploys are a manual
+  `workflow_dispatch` that only Ewout triggers.
+- No deploy to production without approval.
 - Never commit secrets, `.env` files, personal data or media. Server secrets live in `/opt/rowlens/.env`;
   CI secrets in GitHub Actions secrets.
 - Never send user video, names or e-mail addresses to an external AI provider. LLM input is pseudonymous

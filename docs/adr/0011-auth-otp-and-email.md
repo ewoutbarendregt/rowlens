@@ -23,7 +23,7 @@ notifications with opt-out, NL/EN. AudioScribe and trustable.nl already use OTP 
 - **Invitations**: coach invites e-mails to club + crew + role; token link (7 days, single use) lands on the
   OTP flow; accepting creates membership. Audited.
 - **Self-signup**: off in M1 (invitation only). Club self-onboarding is M3.
-- **E-mail**: nodemailer → Resend SMTP. Sender **to confirm**, e.g. `RowLens <rowlens@trustable.nl>`.
+- **E-mail**: nodemailer → Resend SMTP. Sender **`RowLens <rowlens@trustable.nl>`** through the existing Resend account (confirmed 2026-11-01).
   Localised templates (MJML or React Email → HTML + text), all links absolute via the base-path URL
   builder. Notification preferences per user (immediate / daily digest / off). Unsubscribe link (one-click).
 - Dev: codes printed to logs when SMTP is unset (AudioScribe convention), never in prod (startup check).

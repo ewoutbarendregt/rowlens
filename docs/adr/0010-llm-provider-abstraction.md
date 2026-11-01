@@ -1,6 +1,7 @@
 # ADR-0010: LLM provider abstraction and data minimisation
 
-- **Status**: proposed — **provider choice is yours**
+- **Status**: proposed. The provider choice is deferred to the start of M2 (decided 2026-11-01); nothing in
+  M0/M1 depends on it.
 - **Date**: 2026-11-01
 
 ## Context
