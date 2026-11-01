@@ -17,7 +17,7 @@ const en = {
   otherNotes: 'Also on this frame',
   deleteMoment: 'Delete note',
   confirmDeleteMoment: (frame: number) =>
-    `Delete the note at frame ${String(frame)}, with all its drawings and remarks, for everyone?`,
+    `Delete the note at frame ${String(frame)} with all its drawings and remarks, for everyone?`,
   drawingsHere: 'Drawings on this frame',
   deleteDrawing: (what: string) => `Delete ${what}`,
   drawing: { line: 'Line', arrow: 'Arrow', angle: (deg: number) => `Angle ${String(deg)}°` },
@@ -32,6 +32,7 @@ const en = {
   update: 'Save',
   delete: 'Delete',
   confirmDelete: 'Delete this note for everyone?',
+  confirmDeleteDrawing: (what: string) => `Delete ${what}?`,
   jump: (frame: number, time: string) => `Go to frame ${String(frame)} (${time})`,
   marker: (frame: number, body: string) => `Note at frame ${String(frame)}: ${body}`,
   here: 'on this frame',
@@ -56,7 +57,7 @@ const nl: typeof en = {
   otherNotes: 'Ook op dit frame',
   deleteMoment: 'Notitie verwijderen',
   confirmDeleteMoment: (frame: number) =>
-    `De notitie bij frame ${String(frame)} met alle tekeningen en opmerkingen voor iedereen verwijderen?`,
+    `Notitie bij frame ${String(frame)} met alle tekeningen en opmerkingen voor iedereen verwijderen?`,
   drawingsHere: 'Tekeningen op dit frame',
   deleteDrawing: (what: string) => `${what} verwijderen`,
   drawing: { line: 'Lijn', arrow: 'Pijl', angle: (deg: number) => `Hoek ${String(deg)}°` },
@@ -71,6 +72,7 @@ const nl: typeof en = {
   update: 'Opslaan',
   delete: 'Verwijderen',
   confirmDelete: 'Deze notitie voor iedereen verwijderen?',
+  confirmDeleteDrawing: (what: string) => `${what} verwijderen?`,
   jump: (frame: number, time: string) => `Naar frame ${String(frame)} (${time})`,
   marker: (frame: number, body: string) => `Notitie bij frame ${String(frame)}: ${body}`,
   here: 'op dit frame',

@@ -124,6 +124,12 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
   note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
 
+## Confirmations
+
+- No browser popups (`window.confirm`): deleting a note, a drawing or a video asks in the page,
+  where it was clicked (`client/ui/ConfirmInline.tsx`: question + "Ja, verwijderen" / "Annuleren";
+  focus on yes, Esc cancels; compact "Ja / Nee" inside a drawing chip). One open at a time.
+
 ## Video names (Ewout, 2026-11-01)
 
 - Shown as `[session]-[#]-[start]-[length]`, e.g. `Zaterdag CX4+-2-09:48-1:27`

@@ -67,8 +67,8 @@ test('create a session, upload a video and a fake one, delete the video', async 
     /Not a video|Geen video/,
   );
 
-  page.once('dialog', (d) => void d.accept());
   await stroke.getByRole('button', { name: /^(Delete|Verwijderen)$/ }).click();
+  await stroke.getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }).click();
   await expect(videos).toHaveCount(1);
 
   await page.getByRole('link', { name: /All sessions|Alle trainingen/ }).click();

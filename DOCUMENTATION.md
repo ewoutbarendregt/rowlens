@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Confirmations in the page instead of browser popups
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/ui/ConfirmInline.tsx, src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/sessions/SessionPage.tsx, src/client/styles.css, e2e/{drawing,upload}.spec.ts, BUILD.md
+**Summary**: Ewout (screenshot of the browser's "localhost:5174 says" dialog, in English): the confirmation must be in the page. All three `window.confirm`s (whole note, drawing, video) now ask inline where they were clicked, NL/EN. E2E fails on any browser dialog and checks that Cancel deletes nothing.
+**Prompts used**: "deze confirmatie moet niet als popup gebeuren, maar in de pagina zelf".
+
 ## 2026-11-01 — Video display name: [session]-[#]-[start]-[length]
 
 **Session**: claude/feat/60-drawing

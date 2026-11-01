@@ -2,6 +2,7 @@ import { type SubmitEvent, useEffect, useId, useState } from 'react';
 import { api } from '../api.ts';
 import { angleDegrees, type DrawingKind, type Point, type Size } from '../drawing/geometry.ts';
 import { formatFrameTime } from '../player/frames.ts';
+import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { moments } from './moments.ts';
 import { rememberName } from './name.ts';
 import { notesStrings } from './strings.ts';
@@ -55,6 +56,8 @@ export function NotesPanel(props: NotesPanelProps) {
   const id = useId();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  // What is waiting for an in-page "yes": `moment-<frame>` or `drawing-<id>`.
+  const [confirming, setConfirming] = useState<string | null>(null);
 
   const run = (request: Promise<Response>) => {
     setBusy(true);
@@ -172,19 +175,34 @@ export function NotesPanel(props: NotesPanelProps) {
                       const what = describeDrawing(d, size);
                       return (
                         <li key={d.id} className="chip" data-testid="drawing">
-                          <span>{what}</span>
-                          <button
-                            type="button"
-                            className="chip__remove"
-                            aria-label={t.deleteDrawing(what)}
-                            onClick={() => {
-                              if (window.confirm(t.confirmDelete)) {
+                          {confirming === `drawing-${d.id}` ? (
+                            <ConfirmInline
+                              compact
+                              question={t.confirmDeleteDrawing(what)}
+                              onConfirm={() => {
+                                setConfirming(null);
                                 void run(api(`/api/annotations/${d.id}`, { method: 'DELETE' }));
-                              }
-                            }}
-                          >
-                            ×
-                          </button>
+                              }}
+                              onCancel={() => {
+                                setConfirming(null);
+                              }}
+                            />
+                          ) : (
+                            <>
+                              <span>{what}</span>
+                              <button
+                                type="button"
+                                className="chip__remove"
+                                aria-label={t.deleteDrawing(what)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirming(`drawing-${d.id}`);
+                                }}
+                              >
+                                ×
+                              </button>
+                            </>
+                          )}
                         </li>
                       );
                     })}
@@ -222,22 +240,33 @@ export function NotesPanel(props: NotesPanelProps) {
                 )}
 
                 <div className="moment__footer">
-                  <button
-                    type="button"
-                    className="button--quiet moment__delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.confirm(t.confirmDeleteMoment(at))) {
+                  {confirming === `moment-${String(at)}` ? (
+                    <ConfirmInline
+                      question={t.confirmDeleteMoment(at)}
+                      onConfirm={() => {
+                        setConfirming(null);
                         void run(
                           api(`/api/videos/${videoId}/frames/${String(at)}/annotations`, {
                             method: 'DELETE',
                           }),
                         );
-                      }
-                    }}
-                  >
-                    {t.deleteMoment}
-                  </button>
+                      }}
+                      onCancel={() => {
+                        setConfirming(null);
+                      }}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="button--quiet moment__delete"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirming(`moment-${String(at)}`);
+                      }}
+                    >
+                      {t.deleteMoment}
+                    </button>
+                  )}
                 </div>
               </div>
             </li>

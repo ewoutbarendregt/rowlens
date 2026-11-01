@@ -73,15 +73,28 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await expect(frame).toHaveText('10');
   await expect(shapes).toHaveCount(2);
 
-  page.once('dialog', (d) => void d.accept());
+  // Confirmations are in the page, not browser popups.
+  page.on('dialog', () => {
+    throw new Error('no browser dialogs expected');
+  });
   await drawings.getByRole('button', { name: /^(Delete Arrow|Pijl verwijderen)$/ }).click();
+  await drawings
+    .getByTestId('confirm')
+    .getByRole('button', { name: /^(Yes|Ja)$/ })
+    .click();
   await expect(shapes).toHaveCount(1);
   await expect(drawings).toHaveCount(1);
   await expect(moment).toHaveCount(1);
 
   // The whole note goes at once: remaining drawing, explanation and marker.
-  page.once('dialog', (d) => void d.accept());
-  await moment.getByRole('button', { name: /^(Delete note|Notitie verwijderen)$/ }).click();
+  const deleteNote = moment.getByRole('button', { name: /^(Delete note|Notitie verwijderen)$/ });
+  await deleteNote.click();
+  await expect(moment.getByTestId('confirm')).toContainText(/frame 10/);
+  await moment.getByRole('button', { name: /^(Cancel|Annuleren)$/ }).click();
+  await expect(moment).toHaveCount(1); // cancelled: nothing gone
+  await expect(shapes).toHaveCount(1);
+  await deleteNote.click();
+  await moment.getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }).click();
   await expect(moment).toHaveCount(0);
   await expect(shapes).toHaveCount(0);
   await expect(page.getByTestId('player-markers')).toHaveCount(0);

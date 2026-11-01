@@ -10,6 +10,7 @@ import {
   sessionStrings,
   type VideoStatus,
 } from './strings.ts';
+import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { videoDisplayName } from './displayName.ts';
 import { retryable, useUploads } from './useUploads.ts';
 
@@ -84,8 +85,10 @@ export function SessionPage() {
       durationMs: v.durationMs,
     });
 
+  // A video waiting for the in-page "yes" (no browser popup).
+  const [confirming, setConfirming] = useState<string | null>(null);
   const remove = (v: SessionVideo) => {
-    if (!window.confirm(t.confirmDelete(nameOf(v)))) return;
+    setConfirming(null);
     void api(`/api/videos/${v.id}`, { method: 'DELETE' }).finally(load);
   };
 
@@ -160,15 +163,27 @@ export function SessionPage() {
                   </span>
                 )}
               </div>
-              <button
-                type="button"
-                className="button--quiet"
-                onClick={() => {
-                  remove(v);
-                }}
-              >
-                {t.delete}
-              </button>
+              {confirming === v.id ? (
+                <ConfirmInline
+                  question={t.confirmDelete(nameOf(v))}
+                  onConfirm={() => {
+                    remove(v);
+                  }}
+                  onCancel={() => {
+                    setConfirming(null);
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="button--quiet"
+                  onClick={() => {
+                    setConfirming(v.id);
+                  }}
+                >
+                  {t.delete}
+                </button>
+              )}
             </li>
           );
         })}
