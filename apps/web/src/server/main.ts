@@ -18,6 +18,7 @@ const app = await buildApp({
   config,
   clientDir: existsSync(join(clientDir, BUILD_INFO_FILE)) ? clientDir : null,
   readinessChecks: database === null ? [] : [database.readiness],
+  database: database?.db ?? null,
 });
 if (database !== null) app.addHook('onClose', database.close);
 else app.log.warn('DATABASE_URL not set: running without a database');

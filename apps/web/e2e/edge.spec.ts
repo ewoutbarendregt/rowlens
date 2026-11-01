@@ -37,7 +37,11 @@ test.describe('route for /projects/rowlens', () => {
     // endpoint (#45/#46) must enforce chunk and upload sizes itself.
     const res = await request.post('/projects/rowlens/api/does-not-exist', {
       data: Buffer.alloc(16 * MB),
-      headers: { 'content-type': 'application/offset+octet-stream' },
+      // Browsers send Origin on POST; the app refuses state-changing requests without ours.
+      headers: {
+        'content-type': 'application/offset+octet-stream',
+        origin: new URL(edgeUrl ?? 'http://localhost').origin,
+      },
     });
     expect(res.status()).toBe(404);
     expect(await res.json()).toEqual({ error: 'not_found' });

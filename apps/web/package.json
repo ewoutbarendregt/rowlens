@@ -11,6 +11,7 @@
     "dev:server": "node --env-file-if-exists=.env --watch --experimental-strip-types src/server/main.ts",
     "db:migrate": "node --env-file-if-exists=.env --experimental-strip-types src/server/db/migrate-cli.ts",
     "db:generate": "drizzle-kit generate",
+    "pilot:code": "node --experimental-strip-types src/server/pilot/code-cli.ts",
     "dev:client": "vite",
     "e2e": "playwright test",
     "e2e:edge": "E2E_EDGE_URL=http://localhost:${EDGE_PORT:-8080} playwright test --project desktop-chromium"

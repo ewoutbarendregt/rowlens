@@ -27,6 +27,14 @@ From #31 (database roles), not done yet:
    `ssh trustable-prod 'f=/opt/rowlens/.env; grep -q ^ROWLENS_APP_DB_PASSWORD= $f || echo "ROWLENS_APP_DB_PASSWORD=$(openssl rand -hex 32)" >> $f; cut -d= -f1 $f'`
 2. Reinstall the compose file, which now has the `migrate` service: `infra/deploy/install.sh`.
 
+From #84 (pilot access code):
+3. Add `SESSION_SECRET` the same way (`openssl rand -hex 32`, never printed).
+4. Ewout creates the access code, so only he sees it. After the deploy, on the server:
+   `cd /opt/rowlens && docker compose run --rm --no-deps web node dist/server/pilot/code-cli.js`
+   prints `code: …` (give it to the club) and a `PILOT_ACCESS_CODE_HASH=scrypt.…` line to append to
+   `/opt/rowlens/.env`; then `rowlens-deploy deploy <same tag>` restarts `web` with it. Until then the
+   gate says "not open yet". A new code later = the same steps; it signs everyone out.
+
 Without step 1, the deploy stops at `compose pull` ("ROWLENS_APP_DB_PASSWORD is required") and nothing
 changes. The first deploy afterwards creates `rowlens_app`, applies `0000_init` and switches `web` to it.
 

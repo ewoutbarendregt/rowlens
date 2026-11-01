@@ -24,6 +24,9 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | `server/config.ts` | 9 (defaults, normalisation, production PUBLIC_ORIGIN + DATABASE_URL, invalid values) | ✅ passing |
 | `server/db/tenant.ts` (`tenant.db.test.ts`, real Postgres 16) | 7: settings per transaction; nothing left on a reused pooled connection after commit and rollback (mutation-checked: session-wide `set_config` fails it); club A reads only A; can't insert into, update, delete or move rows to club B; club table shows only own club; malformed context rejected | ✅ passing |
 | DB roles + schema (`schema.db.test.ts`) | 6: `rowlens_app` no superuser/BYPASSRLS/CREATEDB/CREATEROLE, owns nothing, can't CREATE or ALTER tables, can't read the migrations journal; re-migrate is a no-op; unsafe password refused; **every `club_id` table has RLS + a policy** | ✅ passing |
+| Pilot gate (`pilot/{code,token,gate}.test.ts`, `rate-limit.test.ts`) | 21: code generation/normalisation/salting, malformed hashes; token expiry, tampering, void after new code/secret; cookie attributes; wrong/malformed code; 5/min per IP and 30/min overall (via X-Forwarded-For); logout; closed gate; Origin check | ✅ passing |
+| `/api/club` + `rowlens_club_id` (`api/club.db.test.ts`) | 5: same 404 as an unknown route without or with a forged cookie; pilot club through RLS; exact-slug lookup only, no club rows without context; pinned search_path | ✅ passing |
+| E2E gate (`e2e/pilot.spec.ts`, local + behind Caddy) | wrong code → alert; code typed in capitals with spaces → club; cookie HttpOnly/Strict/path; survives reload; sign-out; club API 404 without access | ✅ passing |
 | Readiness with DB (`readiness.db.test.ts`) | 3: 200 when Postgres answers; 503 within 5 s when unreachable; 503 on a wrong password | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
@@ -44,6 +47,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
 | 2026-11-01 | claude/feat/31-database | `pnpm test`, `pnpm e2e:edge`, `run.sh`, `rehearse.sh` | 79 passed (16 db); 8 passed; 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/84-access-code | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 104 passed; 22 passed; 10 passed |
 | 2026-11-01 | claude/feat/31-database (CI fix) | `pnpm --filter @rowlens/web e2e` (server with Testcontainers Postgres) | 18 passed, 12 edge-only skipped |
 
 ## Playwright prompts

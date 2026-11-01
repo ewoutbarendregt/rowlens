@@ -13,6 +13,7 @@ describe('loadConfig', () => {
       logLevel: 'info',
       clientDir: undefined,
       databaseUrl: undefined,
+      pilot: null,
     });
   });
 

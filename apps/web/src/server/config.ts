@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { normalizeBasePath } from '../shared/base-path.ts';
+import { isStoredHash } from './pilot/code.ts';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -12,6 +13,17 @@ const envSchema = z.object({
   CLIENT_DIR: z.string().min(1).optional(),
   /** The app's own role, `rowlens_app` (ADR-0005); never the owner. */
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }).optional(),
+  /** Pilot access code (#84) as an scrypt hash from `pnpm --filter @rowlens/web pilot:code`. */
+  PILOT_ACCESS_CODE_HASH: z.string().refine(isStoredHash, 'not a hash from pilot:code').optional(),
+  PILOT_CLUB_SLUG: z
+    .string()
+    .regex(/^[a-z0-9-]{1,64}$/)
+    .default('pilot'),
+  /** Signs cookies; 32+ random bytes as hex (`openssl rand -hex 32`). */
+  SESSION_SECRET: z
+    .string()
+    .regex(/^[0-9a-f]{64,}$/, 'at least 64 hex characters')
+    .optional(),
 });
 
 export interface AppConfig {
@@ -27,6 +39,8 @@ export interface AppConfig {
   clientDir: string | undefined;
   /** Without it (local UI work, unit tests) the server runs without a database. */
   databaseUrl: string | undefined;
+  /** `null`: no access code configured, so the pilot gate stays closed. */
+  pilot: { codeHash: string; sessionSecret: string; clubSlug: string } | null;
 }
 
 /** Parses and validates the environment once at startup; throws with every problem listed. */
@@ -39,6 +53,11 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
 
   if (e.NODE_ENV === 'production' && e.PUBLIC_ORIGIN === undefined) {
     throw new Error('Invalid configuration: PUBLIC_ORIGIN is required in production');
+  }
+  if (e.PILOT_ACCESS_CODE_HASH !== undefined && e.SESSION_SECRET === undefined) {
+    throw new Error(
+      'Invalid configuration: SESSION_SECRET is required with PILOT_ACCESS_CODE_HASH',
+    );
   }
   if (e.NODE_ENV === 'production' && e.DATABASE_URL === undefined) {
     throw new Error('Invalid configuration: DATABASE_URL is required in production');
@@ -58,5 +77,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     logLevel: e.LOG_LEVEL,
     clientDir: e.CLIENT_DIR,
     databaseUrl: e.DATABASE_URL,
+    pilot:
+      e.PILOT_ACCESS_CODE_HASH === undefined || e.SESSION_SECRET === undefined
+        ? null
+        : {
+            codeHash: e.PILOT_ACCESS_CODE_HASH,
+            sessionSecret: e.SESSION_SECRET,
+            clubSlug: e.PILOT_CLUB_SLUG,
+          },
   };
 }

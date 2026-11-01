@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Pilot access code (#84)
+
+**Session**: claude/feat/84-access-code
+**Changed**: apps/web/src/server/pilot/{code,token,gate,code-cli}.ts (+ tests), src/server/rate-limit.ts (+ test), src/server/api/club.ts (+ db test), src/server/db/migrations/0001_pilot_club.sql, src/server/{app,config,main}.ts (+ tests), src/client/{api.ts,pilot/*,pages/HomePage.tsx,styles.css}, e2e/{pilot.spec.ts,server.ts,env.ts,edge.spec.ts}, apps/web/{package.json,.env.example}, infra/compose/docker-compose.edge.yml, docs/runbooks/server-setup.md, BUILD.md, TEST.md
+**Summary**: PR 2 of the upload plan: a shared access code opens the pilot club until login exists. Signed 30-day cookie, scrypt-hashed code, rate limits, Origin check on every state-changing request, and guarded routes that look exactly like unknown ones. NL/EN gate page with the pilot notice. Also fixed #86's CI (BUG-001): E2E now runs against a migrated Testcontainers Postgres.
+**Prompts used**: "Yes, keep going".
+
 ## 2026-11-01 — Database layer (#31): roles, migrations, withTenant, RLS tests
 
 **Session**: claude/feat/31-database

@@ -4,9 +4,13 @@ import { join } from 'node:path';
 import helmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
+import { sql } from 'drizzle-orm';
 import { stripBasePath } from '../shared/base-path.ts';
+import { clubRoutes } from './api/club.ts';
 import type { AppConfig } from './config.ts';
+import type { Database } from './db/client.ts';
 import { healthRoutes, type ReadinessCheck } from './health.ts';
+import { createPilotGate } from './pilot/gate.ts';
 
 /** Written by the Vite build next to index.html; lets the server refuse a client built for another base path. */
 export const BUILD_INFO_FILE = 'build-info.json';
@@ -16,9 +20,15 @@ export interface BuildAppOptions {
   /** Directory with the built SPA (`dist/client`), or `null` when Vite's dev server serves it. */
   clientDir: string | null;
   readinessChecks?: readonly ReadinessCheck[];
+  /** `rowlens_app` connection; without one, every club route is 404 and the pilot gate is closed. */
+  database?: Database | null;
+  /** Tests without a database stand in for the pilot club lookup. */
+  resolvePilotClubId?: () => Promise<string | null>;
   /** Pino logging; off in tests. */
   logger?: boolean;
 }
+
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const REQUEST_ID = /^[A-Za-z0-9._-]{8,128}$/;
 
@@ -43,6 +53,16 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   app.addHook('onSend', async (req, reply) => {
     void reply.header('x-request-id', req.id);
   });
+
+  // CSRF: browsers send Origin on every state-changing request; only our own origin may make one.
+  // Together with SameSite=Strict cookies this covers the pilot gate and every later form or upload.
+  app.addHook('onRequest', async (req, reply) => {
+    if (UNSAFE_METHODS.has(req.method) && req.headers.origin !== config.publicOrigin) {
+      return reply.code(403).send({ error: 'forbidden_origin' });
+    }
+  });
+
+  app.decorateRequest('tenant', null);
 
   await app.register(helmet, {
     // HSTS is set once, by Caddy, for the whole trustable.nl origin.
@@ -76,6 +96,27 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   if (base !== '') {
     app.get(base, async (_req, reply) => reply.redirect(`${base}/`, 308));
   }
+
+  const db = opts.database ?? null;
+  const gate = createPilotGate({
+    basePath: base,
+    publicOrigin: config.publicOrigin,
+    secrets:
+      config.pilot === null || (db === null && opts.resolvePilotClubId === undefined)
+        ? null
+        : { codeHash: config.pilot.codeHash, sessionSecret: config.pilot.sessionSecret },
+    resolveClubId:
+      opts.resolvePilotClubId ??
+      (async () => {
+        if (db === null || config.pilot === null) return null;
+        const r = await db.execute<{ id: string | null }>(
+          sql`select rowlens_club_id(${config.pilot.clubSlug}) as id`,
+        );
+        return r.rows[0]?.id ?? null;
+      }),
+  });
+  await app.register(gate.routes, { prefix: base });
+  if (db !== null) await app.register(clubRoutes, { prefix: base, db, guard: gate.guard });
 
   const indexHtml = clientDir === null ? null : await loadClient(clientDir, base);
   if (clientDir !== null) {
