@@ -8,6 +8,13 @@
       "when": 1793545714359,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793546550525,
+      "tag": "0001_pilot_club",
+      "breakpoints": true
     }
   ]
 }

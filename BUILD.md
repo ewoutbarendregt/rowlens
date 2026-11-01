@@ -48,6 +48,20 @@ scripts/github/      backlog/labels/milestones bootstrap
   HSTS is left to Caddy. `X-Request-Id` is accepted if well-formed, otherwise generated, and echoed.
 - Readiness checks are pluggable (`ReadinessCheck[]`); with `DATABASE_URL` set, `db` is one of them.
 
+## Pilot access code (#84)
+
+- Until login (#28), one shared code opens the pilot club. `PILOT_ACCESS_CODE_HASH` (scrypt, format
+  `scrypt.15.8.1.<salt>.<hash>`: dots because Compose interpolates `$`) and `SESSION_SECRET` (hex) in
+  `.env`; no hash → the gate is closed. `pnpm --filter @rowlens/web pilot:code` makes a code + hash.
+- `POST /api/pilot/access` → cookie `rowlens_pilot=v1.<expiry>.<HMAC>`: HttpOnly, SameSite=Strict,
+  `Path=/projects/rowlens/`, Secure on https, 30 days. The HMAC covers the hash's fingerprint, so a
+  new code or secret signs everyone out. 5 attempts/min per IP, 30/min in total (in memory).
+- `gate.guard` is the preHandler for club routes: no valid cookie → the same 404 as an unknown route;
+  otherwise `req.tenant = {clubId: pilot, userId: null}` (club looked up via the SECURITY DEFINER
+  function `rowlens_club_id(slug)`, migration 0001, which also seeds club `pilot`).
+- CSRF: every POST/PUT/PATCH/DELETE must carry `Origin: PUBLIC_ORIGIN` (403 otherwise). Locally with
+  Vite, `PUBLIC_ORIGIN=http://localhost:5173` (see `.env.example`).
+
 ## Database (ADR-0005, #31)
 
 - Drizzle ORM 0.45 on `pg`. Schema in `apps/web/src/server/db/schema.ts`; `pnpm --filter @rowlens/web

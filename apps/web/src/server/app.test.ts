@@ -93,7 +93,13 @@ describe('SPA serving', () => {
     expect((await app.inject({ url: `${BASE}/missing.js` })).statusCode).toBe(404);
     expect((await app.inject({ url: '/other/app', headers: HTML })).statusCode).toBe(404);
     expect(
-      (await app.inject({ method: 'POST', url: `${BASE}/somewhere`, headers: HTML })).statusCode,
+      (
+        await app.inject({
+          method: 'POST',
+          url: `${BASE}/somewhere`,
+          headers: { ...HTML, origin: 'http://localhost:3000' },
+        })
+      ).statusCode,
     ).toBe(404);
   });
 
