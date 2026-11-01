@@ -525,6 +525,7 @@ story = "As an operator, I want only real videos within limits accepted."
 ac = [
   "Magic-byte + ffprobe validation; non-video rejected and deleted",
   "Per-upload size cap, per-club quota and the 30 GB global media cap enforced before accepting bytes",
+  "tus endpoint rejects chunks over 64 MB and Upload-Length over the cap with 413 itself (Caddy's limit is only a backstop, ADR-0003)",
   "Rate limit per user; tests for each rejection path",
 ]
 

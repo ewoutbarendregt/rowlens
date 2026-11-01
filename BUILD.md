@@ -51,9 +51,18 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Dev: `pnpm --filter @rowlens/web dev:server` (Fastify, :3000) + `dev:client` (Vite, proxies
   `/api` and `/health` to Fastify).
 
+## Local edge stack (`infra/compose/docker-compose.edge.yml`)
+
+`pnpm edge:up` builds rowlens-web and starts it behind Caddy at http://localhost:8080, using a copy of
+trustable.nl's Caddyfile (`infra/caddy/edge.Caddyfile`) that imports our route (`infra/caddy/rowlens.caddy`,
+the source of the #24 change). AudioScribe and the trustable.nl site are stand-ins that echo the path they
+receive. `pnpm e2e:edge` runs the Playwright smoke + `e2e/edge.spec.ts` through it; `pnpm edge:down` stops
+it. Networks mirror ADR-0002 (only rowlens-web is on the proxy network). No TLS locally.
+
 ## CI (`.github/workflows/ci.yml`)
 
-policy (PR title + branch name) · web (format, lint, typecheck, test, build, Playwright smoke, audit) · worker (ruff,
+policy (PR title + branch name) · web (format, lint, typecheck, test, build, Playwright smoke, audit) ·
+edge (Playwright through the Caddy mirror) · worker (ruff,
 mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test).
 `release.yml`: release-please (changelog + semver tags). No deployment workflow yet; production deploys
 will be a manual `workflow_dispatch` (no branch protection on the free private plan, ADR-0002).
@@ -62,3 +71,5 @@ will be a manual `workflow_dispatch` (no branch protection on the free private p
 
 - Same origin as trustable.nl and AudioScribe — see ADR-0003 risk; plan an own host before club #2.
 - Shared CPU: transcoding is limited to 2 vCPU at low priority.
+- trustable.nl's site-wide `Permissions-Policy` blocks the microphone and camera for RowLens (in-browser
+  voice notes need the own host); Caddy's 64 MB body limit is only a backstop (ADR-0003).

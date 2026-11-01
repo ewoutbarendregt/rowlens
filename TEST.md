@@ -23,6 +23,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | `shared/base-path.ts` | 17 unit cases | ✅ passing |
 | `server/config.ts` | 8 (defaults, normalisation, production PUBLIC_ORIGIN, invalid values) | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
+| E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
 | E2E smoke (`e2e/smoke.spec.ts`) | 3 × desktop + mobile Chromium (home + API under base, deep link shell, nothing outside base) | ✅ passing |
 | `stroke_rate` | 8 (even rhythm, NTSC fps, refusals, invalid input) | ✅ passing |
 
@@ -32,8 +33,19 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 |---|---|---|---|
 | 2026-11-01 | claude/chore/17-phase-0-foundation | `pnpm test`, `uv run pytest` | 19 + 8 passed |
 | 2026-11-01 | claude/feat/19-web-app-skeleton | `pnpm test`, `pnpm --filter @rowlens/web e2e` | 38 passed; 6 passed |
+| 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
 
 ## Playwright prompts
+
+### Edge stack (#22, partial)
+
+Prompt used: "Add a local Caddy stack that mirrors the prod route" — check, through Caddy, that the
+proposed RowLens route redirects the bare path, keeps the prefix, keeps our CSP next to the site-wide
+headers, passes a tus-sized chunk, and leaves AudioScribe's prefix stripping and the trustable.nl default
+route unchanged.
+
+Findings: Caddy's `max_size` didn't return 413 for a 65 MB POST that the app answered without reading
+(backstop only, see ADR-0003); trustable.nl's `Permissions-Policy` blocks the microphone for RowLens.
 
 ### Web skeleton smoke (#19)
 

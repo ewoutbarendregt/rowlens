@@ -53,6 +53,7 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 pnpm --filter @rowlens/web dev:server      # Fastify :3000; BASE_PATH defaults to /projects/rowlens
 pnpm --filter @rowlens/web dev:client      # Vite dev server, proxies /api + /health to :3000
 pnpm build && pnpm --filter @rowlens/web e2e   # Playwright smoke (once: playwright install chromium)
+pnpm edge:up && pnpm e2e:edge && pnpm edge:down  # behind a Caddy mirroring trustable.nl, :8080
 
 # Worker (Python 3.12, uv)
 cd worker && uv sync

@@ -1,0 +1,10 @@
+# Stand-in for another app behind the shared Caddy (local edge stack only).
+# Echoes its name and the path it received, so tests can see routing and prefix stripping.
+{
+  admin off
+}
+
+:8080 {
+  header Content-Type "text/plain; charset=utf-8"
+  respond "{$STANDIN_NAME} stand-in saw {uri}" 200
+}
