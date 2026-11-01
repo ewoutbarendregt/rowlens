@@ -155,7 +155,7 @@ jobs:
             context: worker
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Build rowlens-${{ matrix.name }} (not pushed)
         uses: docker/build-push-action@v6
         with:
