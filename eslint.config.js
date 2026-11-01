@@ -4,7 +4,15 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', 'worker/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      '**/playwright-report/**',
+      '**/test-results/**',
+      'worker/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {
@@ -15,6 +23,10 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+  },
+  {
+    files: ['apps/web/src/client/**/*.{ts,tsx}'],
+    languageOptions: { globals: globals.browser },
   },
   {
     files: ['**/*.js'],

@@ -20,8 +20,10 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 
 | Area | Tests | Status |
 |---|---|---|
-| `base-path.ts` | 17 unit cases | ✅ passing |
-| placeholder server | 2 (health under base path, 404 outside) | ✅ passing |
+| `shared/base-path.ts` | 17 unit cases | ✅ passing |
+| `server/config.ts` | 8 (defaults, normalisation, production PUBLIC_ORIGIN, invalid values) | ✅ passing |
+| `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
+| E2E smoke (`e2e/smoke.spec.ts`) | 3 × desktop + mobile Chromium (home + API under base, deep link shell, nothing outside base) | ✅ passing |
 | `stroke_rate` | 8 (even rhythm, NTSC fps, refusals, invalid input) | ✅ passing |
 
 ## Runs
@@ -29,7 +31,16 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | Date | Branch | Command | Result |
 |---|---|---|---|
 | 2026-11-01 | claude/chore/17-phase-0-foundation | `pnpm test`, `uv run pytest` | 19 + 8 passed |
+| 2026-11-01 | claude/feat/19-web-app-skeleton | `pnpm test`, `pnpm --filter @rowlens/web e2e` | 38 passed; 6 passed |
 
 ## Playwright prompts
 
-_None yet — added with the first E2E story (M0 login)._
+### Web skeleton smoke (#19)
+
+Prompt used: "Playwright test that proves the SPA works under /projects/rowlens: home renders and fetches
+/health/live through the base path, every same-origin request stays under the base path, a deep link
+gets the app shell and client-side navigation back home lands on the canonical trailing-slash URL, and
+nothing is served outside the base path."
+
+Finding while writing it: React Router with basename `/projects/rowlens` turned `<Link to="/">` into the
+non-canonical `/projects/rowlens`; fixed by giving the router basename `/projects/rowlens/`.

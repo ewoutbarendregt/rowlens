@@ -6,8 +6,11 @@ this file summarises the current state.
 ## Repository layout
 
 ```
-apps/web/            TypeScript: Fastify API + React SPA (currently a placeholder HTTP server)
-  src/config/base-path.ts   single owner of /projects/rowlens handling (ADR-0003)
+apps/web/            TypeScript web tier, one container (ADR-0004)
+  src/server/        Fastify: config (zod), health/readiness, CSP, static SPA + fallback
+  src/client/        React 19 SPA (Vite), React Router with basename `${BASE_PATH}/`
+  src/shared/        code for both, incl. base-path.ts — single owner of /projects/rowlens (ADR-0003)
+  e2e/               Playwright smoke against the built server
 packages/            shared TS packages (contracts, i18n) — added in M0/M1
 worker/              Python 3.12 (uv): probing, transcoding, analysis
   src/rowlens_worker/metrics/   analysis math; value-with-evidence or refusal
@@ -33,9 +36,24 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Playback: H.264 MP4 renditions with ~0.25 s GOP at the source frame rate (CFR), `requestVideoFrameCallback`
   for frame-exact stepping.
 
+## Web tier details
+
+- **One process**: Fastify serves `${BASE_PATH}/health/{live,ready}`, `${BASE_PATH}/api/*` (JSON 404 for
+  unknown routes) and the built SPA. Page navigations (GET/HEAD with `Accept: text/html`) to any other
+  path under the base get `index.html` (`no-cache`); `assets/*` is fingerprinted and `immutable`.
+- **Base path is fixed at build time** (Vite `base`); `dist/client/build-info.json` records it and the
+  server refuses to start if its `BASE_PATH` differs. The image takes `--build-arg BASE_PATH`.
+- `PUBLIC_ORIGIN` is required in production (absolute links); config is validated once at startup.
+- Security headers via `@fastify/helmet`: strict CSP (no inline script/style, `frame-ancestors 'none'`);
+  HSTS is left to Caddy. `X-Request-Id` is accepted if well-formed, otherwise generated, and echoed.
+- Readiness checks are pluggable (`ReadinessCheck[]`); the DB check is added with #31.
+- Source maps are built `hidden` (not referenced from public bundles).
+- Dev: `pnpm --filter @rowlens/web dev:server` (Fastify, :3000) + `dev:client` (Vite, proxies
+  `/api` and `/health` to Fastify).
+
 ## CI (`.github/workflows/ci.yml`)
 
-policy (PR title + branch name) · web (format, lint, typecheck, test, build, audit) · worker (ruff,
+policy (PR title + branch name) · web (format, lint, typecheck, test, build, Playwright smoke, audit) · worker (ruff,
 mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test).
 `release.yml`: release-please (changelog + semver tags). No deployment workflow yet; production deploys
 will be a manual `workflow_dispatch` (no branch protection on the free private plan, ADR-0002).

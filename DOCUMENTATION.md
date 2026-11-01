@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — #19 Web app skeleton: Fastify + React SPA under the base path
+
+**Session**: claude/feat/19-web-app-skeleton (stacked on claude/chore/17-phase-0-foundation)
+**Changed**: apps/web/src/server/{app,config,health,main}.ts (+ tests), apps/web/src/client/** (React SPA), apps/web/src/shared/base-path.ts (moved from src/config), apps/web/{index.html,vite.config.ts,playwright.config.ts,e2e/smoke.spec.ts,tsconfig*.json,src/client/tsconfig.json,Dockerfile,package.json,public/favicon.svg}, eslint.config.js, .github/workflows/ci.yml, BUILD.md, CLAUDE.md, FEATURES.md, TEST.md
+**Summary**: Replaced the placeholder HTTP server with the real web tier: Fastify serving health/readiness, a JSON API 404, strict CSP and the Vite-built React SPA with fallback, all under BASE_PATH, with a build-time base path checked at startup. Added Playwright smoke tests (desktop + mobile Chromium) to CI; they caught a non-canonical home link, fixed via a trailing-slash router basename.
+**Prompts used**: "Yes, start sprint 1" (sprint plan in docs/phase-0/summary.md; first item #19).
+
 ## 2026-11-01 — Phase 0 decisions recorded
 
 **Session**: claude/chore/17-phase-0-foundation

@@ -353,6 +353,7 @@ ac = [
   "Migrations run as rowlens_owner; app connects as rowlens_app (no BYPASSRLS)",
   "`withTenant(ctx, fn)` opens a transaction and SET LOCALs app.user_id / app.club_id",
   "Integration tests with Testcontainers Postgres",
+  "Registers a `db` ReadinessCheck so `/health/ready` returns 503 when Postgres is unreachable",
 ]
 notes = "ADR-0005."
 

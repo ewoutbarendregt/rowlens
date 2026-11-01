@@ -1,4 +1,5 @@
 {
+  // Server, shared code, tests and tool configs (Node). The SPA has its own: src/client/tsconfig.json.
   "compilerOptions": {
     "target": "ES2023",
     "lib": ["ES2023"],
@@ -9,10 +10,18 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "rewriteRelativeImportExtensions": true,
     "isolatedModules": true,
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["src", "vitest.config.ts"]
+  "include": [
+    "src/server",
+    "src/shared",
+    "e2e",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ]
 }
