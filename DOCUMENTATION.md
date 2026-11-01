@@ -2,6 +2,20 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — /opt/rowlens and .env created on trustable-prod (#23)
+
+**Session**: claude/docs/23-server-setup-runbook
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; on trustable-prod: /opt/rowlens (created by Ewout with su), /opt/rowlens/{media,.docker}/, /opt/rowlens/.env
+**Summary**: Ewout created /opt/rowlens as root via `su` (no sudo for deploy, no root SSH). I added media/ and .docker/ and generated .env on the server (password never printed). /opt/trustable untouched, disk unchanged at 46 %. Still pending: merging trustable.nl#377. Ewout has since set the ROWLENS_SSH_PRIVATE_KEY secret.
+**Prompts used**: "i have the password for root, not deploy"; the user's pasted `su -c 'install -d …'` session output.
+
+## 2026-11-01 — Server setup started: deploy key installed, Caddy route PR opened (#23, #24)
+
+**Session**: claude/docs/23-server-setup-runbook (stacked on claude/test/22-local-edge-stack)
+**Changed**: docs/runbooks/server-setup.md (new), BUILD.md, DOCUMENTATION.md; on trustable-prod: /home/deploy/.ssh/authorized_keys (+1 key `gh-actions-rowlens`, backup authorized_keys.bak-20261101-rowlens); local: ~/.ssh/rowlens_deploy{,.pub}; trustable.nl repo: PR #377 (Caddyfile, VERSION 0.19.1, DOCUMENTATION.md)
+**Summary**: Executed the approved shared-component changes. The new CI deploy key is installed and verified, existing keys and all trustable containers unaffected. The Caddy route PR is open against trustable.nl develop and not merged. Not done: /opt/rowlens (needs sudo, which deploy can't use without a password), the GitHub secret (the agent may not write secret stores), and .env; the commands for Ewout are in the runbook.
+**Prompts used**: "Approve both" (approval of #23 and #24 exactly as shown).
+
 ## 2026-11-01 — Local edge stack: RowLens behind a Caddy mirroring trustable.nl (#22, partial)
 
 **Session**: claude/test/22-local-edge-stack (stacked on claude/feat/19-web-app-skeleton)

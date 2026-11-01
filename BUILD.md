@@ -51,6 +51,8 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Dev: `pnpm --filter @rowlens/web dev:server` (Fastify, :3000) + `dev:client` (Vite, proxies
   `/api` and `/health` to Fastify).
 
+Server state, pending manual steps and rollback: [docs/runbooks/server-setup.md](docs/runbooks/server-setup.md).
+
 ## Local edge stack (`infra/compose/docker-compose.edge.yml`)
 
 `pnpm edge:up` builds rowlens-web and starts it behind Caddy at http://localhost:8080, using a copy of
