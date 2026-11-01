@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import shutil
 import subprocess
 import tempfile
@@ -25,21 +26,39 @@ class Rendition:
     #: The shorter side is at most this (portrait and landscape alike); never upscaled.
     short_side: int
     crf: int
+    #: Bitrate ceiling at 30 fps; higher frame rates get more (see ``max_kbps``).
+    ceiling_kbps: int
 
 
 #: play-540 starts fast on slow networks; play-1080 for detail (player spike, ADR-0007).
-RENDITIONS = (Rendition("play-1080", 1080, 21), Rendition("play-540", 540, 25))
+RENDITIONS = (Rendition("play-1080", 1080, 21, 8000), Rendition("play-540", 540, 25, 2500))
+
+#: A larger rendition needs a source at least this much bigger than the next one down (#47).
+SIZE_STEP = Fraction(4, 3)
+#: Renditions never get much more than the source had: re-encoding can't add detail, and short GOPs
+#: would otherwise inflate low-bitrate phone clips (seen on production: 8 MB in, 27 MB out).
+SOURCE_HEADROOM = 1.5
 
 
 def renditions_for(probe: Probe) -> list[Rendition]:
-    """A larger rendition only if the source is bigger than the next one down: a 480p source gets
-    play-540 alone, instead of an identical (never upscaled) play-1080 as well."""
+    """A larger rendition only if the source is clearly bigger than the next one down (≥ 4/3,
+    so ≥ 720p for play-1080): a 576p source gets play-540 alone, not a near-copy at 576p too."""
     short = min(probe.width, probe.height)
     return [
         r
         for i, r in enumerate(RENDITIONS)
-        if i == len(RENDITIONS) - 1 or short > RENDITIONS[i + 1].short_side
+        if i == len(RENDITIONS) - 1 or short >= RENDITIONS[i + 1].short_side * SIZE_STEP
     ]
+
+
+def max_kbps(rendition: Rendition, probe: Probe) -> int:
+    """Capped CRF: the rendition's ceiling (times sqrt(fps/30) above 30 fps), but at most 1.5
+    times the source's bitrate, and never below a quarter of the ceiling (tiny sources stay
+    watchable)."""
+    ceiling: float = rendition.ceiling_kbps * math.sqrt(max(1.0, float(probe.fps) / 30))
+    if probe.bitrate is None:
+        return round(ceiling)
+    return round(min(ceiling, max(ceiling / 4, probe.bitrate / 1000 * SOURCE_HEADROOM)))
 
 
 def gop(fps: Fraction) -> int:
@@ -79,7 +98,10 @@ def transcode_args(
         args += [
             "-fps_mode", "cfr", "-r", rate,
             "-c:v", "libx264", "-profile:v", "high", "-preset", "veryfast",
-            "-crf", str(rendition.crf), "-g", g, "-keyint_min", g, "-sc_threshold", "0",
+            "-crf", str(rendition.crf),
+            "-maxrate", f"{max_kbps(rendition, probe)}k",
+            "-bufsize", f"{2 * max_kbps(rendition, probe)}k",
+            "-g", g, "-keyint_min", g, "-sc_threshold", "0",
             "-flags", "+cgop", "-threads", str(threads),
             "-map_metadata", "-1", "-map_chapters", "-1",
             "-movflags", "+faststart", "-f", "mp4", str(out),
