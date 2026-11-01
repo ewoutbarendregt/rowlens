@@ -38,6 +38,8 @@ class Probe:
     #: low light). The renditions are constant-rate either way.
     vfr: bool
     has_audio: bool
+    #: Whole-file bitrate (bit/s) if known; caps the renditions' bitrate (#47).
+    bitrate: int | None = None
 
     @property
     def frame_count(self) -> int:
@@ -102,7 +104,8 @@ def parse_probe(data: dict[str, Any]) -> Probe:
     )
     vfr = avg is not None and abs(fps - avg) / fps > Fraction(1, 200)
 
-    duration = float(data.get("format", {}).get("duration") or video.get("duration") or 0)
+    fmt: dict[str, Any] = data.get("format", {})
+    duration = float(fmt.get("duration") or video.get("duration") or 0)
     if duration <= 0:
         raise PermanentError("unreadable", "no duration")
     if duration > MAX_DURATION_S:
@@ -120,4 +123,13 @@ def parse_probe(data: dict[str, Any]) -> Probe:
         rotation=rotation,
         vfr=vfr,
         has_audio=any(s.get("codec_type") == "audio" for s in streams),
+        bitrate=_bitrate(fmt, duration),
     )
+
+
+def _bitrate(fmt: dict[str, Any], duration: float) -> int | None:
+    if str(fmt.get("bit_rate", "")).isdigit():
+        return int(fmt["bit_rate"])
+    if str(fmt.get("size", "")).isdigit() and duration > 0:
+        return round(int(fmt["size"]) * 8 / duration)
+    return None

@@ -77,7 +77,8 @@ scripts/github/      backlog/labels/milestones bootstrap
 - `video.process`: ffprobe → metadata on `video` (fps_num/den, display size, duration, frame count,
   codec, rotation, vfr) → one ffmpeg run writing `renditions/play-1080` and `renditions/play-540` in a
   `work/` dir, then the poster from play-540 → rename into place → `status = ready`, `renditions`
-  JSON, `renditions_bytes` (counted against the cap). Progress (0–95 %) and lease renewal every 5 s.
+  JSON, `renditions_bytes` (counted against the cap). play-1080 only for sources ≥ 720p; capped
+  CRF (`-maxrate` ≤ 1.5 × the source bitrate, ceilings 8 / 2.5 Mbit/s at 30 fps). Progress (0–95 %) and lease renewal every 5 s.
   A video deleted mid-way: its bytes are removed at the end.
 - Limits on the shared server: container 2 CPUs / 2 GB, ffmpeg `nice -n 10` and 2 threads.
 - UI: the session page shows "Processing n %", then `60 fps · 1920×1080 · 2:03`, or why it failed;

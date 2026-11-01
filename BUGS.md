@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-003] Renditions 3× larger than low-bitrate phone uploads — medium
+**Location**: worker/src/rowlens_worker/video/transcode.py:34
+**Status**: fixed
+**Found**: 2026-11-01 (first real clip on production)
+**Description**: A 576p, 0.76 Mbit/s, 8 MB upload got 27 MB of renditions: play-1080 was produced for any source above 540p (a near-copy at 576p), and CRF had no bitrate ceiling. That eats the 30 GB cap three times faster than needed.
+**Fix**: play-1080 only from 720p; capped CRF relative to the source bitrate (PR, see DOCUMENTATION 2026-11-01).
+
 ### [BUG-002] Edge E2E upload refused with 507 on CI runners — low
 **Location**: infra/compose/docker-compose.edge.yml:34
 **Status**: fixed
