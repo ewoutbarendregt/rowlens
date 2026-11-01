@@ -2,6 +2,7 @@ import { type SubmitEvent, useId, useState } from 'react';
 import { api } from '../api.ts';
 import { angleDegrees, type DrawingKind, type Point, type Size } from '../drawing/geometry.ts';
 import { formatFrameTime } from '../player/frames.ts';
+import { moments } from './moments.ts';
 import { rememberName } from './name.ts';
 import { notesStrings } from './strings.ts';
 
@@ -41,6 +42,8 @@ interface NotesPanelProps {
 }
 
 /** Notes and drawings pinned to a frame (#59, #60): write at the current frame; list, jump, edit, delete. */
+export { moments };
+
 export function NotesPanel(props: NotesPanelProps) {
   const { videoId, fps, frame, size, annotations, name } = props;
   const t = notesStrings();
@@ -49,6 +52,9 @@ export function NotesPanel(props: NotesPanelProps) {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
+  // The frame whose entry is getting an explanation, and its text.
+  const [explaining, setExplaining] = useState<number | null>(null);
+  const [explanation, setExplanation] = useState('');
 
   const run = (request: Promise<Response>, after: () => void) => {
     setBusy(true);
@@ -127,104 +133,196 @@ export function NotesPanel(props: NotesPanelProps) {
 
       {annotations.length === 0 && <p className="muted">{t.none}</p>}
       <ol className="list" data-testid="notes">
-        {annotations.map((a) => {
-          const time = formatFrameTime(a.frame, fps);
-          const here = a.frame === frame;
-          const isNote = a.kind === 'note';
+        {moments(annotations).map(({ frame: at, notes, drawings }) => {
+          const time = formatFrameTime(at, fps);
+          const here = at === frame;
           return (
             <li
-              key={a.id}
-              className={`list__item note${here ? ' note--here' : ''}`}
-              data-testid={isNote ? 'note' : 'drawing'}
+              key={at}
+              className={`list__item moment${here ? ' note--here' : ''}`}
+              data-testid="moment"
             >
               <div>
                 <button
                   type="button"
                   className="note__jump"
-                  aria-label={t.jump(a.frame, time)}
+                  aria-label={t.jump(at, time)}
                   onClick={() => {
-                    props.onJump(a.frame);
+                    props.onJump(at);
                   }}
                 >
-                  Frame {a.frame} · {time}
+                  Frame {at} · {time}
                   {here && <span className="muted"> · {t.here}</span>}
                 </button>
-                <span className="muted">{a.authorName}</span>
-                {!isNote && <strong className="note__drawing">{describeDrawing(a, size)}</strong>}
-                {editing?.id === a.id ? (
-                  <form
-                    className="form"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      run(
-                        api(`/api/annotations/${a.id}`, {
-                          method: 'PATCH',
-                          body: { body: editing.body },
-                        }),
-                        () => {
-                          setEditing(null);
-                        },
+
+                {drawings.length > 0 && (
+                  <ul className="moment__drawings" aria-label={t.drawingsHere}>
+                    {drawings.map((d) => {
+                      const what = describeDrawing(d, size);
+                      return (
+                        <li key={d.id} className="chip" data-testid="drawing">
+                          <span>{what}</span>
+                          <button
+                            type="button"
+                            className="chip__remove"
+                            aria-label={t.deleteDrawing(what)}
+                            onClick={() => {
+                              if (window.confirm(t.confirmDelete)) {
+                                run(
+                                  api(`/api/annotations/${d.id}`, { method: 'DELETE' }),
+                                  () => undefined,
+                                );
+                              }
+                            }}
+                          >
+                            ×
+                          </button>
+                        </li>
                       );
-                    }}
-                  >
-                    <textarea
-                      aria-label={t.edit}
-                      value={editing.body}
-                      rows={3}
-                      maxLength={2000}
-                      onChange={(e) => {
-                        setEditing({ id: a.id, body: e.target.value });
-                      }}
-                    />
-                    <div className="note__actions">
-                      <button type="submit" disabled={busy || editing.body.trim() === ''}>
-                        {t.update}
-                      </button>
-                      <button
-                        type="button"
-                        className="button--quiet"
-                        onClick={() => {
+                    })}
+                  </ul>
+                )}
+
+                {notes.map((n) => (
+                  <div key={n.id} className="moment__note" data-testid="note">
+                    <span className="muted">{n.authorName}</span>
+                    {editing?.id === n.id ? (
+                      <EditNote
+                        value={editing.body}
+                        busy={busy}
+                        onChange={(value) => {
+                          setEditing({ id: n.id, body: value });
+                        }}
+                        onCancel={() => {
                           setEditing(null);
                         }}
-                      >
-                        {t.cancel}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  a.body !== '' && <p className="note__body">{a.body}</p>
-                )}
-              </div>
-              {editing?.id !== a.id && (
-                <div className="note__actions">
-                  {isNote && (
+                        onSave={() => {
+                          run(
+                            api(`/api/annotations/${n.id}`, {
+                              method: 'PATCH',
+                              body: { body: editing.body },
+                            }),
+                            () => {
+                              setEditing(null);
+                            },
+                          );
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <p className="note__body">{n.body}</p>
+                        <div className="note__actions">
+                          <button
+                            type="button"
+                            className="button--quiet"
+                            onClick={() => {
+                              setEditing({ id: n.id, body: n.body });
+                            }}
+                          >
+                            {t.edit}
+                          </button>
+                          <button
+                            type="button"
+                            className="button--quiet"
+                            onClick={() => {
+                              if (window.confirm(t.confirmDelete)) {
+                                run(
+                                  api(`/api/annotations/${n.id}`, { method: 'DELETE' }),
+                                  () => undefined,
+                                );
+                              }
+                            }}
+                          >
+                            {t.delete}
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+
+                {notes.length === 0 &&
+                  (explaining === at ? (
+                    <EditNote
+                      value={explanation}
+                      busy={busy || !named}
+                      label={t.explanationAt(at)}
+                      onChange={setExplanation}
+                      onCancel={() => {
+                        setExplaining(null);
+                      }}
+                      onSave={() => {
+                        rememberName(name.trim());
+                        run(
+                          api(`/api/videos/${videoId}/annotations`, {
+                            method: 'POST',
+                            body: { kind: 'note', frame: at, body: explanation, authorName: name },
+                          }),
+                          () => {
+                            setExplaining(null);
+                            setExplanation('');
+                          },
+                        );
+                      }}
+                    />
+                  ) : (
                     <button
                       type="button"
-                      className="button--quiet"
+                      className="button--quiet moment__explain"
+                      disabled={!named}
+                      title={named ? undefined : t.needNameToWrite}
                       onClick={() => {
-                        setEditing({ id: a.id, body: a.body });
+                        setExplaining(at);
+                        setExplanation('');
                       }}
                     >
-                      {t.edit}
+                      {t.addExplanation}
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="button--quiet"
-                    onClick={() => {
-                      if (window.confirm(t.confirmDelete)) {
-                        run(api(`/api/annotations/${a.id}`, { method: 'DELETE' }), () => undefined);
-                      }
-                    }}
-                  >
-                    {t.delete}
-                  </button>
-                </div>
-              )}
+                  ))}
+              </div>
             </li>
           );
         })}
       </ol>
     </section>
+  );
+}
+
+function EditNote(props: {
+  value: string;
+  busy: boolean;
+  label?: string;
+  onChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  const t = notesStrings();
+  return (
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        props.onSave();
+      }}
+    >
+      <textarea
+        aria-label={props.label ?? t.edit}
+        value={props.value}
+        rows={3}
+        maxLength={2000}
+        autoFocus
+        onChange={(e) => {
+          props.onChange(e.target.value);
+        }}
+      />
+      <div className="note__actions">
+        <button type="submit" disabled={props.busy || props.value.trim() === ''}>
+          {t.update}
+        </button>
+        <button type="button" className="button--quiet" onClick={props.onCancel}>
+          {t.cancel}
+        </button>
+      </div>
+    </form>
   );
 }

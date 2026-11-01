@@ -44,9 +44,21 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
 
   const shapes = page.locator('[data-testid=drawing-layer] g[data-kind]');
   await expect(shapes).toHaveCount(2);
-  const drawings = page.getByTestId('drawing');
+  // Several drawings on one frame are one entry, with room for one explanation.
+  const moment = page.getByTestId('moment');
+  const drawings = moment.getByTestId('drawing');
+  await expect(moment).toHaveCount(1);
   await expect(drawings).toHaveCount(2);
   await expect(drawings.filter({ hasText: /(Angle|Hoek) 90°/ })).toHaveCount(1);
+  await expect(page.getByTestId('player-markers').getByRole('button')).toHaveCount(1);
+  await moment.getByRole('button', { name: /^(Add explanation|Uitleg toevoegen)$/ }).click();
+  await moment.getByRole('textbox').fill('Rug te vroeg open; hoek knie te klein bij de inpik.');
+  await moment.getByRole('button', { name: /^(Save|Opslaan)$/ }).click();
+  await expect(moment).toHaveCount(1);
+  await expect(moment.getByTestId('note')).toContainText('Rug te vroeg open');
+  await expect(
+    moment.getByRole('button', { name: /^(Add explanation|Uitleg toevoegen)$/ }),
+  ).toHaveCount(0);
 
   // Esc leaves the tool; then a click on the picture plays/pauses again instead of drawing.
   await page.keyboard.press('Escape');
@@ -64,9 +76,8 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await expect(shapes).toHaveCount(2);
 
   page.once('dialog', (d) => void d.accept());
-  await drawings
-    .filter({ hasText: /(Arrow|Pijl)/ })
-    .getByRole('button', { name: /^(Delete|Verwijderen)$/ })
-    .click();
+  await drawings.getByRole('button', { name: /^(Delete Arrow|Pijl verwijderen)$/ }).click();
   await expect(shapes).toHaveCount(1);
+  await expect(drawings).toHaveCount(1);
+  await expect(moment).toHaveCount(1);
 });

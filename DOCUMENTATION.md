@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — One entry per frame: drawings and their explanation together (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/notes/{NotesPanel.tsx,moments.ts,moments.test.ts,strings.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{drawing,notes}.spec.ts, BUILD.md
+**Summary**: Ewout, trying drawing locally: several drawings on one frame should be one note, with room for an explanation. The list now groups per frame: drawings as chips with their own ×, the explanation (added with "Uitleg toevoegen" or edited in the entry), one marker per frame. Data model unchanged. Checked locally on laptop and iPhone sizes; E2E covers two drawings + explanation = one entry.
+**Prompts used**: "als er in 1 frame meerdere figuren zijn getekend, moet dat maar 1 note opleveren. in de note moet je dan ook extra uitleg kunnen geven".
+
 ## 2026-11-01 — Drawing lines, arrows and angles at a frame (#60)
 
 **Session**: claude/feat/60-drawing

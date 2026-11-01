@@ -6,7 +6,7 @@ import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
 import { DrawTools } from '../drawing/DrawTools.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
 import { rememberedName, rememberName } from '../notes/name.ts';
-import { type Annotation, describeDrawing, NotesPanel } from '../notes/NotesPanel.tsx';
+import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
@@ -73,16 +73,16 @@ export function VideoPage() {
     [video?.width, video?.height],
   );
 
+  // One marker per frame: its drawings and explanation together (Ewout: one entry per frame).
   const markers = useMemo(() => {
     const nt = notesStrings();
-    return notes.map((n) => ({
-      id: n.id,
-      frame: n.frame,
-      label:
-        n.kind === 'note'
-          ? nt.marker(n.frame, n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body)
-          : nt.drawingMarker(n.frame, describeDrawing(n, size)),
-    }));
+    return moments(notes).map((m) => {
+      const parts = [
+        ...m.drawings.map((d) => describeDrawing(d, size)),
+        ...m.notes.map((n) => (n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body)),
+      ];
+      return { id: String(m.frame), frame: m.frame, label: nt.marker(m.frame, parts.join(' · ')) };
+    });
   }, [notes, size]);
 
   // Drawings show on exactly their frame (#60).

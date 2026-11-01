@@ -135,8 +135,11 @@ scripts/github/      backlog/labels/milestones bootstrap
   pixels (`drawing/geometry.ts`), shown with an arc and degrees; yellow with a dark halo.
 - Tools (Lijn/Pijl/Hoek) in the player's toolbar under the controls — close to the picture on a
   phone — and choosing one pauses and scrolls the picture into view; Esc or the same button stops.
-  Drawings need the author's name (from the notes panel). They show on exactly their frame, are
-  listed with the notes ("Hoek 128°") and on the scrub bar, and are deleted (not edited).
+  Drawings need the author's name (from the notes panel). They show on exactly their frame and are
+  deleted (not edited).
+- The list has **one entry per frame** (`notes/moments.ts`): its drawings as chips ("Hoek 128°" ×)
+  and its explanation (a note at that frame, added or edited inside the entry); one marker per frame
+  on the scrub bar. Storage stays one row per drawing/note (Ewout's feedback, 2026-11-01).
 
 ## Notes pinned to a frame (#59)
 
