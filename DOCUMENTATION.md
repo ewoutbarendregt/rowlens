@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deployed sha-5082628: database, access code and upload live
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PRs #86, #87, #88 merged (each retargeted to main first); trustable-prod: `.env` (+3 keys), compose file reinstalled, `web` → sha-5082628, `pilot-code.txt`
+**Summary**: On Ewout's "Can you merge and deploy" and his approval of the exact server steps: merged #86 → #87 → #88 with green CI, added two generated secrets, reinstalled the compose file (authorized_keys untouched), deployed sha-5082628 (pre-deploy dump, migrations 0000–0002, ready), generated the access code on the server into a deploy-only file without printing it, and redeployed to load its hash. Verified gate open, wrong code 403, club routes 404, media writable; trustable.nl, its API and AudioScribe 200. Still open: Ewout's phone test with a 4K clip (#45).
+**Prompts used**: "Can you merge and deploy"; "Yes".
+
 ## 2026-11-01 — Sessions and resumable upload (#45, #46, #44 minimal, #50)
 
 **Session**: claude/feat/45-upload

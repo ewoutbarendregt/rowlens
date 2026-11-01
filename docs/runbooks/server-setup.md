@@ -13,34 +13,36 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ✅ set from `~/.ssh/rowlens_deploy` | Ewout, 2026-11-01 |
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
-| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
+| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET` (each 64 hex chars, generated on the server, never printed), `PILOT_ACCESS_CODE_HASH` (scrypt hash of the pilot code) | Claude, 2026-11-01 (last three: approved, #31/#84) |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
-| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-94af6b0`, player demo on) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; both healthy. Previous release: `sha-1acc1a2` | deploy runs 41305371056 (first, #26) and 41309728753 (player demo), triggered by Claude on Ewout's request, 2026-11-01 |
+| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-5082628`: database, access code, upload; player demo on) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `/opt/rowlens/media` mounted at `/media`; `db` (postgres:16-alpine) on `rowlens_internal` only, migrations 0000–0002, role `rowlens_app` without BYPASSRLS. Previous release: `sha-94af6b0` | deploy runs 41305371056 (#26), 41309728753 (player demo), 41325050578 + 41325179591 (sha-5082628, then the same tag again to load the code hash), triggered by Claude on Ewout's request, 2026-11-01 |
 
 Nothing under `/opt/trustable` has been changed.
 
-## Needed before the next deploy (each step shown to Ewout and approved first)
+## Pilot access code (#84)
 
-From #31 (database roles), not done yet:
-1. Add `ROWLENS_APP_DB_PASSWORD` to `/opt/rowlens/.env`, generated on the server and never printed:
-   `ssh trustable-prod 'f=/opt/rowlens/.env; grep -q ^ROWLENS_APP_DB_PASSWORD= $f || echo "ROWLENS_APP_DB_PASSWORD=$(openssl rand -hex 32)" >> $f; cut -d= -f1 $f'`
-2. Reinstall the compose file, which now has the `migrate` service: `infra/deploy/install.sh`.
+- The current code is in `/opt/rowlens/pilot-code.txt` (mode 600, `deploy` only); Claude never saw
+  it. Ewout reads it with `ssh trustable-prod cat /opt/rowlens/pilot-code.txt` and may delete the
+  file once it's shared with the club.
+- **New code** (signs everyone out), each time with Ewout's approval:
+  `ssh trustable-prod 'cd /opt/rowlens && umask 077 && sed -i "/^PILOT_ACCESS_CODE_HASH=/d" .env && docker run --rm --network none ghcr.io/ewoutbarendregt/rowlens-web:$(cat state/current-tag) node dist/server/pilot/code-cli.js > pilot-code.txt && grep "^PILOT_ACCESS_CODE_HASH=" pilot-code.txt >> .env && sed -i "/^PILOT_ACCESS_CODE_HASH=/d" pilot-code.txt'`,
+  then redeploy the current tag (deploy workflow) so `web` reads it.
+- **Close the gate**: remove the `PILOT_ACCESS_CODE_HASH` line from `.env` and redeploy; the site
+  then says "not open yet" and every club route is a 404.
 
-From #84 (pilot access code):
-3. Add `SESSION_SECRET` the same way (`openssl rand -hex 32`, never printed).
-4. Ewout creates the access code, so only he sees it. After the deploy, on the server:
-   `cd /opt/rowlens && docker compose run --rm --no-deps web node dist/server/pilot/code-cli.js`
-   prints `code: …` (give it to the club) and a `PILOT_ACCESS_CODE_HASH=scrypt.…` line to append to
-   `/opt/rowlens/.env`; then `rowlens-deploy deploy <same tag>` restarts `web` with it. Until then the
-   gate says "not open yet". A new code later = the same steps; it signs everyone out.
+## Done for sha-5082628 (2026-11-01, approved by Ewout)
 
-From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned by `deploy`
-(uid 1000, the image's `node` user; checked read-only 2026-11-01), and step 2's compose file mounts
-it into `web`. Disk then: 150 GB, 47 % used; uploads pause at 85 %.
+1. `ROWLENS_APP_DB_PASSWORD` and `SESSION_SECRET` appended to `.env` (generated on the server).
+2. `infra/deploy/install.sh`: compose file with `migrate` and the media mount; deploy script
+   unchanged; `authorized_keys` untouched ("CI key already restricted"); sha256 of both files equal to
+   the repo.
+3. Deploy `sha-5082628`: pre-deploy dump, migrations 0000–0002, ready, public check passed.
+4. Access code generated in a `--network none` container into `pilot-code.txt`; hash into `.env`;
+   same tag redeployed. Gate `enabled: true`; wrong code → 403; club routes 404 without access.
 
-Without step 1, the deploy stops at `compose pull` ("ROWLENS_APP_DB_PASSWORD is required") and nothing
-changes. The first deploy afterwards creates `rowlens_app`, applies `0000_init` and switches `web` to it.
+Checked afterwards: trustable.nl 200, `api.trustable.nl/api/health` 200, AudioScribe 200, all
+trustable containers untouched; `web` (uid 1000) can write `/media`; disk 47 %.
 
 ## Verified restrictions of the CI key (2026-11-01)
 
