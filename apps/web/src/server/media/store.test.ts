@@ -33,7 +33,9 @@ describe('MediaStore', () => {
     const body = new Readable({ read() {} });
     const appended = store.append(KEY, body, 100);
     body.push(Buffer.from('12345'));
-    setTimeout(() => body.destroy(Object.assign(new Error('reset'), { code: 'ECONNRESET' })), 20);
+    // Break the connection only once the first bytes are on disk (a fixed delay was flaky).
+    while ((await store.size(KEY)) < 5) await new Promise((r) => setTimeout(r, 5));
+    body.destroy(Object.assign(new Error('reset'), { code: 'ECONNRESET' }));
     expect(await appended).toBe(5);
   });
 

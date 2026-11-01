@@ -1,4 +1,11 @@
-import { type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import {
+  type CSSProperties,
+  type Ref,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { formatFrameTime } from './frames.ts';
 import { playerStrings } from './strings.ts';
 import { SPEEDS, type PlayerMeasurement, type Speed, usePlayer } from './usePlayer.ts';
@@ -179,7 +186,11 @@ export function Player({
       ref={p.containerRef}
       className={`player${p.immersive ? ' player--immersive' : ''}${p.fullscreen ? ' player--fullscreen' : ''}`}
     >
-      <div className="player__stage">
+      <div
+        className="player__stage"
+        // The stage takes the picture's shape, so portrait video isn't a narrow strip (BUG-005).
+        style={p.aspect === null ? undefined : ({ '--aspect': String(p.aspect) } as CSSProperties)}
+      >
         <video
           ref={p.videoRef}
           src={src}

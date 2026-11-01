@@ -2,6 +2,19 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deployed sha-c15cb47: whole picture on iPhone, side-by-side layout
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PR #94 merged; trustable-prod: `web` + `worker` → sha-c15cb47
+**Summary**: On Ewout's "Merge and deploy": merged #94 with green CI and deployed (pre-deploy dump, no migrations, ready). The served stylesheet has the new stage rules; trustable.nl, its API and AudioScribe 200.
+**Prompts used**: "Merge and deploy".
+
+## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
+
+**Session**: claude/fix/ios-player-half
+**Changed**: apps/web/src/client/styles.css, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/server/media/store.test.ts, BUGS.md, BUILD.md, TEST.md
+**Summary**: Ewout saw only the top half of the picture on his iPhone: Safari ignored `height: 100%` inside the aspect-ratio stage, so portrait video overflowed and was clipped (BUG-005; reproduced in WebKit). The stage now takes the video's shape with a height cap, the video is positioned inside it. His second request: on a laptop the notes needed scrolling; the video page is now two columns from 1000 px (sticky player, scrolling notes). PR 7 (drawing) is parked on its branch meanwhile. Also fixed a flaky store test (BUG-006).
+**Prompts used**: "ik zie op de iphone niet het hele beeld, alleen de bovenste helft"; "also on the laptop, the controls and the comments are not visible on the same pageview, i have to scroll down to see the comments. can we have a bit of ux design around this".
 ## 2026-11-01 — Deployed sha-4e03e66: notes pinned to a frame, lost-step fix
 
 **Session**: claude/docs/deploy-upload-log

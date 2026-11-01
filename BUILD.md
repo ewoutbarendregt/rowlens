@@ -100,6 +100,16 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
   has no H.264) and steps 10 frames exactly.
 
+## Video page layout (BUG-005, Ewout's laptop feedback)
+
+- Stage: `--aspect` (video width/height, set inline from metadata) and `--stage-cap`; width =
+  min(column, cap × aspect), `aspect-ratio: var(--aspect)`, video absolutely positioned inside with
+  `object-fit: contain`. Phones: cap 60dvh. Full screen: the stage takes the free grid row.
+- ≥ 1000 px: two columns, the player (sticky, cap = 100dvh − 300px) left and the notes (own scroll)
+  right; compact header. Phones: stacked.
+- Checked: laptop 1440×860 in Chrome (landscape and portrait: video, controls, note field and first
+  note in one view); iPhone 13 in WebKit (landscape, portrait, full screen).
+
 ## Notes pinned to a frame (#59)
 
 - Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade
