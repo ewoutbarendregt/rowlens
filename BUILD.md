@@ -137,9 +137,12 @@ scripts/github/      backlog/labels/milestones bootstrap
   phone — and choosing one pauses and scrolls the picture into view; Esc or the same button stops.
   Drawings need the author's name (from the notes panel). They show on exactly their frame and are
   deleted (not edited).
-- The list has **one entry per frame** (`notes/moments.ts`): its drawings as chips ("Hoek 128°" ×)
-  and its explanation (a note at that frame, added or edited inside the entry); one marker per frame
-  on the scrub bar. Storage stays one row per drawing/note (Ewout's feedback, 2026-11-01).
+- The list has **one section per frame** (`notes/moments.ts`): its drawings as small chips ("Hoek
+  128°" ×) and an **always-open explanation field** (the frame's note: Save appears once changed;
+  saved empty, it is removed). Clicking anywhere in a section seeks there without scrolling; its
+  Frame link also brings the video into view. The section of the frame on screen is selected
+  (`aria-current`, orange). A frame without a section gets the field at the top; the name is a
+  field of its own above. One marker per frame. Storage: one row per drawing/note (Ewout, 2026-11-01).
 
 ## Notes pinned to a frame (#59)
 

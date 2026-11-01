@@ -239,9 +239,16 @@ export function VideoPage() {
               name={name}
               onNameChange={setName}
               onChanged={loadNotes}
-              onJump={(f) => {
+              onJump={(f, reveal) => {
                 player.current?.seekToFrame(f);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
+                if (
+                  reveal &&
+                  stage !== undefined &&
+                  (stage.top < 0 || stage.bottom > window.innerHeight)
+                ) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
               }}
               onWriting={() => {
                 player.current?.pause();

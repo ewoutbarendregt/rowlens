@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Frame sections: click to jump and select, explanation always open (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{notes,drawing}.spec.ts, BUILD.md
+**Summary**: Ewout's feedback on the local build: clicking a frame's section should jump there and show it selected; the drawing labels were too big; the explanation field should always be open. Done: whole section clickable (seek without scrolling the page away on a phone), selected = the frame on screen, smaller chips, an open field per section (edit in place, empty + save removes), the name as its own field. Checked locally on laptop and iPhone; E2E covers click-to-select and the open field (5× without a flake).
+**Prompts used**: "als ik in de sectie van een frame klik, dan moet de video direct naar het bijbehorende moment springen en moet de selectie 'selected' zijn. de aanduidingen van de tekenelementen zijn wel groot en het tekstveld voor de uitleg moet gewoon altijd beschikbaar zijn, niet achter een button".
+
 ## 2026-11-01 — Deploy script: a first deploy can no longer skip migrations (BUG-009)
 
 **Session**: claude/fix/deploy-migrate-detect

@@ -51,14 +51,12 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await expect(drawings).toHaveCount(2);
   await expect(drawings.filter({ hasText: /(Angle|Hoek) 90°/ })).toHaveCount(1);
   await expect(page.getByTestId('player-markers').getByRole('button')).toHaveCount(1);
-  await moment.getByRole('button', { name: /^(Add explanation|Uitleg toevoegen)$/ }).click();
-  await moment.getByRole('textbox').fill('Rug te vroeg open; hoek knie te klein bij de inpik.');
+  // The explanation field is always open in the frame's section.
+  const explanation = moment.getByRole('textbox');
+  await explanation.fill('Rug te vroeg open; hoek knie te klein bij de inpik.');
   await moment.getByRole('button', { name: /^(Save|Opslaan)$/ }).click();
   await expect(moment).toHaveCount(1);
-  await expect(moment.getByTestId('note')).toContainText('Rug te vroeg open');
-  await expect(
-    moment.getByRole('button', { name: /^(Add explanation|Uitleg toevoegen)$/ }),
-  ).toHaveCount(0);
+  await expect(explanation).toHaveValue('Rug te vroeg open; hoek knie te klein bij de inpik.');
 
   // Esc leaves the tool; then a click on the picture plays/pauses again instead of drawing.
   await page.keyboard.press('Escape');

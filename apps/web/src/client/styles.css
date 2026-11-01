@@ -547,23 +547,79 @@ a.list__item {
   display: inline-flex;
   align-items: center;
   gap: 0.125rem;
-  padding: 0.125rem 0.125rem 0.125rem 0.625rem;
+  padding: 0 0.125rem 0 0.5rem;
   border: 1px solid #b38f00;
   border-radius: 999px;
-  background: color-mix(in srgb, #ffd400 30%, var(--color-bg));
+  background: color-mix(in srgb, #ffd400 25%, var(--color-bg));
+  font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1.6;
 }
 
+/* Small to look at, but still a decent tap target. */
 .page .chip__remove {
-  min-width: 28px;
-  min-height: 28px;
+  min-width: 24px;
+  min-height: 24px;
   padding: 0;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--color-fg);
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   line-height: 1;
+}
+
+.list__item.moment {
+  cursor: pointer;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
+}
+
+.list__item.moment:hover:not(.moment--selected) {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+/* The section of the frame on screen. */
+.list__item.moment--selected {
+  border-color: #e07b00;
+  box-shadow:
+    inset 4px 0 0 #e07b00,
+    0 0 0 1px #e07b00;
+  background: color-mix(in srgb, #e07b00 6%, var(--color-bg));
+  cursor: default;
+}
+
+.moment__selected {
+  color: #b35f00;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .moment__selected {
+    color: #ffb15c;
+  }
+}
+
+.explanation {
+  margin-top: 0.25rem;
+}
+
+.explanation textarea {
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+  resize: vertical;
+}
+
+.moment__others {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
 }
 
 .moment__note {
