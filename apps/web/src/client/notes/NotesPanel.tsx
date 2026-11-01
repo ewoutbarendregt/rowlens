@@ -1,58 +1,51 @@
 import { type SubmitEvent, useId, useState } from 'react';
 import { api } from '../api.ts';
+import { angleDegrees, type DrawingKind, type Point, type Size } from '../drawing/geometry.ts';
 import { formatFrameTime } from '../player/frames.ts';
+import { rememberName } from './name.ts';
 import { notesStrings } from './strings.ts';
 
-export interface Note {
+/** A note (#59) or a drawing (#60) at one frame, as the API returns it. */
+export interface Annotation {
   id: string;
   frame: number;
+  kind: 'note' | DrawingKind;
   body: string;
+  shape: { points: Point[] } | null;
   authorName: string;
   createdAt: string;
 }
 
-const NAME_KEY = 'rowlens.authorName';
-
-// The name is a convenience on this device only (the pilot has no accounts); storage may be off.
-function rememberedName(): string {
-  try {
-    return localStorage.getItem(NAME_KEY) ?? '';
-  } catch {
-    return '';
+/** How a drawing reads in a list or a marker, e.g. "Angle 128°". */
+export function describeDrawing(a: Annotation, size: Size): string {
+  const t = notesStrings();
+  const [p0, p1, p2] = a.shape?.points ?? [];
+  if (a.kind === 'angle' && p0 !== undefined && p1 !== undefined && p2 !== undefined) {
+    return t.drawing.angle(Math.round(angleDegrees(p0, p1, p2, size)));
   }
-}
-function rememberName(name: string): void {
-  try {
-    localStorage.setItem(NAME_KEY, name);
-  } catch {
-    // Private mode: the name is just asked again next time.
-  }
+  return a.kind === 'arrow' ? t.drawing.arrow : t.drawing.line;
 }
 
 interface NotesPanelProps {
   videoId: string;
   fps: number;
   frame: number;
-  notes: Note[];
+  /** The picture's display size, for angle values in the list. */
+  size: Size;
+  annotations: Annotation[];
+  name: string;
+  onNameChange: (name: string) => void;
   onChanged: () => void;
   onJump: (frame: number) => void;
   onWriting: () => void;
 }
 
-/** Notes pinned to a frame (#59): write at the current frame, jump, edit, delete. */
-export function NotesPanel({
-  videoId,
-  fps,
-  frame,
-  notes,
-  onChanged,
-  onJump,
-  onWriting,
-}: NotesPanelProps) {
+/** Notes and drawings pinned to a frame (#59, #60): write at the current frame; list, jump, edit, delete. */
+export function NotesPanel(props: NotesPanelProps) {
+  const { videoId, fps, frame, size, annotations, name } = props;
   const t = notesStrings();
   const id = useId();
   const [body, setBody] = useState('');
-  const [name, setName] = useState(rememberedName);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [editing, setEditing] = useState<{ id: string; body: string } | null>(null);
@@ -64,7 +57,7 @@ export function NotesPanel({
       .then((res) => {
         if (!res.ok) throw new Error(String(res.status));
         after();
-        onChanged();
+        props.onChanged();
       })
       .catch(() => {
         setFailed(true);
@@ -80,13 +73,15 @@ export function NotesPanel({
     run(
       api(`/api/videos/${videoId}/annotations`, {
         method: 'POST',
-        body: { frame, body, authorName: name },
+        body: { kind: 'note', frame, body, authorName: name },
       }),
       () => {
         setBody('');
       },
     );
   };
+
+  const named = name.trim() !== '';
 
   return (
     <section className="card notes" aria-labelledby={`${id}-h`}>
@@ -100,7 +95,7 @@ export function NotesPanel({
           rows={3}
           maxLength={2000}
           placeholder={t.placeholder}
-          onFocus={onWriting}
+          onFocus={props.onWriting}
           onChange={(e) => {
             setBody(e.target.value);
           }}
@@ -113,11 +108,14 @@ export function NotesPanel({
           maxLength={60}
           autoComplete="name"
           onChange={(e) => {
-            setName(e.target.value);
+            props.onNameChange(e.target.value);
+          }}
+          onBlur={() => {
+            rememberName(name.trim());
           }}
           required
         />
-        <button type="submit" disabled={busy || body.trim() === '' || name.trim() === ''}>
+        <button type="submit" disabled={busy || body.trim() === '' || !named}>
           {t.save}
         </button>
         {failed && (
@@ -127,37 +125,39 @@ export function NotesPanel({
         )}
       </form>
 
-      {notes.length === 0 && <p className="muted">{t.none}</p>}
+      {annotations.length === 0 && <p className="muted">{t.none}</p>}
       <ol className="list" data-testid="notes">
-        {notes.map((n) => {
-          const time = formatFrameTime(n.frame, fps);
-          const here = n.frame === frame;
+        {annotations.map((a) => {
+          const time = formatFrameTime(a.frame, fps);
+          const here = a.frame === frame;
+          const isNote = a.kind === 'note';
           return (
             <li
-              key={n.id}
+              key={a.id}
               className={`list__item note${here ? ' note--here' : ''}`}
-              data-testid="note"
+              data-testid={isNote ? 'note' : 'drawing'}
             >
               <div>
                 <button
                   type="button"
                   className="note__jump"
-                  aria-label={t.jump(n.frame, time)}
+                  aria-label={t.jump(a.frame, time)}
                   onClick={() => {
-                    onJump(n.frame);
+                    props.onJump(a.frame);
                   }}
                 >
-                  Frame {n.frame} · {time}
+                  Frame {a.frame} · {time}
                   {here && <span className="muted"> · {t.here}</span>}
                 </button>
-                <span className="muted">{n.authorName}</span>
-                {editing?.id === n.id ? (
+                <span className="muted">{a.authorName}</span>
+                {!isNote && <strong className="note__drawing">{describeDrawing(a, size)}</strong>}
+                {editing?.id === a.id ? (
                   <form
                     className="form"
                     onSubmit={(e) => {
                       e.preventDefault();
                       run(
-                        api(`/api/annotations/${n.id}`, {
+                        api(`/api/annotations/${a.id}`, {
                           method: 'PATCH',
                           body: { body: editing.body },
                         }),
@@ -173,7 +173,7 @@ export function NotesPanel({
                       rows={3}
                       maxLength={2000}
                       onChange={(e) => {
-                        setEditing({ id: n.id, body: e.target.value });
+                        setEditing({ id: a.id, body: e.target.value });
                       }}
                     />
                     <div className="note__actions">
@@ -192,26 +192,28 @@ export function NotesPanel({
                     </div>
                   </form>
                 ) : (
-                  <p className="note__body">{n.body}</p>
+                  a.body !== '' && <p className="note__body">{a.body}</p>
                 )}
               </div>
-              {editing?.id !== n.id && (
+              {editing?.id !== a.id && (
                 <div className="note__actions">
-                  <button
-                    type="button"
-                    className="button--quiet"
-                    onClick={() => {
-                      setEditing({ id: n.id, body: n.body });
-                    }}
-                  >
-                    {t.edit}
-                  </button>
+                  {isNote && (
+                    <button
+                      type="button"
+                      className="button--quiet"
+                      onClick={() => {
+                        setEditing({ id: a.id, body: a.body });
+                      }}
+                    >
+                      {t.edit}
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="button--quiet"
                     onClick={() => {
                       if (window.confirm(t.confirmDelete)) {
-                        run(api(`/api/annotations/${n.id}`, { method: 'DELETE' }), () => undefined);
+                        run(api(`/api/annotations/${a.id}`, { method: 'DELETE' }), () => undefined);
                       }
                     }}
                   >

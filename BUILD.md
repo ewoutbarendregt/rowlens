@@ -124,6 +124,20 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
   note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
 
+## Drawings at a frame (#60)
+
+- Same `annotation` table: kinds `line`, `arrow` (2 points), `angle` (3: arm, vertex, arm), points as
+  fractions of the picture in `shape.points`; the API validates the count and 0–1 per kind.
+- `DrawingLayer`: an SVG in the player's stage (`overlay` prop) with the picture's display size as
+  viewBox and `preserveAspectRatio="xMidYMid meet"` — the same scaling as the video's
+  `object-fit: contain`, so drawings sit on the picture at any size, with bars, in full screen. It
+  catches taps only while a tool is on (`touch-action: none` then). Angles are measured in picture
+  pixels (`drawing/geometry.ts`), shown with an arc and degrees; yellow with a dark halo.
+- Tools (Lijn/Pijl/Hoek) in the player's toolbar under the controls — close to the picture on a
+  phone — and choosing one pauses and scrolls the picture into view; Esc or the same button stops.
+  Drawings need the author's name (from the notes panel). They show on exactly their frame, are
+  listed with the notes ("Hoek 128°") and on the scrub bar, and are deleted (not edited).
+
 ## Notes pinned to a frame (#59)
 
 - Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade

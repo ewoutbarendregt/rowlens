@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Drawing lines, arrows and angles at a frame (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/api/annotations.ts (+ db test), src/client/drawing/{geometry.ts,geometry.test.ts,DrawingLayer.tsx,DrawTools.tsx}, src/client/notes/{NotesPanel.tsx,name.ts,strings.ts}, src/client/player/Player.tsx (overlay), src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/drawing.spec.ts, BUILD.md, TEST.md
+**Summary**: PR 7 of the upload plan, built and tried on the local stack. Line, arrow and angle (degrees in picture pixels, with an arc) drawn by taps on a paused frame, stored as picture fractions, rendered in an SVG that scales like the video so they stay on the picture at any size. Trying it on an iPhone-sized WebKit showed the tools were too far from the picture (below the notes): they moved into the player's toolbar, and choosing one scrolls the picture into view.
+**Prompts used**: "Yes, start PR 7"; "Yes, PR 7 locally".
+
 ## 2026-11-01 — Local development stack: iterate on the laptop
 
 **Session**: claude/chore/local-dev

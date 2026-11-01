@@ -1,7 +1,17 @@
 // Notes strings in NL and EN (moves into the i18n catalogs with #34).
 const en = {
-  notes: 'Notes',
-  none: 'No notes yet. Pause on a moment and write what you see.',
+  notes: 'Notes and drawings',
+  draw: 'Draw',
+  tools: { line: 'Line', arrow: 'Arrow', angle: 'Angle' },
+  hints: {
+    line: 'Tap the start and the end on the picture.',
+    arrow: 'Tap where the arrow starts, then where it points.',
+    angle: 'Tap one arm, then the vertex, then the other arm. Esc cancels.',
+  },
+  needName: 'Fill in your name at the notes to draw.',
+  drawing: { line: 'Line', arrow: 'Arrow', angle: (deg: number) => `Angle ${String(deg)}°` },
+  drawingMarker: (frame: number, what: string) => `${what} at frame ${String(frame)}`,
+  none: 'Nothing yet. Pause on a moment, then write or draw what you see.',
   atFrame: (frame: number, time: string) => `Note at frame ${String(frame)} (${time})`,
   placeholder: 'e.g. blade goes in before the hands reach full extension',
   yourName: 'Your name',
@@ -18,8 +28,18 @@ const en = {
 };
 
 const nl: typeof en = {
-  notes: 'Notities',
-  none: 'Nog geen notities. Pauzeer op een moment en schrijf op wat je ziet.',
+  notes: 'Notities en tekeningen',
+  draw: 'Tekenen',
+  tools: { line: 'Lijn', arrow: 'Pijl', angle: 'Hoek' },
+  hints: {
+    line: 'Tik op het begin en het eind op het beeld.',
+    arrow: 'Tik waar de pijl begint en waar hij naar wijst.',
+    angle: 'Tik op een arm, dan het hoekpunt, dan de andere arm. Esc annuleert.',
+  },
+  needName: 'Vul bij de notities je naam in om te tekenen.',
+  drawing: { line: 'Lijn', arrow: 'Pijl', angle: (deg: number) => `Hoek ${String(deg)}°` },
+  drawingMarker: (frame: number, what: string) => `${what} bij frame ${String(frame)}`,
+  none: 'Nog niets. Pauzeer op een moment en schrijf of teken wat je ziet.',
   atFrame: (frame: number, time: string) => `Notitie bij frame ${String(frame)} (${time})`,
   placeholder: 'bijv. blad gaat erin voordat de armen helemaal gestrekt zijn',
   yourName: 'Je naam',

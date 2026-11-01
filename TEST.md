@@ -39,6 +39,9 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | E2E notes (`e2e/notes.spec.ts`, edge, processed video) | note at frame 10 → list + marker; away and back via list and marker; reload keeps note and remembered name; edit; delete removes marker; repeated 10× without a flake | ✅ passing |
 | E2E player regression (`e2e/player.spec.ts`) | 20 quick presses without waiting land on frame 20 and back to 5 (BUG-004: fails 12/12 with the old `seeked` handler) | ✅ passing |
 | Video page layout (manual, scripted Playwright) | WebKit iPhone 13: portrait video fully visible (was 358×636 in a 358×201 stage), full screen; Chrome 1000×540 / 1440×860 / 1920×1000, landscape and portrait: video, controls, note field in view, stage size measured (catches a 0×0 video), no horizontal overflow | ✅ checked |
+| Drawing geometry (`drawing/geometry.test.ts`) | 6: right/straight/acute/zero angles; angles in picture pixels (a fraction "square" on 16:9 is 29.4°, not 45°); degenerate arm; fraction ↔ pixel mapping; points on the bars refused; arc direction | ✅ passing |
+| Drawing API (`api/annotations.db.test.ts`) | line/arrow/angle stored with points; wrong count, out-of-range, unknown kind, note with points refused; drawings can't be edited, only deleted | ✅ passing |
+| E2E drawing (`e2e/drawing.spec.ts`, edge) | tools disabled without a name; angle with horizontal/vertical arms reads 90°; arrow; both listed; Esc leaves the tool; hidden one frame later, back on their frame; delete one; repeated 5× without a flake. Also by hand on the local stack: iPhone (WebKit, taps) and laptop | ✅ passing |
 | Readiness with DB (`readiness.db.test.ts`) | 3: 200 when Postgres answers; 503 within 5 s when unreachable; 503 on a wrong password | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
@@ -59,6 +62,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
 | 2026-11-01 | claude/feat/31-database | `pnpm test`, `pnpm e2e:edge`, `run.sh`, `rehearse.sh` | 79 passed (16 db); 8 passed; 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/60-drawing | `pnpm test`, local + edge E2E, drawing+notes ×5, local stack (iPhone WebKit, laptop) | 180 passed; 28 + 14 passed; 10 passed; checked |
 | 2026-11-01 | claude/fix/laptop-portrait-layout | `pnpm test`, worker `pytest`, local + edge E2E, layout script (3 laptop sizes + iPhone) | 170 passed; 38 passed; 28 + 13 passed; layout checks passed |
 | 2026-11-01 | claude/fix/ios-player-half | `pnpm test`, local + edge E2E, WebKit/Chrome layout script, store test ×15 | 170 passed; 28 + 13 passed; layout checks passed; 15/15 |
 | 2026-11-01 | claude/feat/59-frame-notes | `pnpm test`, local + edge E2E, player spec ×3, notes spec ×10 | 170 passed; 28 + 13 passed; 42 passed; 10 passed |

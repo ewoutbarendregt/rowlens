@@ -2,7 +2,11 @@ import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState }
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
-import { type Note, NotesPanel } from '../notes/NotesPanel.tsx';
+import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
+import { DrawTools } from '../drawing/DrawTools.tsx';
+import type { DrawingKind, Point } from '../drawing/geometry.ts';
+import { rememberedName, rememberName } from '../notes/name.ts';
+import { type Annotation, describeDrawing, NotesPanel } from '../notes/NotesPanel.tsx';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
@@ -44,11 +48,13 @@ export function VideoPage() {
   const frame = useRef(0);
   const [current, setCurrent] = useState(0);
   const player = useRef<PlayerHandle>(null);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Annotation[]>([]);
+  const [name, setName] = useState(rememberedName);
+  const [tool, setTool] = useState<DrawingKind | null>(null);
 
   const loadNotes = useCallback(() => {
     api(`/api/videos/${id}/annotations`)
-      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Note[] }>) : null))
+      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Annotation[] }>) : null))
       .then((body) => {
         if (body !== null) setNotes(body.annotations);
       })
@@ -58,14 +64,62 @@ export function VideoPage() {
   }, [id]);
   useEffect(loadNotes, [loadNotes]);
 
+  // The picture's display size (after rotation): the drawings' coordinate system.
+  const size = useMemo(
+    () =>
+      video?.width != null && video.height != null
+        ? { width: video.width, height: video.height }
+        : { width: 1920, height: 1080 },
+    [video?.width, video?.height],
+  );
+
   const markers = useMemo(() => {
     const nt = notesStrings();
     return notes.map((n) => ({
       id: n.id,
       frame: n.frame,
-      label: nt.marker(n.frame, n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body),
+      label:
+        n.kind === 'note'
+          ? nt.marker(n.frame, n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body)
+          : nt.drawingMarker(n.frame, describeDrawing(n, size)),
     }));
-  }, [notes]);
+  }, [notes, size]);
+
+  // Drawings show on exactly their frame (#60).
+  const drawingsHere = useMemo(
+    () =>
+      notes
+        .filter((n) => n.kind !== 'note' && n.frame === current && n.shape !== null)
+        .map((n) => ({ id: n.id, kind: n.kind as DrawingKind, points: n.shape?.points ?? [] })),
+    [notes, current],
+  );
+
+  const chooseTool = useCallback((next: DrawingKind | null) => {
+    if (next !== null) {
+      player.current?.pause();
+      // On a phone the picture may be scrolled away; drawing happens on it.
+      const stage = document.querySelector('.player__stage');
+      const box = stage?.getBoundingClientRect();
+      if (box !== undefined && (box.top < 0 || box.bottom > window.innerHeight)) {
+        stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    setTool(next);
+  }, []);
+  const cancelTool = useCallback(() => {
+    setTool(null);
+  }, []);
+
+  const saveDrawing = useCallback(
+    (kind: DrawingKind, points: Point[]) => {
+      rememberName(name.trim());
+      void api(`/api/videos/${id}/annotations`, {
+        method: 'POST',
+        body: { kind, frame: frame.current, points, authorName: name },
+      }).finally(loadNotes);
+    },
+    [id, name, loadNotes],
+  );
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -132,34 +186,46 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
+              overlay={
+                <DrawingLayer
+                  size={size}
+                  drawings={drawingsHere}
+                  tool={tool}
+                  onComplete={saveDrawing}
+                  onCancel={cancelTool}
+                />
+              }
               toolbar={
-                video.renditions.length > 1 ? (
-                  <div
-                    className="quality"
-                    role="group"
-                    aria-label={t.quality}
-                    title={t.qualityHint}
-                  >
-                    <span>{t.quality}</span>
-                    {video.renditions
-                      .map((r) => r.name)
-                      .sort()
-                      .reverse()
-                      .map((name) => (
-                        <button
-                          key={name}
-                          type="button"
-                          className="button--quiet"
-                          aria-pressed={rendition === name}
-                          onClick={() => {
-                            setRendition(name);
-                          }}
-                        >
-                          {name.replace('play-', '')}p
-                        </button>
-                      ))}
-                  </div>
-                ) : undefined
+                <>
+                  <DrawTools tool={tool} named={name.trim() !== ''} onTool={chooseTool} />
+                  {video.renditions.length > 1 && (
+                    <div
+                      className="quality"
+                      role="group"
+                      aria-label={t.quality}
+                      title={t.qualityHint}
+                    >
+                      <span>{t.quality}</span>
+                      {video.renditions
+                        .map((r) => r.name)
+                        .sort()
+                        .reverse()
+                        .map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            className="button--quiet"
+                            aria-pressed={rendition === name}
+                            onClick={() => {
+                              setRendition(name);
+                            }}
+                          >
+                            {name.replace('play-', '')}p
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </>
               }
             />
           </div>
@@ -168,7 +234,10 @@ export function VideoPage() {
               videoId={video.id}
               fps={video.fpsNum / video.fpsDen}
               frame={current}
-              notes={notes}
+              size={size}
+              annotations={notes}
+              name={name}
+              onNameChange={setName}
               onChanged={loadNotes}
               onJump={(f) => {
                 player.current?.seekToFrame(f);
