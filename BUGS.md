@@ -2,6 +2,12 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-009] A first deploy could silently skip the migrations — high
+**Location**: infra/deploy/rowlens-deploy (`migrate`)
+**Status**: fixed (needs the deploy script reinstalled with `install.sh` at the next deploy)
+**Found**: 2026-11-01, CI rehearsal on PR #97
+**Description**: `migrate` asked `docker compose config` whether a migrate service exists, without ROWLENS_TAG and with errors suppressed. On a first deploy there is no release.env to supply the tag; newer Compose enforces `${ROWLENS_TAG:?}` during `config`, so the check failed, read as "no migrate service", the migrations were skipped and the app couldn't log in to the database. Production (release.env present) was not affected.
+**Fix**: pass the tag; a failing `config` stops the deploy (exit 2) before anything restarts. Stub tests: config sees the tag; config failure stops the deploy (both fail on the old script).
 ### [BUG-007] Phone clip processed at 31.58 fps instead of 30, ~5 % duplicate frames — high
 **Location**: worker/src/rowlens_worker/video/probe.py (`_nominal`)
 **Status**: fixed (videos processed before stay as they are; re-upload to fix)

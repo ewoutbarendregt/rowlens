@@ -97,8 +97,13 @@ backup_db() {
 }
 
 migrate() {
-  local tag="$1"
-  if compose --profile migrate config --services 2>/dev/null | grep -qx migrate; then
+  local tag="$1" services
+  # With the tag set: the compose file requires ROWLENS_TAG, and on a first deploy there is no
+  # release.env to supply it. A config error must stop the deploy, not read as "no migrate service":
+  # newer Compose versions enforce the variable here, and skipping migrations left the app unable
+  # to log in to the database.
+  services="$(ROWLENS_TAG="$tag" compose --profile migrate config --services)" || return 1
+  if grep -qx migrate <<<"$services"; then
     log "running migrations for $tag"
     ROWLENS_TAG="$tag" compose --profile migrate run --rm migrate
   else
