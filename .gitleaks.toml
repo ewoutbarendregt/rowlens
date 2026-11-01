@@ -2,5 +2,5 @@
 useDefault = true
 
 [allowlist]
-description = "Throwaway local-dev credentials in the dev compose file"
-paths = ['''infra/compose/docker-compose\.dev\.yml''']
+description = "Throwaway test credentials in the dev and edge compose files (never deployed)"
+paths = ['''infra/compose/docker-compose\.(dev|edge)\.yml''']
