@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Player spike (#51): iPhone check and throttled-4G measurements
+
+**Session**: claude/docs/51-spike-iphone-4g
+**Changed**: docs/adr/0007-upload-transcode-playback.md, scripts/demo-media/measure-network.js, TEST.md, FEATURES.md, DOCUMENTATION.md
+**Summary**: Ewout reported that the production demo works on his iPhone. Measured the production demo on throttled Fast 4G and Slow 4G (cold cache, headless Chrome): 0 wrong frames in 540 steps. Start time is 0.25–0.36 s on Fast 4G and 0.8–1.5 s on Slow 4G. On Slow 4G, 1080p steps can wait one round trip (~300 ms); 540p stays near 15 ms. GOP 0.25 s stays. Still open: Android, timings on the iPhone itself, real footage. Merged #82 on Ewout's "Merge".
+**Prompts used**: "Merge"; "It works".
+
 ## 2026-11-01 — Deployed sha-94af6b0: player demo live on production
 
 **Session**: claude/docs/deploy-player-demo-log

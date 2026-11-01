@@ -40,6 +40,8 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
+| 2026-11-01 | claude/docs/51-spike-iphone-4g | `node scripts/demo-media/measure-network.js apps/web` (prod) | 18 runs, 540 steps, 0 wrong frames |
+| 2026-11-01 | — (manual) | iPhone Safari on the prod demo (Ewout) | "It works"; no timings recorded |
 
 ## Playwright prompts
 
@@ -54,6 +56,10 @@ landing one frame early; a stale step target after such a mis-mapped frame; the 
 production builds (object-property flag, bracket env access, Rolldown emitting eliminated chunks).
 Measurement caveat: the in-app browser pane, when hidden, doesn't paint, so rVFC stops; time only on a
 visible page or headless Playwright. Real Chrome (H.264) results are in ADR-0007; phones still to do.
+
+Throttled networks: `scripts/demo-media/measure-network.js` (Fast/Slow 4G via CDP, cold cache, H.264
+in Google Chrome) against production; results in ADR-0007. iPhone Safari: manual check by Ewout passed.
+Still to do: Android Chrome, step timings on the iPhone itself, and real-footage clips.
 
 ### Deploy script (#25)
 
