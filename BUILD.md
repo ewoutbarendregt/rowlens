@@ -100,6 +100,30 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
   has no H.264) and steps 10 frames exactly.
 
+## Local development (iterate on the laptop)
+
+- `pnpm dev:up`: Postgres (127.0.0.1:5434) and the worker (production image, ffmpeg inside) from
+  `infra/compose/docker-compose.dev.yml`, then the migrations. The worker shares `apps/web/.media`
+  with the web app through a bind mount.
+- `pnpm dev`: `dev:server` (Fastify on API_PORT 3100, `--watch`) and `dev:client` (Vite on DEV_PORT
+  5174, hot reload, proxying `/api` and `/health`). Ports come from `apps/web/.env` and avoid the
+  local trustable.nl stack (5173, 5433). API_PORT wins over PORT in the server config, because the
+  preview pane and Vite set PORT for the front end.
+- `.claude/launch.json` `rowlens` runs `pnpm dev` in the browser pane.
+
+## Video page layout (BUG-005, Ewout's laptop feedback)
+
+- Stage: `--aspect` (video width/height, set inline from metadata) and `--stage-cap`; width =
+  min(column, cap × aspect), `aspect-ratio: var(--aspect)`, video absolutely positioned inside with
+  `object-fit: contain`. Phones: cap 60dvh. Full screen: the stage takes the free grid row.
+- ≥ 1000 px: two columns, the player (sticky) left and the notes (own scroll) right; compact header.
+  Landscape video: controls under the video (cap = 100dvh − 320px). Portrait video (`aspect < 0.9`,
+  from the worker's display size): three zones, the video at cap = 100dvh − 130px with an absolute
+  width, its controls in a column beside it, notes right. Phones: stacked.
+- The quality switch is part of the player (`toolbar` prop); its explanation is a tooltip.
+- Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
+  note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
+
 ## Notes pinned to a frame (#59)
 
 - Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade

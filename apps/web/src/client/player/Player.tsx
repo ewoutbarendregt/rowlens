@@ -1,4 +1,12 @@
-import { type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import {
+  type CSSProperties,
+  type ReactNode,
+  type Ref,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { formatFrameTime } from './frames.ts';
 import { playerStrings } from './strings.ts';
 import { SPEEDS, type PlayerMeasurement, type Speed, usePlayer } from './usePlayer.ts';
@@ -18,6 +26,8 @@ export interface PlayerProps {
   markers?: readonly PlayerMarker[];
   /** Lets the page seek and pause, e.g. when a note in a list is chosen. */
   handle?: Ref<PlayerHandle>;
+  /** Extra controls from the page (e.g. the quality switch), laid out with the player's own. */
+  toolbar?: ReactNode;
 }
 
 export interface PlayerMarker {
@@ -48,6 +58,7 @@ export function Player({
   onMeasure,
   markers,
   handle,
+  toolbar,
 }: PlayerProps) {
   const t = useMemo(() => playerStrings(), []);
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -179,7 +190,11 @@ export function Player({
       ref={p.containerRef}
       className={`player${p.immersive ? ' player--immersive' : ''}${p.fullscreen ? ' player--fullscreen' : ''}`}
     >
-      <div className="player__stage">
+      <div
+        className="player__stage"
+        // The stage takes the picture's shape, so portrait video isn't a narrow strip (BUG-005).
+        style={p.aspect === null ? undefined : ({ '--aspect': String(p.aspect) } as CSSProperties)}
+      >
         <video
           ref={p.videoRef}
           src={src}
@@ -320,6 +335,7 @@ export function Player({
           </button>
         </div>
       </div>
+      {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
     </div>
   );
 }

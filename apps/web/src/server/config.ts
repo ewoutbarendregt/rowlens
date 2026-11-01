@@ -8,6 +8,8 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().min(1).default('0.0.0.0'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+  /** Wins over PORT when set: dev tools (Vite, the preview pane) set PORT for the front end. */
+  API_PORT: z.coerce.number().int().min(1).max(65535).optional(),
   BASE_PATH: z.string().default('/projects/rowlens'),
   PUBLIC_ORIGIN: z.url({ protocol: /^https?$/ }).optional(),
   APP_VERSION: z.string().min(1).default('dev'),
@@ -91,7 +93,8 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (e.NODE_ENV === 'production' && e.DATABASE_URL === undefined) {
     throw new Error('Invalid configuration: DATABASE_URL is required in production');
   }
-  const publicOrigin = new URL(e.PUBLIC_ORIGIN ?? `http://localhost:${String(e.PORT)}`);
+  const port = e.API_PORT ?? e.PORT;
+  const publicOrigin = new URL(e.PUBLIC_ORIGIN ?? `http://localhost:${String(port)}`);
   if (publicOrigin.pathname !== '/' || publicOrigin.search !== '' || publicOrigin.hash !== '') {
     throw new Error('Invalid configuration: PUBLIC_ORIGIN must be an origin without a path');
   }
@@ -99,7 +102,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   return {
     nodeEnv: e.NODE_ENV,
     host: e.HOST,
-    port: e.PORT,
+    port,
     basePath: normalizeBasePath(e.BASE_PATH),
     publicOrigin: publicOrigin.origin,
     version: e.APP_VERSION,

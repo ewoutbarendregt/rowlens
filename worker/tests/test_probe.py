@@ -93,3 +93,9 @@ def test_bitrate_from_the_format_or_from_size_and_duration() -> None:
     from_size = {"streams": [video_stream()], "format": {"duration": "80", "size": "8000000"}}
     assert parse_probe(from_size).bitrate == 800_000
     assert parse_probe(data(video_stream())).bitrate is None
+
+
+def test_timestamp_grid_rate_loses_to_a_common_average() -> None:
+    # The production clip: frames on a 600 Hz grid, 19 ticks apart (31.58) with gaps; average 29.99.
+    p = parse_probe(data(video_stream(r_frame_rate="600/19", avg_frame_rate="82200/2741")))
+    assert p.fps == Fraction(30)

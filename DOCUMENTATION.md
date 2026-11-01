@@ -2,6 +2,27 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Local development stack: iterate on the laptop
+
+**Session**: claude/chore/local-dev
+**Changed**: infra/compose/docker-compose.dev.yml (worker, port 5434), apps/web/{vite.config.ts,.env.example}, apps/web/src/server/{config.ts,config.test.ts} (API_PORT wins), package.json (dev:up, dev, dev:down), .claude/launch.json, CLAUDE.md, BUILD.md
+**Summary**: Ewout wants to iterate locally and deploy later. The whole app now runs on the laptop: Postgres and the worker in Docker, the web app with hot reload on :5174 (his RowLens port; trustable.nl's local stack keeps 5173/5433). Verified the full flow locally (code → session → portrait upload → worker 0.9 s → player with notes). Found on the way: the preview pane sets PORT for the process, so the server took the front end's port; API_PORT now wins. The old RowLens preview server on 5174 (demo era) was stopped and replaced.
+**Prompts used**: "ik wil graag itereren op mijn local machine, pas later deployen we weer"; "5147 is toch de rowlens demo".
+
+## 2026-11-01 — Laptop layout for portrait video; 30 fps for phone clips on a 600 Hz grid
+
+**Session**: claude/fix/laptop-portrait-layout
+**Changed**: apps/web/src/client/{styles.css,player/Player.tsx,sessions/VideoPage.tsx}, worker/src/rowlens_worker/video/probe.py, worker/tests/test_probe.py, docs/adr/0007, BUGS.md, BUILD.md, TEST.md
+**Summary**: Ewout's laptop screenshot: a portrait video as a narrow strip with controls stretched below, in a low window (~540 px), and "31.58 fps". Portrait video now gets three zones on laptops (video tall left, controls beside, notes right); the quality switch moved into the player; softer slider focus. The worker now prefers a common average rate (the clip was 29.99 on average but r_frame_rate 600/19, so 5 % of its frames were duplicates). Checked at 1000×540, 1440×860, 1920×1000 and iPhone.
+**Prompts used**: "this does not look good on the laptop" (with screenshot).
+
+## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
+
+**Session**: claude/fix/ios-player-half
+**Changed**: apps/web/src/client/styles.css, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/server/media/store.test.ts, BUGS.md, BUILD.md, TEST.md
+**Summary**: Ewout saw only the top half of the picture on his iPhone: Safari ignored `height: 100%` inside the aspect-ratio stage, so portrait video overflowed and was clipped (BUG-005; reproduced in WebKit). The stage now takes the video's shape with a height cap, the video is positioned inside it. His second request: on a laptop the notes needed scrolling; the video page is now two columns from 1000 px (sticky player, scrolling notes). PR 7 (drawing) is parked on its branch meanwhile. Also fixed a flaky store test (BUG-006).
+**Prompts used**: "ik zie op de iphone niet het hele beeld, alleen de bovenste helft"; "also on the laptop, the controls and the comments are not visible on the same pageview, i have to scroll down to see the comments. can we have a bit of ux design around this".
+
 ## 2026-11-01 — Notes pinned to a frame (#59); lost frame steps fixed (BUG-004)
 
 **Session**: claude/feat/59-frame-notes

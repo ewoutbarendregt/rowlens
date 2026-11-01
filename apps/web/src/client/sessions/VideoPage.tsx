@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
@@ -92,73 +92,94 @@ export function VideoPage() {
   if (video === null) return null;
 
   const media = (name: string) => appUrl(`/api/videos/${video.id}/media/${name}`);
+  // Display shape from the worker's metadata, known before the video loads: portrait phone video
+  // gets its own laptop layout (video beside its controls).
+  const aspect =
+    video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
+  const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
 
   return (
-    <main className="page page--wide">
-      <nav className="page__nav">
-        <Link to={`/sessions/${video.sessionId}`}>← {t.backToSession(video.sessionTitle)}</Link>
-      </nav>
-      <h1 className="video-title">{video.filename}</h1>
-      <p className="muted">
-        {t.perspectives[video.perspective]}
-        {video.status === 'ready' && <> · {formatVideoFacts(video)}</>}
-      </p>
+    <main className="page page--wide video-page">
+      <header className="video-head">
+        <nav className="page__nav">
+          <Link to={`/sessions/${video.sessionId}`}>← {t.backToSession(video.sessionTitle)}</Link>
+        </nav>
+        <h1 className="video-title">{video.filename}</h1>
+        <p className="muted video-facts">
+          {t.perspectives[video.perspective]}
+          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>}
+        </p>
+      </header>
 
       {!ready && <p role="status">{t.notReady}</p>}
       {ready && video.fpsNum !== null && video.fpsDen !== null && (
-        <>
-          <Player
-            key={rendition}
-            src={media(rendition)}
-            poster={media('poster')}
-            fps={video.fpsNum / video.fpsDen}
-            startFrame={frame.current}
-            onFrame={(f) => {
-              frame.current = f;
-              setCurrent(f);
-            }}
-            markers={markers}
-            handle={player}
-          />
-          {video.renditions.length > 1 && (
-            <div className="quality" role="group" aria-label={t.quality}>
-              <span>{t.quality}</span>
-              {video.renditions
-                .map((r) => r.name)
-                .sort()
-                .reverse()
-                .map((name) => (
-                  <button
-                    key={name}
-                    type="button"
-                    className="button--quiet"
-                    aria-pressed={rendition === name}
-                    onClick={() => {
-                      setRendition(name);
-                    }}
+        // Laptop: player (sticky) left, notes right, all in one view. Phone: stacked.
+        <div
+          className={`video-layout${portrait ? ' video-layout--portrait' : ''}`}
+          style={{ '--aspect': String(aspect) } as CSSProperties}
+        >
+          <div className="video-layout__player">
+            <Player
+              key={rendition}
+              src={media(rendition)}
+              poster={media('poster')}
+              fps={video.fpsNum / video.fpsDen}
+              startFrame={frame.current}
+              onFrame={(f) => {
+                frame.current = f;
+                setCurrent(f);
+              }}
+              markers={markers}
+              handle={player}
+              toolbar={
+                video.renditions.length > 1 ? (
+                  <div
+                    className="quality"
+                    role="group"
+                    aria-label={t.quality}
+                    title={t.qualityHint}
                   >
-                    {name.replace('play-', '')}p
-                  </button>
-                ))}
-              <span className="muted">{t.qualityHint}</span>
-            </div>
-          )}
-          <NotesPanel
-            videoId={video.id}
-            fps={video.fpsNum / video.fpsDen}
-            frame={current}
-            notes={notes}
-            onChanged={loadNotes}
-            onJump={(f) => {
-              player.current?.seekToFrame(f);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onWriting={() => {
-              player.current?.pause();
-            }}
-          />
-        </>
+                    <span>{t.quality}</span>
+                    {video.renditions
+                      .map((r) => r.name)
+                      .sort()
+                      .reverse()
+                      .map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          className="button--quiet"
+                          aria-pressed={rendition === name}
+                          onClick={() => {
+                            setRendition(name);
+                          }}
+                        >
+                          {name.replace('play-', '')}p
+                        </button>
+                      ))}
+                  </div>
+                ) : undefined
+              }
+            />
+          </div>
+          <aside className="video-layout__side">
+            <NotesPanel
+              videoId={video.id}
+              fps={video.fpsNum / video.fpsDen}
+              frame={current}
+              notes={notes}
+              onChanged={loadNotes}
+              onJump={(f) => {
+                player.current?.seekToFrame(f);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onWriting={() => {
+                player.current?.pause();
+              }}
+            />
+          </aside>
+        </div>
       )}
     </main>
   );

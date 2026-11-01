@@ -2,6 +2,34 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-007] Phone clip processed at 31.58 fps instead of 30, ~5 % duplicate frames — high
+**Location**: worker/src/rowlens_worker/video/probe.py (`_nominal`)
+**Status**: fixed (videos processed before stay as they are; re-upload to fix)
+**Found**: 2026-11-01, Ewout's screenshot showed "31.58 fps"
+**Description**: The clip's frames sit on a 600 Hz timestamp grid, 19 ticks apart with gaps (r_frame_rate 600/19 = 31.58, average 29.99). The worker took r_frame_rate because it was within 20 % of the average, and made a constant 31.58 fps rendition: 2740 frames from 2603, so ~5 % duplicates — misleading when stepping frame by frame.
+**Fix**: prefer the average if it is a common rate (within 1 %), then r_frame_rate if common, then the old rule. Test with the clip's real numbers.
+
+### [BUG-008] Portrait video on a laptop: a narrow strip, controls stretched below — medium
+**Location**: apps/web/src/client/styles.css (video page layout)
+**Status**: fixed
+**Found**: 2026-11-01, Ewout's laptop screenshot ("this does not look good on the laptop")
+**Description**: The laptop layout put controls under the video, sized for landscape. A portrait video got the height left over (small in a low window) and lots of empty space beside it.
+**Fix**: from 1000 px, portrait video stands left at full available height, its controls in a column beside it, notes on the right. Two attempts made the video 0×0 (an auto margin, then a percentage width inside an auto-sized column); both caught by measuring the stage size in the layout script.
+
+### [BUG-005] iPhone shows only the top of a portrait video — high
+**Location**: apps/web/src/client/styles.css (`.player__stage`, `.player__video`)
+**Status**: fixed (in production until the next deploy)
+**Found**: 2026-11-01, by Ewout on his iPhone ("alleen de bovenste helft")
+**Description**: The stage was a 16:9 box (aspect-ratio) with the video at `height: 100%`. Safari ignores that percentage inside an aspect-ratio box, so a portrait video (540×960) became 358×636 px inside a 358×201 stage and was cut off. Chrome sized it correctly, so the Chromium tests passed.
+**Fix**: video absolutely positioned in the stage; the stage takes the video's own shape (`--aspect`), at most 60 % of the screen height on phones; checked in WebKit at iPhone size (landscape, portrait, full screen).
+
+### [BUG-006] Flaky test: broken upload connection — low
+**Location**: apps/web/src/server/media/store.test.ts:32
+**Status**: fixed
+**Found**: 2026-11-01
+**Description**: The test broke the stream after a fixed 20 ms, sometimes before the first chunk reached the disk.
+**Fix**: break it once the bytes are on disk; 15/15 passes.
+
 ### [BUG-004] Quick frame steps get lost (player) — high
 **Location**: apps/web/src/client/player/usePlayer.ts:102
 **Status**: fixed (in production until the next deploy)

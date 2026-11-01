@@ -39,6 +39,8 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
   const [playing, setPlaying] = useState(false);
   const [rate, setRateState] = useState<Speed>(1);
   const [ready, setReady] = useState(false);
+  /** The picture's shape (width / height), once known; portrait phone video is < 1. */
+  const [aspect, setAspect] = useState<number | null>(null);
   const [exact, setExact] = useState(true);
   const [loopRange, setLoopRange] = useState<LoopRange | null>(null);
   const [loopOn, setLoopOn] = useState(false);
@@ -88,6 +90,9 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
     const onMetadata = () => {
       countRef.current = frameCount(video.duration, fps);
       setCount(countRef.current);
+      if (video.videoWidth > 0 && video.videoHeight > 0) {
+        setAspect(video.videoWidth / video.videoHeight);
+      }
     };
     const onLoadedData = () => {
       setReady(true);
@@ -288,6 +293,7 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
     playing,
     rate,
     ready,
+    aspect,
     exact,
     loop: loopRange,
     loopOn,
