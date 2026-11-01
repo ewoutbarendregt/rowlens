@@ -16,7 +16,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
-| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-1acc1a2`) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; both healthy | deploy workflow run 41305371056, triggered by Claude on Ewout's approval, 2026-11-01 (#26) |
+| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-94af6b0`, player demo on) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; both healthy. Previous release: `sha-1acc1a2` | deploy runs 41305371056 (first, #26) and 41309728753 (player demo), triggered by Claude on Ewout's request, 2026-11-01 |
 
 Nothing under `/opt/trustable` has been changed.
 
