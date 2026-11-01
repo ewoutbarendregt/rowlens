@@ -7,7 +7,7 @@ Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live o
 | Feature | Priority | Status |
 |---|---|---|
 | Monorepo, CI (lint/type/test/build/scan), templates, ADRs | must | in progress (Phase 0) |
-| Base-path-aware web skeleton + health endpoints | must | in progress (placeholder) |
+| Base-path-aware web skeleton + health endpoints | must | in progress (#19, PR open) |
 | Approval-gated CD to trustable-prod with rollback | must | planned |
 | Object storage decision + disk monitoring | must | planned |
 | E-mail OTP login, sessions, CSRF, rate limits | must | planned |

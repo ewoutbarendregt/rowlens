@@ -50,7 +50,9 @@ Read first, every session: `PLAN.md`, `BUILD.md`, latest entry of `DOCUMENTATION
 # Web (TypeScript, pnpm workspace; Node 22 — `corepack enable` once)
 pnpm install
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
-pnpm --filter @rowlens/web dev             # BASE_PATH defaults to /projects/rowlens
+pnpm --filter @rowlens/web dev:server      # Fastify :3000; BASE_PATH defaults to /projects/rowlens
+pnpm --filter @rowlens/web dev:client      # Vite dev server, proxies /api + /health to :3000
+pnpm build && pnpm --filter @rowlens/web e2e   # Playwright smoke (once: playwright install chromium)
 
 # Worker (Python 3.12, uv)
 cd worker && uv sync
