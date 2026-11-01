@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — First production deploy (sha-1acc1a2) and stack merged to main (#26)
+
+**Session**: claude/docs/26-first-deploy-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PRs #67–#71 merged into main (merge commits), issues #23 and #25 closed; on trustable-prod: Compose project `rowlens` (web + db), volume rowlens_db_data, network rowlens_internal, rowlens-web attached to trustable_proxy, /opt/rowlens/state/{current-tag,release.env}
+**Summary**: Merged the stacked PRs in order. Deleting #67's branch made GitHub close #68 rather than retarget it; restored the branch, reopened #68 and merged the rest by retargeting each to main first (lesson: in a stack, retarget before merging and delete branches only at the end). The images workflow pushed sha-1acc1a2, and the deploy workflow (public check off, since trustable.nl#377 isn't merged) brought up web + db: healthy, reachable from trustable's Caddy via the `rowlens-web` alias, no registry credentials left, trustable containers untouched. Open: release-please can't create PRs (repo setting), merged branches not yet deleted, Dependabot #72/#73 propose Node 26 / Python 3.15 against our pins.
+**Prompts used**: "Yes, merge them"; "It's green, merge"; "Approve #26".
+
 ## 2026-11-01 — install.sh run on trustable-prod: deploy script installed, CI key restricted (#25)
 
 **Session**: claude/feat/25-manual-deploy
