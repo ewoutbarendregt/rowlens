@@ -43,6 +43,21 @@ test('create a session, upload a video and a fake one, delete the video', async 
       timeout: 60_000,
     });
     await expect(stroke.getByTestId('video-facts')).toHaveText(/^30 fps · 640×360 · 0:04$/);
+
+    // The worker's H.264 rendition in the frame-accurate player (#49): poster, then exact steps.
+    await stroke.getByRole('link', { name: 'stroke.webm', exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'stroke.webm' })).toBeVisible();
+    const frame = page.getByTestId('player-frame');
+    await expect(frame).toHaveText('0');
+    await expect(page.locator('video')).toHaveAttribute('poster', /\/media\/poster$/);
+    await page.locator('h1').click();
+    for (let n = 1; n <= 10; n++) {
+      await page.keyboard.press('.');
+      await expect(frame).toHaveText(String(n));
+    }
+    const time = await page.locator('video').evaluate((v: HTMLVideoElement) => v.currentTime);
+    expect(Math.floor(time * 30 + 1e-4)).toBe(10);
+    await page.getByRole('link', { name: /^← (Back to|Terug naar) E2E/ }).click();
   }
   await expect(stroke).toContainText(/From the bank|Vanaf de kant/);
   await expect(videos.filter({ hasText: 'fake.mov' }).getByTestId('video-status')).toHaveText(

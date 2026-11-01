@@ -17,6 +17,9 @@ export default defineConfig({
           name: 'db',
           include: ['src/**/*.db.test.ts'],
           globalSetup: ['src/server/db/test/global-setup.ts'],
+          // One shared database: files that count global totals (the media cap) can't run in parallel
+          // with files that add videos.
+          fileParallelism: false,
           testTimeout: 20_000,
           hookTimeout: 120_000,
         },
