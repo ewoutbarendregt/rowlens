@@ -29,10 +29,36 @@ services:
     environment:
       PUBLIC_ORIGIN: http://localhost:${EDGE_PORT:-8080}
       APP_VERSION: edge
+      DATABASE_URL: postgres://rowlens_app:edge_app_password_only@db:5432/rowlens
     networks:
       proxy:
         aliases: [rowlens-web]
       internal: {}
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  # Same image and command as the production `migrate` service.
+  migrate:
+    image: rowlens-web:edge
+    command: ['node', 'dist/server/db/migrate-cli.js']
+    environment:
+      DATABASE_OWNER_URL: postgres://rowlens_owner:edge_owner_only@db:5432/rowlens
+      ROWLENS_APP_DB_PASSWORD: edge_app_password_only
+    networks: [internal]
+    depends_on:
+      db: { condition: service_healthy }
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rowlens
+      POSTGRES_USER: rowlens_owner
+      POSTGRES_PASSWORD: edge_owner_only
+    networks: [internal]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rowlens_owner -d rowlens']
+      interval: 2s
+      retries: 20
 
   # Stand-ins for the apps that share the production Caddy.
   audioscribe:

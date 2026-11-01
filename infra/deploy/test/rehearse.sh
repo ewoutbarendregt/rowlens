@@ -50,7 +50,7 @@ docker pull -q postgres:16-alpine >/dev/null
 # container mounts this directory at that path.
 mkdir -p "$WORK/home"
 cp "$REPO/infra/compose/docker-compose.prod.yml" "$WORK/home/docker-compose.yml"
-printf 'NODE_ENV=production\nPUBLIC_ORIGIN=http://localhost\nBASE_PATH=/projects/rowlens\nPOSTGRES_PASSWORD=rehearsal\n' >"$WORK/home/.env"
+printf 'NODE_ENV=production\nPUBLIC_ORIGIN=http://localhost\nBASE_PATH=/projects/rowlens\nPOSTGRES_PASSWORD=rehearsal\nROWLENS_APP_DB_PASSWORD=rehearsal_app_only\n' >"$WORK/home/.env"
 
 # The runner is root (it needs the Docker socket); on Linux the files it creates in the bind mount would
 # then be unreadable for the host user, so hand them back after every run.
@@ -79,10 +79,13 @@ expect() {
 echo "== first deploy"
 build sha-0000001
 expect 0 deploy sha-0000001
+psql() { docker exec rowlens-db-1 psql -U rowlens_owner -d rowlens -tAc "$1"; }
 echo "== second deploy (database is running now, so it gets backed up)"
 build sha-0000002
 expect 0 deploy sha-0000002
 assert() { if "${@:2}"; then echo "ok: $1"; else echo "FAIL: $1" >&2; exit 1; fi; }
+assert "migrations applied" test "$(psql 'select count(*) from drizzle.__drizzle_migrations')" -ge 1
+assert "app role cannot bypass RLS" test "$(psql "select rolbypassrls from pg_roles where rolname = 'rowlens_app'")" = f
 assert "pre-deploy backup written" compgen -G "$WORK/home/backups/pre-deploy-*-sha-0000002.dump"
 echo "== broken release rolls back"
 build_broken

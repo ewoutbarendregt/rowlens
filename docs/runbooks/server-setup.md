@@ -20,6 +20,16 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
 Nothing under `/opt/trustable` has been changed.
 
+## Needed before the next deploy (each step shown to Ewout and approved first)
+
+From #31 (database roles), not done yet:
+1. Add `ROWLENS_APP_DB_PASSWORD` to `/opt/rowlens/.env`, generated on the server and never printed:
+   `ssh trustable-prod 'f=/opt/rowlens/.env; grep -q ^ROWLENS_APP_DB_PASSWORD= $f || echo "ROWLENS_APP_DB_PASSWORD=$(openssl rand -hex 32)" >> $f; cut -d= -f1 $f'`
+2. Reinstall the compose file, which now has the `migrate` service: `infra/deploy/install.sh`.
+
+Without step 1, the deploy stops at `compose pull` ("ROWLENS_APP_DB_PASSWORD is required") and nothing
+changes. The first deploy afterwards creates `rowlens_app`, applies `0000_init` and switches `web` to it.
+
 ## Verified restrictions of the CI key (2026-11-01)
 
 `status` runs; `ls /`, `deploy sha-abc1234; id`, an interactive shell and `deploy latest` are refused

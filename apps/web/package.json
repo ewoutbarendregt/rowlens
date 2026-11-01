@@ -4,21 +4,26 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "rm -rf dist && vite build && tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && vite build && tsc -p tsconfig.build.json && cp -R src/server/db/migrations dist/server/db/",
     "start": "node dist/server/main.js",
     "typecheck": "tsc --noEmit && tsc --noEmit -p src/client && tsc -p e2e",
     "test": "vitest run",
-    "dev:server": "node --watch --experimental-strip-types src/server/main.ts",
+    "dev:server": "node --env-file-if-exists=.env --watch --experimental-strip-types src/server/main.ts",
+    "db:migrate": "node --env-file-if-exists=.env --experimental-strip-types src/server/db/migrate-cli.ts",
+    "db:generate": "drizzle-kit generate",
     "dev:client": "vite",
     "e2e": "playwright test",
     "e2e:edge": "E2E_EDGE_URL=http://localhost:${EDGE_PORT:-8080} playwright test --project desktop-chromium"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
+    "@testcontainers/postgresql": "^12.2.1",
     "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "drizzle-kit": "^0.31.11",
     "typescript": "~6.0.3",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
@@ -26,7 +31,9 @@
   "dependencies": {
     "@fastify/helmet": "^13.2.0",
     "@fastify/static": "^10.1.8",
+    "drizzle-orm": "^0.45.4",
     "fastify": "^5.12.7",
+    "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router": "^8.5.1",

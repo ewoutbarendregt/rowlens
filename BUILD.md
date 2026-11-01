@@ -46,7 +46,26 @@ scripts/github/      backlog/labels/milestones bootstrap
 - `PUBLIC_ORIGIN` is required in production (absolute links); config is validated once at startup.
 - Security headers via `@fastify/helmet`: strict CSP (no inline script/style, `frame-ancestors 'none'`);
   HSTS is left to Caddy. `X-Request-Id` is accepted if well-formed, otherwise generated, and echoed.
-- Readiness checks are pluggable (`ReadinessCheck[]`); the DB check is added with #31.
+- Readiness checks are pluggable (`ReadinessCheck[]`); with `DATABASE_URL` set, `db` is one of them.
+
+## Database (ADR-0005, #31)
+
+- Drizzle ORM 0.45 on `pg`. Schema in `apps/web/src/server/db/schema.ts`; `pnpm --filter @rowlens/web
+  db:generate` writes a SQL migration to `src/server/db/migrations/` (reviewed like code; never `push`).
+- Two roles. `rowlens_owner` (the Postgres image's superuser) owns the tables and runs migrations.
+  `rowlens_app` is what the web app (and later the worker) connects as: login only, no BYPASSRLS, owns
+  nothing, no CREATE; SELECT/INSERT/UPDATE/DELETE on tables via default privileges (a migration can
+  REVOKE per table). The migrate command (`migrate.ts`) creates the role and (re)sets its password from
+  `ROWLENS_APP_DB_PASSWORD` on every run, then applies migrations; the journal is in schema `drizzle`.
+- `withTenant(db, {clubId, userId}, fn)` runs `fn` in a transaction with `app.club_id`/`app.user_id`
+  set via `set_config(…, true)`, so they vanish at commit/rollback. Tenant tables use
+  `tenantPolicy(…)`; outside `withTenant` the app sees no tenant rows at all.
+- Prod: Compose service `migrate` (profile `migrate`, same image, `node dist/server/db/migrate-cli.js`)
+  runs before `up` in `rowlens-deploy`. `web` gets `DATABASE_URL` for `rowlens_app`; `DATABASE_URL` is
+  required in production. Migrations must be backward compatible with the previous release (expand,
+  then contract), because a rollback keeps the migrated schema.
+- Local: `docker compose -f infra/compose/docker-compose.dev.yml up -d`, copy `apps/web/.env.example` to
+  `apps/web/.env`, `pnpm db:migrate`, then `dev:server` picks up the database.
 - Source maps are built `hidden` (not referenced from public bundles).
 - Dev: `pnpm --filter @rowlens/web dev:server` (Fastify, :3000) + `dev:client` (Vite, proxies
   `/api` and `/health` to Fastify).

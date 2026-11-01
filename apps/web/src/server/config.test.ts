@@ -12,6 +12,7 @@ describe('loadConfig', () => {
       version: 'dev',
       logLevel: 'info',
       clientDir: undefined,
+      databaseUrl: undefined,
     });
   });
 
@@ -21,11 +22,21 @@ describe('loadConfig', () => {
     expect(config.port).toBe(8080);
   });
 
-  it('requires PUBLIC_ORIGIN in production', () => {
-    expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/PUBLIC_ORIGIN is required/);
-    expect(
-      loadConfig({ NODE_ENV: 'production', PUBLIC_ORIGIN: 'https://trustable.nl' }).publicOrigin,
-    ).toBe('https://trustable.nl');
+  it('requires PUBLIC_ORIGIN and DATABASE_URL in production', () => {
+    const DATABASE_URL = 'postgres://rowlens_app:secret@db:5432/rowlens';
+    expect(() => loadConfig({ NODE_ENV: 'production', DATABASE_URL })).toThrow(
+      /PUBLIC_ORIGIN is required/,
+    );
+    expect(() =>
+      loadConfig({ NODE_ENV: 'production', PUBLIC_ORIGIN: 'https://trustable.nl' }),
+    ).toThrow(/DATABASE_URL is required/);
+    const config = loadConfig({
+      NODE_ENV: 'production',
+      PUBLIC_ORIGIN: 'https://trustable.nl',
+      DATABASE_URL,
+    });
+    expect(config.publicOrigin).toBe('https://trustable.nl');
+    expect(config.databaseUrl).toBe(DATABASE_URL);
   });
 
   it.each([
@@ -34,6 +45,7 @@ describe('loadConfig', () => {
     [{ PORT: '99999' }, /Invalid configuration/],
     [{ BASE_PATH: '/projects/../etc' }, /Invalid BASE_PATH/],
     [{ LOG_LEVEL: 'loud' }, /Invalid configuration/],
+    [{ DATABASE_URL: 'mysql://db/rowlens' }, /Invalid configuration/],
   ])('rejects %j', (env, message) => {
     expect(() => loadConfig(env)).toThrow(message);
   });

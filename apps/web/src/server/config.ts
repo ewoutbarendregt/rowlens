@@ -10,6 +10,8 @@ const envSchema = z.object({
   APP_VERSION: z.string().min(1).default('dev'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   CLIENT_DIR: z.string().min(1).optional(),
+  /** The app's own role, `rowlens_app` (ADR-0005); never the owner. */
+  DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }).optional(),
 });
 
 export interface AppConfig {
@@ -23,6 +25,8 @@ export interface AppConfig {
   version: string;
   logLevel: 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
   clientDir: string | undefined;
+  /** Without it (local UI work, unit tests) the server runs without a database. */
+  databaseUrl: string | undefined;
 }
 
 /** Parses and validates the environment once at startup; throws with every problem listed. */
@@ -35,6 +39,9 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
 
   if (e.NODE_ENV === 'production' && e.PUBLIC_ORIGIN === undefined) {
     throw new Error('Invalid configuration: PUBLIC_ORIGIN is required in production');
+  }
+  if (e.NODE_ENV === 'production' && e.DATABASE_URL === undefined) {
+    throw new Error('Invalid configuration: DATABASE_URL is required in production');
   }
   const publicOrigin = new URL(e.PUBLIC_ORIGIN ?? `http://localhost:${String(e.PORT)}`);
   if (publicOrigin.pathname !== '/' || publicOrigin.search !== '' || publicOrigin.hash !== '') {
@@ -50,5 +57,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     version: e.APP_VERSION,
     logLevel: e.LOG_LEVEL,
     clientDir: e.CLIENT_DIR,
+    databaseUrl: e.DATABASE_URL,
   };
 }

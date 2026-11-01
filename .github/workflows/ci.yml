@@ -187,10 +187,20 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
       - name: Smoke test web image
         if: matrix.name == 'web'
+        # Like production: Postgres, the image's migrate command as the owner, web as rowlens_app.
         run: |
-          docker run -d --name web -p 3000:3000 -e PUBLIC_ORIGIN=http://127.0.0.1:3000 rowlens-web:ci
+          docker network create smoke
+          docker run -d --name db --network smoke -e POSTGRES_DB=rowlens -e POSTGRES_USER=rowlens_owner \
+            -e POSTGRES_PASSWORD=smoke_owner_only postgres:16-alpine
+          until docker exec db pg_isready -U rowlens_owner -d rowlens -h 127.0.0.1; do sleep 1; done
+          docker run --rm --network smoke rowlens-web:ci sh -c 'test -f dist/server/db/migrations/0000_init.sql'
+          docker run --rm --network smoke -e ROWLENS_APP_DB_PASSWORD=smoke_app_password_only \
+            -e DATABASE_OWNER_URL=postgres://rowlens_owner:smoke_owner_only@db:5432/rowlens \
+            rowlens-web:ci node dist/server/db/migrate-cli.js
+          docker run -d --name web --network smoke -p 3000:3000 -e PUBLIC_ORIGIN=http://127.0.0.1:3000 \
+            -e DATABASE_URL=postgres://rowlens_app:smoke_app_password_only@db:5432/rowlens rowlens-web:ci
           for _ in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/live; then
+            if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/ready; then
               curl -fsS -H 'accept: text/html' http://127.0.0.1:3000/projects/rowlens/ | grep -q '<div id="root">'
               curl -fsS http://127.0.0.1:3000/projects/rowlens/demo-media/manifest.json | jq -e 'length > 0'
               exit 0
