@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Throwaway local-dev credentials in the dev compose file"
+paths = ['''infra/compose/docker-compose\.dev\.yml''']

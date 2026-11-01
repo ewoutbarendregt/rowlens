@@ -1,0 +1,79 @@
+# DRAFT — not deployed. Target layout for /opt/rowlens on trustable-prod (ADR-0002).
+# Deploying this, adding the deploy key and adding the Caddy route each need explicit approval.
+#
+#   cd /opt/rowlens && DOCKER_CONFIG=/opt/rowlens/.docker \
+#     ROWLENS_TAG=<semver> docker compose -p rowlens up -d
+name: rowlens
+
+x-limits: &small
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: '10m', max-file: '5' }
+
+services:
+  web:
+    <<: *small
+    image: ghcr.io/ewoutbarendregt/rowlens-web:${ROWLENS_TAG:?set ROWLENS_TAG}
+    env_file: /opt/rowlens/.env
+    environment:
+      BASE_PATH: /projects/rowlens
+      PUBLIC_ORIGIN: https://trustable.nl
+    networks:
+      internal: {}
+      trustable_proxy:
+        aliases: [rowlens-web]
+    depends_on:
+      db: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 512M }
+
+  worker:
+    <<: *small
+    image: ghcr.io/ewoutbarendregt/rowlens-worker:${ROWLENS_TAG:?set ROWLENS_TAG}
+    env_file: /opt/rowlens/.env
+    networks: [internal]
+    depends_on:
+      db: { condition: service_healthy }
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 2560M }
+
+  db:
+    <<: *small
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rowlens
+      POSTGRES_USER: rowlens_owner
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes: [db_data:/var/lib/postgresql/data]
+    networks: [internal]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rowlens_owner -d rowlens']
+      interval: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 1G }
+
+  # Media on the local root disk, capped at 30 GB (ADR-0006): app check + `mc quota set --size 30GiB`.
+  minio:
+    <<: *small
+    image: minio/minio:latest
+    command: server /data
+    env_file: /opt/rowlens/minio.env
+    volumes: ['/opt/rowlens/media:/data']
+    networks: [internal]
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+
+networks:
+  internal:
+    internal: true
+  trustable_proxy:
+    external: true
+
+volumes:
+  db_data:

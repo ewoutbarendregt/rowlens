@@ -1,0 +1,31 @@
+# Local development only: PostgreSQL + MinIO (S3) for running the web app and worker on a laptop.
+#   docker compose -f infra/compose/docker-compose.dev.yml up -d
+# Never deployed. Credentials below are throwaway local defaults.
+name: rowlens-dev
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: rowlens
+      POSTGRES_USER: rowlens_owner
+      POSTGRES_PASSWORD: rowlens_dev_only
+    ports: ['127.0.0.1:5433:5432']
+    volumes: [db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rowlens_owner -d rowlens']
+      interval: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: rowlens_dev
+      MINIO_ROOT_PASSWORD: rowlens_dev_only
+    ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001']
+    volumes: [minio_data:/data]
+
+volumes:
+  db_data:
+  minio_data:

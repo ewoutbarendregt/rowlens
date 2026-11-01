@@ -1,0 +1,21 @@
+name: Epic
+description: A group of stories delivering one capability
+labels: ['epic']
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+    validations:
+      required: true
+  - type: textarea
+    id: stories
+    attributes:
+      label: Stories
+      description: Task list of child issues
+      placeholder: |
+        - [ ] #
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done

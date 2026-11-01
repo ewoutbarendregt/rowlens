@@ -1,0 +1,737 @@
+# RowLens backlog — source for scripts/github/bootstrap.py.
+# Epics for M0–M3; stories with acceptance criteria for M0 and M1. M2/M3 stories are written later.
+
+[[label]]
+name = "epic"
+color = "3E4B9E"
+description = "Group of stories delivering one capability"
+[[label]]
+name = "feature"
+color = "1D76DB"
+description = "User-facing or technical increment"
+[[label]]
+name = "bug"
+color = "D73A4A"
+description = "Something does not work as it should"
+[[label]]
+name = "tech-debt"
+color = "C5DEF5"
+description = "Internal quality work"
+[[label]]
+name = "analysis"
+color = "5319E7"
+description = "Video analysis pipeline, metrics, evals"
+[[label]]
+name = "infra"
+color = "0E8A16"
+description = "Hosting, CI/CD, storage, monitoring"
+[[label]]
+name = "security"
+color = "B60205"
+description = "Auth, permissions, tenancy, privacy — needs a security review note"
+[[label]]
+name = "i18n"
+color = "FBCA04"
+description = "Translations and localisation"
+[[label]]
+name = "must"
+color = "000000"
+description = "MoSCoW: must have"
+[[label]]
+name = "should"
+color = "555555"
+description = "MoSCoW: should have"
+[[label]]
+name = "could"
+color = "AAAAAA"
+description = "MoSCoW: could have"
+[[label]]
+name = "decision-needed"
+color = "F9D0C4"
+description = "Blocked on a product-owner decision"
+
+[[milestone]]
+title = "M0 Foundation"
+description = "Repo, CI/CD, base-path deployment of a hello-world, storage decision, auth."
+[[milestone]]
+title = "M1 MVP"
+description = "Clubs/crews, upload, transcoding, player, conversation, annotations, notifications, GDPR basics."
+[[milestone]]
+title = "M2 Analysis"
+description = "Pose, stroke phases, stroke rate, sync, traceability, rower-facing explanations, evals."
+[[milestone]]
+title = "M3 Growth"
+description = "Club self-onboarding, comparisons, trends, more languages."
+
+# ---------------------------------------------------------------- epics
+
+[[epic]]
+key = "foundation"
+milestone = "M0 Foundation"
+title = "Epic: Engineering foundation (repo, CI, conventions)"
+labels = ["infra", "must"]
+goal = "A monorepo where every PR is linted, type-checked, tested, scanned and built into images, with ADRs, templates, feature flags and an E2E harness."
+
+[[epic]]
+key = "hosting"
+milestone = "M0 Foundation"
+title = "Epic: Hosting & deployment on trustable-prod"
+labels = ["infra", "must"]
+goal = "RowLens runs as an isolated Compose project at /opt/rowlens, served at https://trustable.nl/projects/rowlens, deployed by a manually triggered pipeline with health check and rollback — without touching trustable.nl or AudioScribe (ADR-0002, ADR-0003)."
+
+[[epic]]
+key = "auth"
+milestone = "M0 Foundation"
+title = "Epic: Authentication (e-mail OTP)"
+labels = ["security", "must"]
+goal = "Passwordless login by e-mail one-time code with secure sessions, CSRF protection and rate limits (ADR-0011)."
+
+[[epic]]
+key = "platform"
+milestone = "M0 Foundation"
+title = "Epic: Platform services (database, storage, i18n, observability, backups)"
+labels = ["infra", "must"]
+goal = "The shared building blocks every feature relies on: migrations + RLS helpers, object storage, job queue, NL/EN i18n, logs/metrics/errors, disk alerts, tested backups."
+
+[[epic]]
+key = "clubs"
+milestone = "M1 MVP"
+title = "Epic: Clubs, crews & permissions"
+labels = ["security", "must"]
+goal = "Clubs as tenants, crews with rowers and coaches, invitation flow, crew-based visibility — with tests proving cross-club access is impossible (ADR-0005)."
+
+[[epic]]
+key = "upload"
+milestone = "M1 MVP"
+title = "Epic: Sessions, upload & transcoding"
+labels = ["feature", "must"]
+goal = "Coaches create sessions and upload videos from a phone with resumable uploads; videos are transcoded into frame-step-friendly renditions; rowers find their sessions (ADR-0006, ADR-0007)."
+
+[[epic]]
+key = "player"
+milestone = "M1 MVP"
+title = "Epic: Frame-accurate video player"
+labels = ["feature", "must"]
+goal = "A player that starts within ~2 s on 4G and steps frames instantly: 0.25×/0.5×/1×, ±1 frame, ±0.1 s, loop, fullscreen on iOS Safari and Android Chrome."
+
+[[epic]]
+key = "conversation"
+milestone = "M1 MVP"
+title = "Epic: Conversation & annotations"
+labels = ["feature", "must"]
+goal = "One thread per session between the crew's rowers and coaches, messages linked to video moments, and annotations (text, line, arrow, angle) with status."
+
+[[epic]]
+key = "notifications"
+milestone = "M1 MVP"
+title = "Epic: E-mail notifications"
+labels = ["feature", "must"]
+goal = "Rowers and coaches hear about new feedback and replies by e-mail, in their language, with per-user opt-out."
+
+[[epic]]
+key = "privacy"
+milestone = "M1 MVP"
+title = "Epic: Privacy & GDPR basics"
+labels = ["security", "must"]
+goal = "Privacy statement, documented processors, personal data export, account deletion and an audit log."
+
+[[epic]]
+key = "analysis"
+milestone = "M2 Analysis"
+title = "Epic: Analysis pipeline & traceability"
+labels = ["analysis", "should"]
+goal = "Pose estimation per rower, stroke phases, stroke rate, drive:recovery ratio, rhythm, crew sync and joint angles — each value traceable to frames, keypoints, model and pipeline versions, or refused with a reason (ADR-0009). Includes seat assignment confirmation and the reference-model comparison."
+
+[[epic]]
+key = "explanations"
+milestone = "M2 Analysis"
+title = "Epic: Rower-facing explanations & drills"
+labels = ["analysis", "should"]
+goal = "Plain-language feedback and drill suggestions generated from structured metrics through a provider-agnostic, versioned-prompt LLM layer, opt-in per club (ADR-0010)."
+
+[[epic]]
+key = "evals"
+milestone = "M2 Analysis"
+title = "Epic: Analysis evaluation suite"
+labels = ["analysis", "should"]
+goal = "Hand-labelled reference videos and an automated eval in CI reporting accuracy deltas on pipeline changes."
+
+[[epic]]
+key = "onboarding"
+milestone = "M3 Growth"
+title = "Epic: Club self-onboarding"
+labels = ["feature", "could"]
+goal = "A new club can sign up, configure itself and invite members without our help; tenant model ready for billing later."
+
+[[epic]]
+key = "comparison"
+milestone = "M3 Growth"
+title = "Epic: Comparison, progress & goals"
+labels = ["feature", "could"]
+goal = "Side-by-side videos synchronised by stroke phase, trends per rower and crew, goals set by coaches."
+
+[[epic]]
+key = "reach"
+milestone = "M3 Growth"
+title = "Epic: More languages, own domain & PWA"
+labels = ["feature", "could"]
+goal = "Additional languages, an own host/domain (removes the shared-origin risk, ADR-0003), installable PWA with push notifications."
+
+# ---------------------------------------------------------------- M0 stories
+
+[[story]]
+epic = "foundation"
+title = "Phase 0: repository scaffold, ADRs and CI"
+labels = ["infra", "must"]
+story = "As the product owner, I want the repository, conventions, architecture proposal and CI in place, so that development can start in small reviewed increments."
+ac = [
+  "CLAUDE.md, six project MD files, ADRs 0001–0011, issue/PR templates exist",
+  "CI runs format, lint, typecheck, tests, build, dependency audit, secret scan and image builds on every PR",
+  "Labels, milestones and the M0/M1 backlog exist on GitHub",
+  "Phase 0 summary lists findings, decisions needed, risks and first sprint",
+]
+
+[[story]]
+epic = "foundation"
+title = "Repository settings: merge policy without branch protection"
+labels = ["infra", "must"]
+story = "As the product owner, I want a consistent merge policy, so that main stays deployable even though it isn't technically protected."
+ac = [
+  "Squash merge only; PR title used as commit message (Conventional Commits); head branches deleted after merge",
+  "Actions allowed to open PRs (release-please)",
+  "CLAUDE.md states that agents never push, commit or merge to main",
+]
+notes = "Decided 2026-11-01: private repo on the free plan, so no branch protection rules or environments (they need GitHub Pro). Revisit if more people get write access."
+
+[[story]]
+epic = "foundation"
+title = "Web app skeleton: Fastify API + React SPA under the base path"
+labels = ["feature", "must"]
+story = "As a developer, I want the real web app skeleton, so that features have a home that is base-path aware from day one."
+ac = [
+  "Fastify serves the Vite-built SPA and `/api` under BASE_PATH; SPA fallback for client routes",
+  "React Router basename and Vite `base` derived from BASE_PATH; assets load under /projects/rowlens",
+  "Health endpoints `/health/live` and `/health/ready` (DB check)",
+  "Strict CSP and security headers set by the app",
+  "Unit tests + one Playwright test pass with BASE_PATH=/projects/rowlens",
+]
+notes = "ADR-0003, ADR-0004. Replaces the placeholder server in apps/web/src/server.ts."
+
+[[story]]
+epic = "foundation"
+title = "Shared contracts package and job schema codegen (TS + Python)"
+labels = ["tech-debt", "should"]
+story = "As a developer, I want job payloads and API contracts defined once, so that web and worker can't drift apart."
+ac = [
+  "`packages/contracts` holds JSON Schemas for job types",
+  "Generated Zod (TS) and pydantic (Python) types; CI fails if generated code is stale",
+]
+notes = "ADR-0008."
+
+[[story]]
+epic = "foundation"
+title = "Feature flag mechanism"
+labels = ["feature", "must"]
+story = "As the product owner, I want unfinished features hidden behind flags, so that we can prototype safely on production."
+ac = [
+  "Flags resolved from env defaults, overridable per club in the DB",
+  "Server and client helpers; unknown flags default to off",
+  "Changing a flag is audited",
+]
+
+[[story]]
+epic = "foundation"
+title = "E2E harness: Playwright behind Caddy with base path, mobile + desktop"
+labels = ["infra", "must"]
+story = "As a developer, I want end-to-end tests that run like production, so that base-path and mobile issues are caught in CI."
+ac = [
+  "Compose-based test stack: Caddy (same route as prod) + web + Postgres + MinIO",
+  "Playwright projects: WebKit iPhone, Chromium Pixel, desktop Chromium",
+  "Runs in CI on every PR; traces uploaded on failure",
+  "Test prompts recorded in TEST.md",
+]
+
+[[story]]
+epic = "hosting"
+title = "Provision /opt/rowlens on trustable-prod (needs approval)"
+labels = ["infra", "must", "decision-needed"]
+story = "As an operator, I want an isolated place for RowLens on the server, so that it can be deployed without touching other apps."
+ac = [
+  "Exact commands shown and approved before running",
+  "/opt/rowlens with .env (640), separate DOCKER_CONFIG, compose file from infra/compose/docker-compose.prod.yml",
+  "New RowLens-only deploy key added to deploy's authorized_keys (approved)",
+  "`docker compose -p rowlens up` runs web + db; nothing in the trustable project changes",
+]
+notes = "ADR-0002."
+
+[[story]]
+epic = "hosting"
+title = "Caddy route /projects/rowlens in trustable.nl (needs approval)"
+labels = ["infra", "must", "decision-needed"]
+story = "As a user, I want RowLens reachable at https://trustable.nl/projects/rowlens."
+ac = [
+  "PR in the trustable.nl repo with the exact Caddyfile diff from ADR-0003, approved by Ewout",
+  "Route placed before the default route; prefix not stripped; 64 MB request body limit; flush_interval -1",
+  "AudioScribe and trustable.nl routes verified unchanged after reload",
+]
+
+[[story]]
+epic = "hosting"
+title = "CD: manually triggered deploy to production with health check and rollback"
+labels = ["infra", "must"]
+story = "As the product owner, I want to deploy a built image with one deliberate action, so that releases are safe and repeatable."
+ac = [
+  "On merge to main: build + push rowlens-web/worker images (immutable tags) to GHCR; no automatic deploy",
+  "Deploy is a separate `workflow_dispatch` workflow taking an image tag, runnable only by the repo owner (no GitHub environments on the free private plan, ADR-0002)",
+  "Steps: pull → DB backup → migrate → up -d → health check via the public URL",
+  "Failed health check rolls back to the previous image tag automatically",
+  "Only RowLens images are pruned",
+]
+
+[[story]]
+epic = "hosting"
+title = "Hello-world live at /projects/rowlens"
+labels = ["infra", "must"]
+story = "As the product owner, I want the skeleton live in production, so that base-path, TLS and deploy are proven before features."
+ac = [
+  "https://trustable.nl/projects/rowlens/ serves the skeleton; /health/live returns 200",
+  "https://trustable.nl/projects/audioscribe/ and https://trustable.nl/ still healthy",
+]
+
+[[story]]
+epic = "hosting"
+title = "Prepare (disabled) staging deployment target"
+labels = ["infra", "should"]
+story = "As an operator, I want a staging target defined, so that we can switch it on when the staging server is ready."
+ac = [
+  "Deploy workflow accepts a `staging` target input; disabled until the staging server has room",
+  "Deploy script parameterised by host and base URL",
+]
+
+[[story]]
+epic = "auth"
+title = "E-mail OTP login: request code, verify, session, logout"
+labels = ["security", "must"]
+story = "As a rower or coach, I want to log in with a code sent to my e-mail, so that I don't need a password."
+ac = [
+  "Request always returns the same response (no account enumeration)",
+  "6-digit code, HMAC-stored, 10-minute TTL, single use, max 5 attempts",
+  "Session cookie __Secure-rowlens_sid: HttpOnly, Secure, SameSite=Lax, Path=/projects/rowlens; 30-day sliding expiry",
+  "Logout and 'log out other devices' revoke sessions",
+  "Login flow translated NL/EN; Playwright test on mobile + desktop",
+]
+notes = "ADR-0011."
+
+[[story]]
+epic = "auth"
+title = "Rate limiting and CSRF protection"
+labels = ["security", "must"]
+story = "As an operator, I want abuse limited, so that OTP and uploads can't be brute-forced or spammed."
+ac = [
+  "OTP limits: 3 codes / 15 min per e-mail, 10 / hour per IP, verify 10 / 15 min per IP; upload limits per user",
+  "Double-submit CSRF token + Origin/Sec-Fetch-Site check on unsafe methods",
+  "Tests for each limit and for cross-site requests being rejected",
+]
+
+[[story]]
+epic = "auth"
+title = "E-mail delivery: Resend SMTP, localised templates, sender domain"
+labels = ["feature", "must", "i18n"]
+story = "As a user, I want e-mails from RowLens to arrive and be in my language."
+ac = [
+  "Sender `RowLens <rowlens@trustable.nl>` via the existing Resend account (decided); SPF/DKIM/DMARC for trustable.nl verified in Resend",
+  "HTML + text templates in NL/EN; all links absolute under the base path",
+  "Dev mode logs codes when SMTP is unset; prod refuses to start without SMTP",
+]
+
+[[story]]
+epic = "platform"
+title = "Database: Drizzle migrations, owner/app roles, tenant transaction helper"
+labels = ["security", "must"]
+story = "As a developer, I want migrations and a tenant-scoped DB helper, so that every query runs with the right club context."
+ac = [
+  "Migrations run as rowlens_owner; app connects as rowlens_app (no BYPASSRLS)",
+  "`withTenant(ctx, fn)` opens a transaction and SET LOCALs app.user_id / app.club_id",
+  "Integration tests with Testcontainers Postgres",
+]
+notes = "ADR-0005."
+
+[[story]]
+epic = "platform"
+title = "Media storage: BlobStore interface, MinIO on local disk, 30 GB cap"
+labels = ["infra", "must"]
+story = "As an operator, I want video storage that can never take the other apps on the server down."
+ac = [
+  "`BlobStore` interface (put/get range/presign/delete prefix) with an S3 implementation; MinIO in prod (data in /opt/rowlens/media), dev and CI",
+  "Hard cap of 30 GB RowLens media (MEDIA_CAP_BYTES) checked against tus Upload-Length before accepting bytes; MinIO bucket quota as a backstop",
+  "Per-upload cap of 4 GB; per-club quota defaults to the global cap",
+  "Usage against the cap visible to coaches",
+]
+notes = "ADR-0006 (accepted): local disk for the pilot; Hetzner Object Storage is the preferred next step."
+
+[[story]]
+epic = "platform"
+title = "Worker skeleton: Postgres job queue consumer"
+labels = ["feature", "must"]
+story = "As a developer, I want a worker that claims and runs jobs reliably, so that transcoding and analysis can run in the background."
+ac = [
+  "Claim with SKIP LOCKED, lease + heartbeat, retries with backoff, dead-letter status",
+  "LISTEN/NOTIFY wake-up with polling fallback; resource classes cpu/gpu",
+  "Idempotent handlers; structured logs with job id and request id",
+]
+notes = "ADR-0008."
+
+[[story]]
+epic = "platform"
+title = "i18n framework NL/EN with checks for hard-coded strings"
+labels = ["i18n", "must"]
+story = "As a user, I want the app in Dutch or English, so that I can use it in my language."
+ac = [
+  "i18next catalogs nl/en; language from user preference, else browser, else nl",
+  "ESLint rule blocks literal strings in UI code; CI fails on missing keys in either language",
+  "Dates, numbers and durations formatted per locale",
+]
+
+[[story]]
+epic = "platform"
+title = "Observability: structured logs, error fingerprints, metrics"
+labels = ["infra", "must"]
+story = "As an operator, I want to see failures and throughput, so that I can fix problems before users report them."
+ac = [
+  "JSON logs (pino / structlog) with request id propagated web → job → worker; no personal data in logs",
+  "No external error tracker (decided): errors logged with a stable fingerprint, counted as a metric, and new fingerprints listed in a daily health e-mail",
+  "Internal metrics endpoint: uploads, processing time, job failures, queue depth",
+]
+
+[[story]]
+epic = "platform"
+title = "Disk and storage monitoring with alerts"
+labels = ["infra", "must"]
+story = "As an operator, I want an alert before the disk fills, so that the shared server stays up."
+ac = [
+  "RowLens-owned cron checks root disk and media storage usage",
+  "E-mail alert at 75 % root disk or 80 % of the 30 GB media cap",
+  "Uploads paused at 85 % root disk (whoever uses the space) with a clear message",
+  "Usage exported as a metric",
+]
+
+[[story]]
+epic = "platform"
+title = "Database backups off-server with weekly restore test"
+labels = ["infra", "must", "decision-needed"]
+story = "As the product owner, I want backups I know I can restore, so that a server loss doesn't lose club data."
+ac = [
+  "Nightly encrypted pg_dump; 30 daily + 12 monthly retained",
+  "Off-server destination chosen by Ewout (Storage Box or a small bucket) and copies verified",
+  "Weekly automated restore into a throwaway container with sanity checks; failure alerts",
+  "Restore runbook in docs/",
+]
+notes = "No video backup during the pilot (ADR-0006, decided 2026-11-01)."
+
+# ---------------------------------------------------------------- M1 stories
+
+[[story]]
+epic = "clubs"
+title = "Data model: clubs, users, memberships, crews"
+labels = ["security", "must"]
+story = "As a developer, I want the core domain model, so that all features can be scoped to a club and crew."
+ac = [
+  "Tables: club, user (global), membership(role rower|coach), crew, crew_member(crew_role)",
+  "Every tenant table has club_id; role enum extensible (club admin, guest coach, guardian later)",
+  "A user can belong to several clubs; club chosen by URL /c/:clubSlug",
+]
+
+[[story]]
+epic = "clubs"
+title = "Tenant isolation: RLS policies and cross-club test suite"
+labels = ["security", "must"]
+story = "As a club, I want proof that other clubs can never see our data."
+ac = [
+  "RLS enabled with policies on every table with club_id",
+  "Two-club fixture: every repository function and API route tested for cross-club read/write denial",
+  "Schema test fails if a club_id table lacks RLS; route inventory test fails if a route lacks an authorization declaration",
+  "Non-member access to a club returns 404",
+]
+
+[[story]]
+epic = "clubs"
+title = "Authorization policy: crew-based visibility for rowers and coaches"
+labels = ["security", "must"]
+story = "As a rower, I see only sessions of crews I row in; as a coach, sessions of crews I coach."
+ac = [
+  "Pure `can(ctx, action, resource)` module with exhaustive unit tests",
+  "DB helper rowlens_can_see_session used by RLS on session/video/message tables",
+]
+
+[[story]]
+epic = "clubs"
+title = "Club and crew management for coaches"
+labels = ["feature", "must", "i18n"]
+story = "As a coach, I want to create crews and assign rowers and coaches, so that sessions reach the right people."
+ac = [
+  "Create/rename/archive crews; add/remove members with crew role",
+  "A user can be in multiple crews",
+  "Changes audited; works on phone",
+]
+
+[[story]]
+epic = "clubs"
+title = "Invite rowers and coaches by e-mail"
+labels = ["feature", "must", "security"]
+story = "As a coach, I want to invite people by e-mail into the club and a crew, so that they can log in and see their sessions."
+ac = [
+  "Invitation with club, crew(s), role; single-use token valid 7 days; resend and revoke",
+  "Accepting runs the OTP flow and creates membership",
+  "Localised invitation e-mail; audited",
+]
+
+[[story]]
+epic = "clubs"
+title = "Audit log for deletions and permission changes"
+labels = ["security", "must"]
+story = "As a club, I want a record of who deleted or changed access to what."
+ac = [
+  "Append-only audit_event for role/membership/crew changes, invitations, deletions, exports, account deletion, flag changes",
+  "Viewable by coaches for their club",
+]
+
+[[story]]
+epic = "upload"
+title = "Sessions: create, list and edit with optional metadata"
+labels = ["feature", "must", "i18n"]
+story = "As a coach, I want to create a training session for a crew and add details later."
+ac = [
+  "Session belongs to a crew; date defaults to today; boat, boat class, seat assignment, conditions, training type, notes all optional and editable later",
+  "Rowers see a 'My sessions' list of their crews' sessions, newest first",
+]
+
+[[story]]
+epic = "upload"
+title = "Resumable upload from phone browsers (tus → object storage)"
+labels = ["feature", "must"]
+story = "As a coach on the water, I want to upload clips from my phone and have them survive a dropped connection."
+ac = [
+  "tus endpoint under /projects/rowlens/api/uploads, 16 MB chunks, resumes after network loss and page reload",
+  "Multiple files per session; per-file progress; camera perspective (boat/bank/drone) chosen per video",
+  "Tested on iOS Safari and Android Chrome with a 4K clip",
+]
+
+[[story]]
+epic = "upload"
+title = "Upload validation: type sniffing, size cap, quota, rate limit"
+labels = ["security", "must"]
+story = "As an operator, I want only real videos within limits accepted."
+ac = [
+  "Magic-byte + ffprobe validation; non-video rejected and deleted",
+  "Per-upload size cap, per-club quota and the 30 GB global media cap enforced before accepting bytes",
+  "Rate limit per user; tests for each rejection path",
+]
+
+[[story]]
+epic = "upload"
+title = "Probe and transcode job: CFR, short-GOP renditions, poster, thumbnails"
+labels = ["feature", "must"]
+story = "As a rower, I want videos that play anywhere and step frame by frame smoothly."
+ac = [
+  "ffprobe metadata stored (fps, resolution, duration, codec, rotation, VFR flag)",
+  "CFR at nominal source fps; H.264 MP4 +faststart renditions play-1080 and play-540 with ~0.25 s closed GOP",
+  "Poster + thumbnail sprite; HEVC sources play on Android Chrome",
+  "Worker CPU-limited; transcode time per clip logged as metric",
+]
+notes = "ADR-0007. GOP length confirmed by the player spike."
+
+[[story]]
+epic = "upload"
+title = "Processing status and progress UI"
+labels = ["feature", "must", "i18n"]
+story = "As a coach, I want to see when my upload is ready."
+ac = [
+  "States: uploading, processing (with progress), ready, failed (with reason and retry)",
+  "Live update without reload",
+]
+
+[[story]]
+epic = "upload"
+title = "Authorised video delivery with range requests"
+labels = ["security", "must"]
+story = "As a rower, I want videos to start fast, and only people in my crew to see them."
+ac = [
+  "Range/206 streaming or 5-minute presigned URLs after an authorization check",
+  "Cache-Control private; no public or guessable links",
+  "Playback start ≤ 2 s on throttled 4G for play-540 (measured in E2E)",
+]
+
+[[story]]
+epic = "upload"
+title = "Delete own videos (hard delete)"
+labels = ["feature", "must", "security"]
+story = "As the uploader, I want to permanently delete a video."
+ac = [
+  "Deletes DB rows, original, renditions and analysis artefacts; backup replica within 24 h",
+  "Confirmation dialog; audited",
+]
+
+[[story]]
+epic = "player"
+title = "Spike: frame-accurate stepping and start time on iOS and Android"
+labels = ["feature", "must"]
+story = "As the team, we want measured evidence for the rendition settings, so that the player feels instant."
+ac = [
+  "Compare GOP 0.25 s vs 0.5 s vs all-intra 540p on iPhone Safari and Android Chrome",
+  "Measure start time on throttled 4G and step latency; verify requestVideoFrameCallback frame accuracy",
+  "Results recorded in ADR-0007",
+]
+
+[[story]]
+epic = "player"
+title = "Player core: speeds, play/pause, scrub bar with thumbnails"
+labels = ["feature", "must", "i18n"]
+story = "As a rower, I want to watch my session in slow motion."
+ac = [
+  "Speeds 0.25×, 0.5×, 1× (must); 0.1× and 2× optional",
+  "Scrub bar with thumbnail preview; current time and frame number shown",
+  "Picks play-540 or play-1080 by viewport and network",
+]
+
+[[story]]
+epic = "player"
+title = "Frame stepping and fine seeking with touch and keyboard controls"
+labels = ["feature", "must"]
+story = "As a rower, I want to step exactly frame by frame to see my catch and extraction."
+ac = [
+  "Buttons ±1 frame, ±0.1 s, ±1 s; touch targets ≥ 44 px; press-and-hold repeats",
+  "Keyboard: , . frame; ← → 0.1 s (Shift 1 s); space play/pause",
+  "Displayed frame verified with requestVideoFrameCallback; Playwright test asserts frame numbers",
+]
+
+[[story]]
+epic = "player"
+title = "Loop a selected segment"
+labels = ["feature", "must"]
+story = "As a coach, I want to loop the drive phase to show it repeatedly."
+ac = [
+  "Set in/out points by button or [ ] keys; loop toggle L",
+  "Loop works at all speeds and survives fullscreen toggle",
+]
+
+[[story]]
+epic = "player"
+title = "Fullscreen and immersive mode on iOS Safari and Android Chrome"
+labels = ["feature", "must"]
+story = "As a rower on a phone, I want the video as large as possible with the controls still available."
+ac = [
+  "Fullscreen API on the player container where supported",
+  "iPhone: CSS immersive mode keeps custom controls; native fullscreen offered as secondary",
+  "Landscape layout; tested on real iOS and Android devices",
+]
+
+[[story]]
+epic = "player"
+title = "Player accessibility (WCAG 2.1 AA)"
+labels = ["feature", "must", "i18n"]
+story = "As a user with a disability, I want to operate the player with keyboard and screen reader."
+ac = [
+  "All controls labelled and keyboard-operable; visible focus; contrast AA",
+  "Automated axe check in Playwright passes",
+]
+
+[[story]]
+epic = "conversation"
+title = "Conversation thread per session"
+labels = ["feature", "must", "i18n"]
+story = "As a rower or coach in the crew, I want to discuss the session in one place."
+ac = [
+  "Exactly one thread per session; post, reply, edit and delete own messages",
+  "Visible only to the crew's rowers and coaches (tenant + crew tests)",
+]
+
+[[story]]
+epic = "conversation"
+title = "Messages linked to a video moment"
+labels = ["feature", "must"]
+story = "As a coach, I want to point at an exact moment, so that the rower sees what I mean."
+ac = [
+  "Message optionally anchored to video + timestamp/frame, captured from the player",
+  "Clicking the anchor opens the video at that frame, paused",
+]
+
+[[story]]
+epic = "conversation"
+title = "Text annotations at a frame"
+labels = ["feature", "must"]
+story = "As a coach, I want to leave a note on a specific frame."
+ac = [
+  "Annotation at frame/time with text; shown as markers on the scrub bar",
+  "Visible to the crew; author can edit/delete",
+]
+
+[[story]]
+epic = "conversation"
+title = "Drawing annotations: line, arrow, angle measurement"
+labels = ["feature", "must"]
+story = "As a coach, I want to draw lines and measure angles on a frame, so that I can show body position."
+ac = [
+  "Tools: line, arrow, angle (three points, degrees shown); touch and mouse",
+  "Coordinates stored normalised to video dimensions; render correctly at any size and in fullscreen",
+]
+
+[[story]]
+epic = "conversation"
+title = "Annotation status: open, resolved, focus point"
+labels = ["feature", "must", "i18n"]
+story = "As a rower, I want to see which feedback is still open and what my focus points are."
+ac = [
+  "Status open/resolved/focus point; filter by status",
+  "Status changes notify the author",
+]
+
+[[story]]
+epic = "notifications"
+title = "E-mail notifications for new feedback and replies"
+labels = ["feature", "must", "i18n"]
+story = "As a rower, I want an e-mail when a coach gives me feedback or replies."
+ac = [
+  "Notify crew members on new messages/annotations in their sessions; batching to avoid spam",
+  "Localised; deep link to the moment in the video",
+]
+
+[[story]]
+epic = "notifications"
+title = "Notification preferences and one-click unsubscribe"
+labels = ["feature", "must", "i18n"]
+story = "As a user, I want to control how often I get e-mails."
+ac = [
+  "Per-user setting: immediate / daily digest / off",
+  "One-click unsubscribe link (List-Unsubscribe header)",
+]
+
+[[story]]
+epic = "privacy"
+title = "Privacy statement NL/EN and processors list"
+labels = ["security", "must", "i18n"]
+story = "As a user, I want to know what happens with my data and video."
+ac = [
+  "Privacy statement in NL and EN linked from login and footer",
+  "Lists processors from docs/privacy/processors.md, retention, deletion windows and contact",
+  "States plainly that videos are not backed up during the pilot (ADR-0006)",
+]
+
+[[story]]
+epic = "privacy"
+title = "Personal data export"
+labels = ["security", "must"]
+story = "As a user, I want to download my data."
+ac = [
+  "Export of profile, memberships, messages, annotations and own uploaded videos (links)",
+  "Generated as a background job; download link expires; audited",
+]
+
+[[story]]
+epic = "privacy"
+title = "Account deletion"
+labels = ["security", "must"]
+story = "As a user, I want to delete my account."
+ac = [
+  "Deletes profile and sessions; own videos deleted or (if coach) transferred per documented rule",
+  "Messages anonymised to 'former member'; audited; confirmation e-mail",
+]
