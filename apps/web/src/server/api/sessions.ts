@@ -27,6 +27,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           id: rowingSession.id,
           title: rowingSession.title,
           date: rowingSession.sessionDate,
+          createdAt: rowingSession.createdAt,
           videoCount: count(video.id),
         })
         .from(rowingSession)
@@ -62,6 +63,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           id: rowingSession.id,
           title: rowingSession.title,
           date: rowingSession.sessionDate,
+          createdAt: rowingSession.createdAt,
         })
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));

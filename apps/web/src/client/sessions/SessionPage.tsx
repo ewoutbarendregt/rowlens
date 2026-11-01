@@ -4,6 +4,7 @@ import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
 import {
   formatBytes,
+  formatCreatedTime,
   formatDate,
   formatVideoFacts,
   type Perspective,
@@ -40,6 +41,7 @@ interface SessionDetail {
   id: string;
   title: string;
   date: string;
+  createdAt: string;
   videos: SessionVideo[];
 }
 
@@ -127,7 +129,9 @@ export function SessionPage() {
         <Link to="/sessions">← {t.back}</Link>
       </nav>
       <h1>{session.title}</h1>
-      <p className="muted">{formatDate(session.date)}</p>
+      <p className="muted">
+        {formatDate(session.date)} · {t.createdAt(formatCreatedTime(session.createdAt))}
+      </p>
 
       {session.videos.length === 0 && <p className="muted">{t.noVideos}</p>}
       <ul className="list" data-testid="video-list">

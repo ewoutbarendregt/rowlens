@@ -124,12 +124,23 @@ describe('sessions', () => {
     const id = await newSession();
     const list = await app.inject({ url: `${BASE}/api/sessions`, headers: { cookie } });
     expect(list.headers['cache-control']).toBe('private, no-store');
-    expect(list.json<{ sessions: unknown[] }>().sessions).toContainEqual({
+    const sessions = list.json<{
+      sessions: {
+        id: string;
+        title: string;
+        date: string;
+        createdAt: string;
+        videoCount: number;
+      }[];
+    }>().sessions;
+    const created = sessions.find((session) => session.id === id);
+    expect(created).toMatchObject({
       id,
       title: 'Ochtendtraining',
       date: '2026-10-31',
       videoCount: 0,
     });
+    expect(created?.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:/);
   });
 
   it('rejects invalid sessions', async () => {
@@ -183,6 +194,9 @@ describe('tus upload', () => {
       url: `${BASE}/api/sessions/${sessionId}`,
       headers: { cookie },
     });
+    expect(session.json<{ createdAt: string }>().createdAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:/,
+    );
     expect(session.json<{ videos: unknown[] }>().videos).toEqual([
       expect.objectContaining({
         id,

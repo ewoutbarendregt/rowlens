@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Session date now includes its creation time
+
+**Session**: codex/feat/delete-session
+**Changed**: apps/web/src/server/api/{sessions.ts,uploads.db.test.ts}, apps/web/src/client/sessions/{SessionsPage.tsx,SessionPage.tsx,strings.ts,strings.test.ts}, apps/web/e2e/upload.spec.ts, BUILD.md, TEST.md, DOCUMENTATION.md
+**Summary**: Session list items and the session detail now show the selected training date together with the database creation time, labelled in NL/EN and formatted in the viewer's local time. The API exposes `createdAt` on both session representations; checked on the local laptop/phone layouts, with 191 web tests and 4 desktop/mobile E2E tests.
+**Prompts used**: "de timestamp van de sessie moet ook het tijdstip van aanmaken bevatten, niet alleen de datum".
+
 ## 2026-11-01 — Delete a whole session with its videos and annotations
 
 **Session**: codex/feat/delete-session

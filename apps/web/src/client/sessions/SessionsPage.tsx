@@ -1,12 +1,13 @@
 import { type SubmitEvent, useEffect, useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api } from '../api.ts';
-import { formatDate, sessionStrings } from './strings.ts';
+import { formatCreatedTime, formatDate, sessionStrings } from './strings.ts';
 
 interface SessionSummary {
   id: string;
   title: string;
   date: string;
+  createdAt: string;
   videoCount: number;
 }
 
@@ -96,7 +97,8 @@ export function SessionsPage() {
               <Link className="list__item" to={`/sessions/${s.id}`}>
                 <strong>{s.title}</strong>
                 <span className="muted">
-                  {formatDate(s.date)} · {t.videos(s.videoCount)}
+                  {formatDate(s.date)} · {t.createdAt(formatCreatedTime(s.createdAt))} ·{' '}
+                  {t.videos(s.videoCount)}
                 </span>
               </Link>
             </li>

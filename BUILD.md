@@ -56,6 +56,8 @@ scripts/github/      backlog/labels/milestones bootstrap
 - API (all behind the pilot guard, `private, no-store`): `GET/POST /api/sessions`,
   `GET /api/sessions/:id` (with videos), `DELETE /api/videos/:id` (row + every byte under its key),
   `DELETE /api/sessions/:id` (session + cascaded videos/annotations + every video media directory).
+- Session summaries and details show the chosen training date plus the database creation time in the
+  viewer's local time (`Aangemaakt om 21:07` / `Created at 21:07`).
 - Upload: our own tus 1.0 server (core + creation + termination) at `/api/uploads`, not
   `@tus/server` (its v2 converts requests and loses the per-request club context). Creation checks
   `Upload-Length` ≤ 4 GB, type/extension, the session (RLS), 60 creations/h per IP, disk < 85 %, and

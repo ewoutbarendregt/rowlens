@@ -19,6 +19,7 @@ test('create a session, upload a video and a fake one, delete the video', async 
   await page.getByLabel(/^(Title|Titel)$/).fill(title);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByText(/Created at \d{2}:\d{2}|Aangemaakt om \d{2}:\d{2}/)).toBeVisible();
 
   await page.getByLabel(/^(Choose videos|Video’s kiezen)$/).setInputFiles([
     { name: 'stroke.webm', mimeType: 'video/webm', buffer: readFileSync(FIXTURE) },
@@ -73,6 +74,9 @@ test('create a session, upload a video and a fake one, delete the video', async 
 
   await page.getByRole('link', { name: /All sessions|Alle trainingen/ }).click();
   await expect(page.getByTestId('session-list')).toContainText(title);
+  await expect(page.getByTestId('session-list')).toContainText(
+    /Created at \d{2}:\d{2}|Aangemaakt om \d{2}:\d{2}/,
+  );
 
   // A whole session can be removed in one action, including its remaining videos and annotations.
   await page.getByRole('link', { name: new RegExp(title) }).click();

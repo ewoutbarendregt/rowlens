@@ -7,6 +7,7 @@ const en = {
   titlePlaceholder: 'e.g. Saturday morning, CX4+',
   date: 'Date',
   create: 'Create session',
+  createdAt: (time: string) => `Created at ${time}`,
   videos: (n: number) => (n === 1 ? '1 video' : `${String(n)} videos`),
   back: 'All sessions',
   home: 'Home',
@@ -69,6 +70,7 @@ const nl: typeof en = {
   titlePlaceholder: 'bijv. zaterdagochtend, CX4+',
   date: 'Datum',
   create: 'Training aanmaken',
+  createdAt: (time: string) => `Aangemaakt om ${time}`,
   videos: (n: number) => (n === 1 ? '1 video' : `${String(n)} video’s`),
   back: 'Alle trainingen',
   home: 'Start',
@@ -145,6 +147,20 @@ export function formatDate(iso: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+/** The database creation timestamp in the viewer's local time; tests can pin a time zone. */
+export function formatCreatedTime(
+  iso: string,
+  timeZone?: string,
+  language: 'nl' | 'en' = lang(),
+): string {
+  return new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone,
+  }).format(new Date(iso));
 }
 
 /** e.g. `60 fps · 1920×1080 · 2:03`; fractional rates like 59.94 keep two decimals. */
