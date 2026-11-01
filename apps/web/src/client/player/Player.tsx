@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type ReactNode,
   type Ref,
   useEffect,
   useImperativeHandle,
@@ -25,6 +26,8 @@ export interface PlayerProps {
   markers?: readonly PlayerMarker[];
   /** Lets the page seek and pause, e.g. when a note in a list is chosen. */
   handle?: Ref<PlayerHandle>;
+  /** Extra controls from the page (e.g. the quality switch), laid out with the player's own. */
+  toolbar?: ReactNode;
 }
 
 export interface PlayerMarker {
@@ -55,6 +58,7 @@ export function Player({
   onMeasure,
   markers,
   handle,
+  toolbar,
 }: PlayerProps) {
   const t = useMemo(() => playerStrings(), []);
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -331,6 +335,7 @@ export function Player({
           </button>
         </div>
       </div>
+      {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
     </div>
   );
 }

@@ -75,6 +75,29 @@ def _snap(rate: Fraction) -> Fraction:
     return nearest if abs(nearest - rate) / nearest <= Fraction(1, 100) else rate
 
 
+def _is_common(rate: Fraction | None) -> bool:
+    return rate is not None and _snap(rate) in _COMMON_RATES
+
+
+def _nominal(r: Fraction | None, avg: Fraction | None, measured: Fraction) -> Fraction:
+    """The rate the camera meant to record at.
+
+    1. The average, if it is a common rate: it is what the frames really amount to. A phone clip
+       on production had r_frame_rate 600/19 (31.58, its timestamp grid) but an average of 29.99;
+       choosing 31.58 duplicated ~5 % of the frames.
+    2. r_frame_rate, if it is a common rate (phones dropping frames in low light average below it).
+    3. Otherwise r_frame_rate unless it is far off the average (Android files report 90000/1),
+       else the average.
+    """
+    if _is_common(avg) and avg is not None:
+        return _snap(avg)
+    if _is_common(r) and r is not None:
+        return _snap(r)
+    if r is not None and (avg is None or abs(r - avg) / r <= Fraction(1, 5)):
+        return r
+    return measured
+
+
 def _rotation(stream: dict[str, Any]) -> int:
     for side in stream.get("side_data_list", []):
         if "rotation" in side:
@@ -97,11 +120,7 @@ def parse_probe(data: dict[str, Any]) -> Probe:
     measured = avg or r
     if measured is None:
         raise PermanentError("unreadable", "no frame rate")
-    # r_frame_rate is the container's base rate, which some Android phones report as 90000/1 or
-    # similar; the average then gives the nominal rate.
-    fps = _snap(
-        r if r is not None and (avg is None or abs(r - avg) / r <= Fraction(1, 5)) else measured
-    )
+    fps = _nominal(r, avg, measured)
     vfr = avg is not None and abs(fps - avg) / fps > Fraction(1, 200)
 
     fmt: dict[str, Any] = data.get("format", {})

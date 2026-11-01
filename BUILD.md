@@ -105,10 +105,13 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Stage: `--aspect` (video width/height, set inline from metadata) and `--stage-cap`; width =
   min(column, cap × aspect), `aspect-ratio: var(--aspect)`, video absolutely positioned inside with
   `object-fit: contain`. Phones: cap 60dvh. Full screen: the stage takes the free grid row.
-- ≥ 1000 px: two columns, the player (sticky, cap = 100dvh − 300px) left and the notes (own scroll)
-  right; compact header. Phones: stacked.
-- Checked: laptop 1440×860 in Chrome (landscape and portrait: video, controls, note field and first
-  note in one view); iPhone 13 in WebKit (landscape, portrait, full screen).
+- ≥ 1000 px: two columns, the player (sticky) left and the notes (own scroll) right; compact header.
+  Landscape video: controls under the video (cap = 100dvh − 320px). Portrait video (`aspect < 0.9`,
+  from the worker's display size): three zones, the video at cap = 100dvh − 130px with an absolute
+  width, its controls in a column beside it, notes right. Phones: stacked.
+- The quality switch is part of the player (`toolbar` prop); its explanation is a tooltip.
+- Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
+  note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
 
 ## Notes pinned to a frame (#59)
 

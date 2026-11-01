@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
@@ -92,6 +92,11 @@ export function VideoPage() {
   if (video === null) return null;
 
   const media = (name: string) => appUrl(`/api/videos/${video.id}/media/${name}`);
+  // Display shape from the worker's metadata, known before the video loads: portrait phone video
+  // gets its own laptop layout (video beside its controls).
+  const aspect =
+    video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
+  const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
 
   return (
@@ -110,7 +115,10 @@ export function VideoPage() {
       {!ready && <p role="status">{t.notReady}</p>}
       {ready && video.fpsNum !== null && video.fpsDen !== null && (
         // Laptop: player (sticky) left, notes right, all in one view. Phone: stacked.
-        <div className="video-layout">
+        <div
+          className={`video-layout${portrait ? ' video-layout--portrait' : ''}`}
+          style={{ '--aspect': String(aspect) } as CSSProperties}
+        >
           <div className="video-layout__player">
             <Player
               key={rendition}
@@ -124,30 +132,36 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
+              toolbar={
+                video.renditions.length > 1 ? (
+                  <div
+                    className="quality"
+                    role="group"
+                    aria-label={t.quality}
+                    title={t.qualityHint}
+                  >
+                    <span>{t.quality}</span>
+                    {video.renditions
+                      .map((r) => r.name)
+                      .sort()
+                      .reverse()
+                      .map((name) => (
+                        <button
+                          key={name}
+                          type="button"
+                          className="button--quiet"
+                          aria-pressed={rendition === name}
+                          onClick={() => {
+                            setRendition(name);
+                          }}
+                        >
+                          {name.replace('play-', '')}p
+                        </button>
+                      ))}
+                  </div>
+                ) : undefined
+              }
             />
-            {video.renditions.length > 1 && (
-              <div className="quality" role="group" aria-label={t.quality}>
-                <span>{t.quality}</span>
-                {video.renditions
-                  .map((r) => r.name)
-                  .sort()
-                  .reverse()
-                  .map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className="button--quiet"
-                      aria-pressed={rendition === name}
-                      onClick={() => {
-                        setRendition(name);
-                      }}
-                    >
-                      {name.replace('play-', '')}p
-                    </button>
-                  ))}
-                <span className="muted">{t.qualityHint}</span>
-              </div>
-            )}
           </div>
           <aside className="video-layout__side">
             <NotesPanel

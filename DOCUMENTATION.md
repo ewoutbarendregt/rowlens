@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Laptop layout for portrait video; 30 fps for phone clips on a 600 Hz grid
+
+**Session**: claude/fix/laptop-portrait-layout
+**Changed**: apps/web/src/client/{styles.css,player/Player.tsx,sessions/VideoPage.tsx}, worker/src/rowlens_worker/video/probe.py, worker/tests/test_probe.py, docs/adr/0007, BUGS.md, BUILD.md, TEST.md
+**Summary**: Ewout's laptop screenshot: a portrait video as a narrow strip with controls stretched below, in a low window (~540 px), and "31.58 fps". Portrait video now gets three zones on laptops (video tall left, controls beside, notes right); the quality switch moved into the player; softer slider focus. The worker now prefers a common average rate (the clip was 29.99 on average but r_frame_rate 600/19, so 5 % of its frames were duplicates). Checked at 1000×540, 1440×860, 1920×1000 and iPhone.
+**Prompts used**: "this does not look good on the laptop" (with screenshot).
+
 ## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
 
 **Session**: claude/fix/ios-player-half

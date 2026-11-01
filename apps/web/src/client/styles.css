@@ -457,9 +457,35 @@ a.list__item {
     top: 12px;
   }
 
-  /* Header ~90px, readout + markers + slider + one row of controls + quality ~200px. */
+  /* Header ~90px; readout, markers, slider, a row of controls and the quality row ~230px. */
   .video-layout .player__stage {
-    --stage-cap: max(240px, calc(100dvh - 300px));
+    --stage-cap: max(240px, calc(100dvh - 320px));
+  }
+
+  /* Portrait video (phones filmed upright): video on the left as tall as the screen allows, its
+     controls in a column beside it, notes on the right. Not in full screen. */
+  .video-layout--portrait .player:not(.player--fullscreen) {
+    grid-template-columns: auto minmax(260px, 1fr);
+    grid-template-rows: repeat(5, auto) 1fr;
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+
+  .video-layout--portrait .player:not(.player--fullscreen) > .player__stage {
+    --stage-cap: max(320px, calc(100dvh - 130px));
+    /* No percentage here: the column is sized by this box, so 100% would be circular (→ 0). */
+    width: calc(var(--stage-cap) * var(--aspect));
+    grid-column: 1;
+    grid-row: 1 / -1;
+    justify-self: start;
+  }
+
+  .video-layout--portrait .player:not(.player--fullscreen) > :not(.player__stage) {
+    grid-column: 2;
+  }
+
+  .video-layout--portrait .player__controls {
+    justify-content: flex-start;
   }
 
   .video-layout__side {
@@ -471,6 +497,10 @@ a.list__item {
   .video-layout__side .notes {
     margin: 0;
   }
+}
+
+.player__toolbar .quality {
+  margin-block: 0.25rem 0;
 }
 
 /* ---------------------------------------------------------------- player (ADR-0007) */
@@ -646,9 +676,11 @@ a.list__item {
 }
 
 .player__controls button:focus-visible,
+/* Keyboard focus stays visible, but as a soft ring rather than a heavy frame. */
 .player__scrub input:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .player__play {
