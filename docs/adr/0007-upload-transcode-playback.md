@@ -60,6 +60,38 @@ A step costs one display refresh on a laptop; GOP length makes no measurable dif
 expected to matter on phones (weaker decoders), which is still to be measured: iPhone Safari and Android
 Chrome over the LAN (`pnpm --filter @rowlens/web dev:client --host`). Until then **GOP 0.25 s stays**.
 
+### Phones and throttled networks (production demo, 2026-11-01)
+
+**iPhone Safari**: Ewout tried https://trustable.nl/projects/rowlens/demo/player on his iPhone and
+reported "It works" (stepping, speeds, loop and fullscreen). No timings were read from the panel, so
+there are no iPhone numbers yet. **Android Chrome is untested.**
+
+Throttled networks, measured with `scripts/demo-media/measure-network.js` against production
+(headless Google Chrome, phone-sized viewport, cold cache, 3 runs per cell, 30 steps per run). The
+throttling is applied in Chrome on top of the real round trip to Nuremberg. "Start" is from the
+`<video>` mount to the first frame shown; "page" is from navigation to the first frame, so it includes
+HTML, JS and the manifest:
+
+| Network (latency, down) | Rendition | Start (median) | Page → first frame | Step median / max | Wrong frames |
+|---|---|---|---|---|---|
+| Fast 4G (150 ms, 9 Mbit/s) | GOP 0.25 s, 1080p | 359 ms | 2.0 s | 14 / 44 ms | 0 |
+| Fast 4G | GOP 0.5 s, 1080p | 359 ms | 2.0 s | 17 / 45 ms | 0 |
+| Fast 4G | all-intra, 540p | 246 ms | 1.5 s | 10 / 46 ms | 0 |
+| Slow 4G (300 ms, 1.6 Mbit/s) | GOP 0.25 s, 1080p | 1.46 s | 4.4 s | 51–80 / ~300 ms | 0 |
+| Slow 4G | GOP 0.5 s, 1080p | 1.46 s | 4.4 s | 76–92 / ~310 ms | 0 |
+| Slow 4G | all-intra, 540p | 0.81 s | 3.9 s | 15 / 135 ms | 0 |
+
+Reading it:
+- Frame accuracy holds on every network: 540 steps, 0 wrong frames.
+- On a slow connection a step can wait for one byte-range round trip (max ≈ the 300 ms latency), because
+  the 1080p file isn't buffered ahead yet. The 540p rendition stays near one display refresh.
+- GOP 0.25 s vs 0.5 s makes no difference to start time and little to stepping. **GOP 0.25 s stays.**
+- The synthetic clips are low-bitrate. Real rowing footage will make the gap between 1080p and 540p
+  larger, which supports starting on the 540p rendition and switching to 1080p once it has buffered.
+  That is to be checked with real footage.
+
+Still open for #51: Android Chrome; step timings on the iPhone itself; and real-footage clips.
+
 What the spike changed in the design:
 - **Frame from `mediaTime` is rounded, not floored.** Containers round presentation timestamps (WebM to
   1 ms: frame 10 at 30 fps starts at 0.333 s → 9.99 → floored to frame 9). `currentTime`, which can be
