@@ -2,6 +2,12 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — CI accepts Codex branch names
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: .github/workflows/ci.yml, DOCUMENTATION.md
+**Summary**: The branch-name policy now accepts the `codex/` agent prefix required by AGENTS.md alongside the existing `claude/` prefix. This fixes the policy failure on PRs #100 and #101 without weakening the conventional type/slug check.
+
 ## 2026-11-01 — One-club e-mail OTP authentication (#28–#30)
 
 **Session**: codex/feat/28-30-email-auth
