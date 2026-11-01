@@ -1,8 +1,9 @@
-# Handoff — state of RowLens on 2026-11-01 (evening)
+# Handoff to Claude — state of RowLens on 2026-11-01 (late evening)
 
-Written when Ewout moved from Claude Code to Codex. Read `AGENTS.md` first for the rules. Details
-of everything below are in `DOCUMENTATION.md` (newest first), `BUILD.md`, `BUGS.md`, `TEST.md`,
-the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
+Updated after Ewout asked Codex to hand the work back to Claude. Read `AGENTS.md` first for the rules.
+Continue from branch **`codex/feat/28-30-email-auth`**; it is pushed, clean, and contains the two new
+green PRs plus the latest handoff. Details are in `DOCUMENTATION.md` (newest first), `BUILD.md`,
+`BUGS.md`, `TEST.md`, the ADRs in `docs/adr/` and `docs/runbooks/server-setup.md`.
 
 ## What exists
 
@@ -10,7 +11,7 @@ the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
 |---|---|
 | Hosting | Own Compose project `rowlens` in `/opt/rowlens` on trustable-prod; Caddy route `/projects/rowlens/*`; manual deploy workflow with backup, migrations, readiness check and automatic rollback |
 | Access | E-mail OTP (#28–#30) for an operator-managed one-club allowlist; revocable 30-day sessions, DB rate limits and CSRF |
-| Data | Postgres 16, Drizzle migrations 0000–0005, role `rowlens_app` without BYPASSRLS, `withTenant` + RLS on every tenant table |
+| Data | Postgres 16, Drizzle migrations 0000–0006, role `rowlens_app` without BYPASSRLS, `withTenant` + RLS on every tenant table |
 | Upload | Sessions; resumable tus upload (own server) into `/opt/rowlens/media`; 4 GB per file, 30 GB total cap, 85 % disk pause |
 | Processing | Python worker: ffprobe, CFR H.264 renditions play-1080/play-540 (GOP ≈ 0.25 s, metadata stripped), poster, Postgres job queue |
 | Player | Frame-accurate stepping, 0.25/0.5/1×, loop, full screen; portrait/landscape layouts on phone and laptop |
@@ -21,6 +22,9 @@ the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
 - Runs **`sha-c15cb47`** (deployed 2026-11-01 19:34 UTC): everything up to iPhone/laptop layout
   (#94) and notes (#93). **Not yet on production**: everything in the open PRs below.
 - Previous release `sha-4e03e66` is kept for rollback (`rowlens-deploy rollback`).
+- Read-only preflight after the Codex work: DB/web healthy, worker running, disk 48 % used; RowLens,
+  trustable.nl, api.trustable.nl and AudioScribe all returned 200. The production compose is current;
+  the deploy script still needs the approved #98 reinstall.
 - Production still uses the old pilot access code until the authentication PR is merged, configured
   and deployed. The old code file can be archived after the new login is verified.
 - Uploaded so far: a few test videos from Ewout's iPhone. One was processed at 31.58 fps (BUG-007,
@@ -37,17 +41,28 @@ the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
 4. **#97** `feat(drawing)`: lines/arrows/angles (#60), one section per frame with an always-open
    explanation, click a section to jump and select it, delete a whole note, in-page confirmations,
    video display name `[session]-[#]-[start]-[length]` (migration 0005), and #98 merged in.
-   Stacked on #96. (CI was still running when this was written.)
-5. **This handoff PR** (`AGENTS.md`, this file). Stacked on #97.
-6. **#89** docs: deploy logs in the runbook. Base `main`; merge whenever (resolve log conflicts by
+   Stacked on #96.
+5. **#99** original handoff to Codex (`AGENTS.md`, this file). Stacked on #97.
+6. **#100** `feat(sessions)`: delete a complete session with all videos, annotations and media;
+   show the database creation time next to the training date. Stacked on #99.
+7. **#101** `feat(auth)`: NL/EN e-mail OTP for the one-club allowlist (#28–#30), DB rate limits,
+   revocable sessions, CSRF for JSON and tus, Resend SMTP, migration 0006, roadmap reorder, current
+   production preflight and this latest Claude handoff. Stacked on #100.
+8. **#89** docs: deploy logs in the runbook. Base `main`; merge whenever (resolve log conflicts by
    keeping both entries, newest first).
-7. **#83** docs: ADR-0007 phone/4G measurements (#51). Base `main`.
+9. **#83** docs: ADR-0007 phone/4G measurements (#51). Base `main`.
 
 Merging a stack: merge the bottom PR **without deleting its branch**, retarget the next one to
 `main` (`gh pr edit N --base main`), wait for CI, merge, repeat. #98 is already part of #97's
 branch, so after #98 merges the diff of #97 shrinks accordingly.
 
-## The next deploy (when Ewout asks; show each server step first)
+## The next deploy (not yet authorised; show each server step first)
+
+Ewout asked for the product work and later asked for this handoff, but has **not** given the required
+explicit `merge en deploy` approval. Do not merge or change production until he does. Before the
+production `.env` edit, also confirm that `trustable.nl` is verified in Resend. Have Ewout enter the
+allowlist and dedicated Resend API key privately through a terminal prompt; do not ask him to paste
+addresses or the key into chat.
 
 1. `infra/deploy/install.sh`: reinstalls the deploy script (#98) and compose file; checks
    `authorized_keys` without changing it.
@@ -58,13 +73,21 @@ branch, so after #98 merges the diff of #97 shrinks accordingly.
 5. Ask Ewout to re-upload his phone clips (old ones keep their wrong 31.58 fps renditions and have
    no recording time); measure the 4K processing time on the server from the worker log.
 
+The exact required variables, safe handling constraints and current server state are in
+`docs/runbooks/server-setup.md`. Keep `PILOT_ACCESS_CODE_HASH` during the first OTP deploy so rollback
+remains possible; archive the old pilot code only after a real NL and EN e-mail login is verified.
+
 ## Local state on Ewout's laptop
 
 - Checkout `/Users/ewout/src/rowlens` on branch `codex/feat/28-30-email-auth` (stacked on the two
-  session improvements and the existing handoff/drawing stack).
+  session improvements and the existing handoff/drawing stack). All changes are committed and pushed;
+  the worktree is clean.
 - Local stack running: app on **http://localhost:5174/projects/rowlens/**, login address
   **`rowlens@localhost.test`**; the API terminal prints the code. Postgres is on 5434 and the worker
   is in Docker. Local test videos/notes from development are in the local database; disposable.
+- Final verification for #101: 207 web tests, 44 worker tests, 30 local E2E, 15 edge E2E, 77 deploy
+  checks and the real-Docker deploy/rollback rehearsal. PRs #100 and #101 have all eight CI jobs green
+  and are mergeable.
 
 ## Open work (suggested order)
 

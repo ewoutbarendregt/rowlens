@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Handoff from Codex back to Claude
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: The handoff now lists the complete green PR stack through #101, the tested e-mail-auth implementation, production preflight, private Resend/allowlist inputs and explicit approval still needed before merge or deploy. The branch is pushed and the worktree is clean so Claude can continue without reconstructing context.
+**Prompts used**: "zorg ervoor dat Claude weer verder kan".
+
 ## 2026-11-01 — Production preflight for e-mail authentication
 
 **Session**: codex/feat/28-30-email-auth
