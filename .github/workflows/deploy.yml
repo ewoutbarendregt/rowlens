@@ -1,0 +1,106 @@
+name: deploy
+
+# Manual production deploy (ADR-0002, #25). Only the repository owner can run it; there are no
+# environment reviewers on the free private plan, so starting this workflow *is* the approval.
+#
+# The CI key may only run /opt/rowlens/bin/rowlens-deploy on the server (forced command). This job
+# sends `deploy <tag>` plus this run's short-lived GITHUB_TOKEN on stdin (to pull from GHCR); the
+# server script pulls, backs up the DB, migrates, starts, checks readiness and rolls back on failure.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Image tag to deploy (sha-<7> from the images workflow)
+        required: true
+        type: string
+      check_public_url:
+        description: Also check https://trustable.nl/projects/rowlens/ (needs the Caddy route, trustable.nl#377)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  ROWLENS_HOST: 46.225.212.217
+  PUBLIC_URL: https://trustable.nl/projects/rowlens
+
+jobs:
+  deploy:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^(sha-[0-9a-f]{7,40}|v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?)$ ]]; then
+            echo "::error::Invalid tag. Use sha-<7> from the images workflow."
+            exit 1
+          fi
+
+      - name: Check the images exist in GHCR
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for name in web worker; do
+            docker manifest inspect "ghcr.io/ewoutbarendregt/rowlens-$name:$TAG" > /dev/null \
+              || { echo "::error::ghcr.io/ewoutbarendregt/rowlens-$name:$TAG not found"; exit 1; }
+          done
+
+      - name: SSH key and pinned host key
+        env:
+          KEY: ${{ secrets.ROWLENS_SSH_PRIVATE_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/rowlens_deploy
+          chmod 600 ~/.ssh/rowlens_deploy
+          cp infra/deploy/known_hosts ~/.ssh/known_hosts
+
+      - name: Deploy ${{ inputs.tag }}
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          printf '%s' "$GH_TOKEN" | ssh -i ~/.ssh/rowlens_deploy -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes "deploy@$ROWLENS_HOST" "deploy $TAG"
+          code=$?
+          case "$code" in
+            0) echo "Deployed \`$TAG\`." >> "$GITHUB_STEP_SUMMARY" ;;
+            3) echo "::error::$TAG did not become ready; rolled back to the previous release." ;;
+            2) echo "::error::$TAG failed before or during start (see log); nothing to roll back to, or nothing changed." ;;
+            4) echo "::error::$TAG failed and the rollback failed too. Run 'ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status'." ;;
+            75) echo "::error::Another deploy is running on the server." ;;
+            *) echo "::error::Deploy failed with exit code $code." ;;
+          esac
+          exit "$code"
+
+      - name: Check the public URL
+        if: inputs.check_public_url
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          for _ in $(seq 1 10); do
+            if curl -fsS "$PUBLIC_URL/health/live" | jq -e --arg v "$TAG" '.version == $v' > /dev/null; then
+              echo "Public URL serves \`$TAG\`: $PUBLIC_URL/" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::$PUBLIC_URL/health/live does not report $TAG (is the Caddy route live?)"
+          exit 1
+
+      - name: Remove key
+        if: always()
+        run: rm -f ~/.ssh/rowlens_deploy

@@ -24,6 +24,8 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | `server/config.ts` | 8 (defaults, normalisation, production PUBLIC_ORIGIN, invalid values) | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
+| `infra/deploy/rowlens-deploy` unit (`test/run.sh`, stubbed docker, Ubuntu) | 71 checks: input validation and forced-command injection, token handling, deploy/redeploy, rollback on unhealthy or failed `up`, first-deploy failure, pull failure, DB backup + retention, migrations, rollback/status, locking | ✅ passing |
+| `rowlens-deploy` rehearsal (`test/rehearse.sh`, real Docker) | first deploy, second deploy with real `pg_dump`, broken release auto-rollback (exit 3), manual rollback, status | ✅ passing |
 | E2E smoke (`e2e/smoke.spec.ts`) | 3 × desktop + mobile Chromium (home + API under base, deep link shell, nothing outside base) | ✅ passing |
 | `stroke_rate` | 8 (even rhythm, NTSC fps, refusals, invalid input) | ✅ passing |
 
@@ -34,8 +36,17 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/chore/17-phase-0-foundation | `pnpm test`, `uv run pytest` | 19 + 8 passed |
 | 2026-11-01 | claude/feat/19-web-app-skeleton | `pnpm test`, `pnpm --filter @rowlens/web e2e` | 38 passed; 6 passed |
 | 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
+| 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 
 ## Playwright prompts
+
+### Deploy script (#25)
+
+Mutation check: with the `|| return 1` after `compose up` and the image-tag check in `wait_ready`
+removed, the "failed 'up' is not mistaken for success" test fails (2 checks). Found by writing the tests:
+`start_tag` runs inside `if`, where bash ignores `set -e`, so a failed `up` with the old container still
+healthy was recorded as a successful deploy. The rehearsal then hit that exact situation for real (missing
+image) and rolled back correctly. Also found: the script file lacked its executable bit in git.
 
 ### Edge stack (#22, partial)
 

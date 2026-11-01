@@ -66,8 +66,25 @@ it. Networks mirror ADR-0002 (only rowlens-web is on the proxy network). No TLS 
 policy (PR title + branch name) · web (format, lint, typecheck, test, build, Playwright smoke, audit) ·
 edge (Playwright through the Caddy mirror) · worker (ruff,
 mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test).
-`release.yml`: release-please (changelog + semver tags). No deployment workflow yet; production deploys
-will be a manual `workflow_dispatch` (no branch protection on the free private plan, ADR-0002).
+`release.yml`: release-please (changelog + semver tags). · deploy-script (shellcheck, stubbed unit tests,
+real-Docker rehearsal of `rowlens-deploy`).
+
+## Delivery (ADR-0002, #25)
+
+```
+merge to main ──▶ images.yml: rowlens-web + rowlens-worker → ghcr.io/…:sha-<7>   (no deploy)
+Ewout: Actions → deploy → Run workflow (tag) ──▶ deploy.yml
+   ssh (CI key, forced command) "deploy <tag>"  + GITHUB_TOKEN on stdin
+      └▶ /opt/rowlens/bin/rowlens-deploy: pull → pg_dump → migrate (if defined) → up
+         → wait until web runs <tag> and /health/ready answers → keep, or roll back to previous
+         → prune RowLens images except current + previous
+   then: public check https://trustable.nl/projects/rowlens/health/live reports <tag>
+```
+
+- Server files: `/opt/rowlens/{docker-compose.yml,.env,bin/rowlens-deploy,state/,backups/,.docker/}`.
+- `infra/deploy/install.sh` (approval) installs the script + compose file and restricts the CI key.
+- Manual: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status|rollback`.
+- Exit codes: 0 ok · 2 failed (nothing to roll back / nothing changed) · 3 rolled back · 4 rollback failed.
 
 ## Known constraints
 

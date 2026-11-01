@@ -41,6 +41,12 @@ would own our containers.
    reviewers and branch protection are not available. Instead, merges to `main` only build and push images;
    **deploying is a separate `workflow_dispatch` workflow** that only the repo owner can trigger, given an
    image tag. Merging to `main` is by convention only: agents never push or merge to `main` (CLAUDE.md).
+   **Least privilege for the CI key** (#25): in `authorized_keys` it is bound to
+   `restrict,command="/opt/rowlens/bin/rowlens-deploy"`, which accepts only `deploy <tag>`, `rollback` and
+   `status`. The compose file lives on the server and changes only through `infra/deploy/install.sh`
+   (approval required), so CI decides *which* image runs, never *how*. GHCR pulls use the run's
+   short-lived `GITHUB_TOKEN`, passed on stdin and logged out right after; no registry credentials
+   stay on the server. The host key is pinned in `infra/deploy/known_hosts`.
 
 ## Consequences
 

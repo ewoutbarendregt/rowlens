@@ -55,6 +55,11 @@ pnpm --filter @rowlens/web dev:client      # Vite dev server, proxies /api + /he
 pnpm build && pnpm --filter @rowlens/web e2e   # Playwright smoke (once: playwright install chromium)
 pnpm edge:up && pnpm e2e:edge && pnpm edge:down  # behind a Caddy mirroring trustable.nl, :8080
 
+# Deploy script (Linux semantics, so run in containers on a Mac)
+docker run --rm -v "$PWD:/repo:ro" -w /repo ubuntu:24.04 bash infra/deploy/test/run.sh
+infra/deploy/test/rehearse.sh                    # real compose + Postgres against local Docker
+# Deploying is Ewout's action: GitHub → Actions → deploy → Run workflow (tag sha-<7>)
+
 # Worker (Python 3.12, uv)
 cd worker && uv sync
 uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest

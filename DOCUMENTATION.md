@@ -2,6 +2,20 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — install.sh run on trustable-prod: deploy script installed, CI key restricted (#25)
+
+**Session**: claude/feat/25-manual-deploy
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; on trustable-prod: /opt/rowlens/bin/rowlens-deploy, /opt/rowlens/docker-compose.yml, /opt/rowlens/state/, the gh-actions-rowlens line in /home/deploy/.ssh/authorized_keys (backup authorized_keys.bak-20261101T115732Z)
+**Summary**: Ran the approved infra/deploy/install.sh. Installed files match the repo by sha256; the CI key now only runs rowlens-deploy (verified: status allowed; arbitrary/chained commands, shell, invalid tag and port forwarding refused). Other keys, /opt/trustable and all trustable containers unchanged. No RowLens containers yet.
+**Prompts used**: "Approve install.sh".
+
+## 2026-11-01 — #25 Manual deploy: images on main, workflow_dispatch deploy, server script with rollback
+
+**Session**: claude/feat/25-manual-deploy (stacked on claude/docs/23-server-setup-runbook)
+**Changed**: .github/workflows/{images,deploy,ci}.yml, infra/deploy/{rowlens-deploy,install.sh,known_hosts}, infra/deploy/test/{run.sh,rehearse.sh,stub/docker}, infra/compose/docker-compose.prod.yml (now web + db), apps/web/Dockerfile (APP_VERSION build arg), docs/adr/0002-hosting-and-isolation.md, docs/runbooks/server-setup.md, BUILD.md, CLAUDE.md, TEST.md
+**Summary**: Merges to main now build and push sha-tagged images; deploying is a manual, owner-only workflow that SSHes with the CI key into a forced-command script (`rowlens-deploy`) on the server, which pulls with the run's short-lived token, backs up the DB, migrates, starts, checks that web runs the new tag and is ready, and rolls back otherwise. Covered by 71 stubbed checks, a mutation check and a real-Docker rehearsal, all in CI. Nothing installed on the server yet (install.sh needs approval).
+**Prompts used**: "Build #25 deploy".
+
 ## 2026-11-01 — /opt/rowlens and .env created on trustable-prod (#23)
 
 **Session**: claude/docs/23-server-setup-runbook

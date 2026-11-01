@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Fake `docker` for rowlens-deploy tests. Records every call in $STUB_DIR/calls and simulates
+# compose state in $STUB_DIR: the tag the web container runs, which tags are healthy, etc.
+set -u
+echo "ROWLENS_TAG=${ROWLENS_TAG:-} docker $*" >>"$STUB_DIR/calls"
+running() { cat "$STUB_DIR/running" 2>/dev/null || true; }
+has() {
+  local x
+  for x in ${2:-}; do [[ "$x" == "$1" ]] && return 0; done
+  return 1
+}
+
+case "$1" in
+  login) cat >"$STUB_DIR/token-received"; exit 0 ;;
+  logout) exit 0 ;;
+  image)
+    # shellcheck disable=SC2086 # one line per space-separated tag
+    if [[ "$2" == ls && "$3" == *rowlens-web ]]; then printf '%s\n' ${STUB_IMAGE_TAGS:-}; fi
+    exit 0
+    ;;
+  compose) ;;
+  *) exit 0 ;;
+esac
+
+# Skip compose's global options (-p x, -f x, --env-file x, --profile x) to find the subcommand.
+shift
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -p | -f | --env-file | --profile) shift 2 ;;
+    *) break ;;
+  esac
+done
+sub="$1"
+shift
+args="$*"
+case "$sub" in
+  pull) exit "${STUB_PULL_EXIT:-0}" ;;
+  up)
+    has "$ROWLENS_TAG" "${STUB_UP_FAIL_TAGS:-}" && exit 1
+    echo "$ROWLENS_TAG" >"$STUB_DIR/running"
+    ;;
+  ps)
+    if [[ "$args" == *"{{.Image}}"* ]]; then
+      [[ -n "$(running)" ]] && echo "ghcr.io/ewoutbarendregt/rowlens-web:$(running)"
+    elif [[ "$args" == *--services* && "${STUB_DB_RUNNING:-0}" == 1 ]]; then
+      echo db
+    fi
+    ;;
+  exec)
+    if [[ "$args" == *wget* ]]; then has "$(running)" "${STUB_HEALTHY_TAGS:-}" || exit 1; fi
+    if [[ "$args" == *pg_dump* ]]; then echo "PGDMP-fake"; fi
+    ;;
+  config) [[ "${STUB_HAS_MIGRATE:-0}" == 1 ]] && echo migrate ;;
+  run) exit "${STUB_MIGRATE_EXIT:-0}" ;;
+  stop) rm -f "$STUB_DIR/running" ;;
+esac
+exit 0
