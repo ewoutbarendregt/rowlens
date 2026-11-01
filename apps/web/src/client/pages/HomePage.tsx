@@ -29,7 +29,9 @@ export function HomePage() {
         <section className="club" aria-label={state.club.name}>
           <h2 data-testid="club-name">{state.club.name}</h2>
           <p>{t.signedIn}</p>
-          <p className="version">{t.comingNext}</p>
+          <Link className="button-link" to="/sessions">
+            {t.openSessions}
+          </Link>
           <button type="button" onClick={logout}>
             {t.logout}
           </button>

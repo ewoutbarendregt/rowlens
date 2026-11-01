@@ -38,3 +38,6 @@ test-results/
 
 # Generated demo clips for the player demo (pnpm demo:media)
 apps/web/public/demo-media/
+
+# Local video uploads (MEDIA_DIR=.media)
+apps/web/.media/

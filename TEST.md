@@ -8,7 +8,7 @@ Test strategy, prompts and results. This file is the source of truth for testing
 |---|---|---|
 | Unit (web) | Vitest | base path, policies, validation, pure helpers |
 | Unit (worker) | pytest | analysis math (stroke rate, phases, angles, sync), job handlers |
-| Integration | Vitest + Testcontainers Postgres/MinIO | API routes, permissions, **tenant isolation**, RLS coverage, tus |
+| Integration | Vitest + Testcontainers Postgres, media in a temp dir | API routes, permissions, **tenant isolation**, RLS coverage, tus |
 | E2E | Playwright, viewports iPhone 15 / Pixel 8 / desktop, WebKit + Chromium | login, upload, playback controls, conversation |
 | Analysis eval | pytest + reference clips | accuracy deltas on pipeline changes (M2) |
 | Smoke | CI image build + `curl` health under base path | every PR |
@@ -27,6 +27,9 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | Pilot gate (`pilot/{code,token,gate}.test.ts`, `rate-limit.test.ts`) | 21: code generation/normalisation/salting, malformed hashes; token expiry, tampering, void after new code/secret; cookie attributes; wrong/malformed code; 5/min per IP and 30/min overall (via X-Forwarded-For); logout; closed gate; Origin check | ✅ passing |
 | `/api/club` + `rowlens_club_id` (`api/club.db.test.ts`) | 5: same 404 as an unknown route without or with a forged cookie; pilot club through RLS; exact-slug lookup only, no club rows without context; pinned search_path | ✅ passing |
 | E2E gate (`e2e/pilot.spec.ts`, local + behind Caddy) | wrong code → alert; code typed in capitals with spaces → club; cookie HttpOnly/Strict/path; survives reload; sign-out; club API 404 without access | ✅ passing |
+| Media store + sniffing (`media/{store,sniff}.test.ts`, `api/uploads.test.ts`) | 23: append/resume after a broken stream/limit without writing the crossing chunk, key validation (traversal), disk ratio; MP4/MOV/WebM magic bytes vs JPEG/PDF/zip/text; tus metadata parsing | ✅ passing |
+| Sessions + tus upload (`api/uploads.db.test.ts`, real Postgres + temp media dir) | 11: sessions create/list/validate; create → partial PATCH → HEAD → wrong offset 409 → rest → uploaded; finished upload takes no bytes; non-video rejected and deleted; refusals before bytes (size, type, metadata, tus version); chunk > 64 MB / past length / wrong type; disk ≥ 85 % pauses create and PATCH; global cap counts unfinished uploads; termination and delete remove bytes; **another club's session/video: 404 on every route, upload into it refused, nothing changed**; 404 without cookie | ✅ passing |
+| E2E upload (`e2e/upload.spec.ts`, local + behind Caddy) | create session, choose a real clip + a fake .mov, camera per file, upload, fake rejected, list + status, delete, session listed; club pages redirect to the gate without access | ✅ passing |
 | Readiness with DB (`readiness.db.test.ts`) | 3: 200 when Postgres answers; 503 within 5 s when unreachable; 503 on a wrong password | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
@@ -47,6 +50,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
 | 2026-11-01 | claude/feat/31-database | `pnpm test`, `pnpm e2e:edge`, `run.sh`, `rehearse.sh` | 79 passed (16 db); 8 passed; 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/45-upload | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge`, `rehearse.sh` | 140 passed (32 db); 26 passed; 12 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/84-access-code | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 104 passed; 22 passed; 10 passed |
 | 2026-11-01 | claude/feat/31-database (CI fix) | `pnpm --filter @rowlens/web e2e` (server with Testcontainers Postgres) | 18 passed, 12 edge-only skipped |
 

@@ -141,6 +141,167 @@ body {
   line-height: 1.45;
 }
 
+/* ---------------------------------------------------------------- pages: sessions, upload (#45) */
+
+.page {
+  width: min(100%, 44rem);
+  margin-inline: auto;
+  padding: 16px max(16px, env(safe-area-inset-left)) 48px;
+}
+
+.page h1 {
+  margin-block: 0.5rem 0.25rem;
+}
+
+.page__nav {
+  padding-block: 0.5rem;
+}
+
+.page a {
+  color: var(--color-accent);
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+.card {
+  margin-block: 1.25rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-muted) 35%, transparent);
+  border-radius: 12px;
+}
+
+.form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+}
+
+.form input,
+.form select,
+.page button,
+.file-pick,
+.button-link {
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+}
+
+.page button,
+.file-pick,
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.page .button-link,
+.club .button-link {
+  color: var(--color-bg);
+}
+
+.page button.button--quiet {
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.page button:disabled {
+  opacity: 0.5;
+}
+
+.page :focus-visible,
+.club :focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-muted) 35%, transparent);
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.list__item {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.list__item > div {
+  display: grid;
+  flex: 1;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.list progress {
+  width: 100%;
+}
+
+.badge {
+  justify-self: start;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-muted) 20%, transparent);
+  font-size: 0.875rem;
+}
+
+.badge--ready {
+  background: color-mix(in srgb, #2e7d32 25%, transparent);
+}
+
+.badge--failed,
+.badge--rejected,
+.error {
+  color: #b3261e;
+}
+
+@media (prefers-color-scheme: dark) {
+  .badge--failed,
+  .badge--rejected,
+  .error {
+    color: #ffb4ab;
+  }
+}
+
 /* ---------------------------------------------------------------- player (ADR-0007) */
 
 .player {

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Sessions and resumable upload (#45, #46, #44 minimal, #50)
+
+**Session**: claude/feat/45-upload
+**Changed**: apps/web/src/server/api/{sessions,uploads,route-helpers}.ts (+ tests), src/server/media/{store,sniff}.ts (+ tests), src/server/db/schema.ts, db/migrations/0002_sessions_videos.sql, src/server/{app,config}.ts, src/server/pilot/gate.ts (configurable attempts), src/client/sessions/*, src/client/{App.tsx,pages/HomePage.tsx,pilot/strings.ts,styles.css}, e2e/{upload.spec.ts,helpers.ts,server.ts}, apps/web/{package.json,.env.example}, infra/compose/docker-compose.{prod,edge,dev}.yml, infra/deploy/test/rehearse.sh, docs/adr/{0006,0002}, docs/privacy/processors.md, docs/runbooks/server-setup.md, BUILD.md, CLAUDE.md, TEST.md, .gitignore
+**Summary**: PR 3 of the upload plan. Sessions with videos; our own tus server checks size, type, session, the 30 GB cap (reserved at creation) and the 85 % disk pause before taking bytes, resumes from the on-disk offset and rejects non-videos by magic bytes. Phone UI with camera per file, progress, resume and delete. ADR-0006 amended: a directory instead of MinIO (no longer maintained). Screenshots on a phone viewport led to two UI fixes (progress width, no retry for refused files).
+**Prompts used**: "Yes, keep going".
+
 ## 2026-11-01 — Pilot access code (#84)
 
 **Session**: claude/feat/84-access-code

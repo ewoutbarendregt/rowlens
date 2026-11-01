@@ -23,6 +23,8 @@ export interface PilotGateOptions {
   secrets: { codeHash: string; sessionSecret: string } | null;
   /** The pilot club's id, or `null` if it doesn't exist (yet). */
   resolveClubId: () => Promise<string | null>;
+  /** Per IP (default 5); all IPs together get six times this. */
+  attemptsPerMinute?: number;
   now?: () => number;
 }
 
@@ -50,8 +52,9 @@ export function createPilotGate(opts: PilotGateOptions): PilotGate {
         };
   const secure = new URL(opts.publicOrigin).protocol === 'https:';
   const cookiePath = `${opts.basePath}/`;
-  const perIp = new RateLimiter(5, 60_000);
-  const overall = new RateLimiter(30, 60_000);
+  const attempts = opts.attemptsPerMinute ?? 5;
+  const perIp = new RateLimiter(attempts, 60_000);
+  const overall = new RateLimiter(attempts * 6, 60_000);
   let clubId: string | null = null;
 
   const hasAccess = (req: FastifyRequest) =>

@@ -3,6 +3,9 @@ import { Route, Routes } from 'react-router';
 import { PLAYER_DEMO } from './features.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
+import { RequirePilot } from './sessions/RequirePilot.tsx';
+import { SessionPage } from './sessions/SessionPage.tsx';
+import { SessionsPage } from './sessions/SessionsPage.tsx';
 
 // The import sits inside the flag check so a build without the flag drops the chunk entirely.
 const PlayerDemoPage = PLAYER_DEMO
@@ -13,6 +16,22 @@ export function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
+      <Route
+        path="sessions"
+        element={
+          <RequirePilot>
+            <SessionsPage />
+          </RequirePilot>
+        }
+      />
+      <Route
+        path="sessions/:id"
+        element={
+          <RequirePilot>
+            <SessionPage />
+          </RequirePilot>
+        }
+      />
       {PlayerDemoPage !== null && (
         <Route
           path="demo/player"

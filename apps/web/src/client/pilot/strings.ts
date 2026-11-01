@@ -16,7 +16,7 @@ const en = {
     'Everyone with the code can watch, upload and delete every video. Share it only within the club.',
   ],
   signedIn: 'You have access for 30 days on this device.',
-  comingNext: 'Uploading and viewing your own videos comes next.',
+  openSessions: 'Sessions and videos',
   logout: 'Sign out',
 };
 
@@ -38,7 +38,7 @@ const nl: typeof en = {
     'Iedereen met de code kan alle video’s bekijken, uploaden en verwijderen. Deel hem alleen binnen de club.',
   ],
   signedIn: 'Je hebt 30 dagen toegang op dit apparaat.',
-  comingNext: 'Video’s uploaden en bekijken komt hierna.',
+  openSessions: 'Trainingen en video’s',
   logout: 'Afmelden',
 };
 
