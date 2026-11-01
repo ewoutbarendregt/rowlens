@@ -2,6 +2,19 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deployed sha-4e03e66: notes pinned to a frame, lost-step fix
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PR #93 merged; trustable-prod: `web` + `worker` → sha-4e03e66
+**Summary**: On Ewout's "Merge and deploy": merged #93 with green CI and deployed (pre-deploy dump, migration 0004 `annotation` with RLS + policy, ready; compose unchanged). Notes are live, and the player no longer loses steps on quick taps (BUG-004). Notes API is a 404 without the cookie; trustable.nl, its API and AudioScribe 200; disk 48 %.
+**Prompts used**: "Merge and deploy".
+
+## 2026-11-01 — Notes pinned to a frame (#59); lost frame steps fixed (BUG-004)
+
+**Session**: claude/feat/59-frame-notes
+**Changed**: apps/web/src/server/db/{schema.ts,migrations/0004_annotations.sql}, src/server/api/annotations.ts (+ db test), src/server/app.ts, src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{notes.spec.ts,helpers.ts,player.spec.ts}, docs/adr/0007, docs/privacy/processors.md, BUILD.md, TEST.md, BUGS.md
+**Summary**: PR 6 of the upload plan: an `annotation` table (notes now, drawings next) with RLS and a same-club key; notes API; notes panel with markers on the scrub bar, jump, edit, delete, remembered name. The new E2E exposed a real player bug: quick frame steps were lost when a stale `seeked` cleared the pending target (fixed, with a regression test that fails 12/12 on the old code). Drizzle-kit ordered the new FK before its unique key; reordered by hand.
+**Prompts used**: "Yes, start PR 6".
 ## 2026-11-01 — Deployed sha-d8b5501: smaller renditions
 
 **Session**: claude/docs/deploy-upload-log

@@ -100,7 +100,13 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
       if (!loopingRef.current) setPlaying(false);
     };
     const onSeeked = () => {
-      // The seek is done; whatever frame it landed on, the next step counts from what is shown.
+      // A `seeked` of a seek that a newer step already replaced: the newer one is still pending,
+      // and clearing its target here made the next step count from an older frame (lost steps
+      // when pressing quickly, found by the notes E2E).
+      if (video.seeking) return;
+      // The seek is done. The next step counts from where it went, not from the last presented
+      // frame: requestVideoFrameCallback may report the new frame only after this event.
+      if (targetRef.current !== null) frameRef.current = targetRef.current;
       targetRef.current = null;
       if (!loopingRef.current) return;
       loopingRef.current = false;
