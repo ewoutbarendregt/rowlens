@@ -7,15 +7,15 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
 | Item | State | Changed by / when |
 |---|---|---|
-| CI deploy key `gh-actions-rowlens` in `/home/deploy/.ssh/authorized_keys` | ✅ installed. ED25519, fingerprint `SHA256:SB+b+yXQ47Oic7GIDcqTbJBFtSRYY+4HJWDabHuReDU` | Claude, 2026-11-01, approved (#23) |
-| Backup of the previous `authorized_keys` | `/home/deploy/.ssh/authorized_keys.bak-20261101-rowlens` (4 keys) | Claude, 2026-11-01 |
+| CI deploy key `gh-actions-rowlens` in `/home/deploy/.ssh/authorized_keys` | ✅ installed (#23), then **restricted** to `restrict,command="/opt/rowlens/bin/rowlens-deploy"` (#25). ED25519, fingerprint `SHA256:SB+b+yXQ47Oic7GIDcqTbJBFtSRYY+4HJWDabHuReDU` | Claude, 2026-11-01, approved |
+| Backups of `authorized_keys` | `authorized_keys.bak-20261101-rowlens` (before adding the key, 4 keys); `authorized_keys.bak-20261101T115732Z` (before restricting it, 5 keys) | Claude, 2026-11-01 |
 | Private key | `~/.ssh/rowlens_deploy` on Ewout's laptop | Claude, 2026-11-01 |
 | GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ✅ set from `~/.ssh/rowlens_deploy` | Ewout, 2026-11-01 |
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
 | Caddy route `/projects/rowlens/*` | ⏳ [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) open against `develop`; live after the next trustable `develop` → `main` release | Claude, 2026-11-01, approved (#24) |
-| `/opt/rowlens/bin/rowlens-deploy`, `/opt/rowlens/docker-compose.yml`; CI key restricted to the script | ⏳ needs approval: `infra/deploy/install.sh` (#25) | — |
+| `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
 | RowLens containers | ❌ none yet; first deploy is #26, which needs separate approval (it also attaches `rowlens-web` to `trustable_proxy`) | — |
 
 Nothing under `/opt/trustable` has been changed.
@@ -25,7 +25,12 @@ Nothing under `/opt/trustable` has been changed.
 1. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
    goes live with the next trustable release, which also redeploys trustable's web and api.
 
-## Deploying (after install.sh, #25)
+## Verified restrictions of the CI key (2026-11-01)
+
+`status` runs; `ls /`, `deploy sha-abc1234; id`, an interactive shell and `deploy latest` are refused
+(exit 64); remote port forwarding is refused. The other four keys are byte-identical to the backup.
+
+## Deploying (#25)
 
 - **Deploy**: GitHub → Actions → **deploy** → Run workflow, tag `sha-<7>` (shown in the `images` run summary
   after a merge to `main`). Untick "Check the public URL" until trustable.nl#377 is live.
@@ -63,13 +68,14 @@ ssh trustable-prod 'set -e; umask 027; f=/opt/rowlens/.env; test ! -e $f
 
 ## Rollback
 
-- Deploy key: `cp -p ~/.ssh/authorized_keys.bak-20261101-rowlens ~/.ssh/authorized_keys` on the server,
+- Key restriction only: `cp -p ~/.ssh/authorized_keys.bak-20261101T115732Z ~/.ssh/authorized_keys`.
+- Deploy key entirely: `cp -p ~/.ssh/authorized_keys.bak-20261101-rowlens ~/.ssh/authorized_keys` on the server,
   then delete the GitHub secret.
 - Caddy route: revert trustable.nl#377 and release; or, before release, close the PR.
 - Directory: `rm -r /opt/rowlens` (destructive; only with explicit approval once data exists).
 
 ## Follow-ups
 
-- Restricting the deploy key with a forced command is done by `infra/deploy/install.sh` (#25); until it
-  runs, the key is a full `deploy` shell, the same as trustable's CI key. Host and pinned host key live in
-  the repo (`.github/workflows/deploy.yml`, `infra/deploy/known_hosts`).
+- Changes to `rowlens-deploy` or the prod compose file reach the server only by rerunning
+  `infra/deploy/install.sh` (approval required); CI can't change them.
+- Host and pinned host key live in the repo (`.github/workflows/deploy.yml`, `infra/deploy/known_hosts`).

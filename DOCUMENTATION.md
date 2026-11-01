@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — install.sh run on trustable-prod: deploy script installed, CI key restricted (#25)
+
+**Session**: claude/feat/25-manual-deploy
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; on trustable-prod: /opt/rowlens/bin/rowlens-deploy, /opt/rowlens/docker-compose.yml, /opt/rowlens/state/, the gh-actions-rowlens line in /home/deploy/.ssh/authorized_keys (backup authorized_keys.bak-20261101T115732Z)
+**Summary**: Ran the approved infra/deploy/install.sh. Installed files match the repo by sha256; the CI key now only runs rowlens-deploy (verified: status allowed; arbitrary/chained commands, shell, invalid tag and port forwarding refused). Other keys, /opt/trustable and all trustable containers unchanged. No RowLens containers yet.
+**Prompts used**: "Approve install.sh".
+
 ## 2026-11-01 — #25 Manual deploy: images on main, workflow_dispatch deploy, server script with rollback
 
 **Session**: claude/feat/25-manual-deploy (stacked on claude/docs/23-server-setup-runbook)
