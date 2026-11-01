@@ -2,6 +2,20 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-005] iPhone shows only the top of a portrait video — high
+**Location**: apps/web/src/client/styles.css (`.player__stage`, `.player__video`)
+**Status**: fixed (in production until the next deploy)
+**Found**: 2026-11-01, by Ewout on his iPhone ("alleen de bovenste helft")
+**Description**: The stage was a 16:9 box (aspect-ratio) with the video at `height: 100%`. Safari ignores that percentage inside an aspect-ratio box, so a portrait video (540×960) became 358×636 px inside a 358×201 stage and was cut off. Chrome sized it correctly, so the Chromium tests passed.
+**Fix**: video absolutely positioned in the stage; the stage takes the video's own shape (`--aspect`), at most 60 % of the screen height on phones; checked in WebKit at iPhone size (landscape, portrait, full screen).
+
+### [BUG-006] Flaky test: broken upload connection — low
+**Location**: apps/web/src/server/media/store.test.ts:32
+**Status**: fixed
+**Found**: 2026-11-01
+**Description**: The test broke the stream after a fixed 20 ms, sometimes before the first chunk reached the disk.
+**Fix**: break it once the bytes are on disk; 15/15 passes.
+
 ### [BUG-004] Quick frame steps get lost (player) — high
 **Location**: apps/web/src/client/player/usePlayer.ts:102
 **Status**: fixed (in production until the next deploy)
