@@ -10,7 +10,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | CI deploy key `gh-actions-rowlens` in `/home/deploy/.ssh/authorized_keys` | ✅ installed. ED25519, fingerprint `SHA256:SB+b+yXQ47Oic7GIDcqTbJBFtSRYY+4HJWDabHuReDU` | Claude, 2026-11-01, approved (#23) |
 | Backup of the previous `authorized_keys` | `/home/deploy/.ssh/authorized_keys.bak-20261101-rowlens` (4 keys) | Claude, 2026-11-01 |
 | Private key | `~/.ssh/rowlens_deploy` on Ewout's laptop | Claude, 2026-11-01 |
-| GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ⏳ **to do, Ewout** (the agent isn't allowed to write secret stores) | — |
+| GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ✅ set from `~/.ssh/rowlens_deploy` | Ewout, 2026-11-01 |
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
@@ -21,13 +21,7 @@ Nothing under `/opt/trustable` has been changed.
 
 ## Steps for Ewout
 
-1. Store the deploy key as a GitHub Actions secret (the value goes straight from the file to GitHub):
-
-   ```bash
-   gh secret set ROWLENS_SSH_PRIVATE_KEY -R ewoutbarendregt/rowlens < ~/.ssh/rowlens_deploy
-   ```
-
-2. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
+1. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
    goes live with the next trustable release, which also redeploys trustable's web and api.
 
 ## Root access
