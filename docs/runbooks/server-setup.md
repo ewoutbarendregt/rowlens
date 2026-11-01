@@ -14,16 +14,11 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
-| Caddy route `/projects/rowlens/*` | ⏳ [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) open against `develop`; live after the next trustable `develop` → `main` release | Claude, 2026-11-01, approved (#24) |
+| Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
 | RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-1acc1a2`) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; both healthy | deploy workflow run 41305371056, triggered by Claude on Ewout's approval, 2026-11-01 (#26) |
 
 Nothing under `/opt/trustable` has been changed.
-
-## Steps for Ewout
-
-1. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
-   goes live with the next trustable release, which also redeploys trustable's web and api.
 
 ## Verified restrictions of the CI key (2026-11-01)
 
@@ -33,7 +28,7 @@ Nothing under `/opt/trustable` has been changed.
 ## Deploying (#25)
 
 - **Deploy**: GitHub → Actions → **deploy** → Run workflow, tag `sha-<7>` (shown in the `images` run summary
-  after a merge to `main`). Untick "Check the public URL" until trustable.nl#377 is live.
+  after a merge to `main`).
 - **Status**: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status`
 - **Roll back** to the previous release: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy rollback`
 - Pre-deploy database dumps: `/opt/rowlens/backups/pre-deploy-*.dump` (newest 10 kept).
