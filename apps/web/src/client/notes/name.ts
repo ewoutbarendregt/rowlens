@@ -1,7 +1,7 @@
 const NAME_KEY = 'rowlens.authorName';
 
-// The author's name is a convenience on this device only (the pilot has no accounts); storage may
-// be off (private mode), and then the name is just asked again next time.
+// The annotation display name is a convenience on this device and can differ from account identity.
+// localStorage may be off (private mode), and then the name is just asked again next time.
 export function rememberedName(): string {
   try {
     return localStorage.getItem(NAME_KEY) ?? '';

@@ -12,6 +12,6 @@
 | [0008](0008-job-queue.md) | Postgres-backed job queue shared by Node and Python | proposed |
 | [0009](0009-analysis-pipeline.md) | Analysis pipeline outline | proposed |
 | [0010](0010-llm-provider-abstraction.md) | LLM provider abstraction and data minimisation | proposed (provider deferred to M2) |
-| [0011](0011-auth-otp-and-email.md) | E-mail OTP authentication, invitations, e-mail delivery | proposed |
+| [0011](0011-auth-otp-and-email.md) | E-mail OTP authentication, invitations, e-mail delivery | accepted (auth; invitations deferred) |
 
 New ADR: copy `0000-template.md` to the next number.

@@ -44,8 +44,8 @@ const columns = {
 
 /**
  * Notes (#59) and drawings (#60) pinned to a frame, behind the guard and RLS like everything in a
- * club. While the pilot has no accounts, everyone with the code may edit or delete any of them
- * (the pilot notice says so); with login (#28) that becomes the author only.
+ * club. During the one-club phase every signed-in member may edit or delete them; author-only
+ * permissions can be added when roles and crews become part of the product flow.
  */
 export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, done) => {
   const { db, guard } = opts;

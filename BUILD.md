@@ -32,7 +32,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   directory, not MinIO), **hard-capped at 30 GB**; uploads pause at 85 % root-disk use. No video backup during the pilot (ADR-0006).
 - Jobs: Postgres table with `SKIP LOCKED` + `LISTEN/NOTIFY`, consumed by the Python worker.
 - Tenancy: app-layer policies + Postgres RLS; `club_id` on every tenant table; cross-club tests.
-- Auth: e-mail OTP + invitations; `__Secure-rowlens_sid` cookie with `Path=/projects/rowlens`.
+- Auth: e-mail OTP for an operator-managed one-club allowlist; invitations come after the one-club
+  product is complete. `__Secure-rowlens_sid` is scoped to `Path=/projects/rowlens`.
 - Playback: H.264 MP4 renditions with ~0.25 s GOP at the source frame rate (CFR), `requestVideoFrameCallback`
   for frame-exact stepping.
 
@@ -53,7 +54,7 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Tables `rowing_session` and `video` (both `club_id` + RLS; a video's `(club_id, session_id)` must
   match a session of the same club). Status: uploading → uploaded → (processing → ready | failed);
   `rejected` = complete but not a video (bytes deleted).
-- API (all behind the pilot guard, `private, no-store`): `GET/POST /api/sessions`,
+- API (all behind the authenticated tenant guard, `private, no-store`): `GET/POST /api/sessions`,
   `GET /api/sessions/:id` (with videos), `DELETE /api/videos/:id` (row + every byte under its key),
   `DELETE /api/sessions/:id` (session + cascaded videos/annotations + every video media directory).
 - Session summaries and details show the chosen training date plus the database creation time in the
@@ -171,26 +172,31 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 - Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade
   on video delete): `frame`, `kind` (note now; line/arrow/angle with #60), `body` ≤ 2000, `shape`
-  (drawings), `author_name` 1–60 (typed: no accounts yet), timestamps.
+  (drawings), `author_name` 1–60 (typed display label, independent of the login identity), timestamps.
 - API: `GET/POST /api/videos/:id/annotations` (POST only on a `ready` video, `frame < frame_count`),
-  `PATCH/DELETE /api/annotations/:id`. Everyone with the pilot code may edit/delete (pilot notice).
+  `PATCH/DELETE /api/annotations/:id`. Signed-in members of the one pilot club may edit/delete.
 - UI: notes panel under the player (writing pauses the video; the note goes at the current frame;
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
-## Pilot access code (#84)
+## E-mail OTP authentication (#28–#30, ADR-0011)
 
-- Until login (#28), one shared code opens the pilot club. `PILOT_ACCESS_CODE_HASH` (scrypt, format
-  `scrypt.15.8.1.<salt>.<hash>`: dots because Compose interpolates `$`) and `SESSION_SECRET` (hex) in
-  `.env`; no hash → the gate is closed. `pnpm --filter @rowlens/web pilot:code` makes a code + hash.
-- `POST /api/pilot/access` → cookie `rowlens_pilot=v1.<expiry>.<HMAC>`: HttpOnly, SameSite=Strict,
-  `Path=/projects/rowlens/`, Secure on https, 30 days. The HMAC covers the hash's fingerprint, so a
-  new code or secret signs everyone out. 5 attempts/min per IP, 30/min in total (in memory).
-- `gate.guard` is the preHandler for club routes: no valid cookie → the same 404 as an unknown route;
-  otherwise `req.tenant = {clubId: pilot, userId: null}` (club looked up via the SECURITY DEFINER
-  function `rowlens_club_id(slug)`, migration 0001, which also seeds club `pilot`).
-- CSRF: every POST/PUT/PATCH/DELETE must carry `Origin: PUBLIC_ORIGIN` (403 otherwise). Locally with
-  Vite, `PUBLIC_ORIGIN=http://localhost:5173` (see `.env.example`).
+- The first club is operator-managed through `AUTH_ALLOWED_EMAILS`; requesting a code always returns
+  the same 202 response. The six-digit CSPRNG code is HMAC-SHA256 stored, valid for 10 minutes, single
+  use and locked after five failures. Previous unused codes are invalidated.
+- Rate-limit buckets are in Postgres and identifiers are HMACed: 3 requests / 15 min per e-mail,
+  10 / hour per IP and 10 verifications / 15 min per IP. Advisory locks make concurrent hits atomic.
+- A successful code creates a random 256-bit bearer token and CSRF token; only hashes are stored.
+  `__Secure-rowlens_sid` is HttpOnly/Secure/SameSite=Lax on production, expires after 30 sliding days
+  and can be revoked on this or every other device. A second readable cookie supplies the double-submit
+  token. Unsafe requests also require the exact Origin and `Sec-Fetch-Site: same-origin` when present.
+- `app_user` is global; `membership`, `login_code` and `user_session` carry `club_id` and RLS. Global
+  identity/session lookup and global rate limits are exposed only through pinned `SECURITY DEFINER`
+  functions; `rowlens_app` cannot read `app_user` or `auth_event` directly.
+- Nodemailer sends NL/EN HTML + text through Resend SMTP. Production refuses to start without complete
+  SMTP settings; development logs codes. The local default member is `rowlens@localhost.test`.
+- All club routes resolve the session to `{clubId, userId}` before `withTenant`; no session still looks
+  exactly like an unknown route. Upload creation has a per-user hourly bucket.
 
 ## Database (ADR-0005, #31)
 
@@ -209,7 +215,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   required in production. Migrations must be backward compatible with the previous release (expand,
   then contract), because a rollback keeps the migrated schema.
 - E2E: Playwright's web server is `e2e/server.ts`, which starts a throwaway Postgres (Testcontainers),
-  migrates it and then runs `dist/server/main.js`, so E2E needs Docker like the `db` tests.
+  migrates it and then runs `dist/server/main.js`, so E2E needs Docker like the `db` tests. A fixed OTP
+  exists only in `NODE_ENV=test`; startup rejects that setting in every other environment.
 - Local: `docker compose -f infra/compose/docker-compose.dev.yml up -d`, copy `apps/web/.env.example` to
   `apps/web/.env`, `pnpm db:migrate`, then `dev:server` picks up the database.
 - Source maps are built `hidden` (not referenced from public bundles).

@@ -33,6 +33,14 @@ analysis of rowing technique.
 | **M2 Analysis** | pose, stroke phases, stroke rate, sync, traceability, explanations, eval suite |
 | **M3 Growth** | club self-onboarding, comparisons, trends, more languages, own domain |
 
+## Delivery order (updated 2026-11-01)
+
+1. Finish and harden the complete product flow for the first club: authentication, upload, manual
+   analysis, stroke marking, auditability, quota and real-device checks.
+2. Add automated analysis only where results stay traceable to source frames.
+3. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
+   the data model remains tenant-safe, but growth features do not drive the current UI.
+
 ## Out of scope (for now)
 
 Sensor data, public sharing/social, payments, native apps, accounts for minors.

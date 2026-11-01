@@ -27,13 +27,27 @@ From #31 (database roles), not done yet:
    `ssh trustable-prod 'f=/opt/rowlens/.env; grep -q ^ROWLENS_APP_DB_PASSWORD= $f || echo "ROWLENS_APP_DB_PASSWORD=$(openssl rand -hex 32)" >> $f; cut -d= -f1 $f'`
 2. Reinstall the compose file, which now has the `migrate` service: `infra/deploy/install.sh`.
 
-From #84 (pilot access code):
-3. Add `SESSION_SECRET` the same way (`openssl rand -hex 32`, never printed).
-4. Ewout creates the access code, so only he sees it. After the deploy, on the server:
-   `cd /opt/rowlens && docker compose run --rm --no-deps web node dist/server/pilot/code-cli.js`
-   prints `code: …` (give it to the club) and a `PILOT_ACCESS_CODE_HASH=scrypt.…` line to append to
-   `/opt/rowlens/.env`; then `rowlens-deploy deploy <same tag>` restarts `web` with it. Until then the
-   gate says "not open yet". A new code later = the same steps; it signs everyone out.
+From #28–#30 (e-mail authentication), not done yet:
+3. Ewout supplies the comma-separated first-club member addresses and a dedicated Resend API key.
+   Confirm in Resend that `trustable.nl` is verified before any real address is added.
+4. After showing the exact edit and receiving approval, add only these RowLens variables to
+   `/opt/rowlens/.env` (SMTP values follow [Resend's official settings](https://resend.com/docs/send-with-smtp)):
+
+   ```dotenv
+   AUTH_ALLOWED_EMAILS=first@example.com,second@example.com
+   OTP_PEPPER=<64 hex characters generated with openssl rand -hex 32>
+   SMTP_HOST=smtp.resend.com
+   SMTP_PORT=465
+   SMTP_USER=resend
+   SMTP_PASSWORD=<dedicated Resend API key>
+   MAIL_FROM=RowLens <rowlens@trustable.nl>
+   ```
+
+   Production refuses to start with an allowlist but incomplete SMTP settings. The API key must not
+   be passed on a command line or printed. Keep the old pilot variables for rollback until OTP mail is
+   verified; when auth is enabled, its routes and tenant guard take precedence.
+5. Migration 0006 provisions an allowlisted address on its first request. Test a real NL and EN login,
+   logout and "log out other devices" before archiving `/opt/rowlens/pilot-code.txt`.
 
 From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned by `deploy`
 (uid 1000, the image's `node` user; checked read-only 2026-11-01), and step 2's compose file mounts

@@ -111,6 +111,17 @@ body {
   font-weight: 600;
 }
 
+.gate button.button--quiet,
+.club button.button--quiet {
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.club {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .gate button:disabled {
   opacity: 0.5;
 }

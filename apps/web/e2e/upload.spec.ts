@@ -93,5 +93,5 @@ test('create a session, upload a video and a fake one, delete the video', async 
 test('club pages send you to the gate without access', async ({ page }) => {
   await page.goto('./sessions');
   await expect(page).toHaveURL(/\/projects\/rowlens\/$/);
-  await expect(page.getByLabel(/^(Access code|Toegangscode)$/)).toBeVisible();
+  await expect(page.getByLabel(/^(Email address|E-mailadres)$/)).toBeVisible();
 });

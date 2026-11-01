@@ -43,6 +43,13 @@
       "when": 1793565180047,
       "tag": "0005_video_seq_recorded_at",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793567527581,
+      "tag": "0006_email_auth",
+      "breakpoints": true
     }
   ]
 }

@@ -66,7 +66,8 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (!looksLikeVideo(meta.data.filename, meta.data.filetype)) {
       return reply.code(415).send({ error: 'not_a_video' });
     }
-    const limit = creations.hit(req.ip);
+    // Signed-in accounts get their own bucket; the pilot fallback has no user id and stays per IP.
+    const limit = creations.hit(tenant.userId === null ? `ip:${req.ip}` : `user:${tenant.userId}`);
     if (!limit.allowed) {
       return reply
         .code(429)

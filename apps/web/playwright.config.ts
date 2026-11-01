@@ -9,6 +9,8 @@ const origin = edgeUrl ?? `http://127.0.0.1:${String(port)}`;
 
 export default defineConfig({
   testDir: 'e2e',
+  // Authentication codes are single-use; keep the shared test account deterministic.
+  workers: 1,
   forbidOnly: process.env['CI'] !== undefined,
   retries: process.env['CI'] !== undefined ? 1 : 0,
   reporter: process.env['CI'] !== undefined ? [['github'], ['html', { open: 'never' }]] : 'list',
@@ -38,7 +40,8 @@ export default defineConfig({
           url: `${origin}/projects/rowlens/health/live`,
           reuseExistingServer: process.env['CI'] === undefined,
           env: {
-            NODE_ENV: 'production',
+            // Enables a deterministic OTP; production startup explicitly rejects that test seam.
+            NODE_ENV: 'test',
             HOST: '127.0.0.1',
             PORT: String(port),
             BASE_PATH: '/projects/rowlens',

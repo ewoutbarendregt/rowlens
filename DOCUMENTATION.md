@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — One-club e-mail OTP authentication (#28–#30)
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: apps/web/{package.json,.env.example,playwright.config.ts}, apps/web/src/server/{app.ts,config.ts,auth/,db/schema.ts,db/migrations/0006_email_auth.sql}, apps/web/src/client/{auth/,api.ts,App.tsx,pages/HomePage.tsx,sessions/RequireAuth.tsx,sessions/useUploads.ts,styles.css}, apps/web/e2e/{auth.spec.ts,env.ts,helpers.ts,server.ts,upload.spec.ts}, infra/compose/docker-compose.edge.yml, docs/{HANDOFF.md,adr/0011-auth-otp-and-email.md,runbooks/server-setup.md}, PLAN.md, BUILD.md, TEST.md, DOCUMENTATION.md, pnpm-lock.yaml
+**Summary**: The shared pilot code is replaced in the user flow by NL/EN e-mail OTP for a one-club allowlist: non-enumerating requests, HMAC-only single-use codes, Postgres rate limits, revocable 30-day sessions, CSRF on JSON and tus uploads, and Resend SMTP in production. Multi-club invitations/self-onboarding moved behind completion of the one-club product. Verified with 207 web tests, 44 worker tests, 30 local and 15 edge E2E tests, 77 deploy checks, the real-Docker deploy/rollback rehearsal and the local login flow; production configuration and deployment still require Ewout's explicit approval and Resend key/member list.
+**Prompts used**: "laten we 4 naar achteren schuiven, en eerst de functionaliteit uitontwikkelen voor 1 club, en laten we nu eerst de authenticatie opzetten en deployen naar prod"; "je leest de acties uit github?"; "ok laten we doorgaan".
+
 ## 2026-11-01 — Session date now includes its creation time
 
 **Session**: codex/feat/delete-session

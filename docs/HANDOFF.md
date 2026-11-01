@@ -9,7 +9,7 @@ the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
 | Area | State |
 |---|---|
 | Hosting | Own Compose project `rowlens` in `/opt/rowlens` on trustable-prod; Caddy route `/projects/rowlens/*`; manual deploy workflow with backup, migrations, readiness check and automatic rollback |
-| Access | Pilot access code (#84) instead of login: one shared code for the pilot club; code hash in the server `.env` |
+| Access | E-mail OTP (#28–#30) for an operator-managed one-club allowlist; revocable 30-day sessions, DB rate limits and CSRF |
 | Data | Postgres 16, Drizzle migrations 0000–0005, role `rowlens_app` without BYPASSRLS, `withTenant` + RLS on every tenant table |
 | Upload | Sessions; resumable tus upload (own server) into `/opt/rowlens/media`; 4 GB per file, 30 GB total cap, 85 % disk pause |
 | Processing | Python worker: ffprobe, CFR H.264 renditions play-1080/play-540 (GOP ≈ 0.25 s, metadata stripped), poster, Postgres job queue |
@@ -21,8 +21,8 @@ the ADRs in `docs/adr/` and the server runbook `docs/runbooks/server-setup.md`.
 - Runs **`sha-c15cb47`** (deployed 2026-11-01 19:34 UTC): everything up to iPhone/laptop layout
   (#94) and notes (#93). **Not yet on production**: everything in the open PRs below.
 - Previous release `sha-4e03e66` is kept for rollback (`rowlens-deploy rollback`).
-- The pilot access code is in `/opt/rowlens/pilot-code.txt` (mode 600, readable by `deploy` only);
-  Ewout reads it himself (`ssh trustable-prod cat /opt/rowlens/pilot-code.txt`).
+- Production still uses the old pilot access code until the authentication PR is merged, configured
+  and deployed. The old code file can be archived after the new login is verified.
 - Uploaded so far: a few test videos from Ewout's iPhone. One was processed at 31.58 fps (BUG-007,
   ~5 % duplicate frames); two older uploads were never processed (made before the worker existed).
   Re-uploading after the next deploy fixes both.
@@ -51,30 +51,36 @@ branch, so after #98 merges the diff of #97 shrinks accordingly.
 
 1. `infra/deploy/install.sh`: reinstalls the deploy script (#98) and compose file; checks
    `authorized_keys` without changing it.
-2. Deploy the new `sha-<7>` of `main` via the deploy workflow. Migration 0005 (video numbers and
-   recording time) runs automatically. No new secrets.
-3. Verify RowLens and the neighbours (see `AGENTS.md`), log it in the runbook.
-4. Ask Ewout to re-upload his phone clips (old ones keep their wrong 31.58 fps renditions and have
+2. Add the approved RowLens-only authentication settings to `/opt/rowlens/.env`: member allowlist,
+   OTP pepper and Resend SMTP key. Migration 0006 creates identities, memberships, OTPs and sessions.
+3. Deploy the new `sha-<7>` of `main` via the deploy workflow. Migrations 0005–0006 run automatically.
+4. Verify RowLens login/mail plus the neighbours (see `AGENTS.md`), log it in the runbook.
+5. Ask Ewout to re-upload his phone clips (old ones keep their wrong 31.58 fps renditions and have
    no recording time); measure the 4K processing time on the server from the worker log.
 
 ## Local state on Ewout's laptop
 
-- Checkout `/Users/ewout/src/rowlens` on branch `claude/docs/handoff-codex` (top of the stack).
-- Local stack running: app on **http://localhost:5174/projects/rowlens/**, access code
-  **`rowlens-lokaal`** (only in the git-ignored `apps/web/.env`), Postgres on 5434, worker in
-  Docker. Local test videos/notes from development are in the local database; disposable.
+- Checkout `/Users/ewout/src/rowlens` on branch `codex/feat/28-30-email-auth` (stacked on the two
+  session improvements and the existing handoff/drawing stack).
+- Local stack running: app on **http://localhost:5174/projects/rowlens/**, login address
+  **`rowlens@localhost.test`**; the API terminal prints the code. Postgres is on 5434 and the worker
+  is in Docker. Local test videos/notes from development are in the local database; disposable.
 
 ## Open work (suggested order)
 
-1. **PR 8 of the upload plan: mark strokes (#85)**: catch/finish frames → stroke rate and
+1. Merge/configure/deploy the one-club e-mail login (#28–#30); verify Resend delivery before removing
+   the old production access code.
+2. **PR 8 of the upload plan: mark strokes (#85)**: catch/finish frames → stroke rate and
    drive:recovery ratio per stroke, traceable to frames (ADR-0009: value with evidence or refusal).
    The `annotation` table can hold marks as a new kind, or a separate table.
-2. Thumbnail strip on the scrub bar (#52); "retry" for failed processing (#48).
-3. Real-device tests: 4K upload on iPhone and Android (#45), player on Android (#51); 4K transcode
+3. Thumbnail strip on the scrub bar (#52); "retry" for failed processing (#48).
+4. Finish the one-club product hardening: deletion audit log (#43/#50), storage quota (#46) and the
+   i18n framework (#34).
+5. Real-device tests: 4K upload on iPhone and Android (#45), player on Android (#51); 4K transcode
    time on the server.
-4. Before more clubs or real users: login with e-mail codes (#28–#30) replacing the pilot code,
-   audit log for deletions (#43/#50), per-club storage quota (#46), i18n framework (#34).
-5. Housekeeping for Ewout: allow GitHub Actions to create PRs (release-please), review the
+6. **Only after the single-club functionality is complete**: invitations, multiple memberships,
+   club self-onboarding and the remaining M3 multi-club work.
+7. Housekeeping for Ewout: allow GitHub Actions to create PRs (release-please), review the
    Dependabot PRs (#72 Node 26 and #73 Python 3.15 should be closed: major runtime jumps), delete
    merged/abandoned branches (`claude/feat/45-upload`, `claude/feat/59-frame-notes` were abandoned
    first pushes).
@@ -87,5 +93,4 @@ branch, so after #98 merges the diff of #97 shrinks accordingly.
 - GitHub runners' disks are > 85 % full: test stacks set `DISK_PAUSE_RATIO=0.99`.
 - iPhone files carry two times: `creation_time` is the export/send time, Apple's
   `com.apple.quicktime.creationdate` is when filming started.
-- Docker Compose interpolates `$` in `.env` and YAML: the pilot code hash uses dots.
 - A `seeked` event of a superseded seek used to drop frame steps (BUG-004): keep the guard.

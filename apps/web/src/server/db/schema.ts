@@ -59,6 +59,86 @@ export const club = pgTable(
   ],
 ).enableRLS();
 
+/** A person can later belong to several clubs; authentication identity is global. */
+export const appUser = pgTable('app_user', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').notNull().unique(),
+  displayName: text('display_name').notNull(),
+  locale: text('locale').notNull().default('nl'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** For the one-club pilot, allowlisted users get one membership in the pilot club. */
+export const membership = pgTable(
+  'membership',
+  {
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => appUser.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('coach'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('membership_club_user_unique').on(t.clubId, t.userId),
+    index('membership_user_idx').on(t.userId),
+    check('membership_role_check', sql`${t.role} in ('rower', 'coach')`),
+    tenantPolicy('membership_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/** A short-lived, single-use e-mail code. Only HMAC output is stored. */
+export const loginCode = pgTable(
+  'login_code',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    userId: uuid('user_id').notNull(),
+    codeHash: text('code_hash').notNull(),
+    requestIpHash: text('request_ip_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    attempts: smallint('attempts').notNull().default(0),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'login_code_membership_fk',
+      columns: [t.clubId, t.userId],
+      foreignColumns: [membership.clubId, membership.userId],
+    }).onDelete('cascade'),
+    index('login_code_user_created_idx').on(t.userId, t.createdAt),
+    tenantPolicy('login_code_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/** Revocable browser session; the random bearer token and CSRF token are stored only as hashes. */
+export const userSession = pgTable(
+  'user_session',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    userId: uuid('user_id').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    csrfHash: text('csrf_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'user_session_membership_fk',
+      columns: [t.clubId, t.userId],
+      foreignColumns: [membership.clubId, membership.userId],
+    }).onDelete('cascade'),
+    index('user_session_user_idx').on(t.userId),
+    tenantPolicy('user_session_tenant', t.clubId),
+  ],
+).enableRLS();
+
 /** A training on the water: the unit coaches upload to and crews discuss (#44, minimal for the pilot). */
 export const rowingSession = pgTable(
   'rowing_session',
@@ -183,7 +263,7 @@ export const annotationKind = pgEnum('annotation_kind', ['note', 'line', 'arrow'
 
 /**
  * Something said or drawn at one exact frame of a video (#59, #60). Frame indices refer to the CFR
- * renditions (ADR-0007). The author is a typed name while the pilot has no accounts (#84).
+ * renditions (ADR-0007). Annotation display names remain typed separately from account identity.
  */
 export const annotation = pgTable(
   'annotation',
