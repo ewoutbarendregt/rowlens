@@ -2,6 +2,26 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deployed sha-e6f9deb: worker and player for own videos live
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PRs #90, #91 merged (#91 retargeted to main first); trustable-prod: compose file reinstalled (adds `worker`), `web` + `worker` → sha-e6f9deb
+**Summary**: On Ewout's "Merge and deploy": fixed #91's CI first (the demo-leak check flagged the player, which now ships on purpose; narrowed to demo-only markers), merged #90 → #91 with green CI, reinstalled the compose file (authorized_keys untouched, checksums equal), deployed (pre-deploy dump, migration 0003, ready). Worker running (2 CPUs / 2 GB cap). Two videos uploaded before jobs existed weren't queued: the one-off insert was blocked pending Ewout's approval, and he chose to re-upload them instead. Transcode speed on the server still to be measured with a real upload.
+**Prompts used**: "Merge and deploy"; "Re-upload instead".
+
+## 2026-11-01 — Player on the club's own videos (#49, #52)
+
+**Session**: claude/feat/49-player-own-videos
+**Changed**: apps/web/src/server/api/videos.ts (+ unit and db tests), src/server/app.ts, src/client/player/Player.tsx (poster, startFrame, onFrame), src/client/sessions/{VideoPage.tsx,SessionPage.tsx,strings.ts}, src/client/{App.tsx,styles.css}, apps/web/{vitest.config.ts,playwright.config.ts}, e2e/upload.spec.ts, api/uploads.db.test.ts, .github/workflows/ci.yml, docs/adr/0007, BUILD.md, TEST.md
+**Summary**: PR 5 of the upload plan. Renditions and posters streamed with byte ranges behind the guard and RLS; a video page with the frame-accurate player, 540p/1080p switch at the same frame, posters in the session list. Edge E2E now runs Chrome to play H.264 and checks exact steps on the worker's output. Fixed along the way: the player overflowed phone screens (also on the demo page); db test files now run one at a time (the media-cap test raced with files adding videos).
+**Prompts used**: "Yes, keep going".
+
+## 2026-11-01 — Worker: job queue, probe and transcode (#47, #33, #48)
+
+**Session**: claude/feat/47-worker-transcode
+**Changed**: worker/src/rowlens_worker/{__main__,config,db,errors,media,queue}.py, worker/src/rowlens_worker/video/{probe,transcode,process}.py, worker/tests/*, worker/{pyproject.toml,uv.lock,Dockerfile}, apps/web/src/server/db/{schema.ts,migrations/0003_jobs_video_metadata.sql,jobs.db.test.ts}, apps/web/src/server/api/{uploads,sessions}.ts (+ upload test), apps/web/src/client/sessions/{SessionPage.tsx,strings.ts}, apps/web/Dockerfile, apps/web/e2e/upload.spec.ts, infra/compose/docker-compose.{prod,edge}.yml, infra/deploy/test/rehearse.sh, .github/workflows/ci.yml, docs/adr/{0007,0008}, docs/privacy/processors.md, BUILD.md, TEST.md
+**Summary**: PR 4 of the upload plan. Postgres job queue with a SECURITY DEFINER claim (RLS shows one club at a time), enqueued with the upload's completion. Python worker probes (fps, rotation, VFR heuristic), transcodes once into CFR H.264 play-1080/play-540 with ~0.25 s closed GOPs and strips location metadata, writes a poster, reports progress and retries with backoff. Session page shows processing and video facts. Verified in the edge stack and on a synthetic 4K60 HEVC portrait clip.
+**Prompts used**: "Yes, start PR 4".
 ## 2026-11-01 — Deployed sha-5082628: database, access code and upload live
 
 **Session**: claude/docs/deploy-upload-log

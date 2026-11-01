@@ -68,6 +68,37 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Media: `MediaStore` (`server/media/store.ts`), keys `clubs/{club}/videos/{video}/original`;
   `MEDIA_DIR` (prod `/media` = `/opt/rowlens/media`; dev `apps/web/.media`).
 
+## Worker: probe and transcode (#47, #33, ADR-0007/0008)
+
+- Python 3.12 (`worker/`), psycopg 3, ffmpeg from Debian in the image; runs as uid 1000 with
+  `MEDIA_DIR=/media` (same bind mount as web) and `DATABASE_URL` as `rowlens_app`.
+- Loop (`python -m rowlens_worker`): `rowlens_claim_job` → handler → succeed / fail (backoff) / dead;
+  LISTEN `rowlens_jobs` + 5 s poll; SIGTERM releases the running job. JSON log lines.
+- `video.process`: ffprobe → metadata on `video` (fps_num/den, display size, duration, frame count,
+  codec, rotation, vfr) → one ffmpeg run writing `renditions/play-1080` and `renditions/play-540` in a
+  `work/` dir, then the poster from play-540 → rename into place → `status = ready`, `renditions`
+  JSON, `renditions_bytes` (counted against the cap). Progress (0–95 %) and lease renewal every 5 s.
+  A video deleted mid-way: its bytes are removed at the end.
+- Limits on the shared server: container 2 CPUs / 2 GB, ffmpeg `nice -n 10` and 2 threads.
+- UI: the session page shows "Processing n %", then `60 fps · 1920×1080 · 2:03`, or why it failed;
+  it refreshes every 3 s while a video of the session is uploaded/processing.
+- Tests: pytest for probe parsing (iPhone rotation/VFR, Android 90000/1, slow-mo, refusals), ffmpeg
+  arguments (CFR, GOP, closed GOP, no metadata, renditions per size), keys, backoff; vitest for the
+  queue contract; the edge E2E uploads a clip and waits for "Ready" from the real worker.
+
+## Player on the club's own videos (#49, #52)
+
+- `GET /api/videos/:id`: facts for the player (fps as num/den, frame count, size, renditions by name
+  and size; never storage keys). `GET /api/videos/:id/media/{play-1080|play-540|poster}`: after the
+  guard and an RLS read of a `ready` video, streamed from the media dir with single byte ranges
+  (206/416; several ranges → the whole file), `private, max-age=3600`. The key in the renditions
+  JSON must lie under the video's own folder, or it's a 404.
+- `/videos/:id` page: `Player` with the poster; play-540 first on narrow screens or slow/saving
+  connections, else play-1080; a 540p/1080p switch remounts the player at the same frame
+  (`startFrame` / `onFrame` props). Session list: poster thumbnails link to the player.
+- Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
+  has no H.264) and steps 10 frames exactly.
+
 ## Pilot access code (#84)
 
 - Until login (#28), one shared code opens the pilot club. `PILOT_ACCESS_CODE_HASH` (scrypt, format

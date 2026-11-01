@@ -17,7 +17,15 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'desktop-chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Edge mode plays the worker's H.264 renditions, which open-source Chromium can't decode:
+        // use Google Chrome there (CI: `playwright install chrome`).
+        ...(edgeUrl === undefined ? {} : { channel: 'chrome' }),
+      },
+    },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'] } },
   ],
   webServer:

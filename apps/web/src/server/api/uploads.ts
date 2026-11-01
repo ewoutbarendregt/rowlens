@@ -2,7 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { withBasePath } from '../../shared/base-path.ts';
-import { perspective, rowingSession, video } from '../db/schema.ts';
+import { job, perspective, rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { originalKey, TooLarge, videoKey } from '../media/store.ts';
 import { looksLikeVideo, sniffContainer } from '../media/sniff.ts';
@@ -197,7 +197,22 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
       req.log.info({ videoId: upload.id }, 'upload rejected: not a video');
       return reply.code(415).header('upload-offset', String(size)).send({ error: 'not_a_video' });
     }
-    await setStatus(tenant, upload.id, size, 'uploaded', null);
+    await withTenant(db, tenant, async (tx) => {
+      await tx
+        .update(video)
+        .set({ uploadedBytes: size, status: 'uploaded', statusReason: null, updatedAt: new Date() })
+        .where(eq(video.id, upload.id));
+      // Same transaction: a completed upload always has its processing job (#47, ADR-0008).
+      await tx
+        .insert(job)
+        .values({
+          clubId: tenant.clubId,
+          type: 'video.process',
+          payload: { videoId: upload.id },
+          idempotencyKey: `video.process:${upload.id}`,
+        })
+        .onConflictDoNothing();
+    });
     req.log.info({ videoId: upload.id, bytes: size, container }, 'upload complete');
     return reply.code(204).header('upload-offset', String(size)).send();
   };
@@ -226,7 +241,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     tenant: { clubId: string; userId: string | null },
     id: string,
     bytes: number,
-    status: 'uploaded' | 'rejected',
+    status: 'rejected',
     reason: string | null,
   ) =>
     withTenant(db, tenant, (tx) =>

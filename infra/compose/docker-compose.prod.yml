@@ -4,8 +4,8 @@
 #
 #   ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status
 #
-# Worker (#33) is added with its story. Video bytes live in /opt/rowlens/media (ADR-0006), owned by
-# deploy (uid 1000) = the image's `node` user, so the bind mount needs no ownership change.
+# Video bytes live in /opt/rowlens/media (ADR-0006), owned by deploy (uid 1000) = the images' `node`
+# and `worker` users, so the bind mounts need no ownership change.
 #
 # Database roles (ADR-0005): `migrate` connects as the owner, `web` as rowlens_app (no BYPASSRLS).
 # Both passwords come from /opt/rowlens/.env, which Compose also reads for the variables below.
@@ -38,6 +38,26 @@ services:
     deploy:
       resources:
         limits: { cpus: '1.0', memory: 512M }
+
+  # Probes and transcodes uploads (#47, ADR-0008). Shares the CPU with trustable.nl and AudioScribe:
+  # capped at 2 of 4 vCPUs, ffmpeg at nice 10 with 2 threads. Same database role as web.
+  worker:
+    <<: *defaults
+    image: ghcr.io/ewoutbarendregt/rowlens-worker:${ROWLENS_TAG:?set ROWLENS_TAG}
+    environment:
+      DATABASE_URL: postgres://rowlens_app:${ROWLENS_APP_DB_PASSWORD:?ROWLENS_APP_DB_PASSWORD is required}@db:5432/rowlens
+      MEDIA_DIR: /media
+      FFMPEG_THREADS: '2'
+    volumes:
+      - ${ROWLENS_MEDIA_DIR:-/opt/rowlens/media}:/media
+    networks: [internal]
+    depends_on:
+      db: { condition: service_healthy }
+    # A transcode in progress is put back in the queue on SIGTERM; give it time to say so.
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 2G }
 
   # Run by rowlens-deploy before `up` (`compose --profile migrate run --rm migrate`), never kept running.
   migrate:

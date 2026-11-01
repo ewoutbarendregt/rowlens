@@ -62,7 +62,8 @@ jobs:
       - name: Production bundle contains no demo code
         run: |
           rm -rf apps/web/dist && pnpm build
-          if grep -rl "PlayerDemo\|demo-media\|requestVideoFrameCallback" apps/web/dist/client --include=*.js; then
+          # Demo-only markers: the player itself (requestVideoFrameCallback) ships on purpose since #49.
+          if grep -rl "PlayerDemo\|demo-media\|measure-start" apps/web/dist/client --include=*.js; then
             echo "::error::Feature-flagged demo code leaked into the production bundle"
             exit 1
           fi
@@ -94,8 +95,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright browser
-        run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
+      - name: Install Playwright browsers (Chrome plays the worker's H.264)
+        run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium chrome
+      - name: Test clip for the upload → processing E2E
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-dejavu-core
+          ROWLENS_MEDIA_LOCAL_FFMPEG=1 bash scripts/demo-media/generate.sh --e2e
       - name: Start edge stack
         run: pnpm edge:up
       - name: E2E through Caddy
@@ -210,4 +216,4 @@ jobs:
           docker logs web; exit 1
       - name: Smoke test worker image
         if: matrix.name == 'worker'
-        run: docker run --rm rowlens-worker:ci
+        run: docker run --rm rowlens-worker:ci sh -c "python -c 'import rowlens_worker.__main__' && ffmpeg -hide_banner -version | head -1"

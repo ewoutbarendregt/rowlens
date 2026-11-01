@@ -73,6 +73,32 @@ What the spike changed in the design:
 - Feature-flagged pages must be excluded with a standalone exported constant read via dot notation,
   plus a build step that drops unreachable chunks (Rolldown keeps emitting them).
 
+### As implemented (#47, 2026-11-01)
+
+- One ffmpeg run per video: decode once, `split` into the renditions. Each is H.264 High, `veryfast`,
+  CRF 21 (play-1080) / 25 (play-540), `-fps_mode cfr -r <nominal>`, `-g = -keyint_min = round(fps/4)`,
+  `-sc_threshold 0`, closed GOP, AAC 128k stereo, `+faststart`. Shorter side ≤ 1080 / ≤ 540, never
+  upscaled; a source with a shorter side ≤ 540 gets play-540 only. ffmpeg auto-rotates, so portrait
+  phone video comes out upright.
+- **Metadata is stripped** from renditions and poster (`-map_metadata -1`): phone videos carry GPS
+  location and device names. The original keeps it but is never served.
+- Nominal rate: `r_frame_rate` unless it's implausible (> 240, or > 20 % off the average, as with
+  Android files reporting 90000/1); then the average, snapped to the nearest common rate within 1 %.
+  The VFR flag is a heuristic (average > 0.5 % off the nominal rate).
+- Refused for good (job dead, video `failed` with a reason): no video stream, unreadable, > 30 min,
+  > 240 fps.
+- Checked on a synthetic 4K60 HEVC portrait clip with a 90° display matrix and a GPS tag: probe
+  2160×3840 @ 60, renditions 1080×1920 and 540×960 at 60/1 with all 180 frames, GPS gone.
+  Keyframes every 8 frames at 30 fps on the E2E clip. Server timing to be measured after deploy.
+
+### Delivery as implemented (#49, 2026-11-01)
+
+The app streams renditions itself (no presigned URLs: media is a local directory), after the pilot
+guard and an RLS read; byte ranges for seeking, `Cache-Control: private, max-age=3600`. play-540 is
+the default on narrow screens and on `saveData`/2g/3g connections, play-1080 otherwise, switchable
+at the same frame. Checked on the worker's output: the frame number burned into the picture equals
+the player's readout after stepping (desktop Chrome E2E and a phone-sized Chrome run).
+
 ## Consequences
 
 - One 2-min 4K60 transcode is CPU-heavy (several minutes on 2 vCPU); acceptable with background processing

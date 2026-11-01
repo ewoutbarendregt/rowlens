@@ -173,6 +173,12 @@ describe('tus upload', () => {
 
     const id = location.split('/').at(-1) ?? '';
     expect(await media.size(originalKey(pilotClubId, id))).toBe(MP4.length);
+    // Completion enqueued exactly one processing job for the worker (#47).
+    expect(
+      await asOwner('select type, payload, status from job where idempotency_key = $1', [
+        `video.process:${id}`,
+      ]),
+    ).toEqual([{ type: 'video.process', payload: { videoId: id }, status: 'queued' }]);
     const session = await app.inject({
       url: `${BASE}/api/sessions/${sessionId}`,
       headers: { cookie },
@@ -261,9 +267,7 @@ describe('tus upload', () => {
   });
 
   it('enforces the global media cap, counting reserved bytes of unfinished uploads', async () => {
-    const [used] = await asOwner<{ bytes: string }>(
-      `select coalesce(sum(size_bytes), 0) as bytes from video where status <> 'rejected'`,
-    );
+    const [used] = await asOwner<{ bytes: string }>('select rowlens_media_bytes() as bytes');
     const capped = await start({ MEDIA_CAP_BYTES: String(Number(used?.bytes) + 100) });
     try {
       const c = await signIn(capped);

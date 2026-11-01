@@ -16,7 +16,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET` (each 64 hex chars, generated on the server, never printed), `PILOT_ACCESS_CODE_HASH` (scrypt hash of the pilot code) | Claude, 2026-11-01 (last three: approved, #31/#84) |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
-| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-5082628`: database, access code, upload; player demo on) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `/opt/rowlens/media` mounted at `/media`; `db` (postgres:16-alpine) on `rowlens_internal` only, migrations 0000–0002, role `rowlens_app` without BYPASSRLS. Previous release: `sha-94af6b0` | deploy runs 41305371056 (#26), 41309728753 (player demo), 41325050578 + 41325179591 (sha-5082628, then the same tag again to load the code hash), triggered by Claude on Ewout's request, 2026-11-01 |
+| RowLens containers (project `rowlens`) | ✅ `web` + `worker` (`sha-e6f9deb`: database, access code, upload, processing, player for own videos; player demo on; worker capped at 2 CPUs / 2 GB) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `/opt/rowlens/media` mounted at `/media`; `db` (postgres:16-alpine) on `rowlens_internal` only, migrations 0000–0002, role `rowlens_app` without BYPASSRLS. Previous release: `sha-5082628` | deploy runs 41305371056 (#26), 41309728753 (player demo), 41325050578 + 41325179591 (sha-5082628, then the same tag again to load the code hash), 41333980902 (sha-e6f9deb), triggered by Claude on Ewout's request, 2026-11-01 |
 
 Nothing under `/opt/trustable` has been changed.
 
@@ -30,6 +30,18 @@ Nothing under `/opt/trustable` has been changed.
   then redeploy the current tag (deploy workflow) so `web` reads it.
 - **Close the gate**: remove the `PILOT_ACCESS_CODE_HASH` line from `.env` and redeploy; the site
   then says "not open yet" and every club route is a 404.
+
+## Done for sha-e6f9deb (2026-11-01, on Ewout's "Merge and deploy")
+
+1. `infra/deploy/install.sh`: compose file with the `worker` service; deploy script unchanged;
+   `authorized_keys` untouched; sha256 of both files equal to the repo.
+2. Deploy `sha-e6f9deb`: pre-deploy dump, migration 0003 (jobs, video metadata), ready.
+3. Not done: videos uploaded before this release have no `video.process` job. Queueing them is one
+   insert (below); Ewout chose to re-upload instead. If needed later, with approval:
+   `ssh trustable-prod "docker exec rowlens-db-1 psql -U rowlens_owner -d rowlens -c \"insert into job (club_id, type, payload, idempotency_key) select club_id, 'video.process', jsonb_build_object('videoId', id), 'video.process:' || id from video where status = 'uploaded' on conflict (idempotency_key) do nothing\""`
+
+Checked afterwards: `web` ready, `worker` running (NanoCpus 2e9, 2 GiB), club routes 404 without the
+cookie; trustable.nl, `api.trustable.nl/api/health`, AudioScribe and the demo 200; disk 48 %.
 
 ## Done for sha-5082628 (2026-11-01, approved by Ewout)
 

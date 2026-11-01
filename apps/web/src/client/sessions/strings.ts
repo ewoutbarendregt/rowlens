@@ -28,6 +28,13 @@ const en = {
     failed: 'Processing failed',
     rejected: 'Not a video',
   },
+  processingAt: (pct: number) => `Processing ${String(pct)} %`,
+  failReasons: {
+    no_video_stream: 'The file has no picture.',
+    too_long: 'Longer than 30 minutes.',
+    unreadable: 'The file could not be read.',
+    processing_failed: 'Processing failed. Try uploading it again.',
+  } as Record<string, string>,
   incomplete: (pct: number) =>
     `Stopped at ${String(pct)} %. Choose the same file again on this device to continue.`,
   progress: (pct: number) => `${String(pct)} %`,
@@ -41,6 +48,11 @@ const en = {
     failed: 'Upload failed. Check your connection; it continues where it stopped.',
   },
   leaveWarning: 'Uploads are still running.',
+  quality: 'Quality',
+  qualityHint: '540p starts faster on a slow connection; 1080p shows more detail.',
+  watch: (name: string) => `Watch ${name}`,
+  backToSession: (title: string) => `Back to ${title}`,
+  notReady: 'This video is not ready to watch yet.',
   loadFailed: 'Could not load this page. Check your connection and reload.',
 };
 
@@ -74,6 +86,13 @@ const nl: typeof en = {
     failed: 'Verwerking mislukt',
     rejected: 'Geen video',
   },
+  processingAt: (pct: number) => `Wordt verwerkt, ${String(pct)} %`,
+  failReasons: {
+    no_video_stream: 'Het bestand heeft geen beeld.',
+    too_long: 'Langer dan 30 minuten.',
+    unreadable: 'Het bestand kon niet worden gelezen.',
+    processing_failed: 'Verwerken mislukt. Upload hem opnieuw.',
+  },
   incomplete: (pct: number) =>
     `Gestopt bij ${String(pct)} %. Kies op dit apparaat hetzelfde bestand opnieuw om verder te gaan.`,
   progress: (pct: number) => `${String(pct)} %`,
@@ -87,6 +106,11 @@ const nl: typeof en = {
     failed: 'Uploaden mislukt. Controleer je verbinding; hij gaat verder waar hij stopte.',
   },
   leaveWarning: 'Er lopen nog uploads.',
+  quality: 'Kwaliteit',
+  qualityHint: '540p start sneller bij een trage verbinding; 1080p laat meer detail zien.',
+  watch: (name: string) => `${name} bekijken`,
+  backToSession: (title: string) => `Terug naar ${title}`,
+  notReady: 'Deze video is nog niet klaar om te bekijken.',
   loadFailed: 'Deze pagina kon niet laden. Controleer je verbinding en herlaad.',
 };
 
@@ -110,6 +134,24 @@ export function formatDate(iso: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+/** e.g. `60 fps · 1920×1080 · 2:03`; fractional rates like 59.94 keep two decimals. */
+export function formatVideoFacts(v: {
+  fpsNum: number | null;
+  fpsDen: number | null;
+  width: number | null;
+  height: number | null;
+  durationMs: number | null;
+}): string | null {
+  if (v.fpsNum === null || v.fpsDen === null || v.width === null || v.height === null) return null;
+  const locale = lang() === 'nl' ? 'nl-NL' : 'en-GB';
+  const fps = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(
+    v.fpsNum / v.fpsDen,
+  );
+  const total = Math.round((v.durationMs ?? 0) / 1000);
+  const duration = `${String(Math.floor(total / 60))}:${String(total % 60).padStart(2, '0')}`;
+  return `${fps} fps · ${String(v.width)}×${String(v.height)} · ${duration}`;
 }
 
 export function formatBytes(bytes: number): string {

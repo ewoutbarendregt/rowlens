@@ -6,6 +6,7 @@ import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { RequirePilot } from './sessions/RequirePilot.tsx';
 import { SessionPage } from './sessions/SessionPage.tsx';
 import { SessionsPage } from './sessions/SessionsPage.tsx';
+import { VideoPage } from './sessions/VideoPage.tsx';
 
 // The import sits inside the flag check so a build without the flag drops the chunk entirely.
 const PlayerDemoPage = PLAYER_DEMO
@@ -29,6 +30,14 @@ export function App() {
         element={
           <RequirePilot>
             <SessionPage />
+          </RequirePilot>
+        }
+      />
+      <Route
+        path="videos/:id"
+        element={
+          <RequirePilot>
+            <VideoPage />
           </RequirePilot>
         }
       />

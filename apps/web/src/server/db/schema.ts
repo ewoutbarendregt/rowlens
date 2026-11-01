@@ -1,10 +1,14 @@
 import { type SQL, type SQLWrapper, sql } from 'drizzle-orm';
 import {
   bigint,
+  boolean,
   date,
   foreignKey,
   index,
+  integer,
+  jsonb,
   pgEnum,
+  smallint,
   pgPolicy,
   pgRole,
   pgTable,
@@ -103,6 +107,25 @@ export const video = pgTable(
     uploadedBytes: bigint('uploaded_bytes', { mode: 'number' }).notNull().default(0),
     status: videoStatus('status').notNull().default('uploading'),
     statusReason: text('status_reason'),
+    /** 0–100 while the worker processes it (#48). */
+    processingProgress: smallint('processing_progress'),
+    // Technical metadata from ffprobe (#47). Frame indices everywhere refer to the CFR renditions,
+    // which keep the source's nominal rate fpsNum/fpsDen (ADR-0007).
+    fpsNum: integer('fps_num'),
+    fpsDen: integer('fps_den'),
+    /** Display size, after rotation. */
+    width: integer('width'),
+    height: integer('height'),
+    durationMs: integer('duration_ms'),
+    frameCount: integer('frame_count'),
+    codec: text('codec'),
+    rotation: smallint('rotation'),
+    /** The source had a variable frame rate; the renditions don't. */
+    vfr: boolean('vfr'),
+    /** `[{name, key, width, height, bytes, contentType}]`, written by the worker. */
+    renditions: jsonb('renditions'),
+    /** Counted against the media cap together with sizeBytes. */
+    renditionsBytes: bigint('renditions_bytes', { mode: 'number' }).notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -115,4 +138,34 @@ export const video = pgTable(
     index('video_session_idx').on(t.sessionId),
     tenantPolicy('video_tenant', t.clubId),
   ],
+).enableRLS();
+
+export const jobStatus = pgEnum('job_status', ['queued', 'running', 'succeeded', 'dead']);
+
+/**
+ * Work for the Python worker (ADR-0008). Claimed through `rowlens_claim_job()` (SECURITY DEFINER:
+ * RLS would show the worker one club at a time); everything after the claim runs in the job's club.
+ */
+export const job = pgTable(
+  'job',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    type: text('type').notNull(),
+    payload: jsonb('payload').notNull().default({}),
+    status: jobStatus('status').notNull().default('queued'),
+    attempts: integer('attempts').notNull().default(0),
+    maxAttempts: integer('max_attempts').notNull().default(3),
+    runAfter: timestamp('run_after', { withTimezone: true }).notNull().defaultNow(),
+    lockedBy: text('locked_by'),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    lastError: text('last_error'),
+    /** e.g. `video.process:<videoId>`: enqueueing twice is a no-op. */
+    idempotencyKey: text('idempotency_key').unique(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [index('job_ready_idx').on(t.status, t.runAfter), tenantPolicy('job_tenant', t.clubId)],
 ).enableRLS();
