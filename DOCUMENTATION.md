@@ -2,12 +2,25 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deployed sha-c15cb47: whole picture on iPhone, side-by-side layout
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PR #94 merged; trustable-prod: `web` + `worker` → sha-c15cb47
+**Summary**: On Ewout's "Merge and deploy": merged #94 with green CI and deployed (pre-deploy dump, no migrations, ready). The served stylesheet has the new stage rules; trustable.nl, its API and AudioScribe 200.
+**Prompts used**: "Merge and deploy".
+
 ## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
 
 **Session**: claude/fix/ios-player-half
 **Changed**: apps/web/src/client/styles.css, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/server/media/store.test.ts, BUGS.md, BUILD.md, TEST.md
 **Summary**: Ewout saw only the top half of the picture on his iPhone: Safari ignored `height: 100%` inside the aspect-ratio stage, so portrait video overflowed and was clipped (BUG-005; reproduced in WebKit). The stage now takes the video's shape with a height cap, the video is positioned inside it. His second request: on a laptop the notes needed scrolling; the video page is now two columns from 1000 px (sticky player, scrolling notes). PR 7 (drawing) is parked on its branch meanwhile. Also fixed a flaky store test (BUG-006).
 **Prompts used**: "ik zie op de iphone niet het hele beeld, alleen de bovenste helft"; "also on the laptop, the controls and the comments are not visible on the same pageview, i have to scroll down to see the comments. can we have a bit of ux design around this".
+## 2026-11-01 — Deployed sha-4e03e66: notes pinned to a frame, lost-step fix
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PR #93 merged; trustable-prod: `web` + `worker` → sha-4e03e66
+**Summary**: On Ewout's "Merge and deploy": merged #93 with green CI and deployed (pre-deploy dump, migration 0004 `annotation` with RLS + policy, ready; compose unchanged). Notes are live, and the player no longer loses steps on quick taps (BUG-004). Notes API is a 404 without the cookie; trustable.nl, its API and AudioScribe 200; disk 48 %.
+**Prompts used**: "Merge and deploy".
 
 ## 2026-11-01 — Notes pinned to a frame (#59); lost frame steps fixed (BUG-004)
 
@@ -15,6 +28,12 @@ Agent work log, newest first.
 **Changed**: apps/web/src/server/db/{schema.ts,migrations/0004_annotations.sql}, src/server/api/annotations.ts (+ db test), src/server/app.ts, src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{notes.spec.ts,helpers.ts,player.spec.ts}, docs/adr/0007, docs/privacy/processors.md, BUILD.md, TEST.md, BUGS.md
 **Summary**: PR 6 of the upload plan: an `annotation` table (notes now, drawings next) with RLS and a same-club key; notes API; notes panel with markers on the scrub bar, jump, edit, delete, remembered name. The new E2E exposed a real player bug: quick frame steps were lost when a stale `seeked` cleared the pending target (fixed, with a regression test that fails 12/12 on the old code). Drizzle-kit ordered the new FK before its unique key; reordered by hand.
 **Prompts used**: "Yes, start PR 6".
+## 2026-11-01 — Deployed sha-d8b5501: smaller renditions
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PR #92 merged; trustable-prod: `web` + `worker` → sha-d8b5501
+**Summary**: On Ewout's "Merge and deploy": merged #92 with green CI and deployed (pre-deploy dump, no new migrations, ready; compose file unchanged). The running worker has the new rules (play-1080 from 720p, capped CRF). trustable.nl, its API and AudioScribe 200; disk 48 %. Videos processed earlier keep their renditions.
+**Prompts used**: "Merge and deploy".
 
 ## 2026-11-01 — Smaller renditions: no near-duplicates, bitrate capped to the source (#47)
 
@@ -22,6 +41,12 @@ Agent work log, newest first.
 **Changed**: worker/src/rowlens_worker/video/{probe,transcode}.py, worker/tests/{test_probe,test_transcode}.py, docs/adr/0007, BUILD.md, TEST.md, BUGS.md
 **Summary**: The first real clip on production (576p, 0.76 Mbit/s, 8 MB) produced 27 MB of renditions: a near-identical play-1080 next to play-540, and uncapped CRF. Now play-1080 only from 720p up, and capped CRF (≤ 1.5× the source bitrate, ceilings scaled by frame rate). Measured in the worker image: 3.3× → 1.7× for that kind of clip; 4K60 HEVC → 0.14×.
 **Prompts used**: "yes" (to fixing both findings from the production clip).
+## 2026-11-01 — Deployed sha-e6f9deb: worker and player for own videos live
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PRs #90, #91 merged (#91 retargeted to main first); trustable-prod: compose file reinstalled (adds `worker`), `web` + `worker` → sha-e6f9deb
+**Summary**: On Ewout's "Merge and deploy": fixed #91's CI first (the demo-leak check flagged the player, which now ships on purpose; narrowed to demo-only markers), merged #90 → #91 with green CI, reinstalled the compose file (authorized_keys untouched, checksums equal), deployed (pre-deploy dump, migration 0003, ready). Worker running (2 CPUs / 2 GB cap). Two videos uploaded before jobs existed weren't queued: the one-off insert was blocked pending Ewout's approval, and he chose to re-upload them instead. Transcode speed on the server still to be measured with a real upload.
+**Prompts used**: "Merge and deploy"; "Re-upload instead".
 
 ## 2026-11-01 — Player on the club's own videos (#49, #52)
 
@@ -36,6 +61,12 @@ Agent work log, newest first.
 **Changed**: worker/src/rowlens_worker/{__main__,config,db,errors,media,queue}.py, worker/src/rowlens_worker/video/{probe,transcode,process}.py, worker/tests/*, worker/{pyproject.toml,uv.lock,Dockerfile}, apps/web/src/server/db/{schema.ts,migrations/0003_jobs_video_metadata.sql,jobs.db.test.ts}, apps/web/src/server/api/{uploads,sessions}.ts (+ upload test), apps/web/src/client/sessions/{SessionPage.tsx,strings.ts}, apps/web/Dockerfile, apps/web/e2e/upload.spec.ts, infra/compose/docker-compose.{prod,edge}.yml, infra/deploy/test/rehearse.sh, .github/workflows/ci.yml, docs/adr/{0007,0008}, docs/privacy/processors.md, BUILD.md, TEST.md
 **Summary**: PR 4 of the upload plan. Postgres job queue with a SECURITY DEFINER claim (RLS shows one club at a time), enqueued with the upload's completion. Python worker probes (fps, rotation, VFR heuristic), transcodes once into CFR H.264 play-1080/play-540 with ~0.25 s closed GOPs and strips location metadata, writes a poster, reports progress and retries with backoff. Session page shows processing and video facts. Verified in the edge stack and on a synthetic 4K60 HEVC portrait clip.
 **Prompts used**: "Yes, start PR 4".
+## 2026-11-01 — Deployed sha-5082628: database, access code and upload live
+
+**Session**: claude/docs/deploy-upload-log
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; GitHub: PRs #86, #87, #88 merged (each retargeted to main first); trustable-prod: `.env` (+3 keys), compose file reinstalled, `web` → sha-5082628, `pilot-code.txt`
+**Summary**: On Ewout's "Can you merge and deploy" and his approval of the exact server steps: merged #86 → #87 → #88 with green CI, added two generated secrets, reinstalled the compose file (authorized_keys untouched), deployed sha-5082628 (pre-deploy dump, migrations 0000–0002, ready), generated the access code on the server into a deploy-only file without printing it, and redeployed to load its hash. Verified gate open, wrong code 403, club routes 404, media writable; trustable.nl, its API and AudioScribe 200. Still open: Ewout's phone test with a 4K clip (#45).
+**Prompts used**: "Can you merge and deploy"; "Yes".
 
 ## 2026-11-01 — Sessions and resumable upload (#45, #46, #44 minimal, #50)
 
