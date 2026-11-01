@@ -20,6 +20,7 @@ cleanup() {
     -e ROWLENS_TAG=cleanup rowlens-rehearsal-runner docker compose -p rowlens \
     -f /opt/rowlens/docker-compose.yml --env-file /opt/rowlens/.env down -v --remove-orphans \
     >/dev/null 2>&1 || true
+  docker run --rm -v "$WORK:/w" rowlens-rehearsal-runner chown -R "$(id -u):$(id -g)" /w >/dev/null 2>&1 || true
   docker image rm "$IMG:sha-0000001" "$IMG:sha-0000002" "$IMG:sha-000000b" >/dev/null 2>&1 || true
   ((created_network)) && docker network rm trustable_proxy >/dev/null 2>&1 || true
   rm -rf "$WORK"
@@ -51,10 +52,13 @@ mkdir -p "$WORK/home"
 cp "$REPO/infra/compose/docker-compose.prod.yml" "$WORK/home/docker-compose.yml"
 printf 'NODE_ENV=production\nPUBLIC_ORIGIN=http://localhost\nBASE_PATH=/projects/rowlens\nPOSTGRES_PASSWORD=rehearsal\n' >"$WORK/home/.env"
 
+# The runner is root (it needs the Docker socket); on Linux the files it creates in the bind mount would
+# then be unreadable for the host user, so hand them back after every run.
 run() {
   docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock -v "$WORK/home:/opt/rowlens" \
     -v "$REPO/infra/deploy/rowlens-deploy:/usr/local/bin/rowlens-deploy:ro" \
-    -e ROWLENS_HEALTH_TIMEOUT=45 rowlens-rehearsal-runner rowlens-deploy "$@" </dev/null
+    -e ROWLENS_HEALTH_TIMEOUT=45 -e HOST_IDS="$(id -u):$(id -g)" rowlens-rehearsal-runner \
+    bash -c 'rowlens-deploy "$@"; code=$?; chown -R "$HOST_IDS" /opt/rowlens; exit $code' _ "$@" </dev/null
 }
 
 printf 'FROM docker:cli\nRUN apk add --no-cache bash util-linux findutils coreutils >/dev/null\n' |
