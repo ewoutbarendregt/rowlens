@@ -35,6 +35,8 @@ services:
       SESSION_SECRET: e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0e2e0
       PILOT_ATTEMPTS_PER_MINUTE: '100'
       MEDIA_DIR: /media
+      # CI runners' disks are often > 85 % full; the pause protects production's shared disk, not this.
+      DISK_PAUSE_RATIO: '0.99'
     volumes: [media:/media]
     networks:
       proxy:

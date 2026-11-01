@@ -30,6 +30,8 @@ process.env['SESSION_SECRET'] = randomBytes(32).toString('hex');
 process.env['PILOT_ATTEMPTS_PER_MINUTE'] = '100';
 const media = await mkdtemp(join(tmpdir(), 'rowlens-e2e-media-'));
 process.env['MEDIA_DIR'] = media;
+// CI runners' disks are often > 85 % full; production keeps the 85 % pause (ADR-0006).
+process.env['DISK_PAUSE_RATIO'] = '0.99';
 
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.once(signal, () => {
