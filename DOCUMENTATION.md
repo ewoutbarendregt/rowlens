@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Delete a whole session with its videos and annotations
+
+**Session**: codex/feat/delete-session
+**Changed**: apps/web/src/server/api/{sessions.ts,sessions.db.test.ts}, apps/web/src/client/sessions/{SessionPage.tsx,strings.ts}, apps/web/src/client/styles.css, apps/web/e2e/upload.spec.ts, BUILD.md, TEST.md, DOCUMENTATION.md
+**Summary**: A training now has an in-page danger zone to delete it for everyone. The tenant-scoped endpoint locks the session against concurrent video creation, cascades database deletion to every video and annotation, and removes each video's original, renditions and poster; cross-club access remains a 404. Checked with 190 web tests, desktop/mobile E2E and the local UI at laptop and 390×844.
+**Prompts used**: "ik wil de hele sectie kunnen deleten, inclusief alle video's en annotaties".
+
 ## 2026-11-01 — Handoff to Codex: AGENTS.md and docs/HANDOFF.md
 
 **Session**: claude/docs/handoff-codex

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
 import {
@@ -47,10 +47,12 @@ const PERSPECTIVES: Perspective[] = ['boat', 'bank', 'drone'];
 
 export function SessionPage() {
   const t = sessionStrings();
+  const navigate = useNavigate();
   const { id = '' } = useParams();
   const inputId = useId();
   const [session, setSession] = useState<SessionDetail | null>(null);
   const [failed, setFailed] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
 
   const load = useCallback(() => {
     api(`/api/sessions/${id}`)
@@ -90,6 +92,23 @@ export function SessionPage() {
   const remove = (v: SessionVideo) => {
     setConfirming(null);
     void api(`/api/videos/${v.id}`, { method: 'DELETE' }).finally(load);
+  };
+  const [confirmingSession, setConfirmingSession] = useState(false);
+  const [deletingSession, setDeletingSession] = useState(false);
+  const removeSession = () => {
+    if (deletingSession) return;
+    setDeletingSession(true);
+    setDeleteFailed(false);
+    void api(`/api/sessions/${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        void navigate('/sessions', { replace: true });
+      })
+      .catch(() => {
+        setDeleteFailed(true);
+        setDeletingSession(false);
+        setConfirmingSession(false);
+      });
   };
 
   if (failed) {
@@ -178,6 +197,7 @@ export function SessionPage() {
                   type="button"
                   className="button--quiet"
                   onClick={() => {
+                    setConfirmingSession(false);
                     setConfirming(v.id);
                   }}
                 >
@@ -262,6 +282,33 @@ export function SessionPage() {
         {uploads.queue.some((f) => f.state === 'pending' || retryable(f)) && !uploads.active && (
           <button type="button" onClick={uploads.start}>
             {t.start}
+          </button>
+        )}
+      </section>
+
+      <section className="card danger-zone" aria-labelledby={`${inputId}-delete-h`}>
+        <h2 id={`${inputId}-delete-h`}>{t.deleteSession}</h2>
+        <p className="muted">{t.deleteSessionHint}</p>
+        {deleteFailed && <p role="alert">{t.deleteSessionFailed}</p>}
+        {confirmingSession ? (
+          <ConfirmInline
+            question={t.confirmDeleteSession(session.title, t.videos(session.videos.length))}
+            onConfirm={removeSession}
+            onCancel={() => {
+              setConfirmingSession(false);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="button--danger"
+            disabled={deletingSession}
+            onClick={() => {
+              setConfirming(null);
+              setConfirmingSession(true);
+            }}
+          >
+            {t.deleteSession}
           </button>
         )}
       </section>

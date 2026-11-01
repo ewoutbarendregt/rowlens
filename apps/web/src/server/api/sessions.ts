@@ -93,6 +93,42 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
     return result ?? notFound(reply);
   });
 
+  /**
+   * Deletes a whole session. The database cascades from session → videos → annotations; we keep
+   * the video ids so their original files, renditions and posters can be removed afterwards too.
+   */
+  app.delete('/api/sessions/:id', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!params.success) return notFound(reply);
+    const tenant = tenantOf(req);
+    const videoIds = await withTenant(db, tenant, async (tx) => {
+      // Block new videos for this session while we collect every existing media key.
+      const [session] = await tx
+        .select({ id: rowingSession.id })
+        .from(rowingSession)
+        .where(and(eq(rowingSession.id, params.data.id), eq(rowingSession.clubId, tenant.clubId)))
+        .for('update');
+      if (session === undefined) return null;
+      const rows = await tx
+        .select({ id: video.id })
+        .from(video)
+        .where(and(eq(video.sessionId, session.id), eq(video.clubId, tenant.clubId)));
+      await tx
+        .delete(rowingSession)
+        .where(and(eq(rowingSession.id, session.id), eq(rowingSession.clubId, tenant.clubId)));
+      return rows.map((row) => row.id);
+    });
+    if (videoIds === null) return notFound(reply);
+    if (media !== null) {
+      await Promise.all(videoIds.map((videoId) => media.remove(videoKey(tenant.clubId, videoId))));
+    }
+    req.log.info(
+      { sessionId: params.data.id, videoCount: videoIds.length },
+      'session and media deleted',
+    );
+    return reply.code(204).send();
+  });
+
   /** Hard delete (#50): the row and every byte under the video's key. Also ends an unfinished upload. */
   app.delete('/api/videos/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);

@@ -220,6 +220,26 @@ body {
   color: var(--color-accent);
 }
 
+.danger-zone {
+  border-color: color-mix(in srgb, #b3261e 55%, transparent);
+}
+
+.danger-zone h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.danger-zone p {
+  margin: 0;
+}
+
+.page button.button--danger {
+  justify-self: start;
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
+}
+
 .page button:disabled {
   opacity: 0.5;
 }

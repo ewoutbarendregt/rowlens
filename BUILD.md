@@ -54,7 +54,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   match a session of the same club). Status: uploading → uploaded → (processing → ready | failed);
   `rejected` = complete but not a video (bytes deleted).
 - API (all behind the pilot guard, `private, no-store`): `GET/POST /api/sessions`,
-  `GET /api/sessions/:id` (with videos), `DELETE /api/videos/:id` (row + every byte under its key).
+  `GET /api/sessions/:id` (with videos), `DELETE /api/videos/:id` (row + every byte under its key),
+  `DELETE /api/sessions/:id` (session + cascaded videos/annotations + every video media directory).
 - Upload: our own tus 1.0 server (core + creation + termination) at `/api/uploads`, not
   `@tus/server` (its v2 converts requests and loses the per-request club context). Creation checks
   `Upload-Length` ≤ 4 GB, type/extension, the session (RLS), 60 creations/h per IP, disk < 85 %, and
@@ -126,7 +127,7 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 ## Confirmations
 
-- No browser popups (`window.confirm`): deleting a note, a drawing or a video asks in the page,
+- No browser popups (`window.confirm`): deleting a session, note, drawing or video asks in the page,
   where it was clicked (`client/ui/ConfirmInline.tsx`: question + "Ja, verwijderen" / "Annuleren";
   focus on yes, Esc cancels; compact "Ja / Nee" inside a drawing chip). One open at a time.
 

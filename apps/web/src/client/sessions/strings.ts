@@ -20,6 +20,11 @@ const en = {
   remove: 'Remove',
   delete: 'Delete',
   confirmDelete: (name: string) => `Delete “${name}” for everyone? This cannot be undone.`,
+  deleteSession: 'Delete session',
+  deleteSessionHint: 'Deletes the session, all its videos and every annotation.',
+  confirmDeleteSession: (title: string, videos: string) =>
+    `Delete “${title}”, ${videos} and every annotation for everyone? This cannot be undone.`,
+  deleteSessionFailed: 'The session could not be deleted. Check your connection and try again.',
   status: {
     uploading: 'Uploading',
     uploaded: 'Uploaded, waiting for processing',
@@ -78,6 +83,12 @@ const nl: typeof en = {
   delete: 'Verwijderen',
   confirmDelete: (name: string) =>
     `“${name}” voor iedereen verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+  deleteSession: 'Training verwijderen',
+  deleteSessionHint: 'Verwijdert de training, alle video’s en alle annotaties.',
+  confirmDeleteSession: (title: string, videos: string) =>
+    `“${title}”, ${videos} en alle annotaties voor iedereen verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+  deleteSessionFailed:
+    'De training kon niet worden verwijderd. Controleer je verbinding en probeer het opnieuw.',
   status: {
     uploading: 'Bezig met uploaden',
     uploaded: 'Geüpload, wacht op verwerking',
