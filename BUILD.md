@@ -100,6 +100,17 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
   has no H.264) and steps 10 frames exactly.
 
+## Notes pinned to a frame (#59)
+
+- Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade
+  on video delete): `frame`, `kind` (note now; line/arrow/angle with #60), `body` ≤ 2000, `shape`
+  (drawings), `author_name` 1–60 (typed: no accounts yet), timestamps.
+- API: `GET/POST /api/videos/:id/annotations` (POST only on a `ready` video, `frame < frame_count`),
+  `PATCH/DELETE /api/annotations/:id`. Everyone with the pilot code may edit/delete (pilot notice).
+- UI: notes panel under the player (writing pauses the video; the note goes at the current frame;
+  name remembered in localStorage), list in frame order (tap → frame, notes on this frame
+  highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
+
 ## Pilot access code (#84)
 
 - Until login (#28), one shared code opens the pilot club. `PILOT_ACCESS_CODE_HASH` (scrypt, format

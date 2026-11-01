@@ -11,5 +11,6 @@ it receives data, and linked from the privacy statement.
 | Error tracking | none, logs only on our own server (ADR-0004) | — | — | not used |
 | LLM provider | Plain-language explanations (opt-in per club) | pseudonymous structured metrics only | EU required | deferred to M2 (ADR-0010) |
 
+Note author names (typed by users during the pilot) are stored with the notes in the RowLens database.
 Videos are stored on the same Hetzner server (a directory on its local disk; the renditions people watch are stripped of location and device metadata) and are **not backed up** during the
 pilot (ADR-0006). The privacy statement must say so.

@@ -347,6 +347,65 @@ a.list__item {
   flex: 1 1 12rem;
 }
 
+.notes textarea {
+  min-height: 4.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+  resize: vertical;
+}
+
+.list__item.note {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.list__item.note > div:first-child {
+  flex: 1 1 100%;
+}
+
+.note--here {
+  border-color: #e07b00;
+  box-shadow: inset 4px 0 0 #e07b00;
+}
+
+.page .note__jump {
+  display: block;
+  justify-self: start;
+  text-align: start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline;
+}
+
+.note__body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.note__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* `.list__item > div` makes row content a grid; the action buttons stay side by side. */
+.list__item.note > .note__actions {
+  display: flex;
+}
+
+.page .note__actions button {
+  min-height: 36px;
+  padding-block: 0.25rem;
+}
+
 /* ---------------------------------------------------------------- player (ADR-0007) */
 
 .player {
@@ -393,6 +452,48 @@ a.list__item {
 .player__approx {
   color: #b45309;
   font-weight: 700;
+}
+
+/* Notes on the timeline (#59): a strip above the slider, so markers never steal its drag. */
+.player__markers {
+  position: relative;
+  height: 22px;
+  margin-inline: 10px;
+}
+
+/* Two classes + element: page and player button styles must not apply to markers. */
+.player button.player__marker {
+  position: absolute;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
+
+.player button.player__marker::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  border: 6px solid transparent;
+  border-top: 10px solid var(--color-accent);
+  transform: translateX(-50%);
+}
+
+.player button.player__marker--here::after {
+  border-top-color: #e07b00;
+}
+
+.player button.player__marker:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 1px;
 }
 
 .player__scrub {

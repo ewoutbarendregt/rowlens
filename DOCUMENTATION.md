@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Notes pinned to a frame (#59); lost frame steps fixed (BUG-004)
+
+**Session**: claude/feat/59-frame-notes
+**Changed**: apps/web/src/server/db/{schema.ts,migrations/0004_annotations.sql}, src/server/api/annotations.ts (+ db test), src/server/app.ts, src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/player/{Player.tsx,usePlayer.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{notes.spec.ts,helpers.ts,player.spec.ts}, docs/adr/0007, docs/privacy/processors.md, BUILD.md, TEST.md, BUGS.md
+**Summary**: PR 6 of the upload plan: an `annotation` table (notes now, drawings next) with RLS and a same-club key; notes API; notes panel with markers on the scrub bar, jump, edit, delete, remembered name. The new E2E exposed a real player bug: quick frame steps were lost when a stale `seeked` cleared the pending target (fixed, with a regression test that fails 12/12 on the old code). Drizzle-kit ordered the new FK before its unique key; reordered by hand.
+**Prompts used**: "Yes, start PR 6".
+
 ## 2026-11-01 — Smaller renditions: no near-duplicates, bitrate capped to the source (#47)
 
 **Session**: claude/fix/47-rendition-size
