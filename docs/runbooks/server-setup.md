@@ -15,7 +15,8 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
 | Caddy route `/projects/rowlens/*` | ⏳ [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) open against `develop`; live after the next trustable `develop` → `main` release | Claude, 2026-11-01, approved (#24) |
-| RowLens containers | ❌ none yet; first deploy is #26, which needs separate approval | — |
+| `/opt/rowlens/bin/rowlens-deploy`, `/opt/rowlens/docker-compose.yml`; CI key restricted to the script | ⏳ needs approval: `infra/deploy/install.sh` (#25) | — |
+| RowLens containers | ❌ none yet; first deploy is #26, which needs separate approval (it also attaches `rowlens-web` to `trustable_proxy`) | — |
 
 Nothing under `/opt/trustable` has been changed.
 
@@ -23,6 +24,14 @@ Nothing under `/opt/trustable` has been changed.
 
 1. Merge [trustable.nl#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) when you're ready. It
    goes live with the next trustable release, which also redeploys trustable's web and api.
+
+## Deploying (after install.sh, #25)
+
+- **Deploy**: GitHub → Actions → **deploy** → Run workflow, tag `sha-<7>` (shown in the `images` run summary
+  after a merge to `main`). Untick "Check the public URL" until trustable.nl#377 is live.
+- **Status**: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status`
+- **Roll back** to the previous release: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy rollback`
+- Pre-deploy database dumps: `/opt/rowlens/backups/pre-deploy-*.dump` (newest 10 kept).
 
 ## Root access
 
@@ -61,6 +70,6 @@ ssh trustable-prod 'set -e; umask 027; f=/opt/rowlens/.env; test ! -e $f
 
 ## Follow-ups
 
-- Restrict the deploy key with a forced command (`command="/opt/rowlens/bin/deploy",restrict`) once the
-  deploy script exists (#25). Until then it is a full `deploy` shell, the same as trustable's CI key.
-- CD also needs `ROWLENS_VPS_HOST` and a pinned `known_hosts` entry (#25).
+- Restricting the deploy key with a forced command is done by `infra/deploy/install.sh` (#25); until it
+  runs, the key is a full `deploy` shell, the same as trustable's CI key. Host and pinned host key live in
+  the repo (`.github/workflows/deploy.yml`, `infra/deploy/known_hosts`).

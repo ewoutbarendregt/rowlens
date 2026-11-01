@@ -17,7 +17,9 @@ FROM node:22-alpine
 LABEL org.opencontainers.image.source="https://github.com/ewoutbarendregt/rowlens" \
       org.opencontainers.image.title="rowlens-web"
 ARG BASE_PATH=/projects/rowlens
-ENV NODE_ENV=production PORT=3000 BASE_PATH=${BASE_PATH}
+# Image tag (sha-<7> or v<semver>), reported by /health/live; the deploy workflow checks it.
+ARG APP_VERSION=dev
+ENV NODE_ENV=production PORT=3000 BASE_PATH=${BASE_PATH} APP_VERSION=${APP_VERSION}
 WORKDIR /app
 COPY --from=build /out/package.json ./
 COPY --from=build /out/node_modules ./node_modules

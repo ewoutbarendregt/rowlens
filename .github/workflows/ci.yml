@@ -95,6 +95,19 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
+  deploy-script:
+    # The only command the CI key may run on the server: lint, unit tests, and a real rehearsal.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - name: shellcheck
+        run: shellcheck -x infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker
+      - name: Unit tests (stubbed docker)
+        run: bash infra/deploy/test/run.sh
+      - name: Rehearsal against real Docker
+        run: bash infra/deploy/test/rehearse.sh
+
   worker:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -158,7 +171,7 @@ jobs:
         if: matrix.name == 'web'
         run: |
           docker run -d --name web -p 3000:3000 -e PUBLIC_ORIGIN=http://127.0.0.1:3000 rowlens-web:ci
-          for i in $(seq 1 20); do
+          for _ in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/live; then
               curl -fsS -H 'accept: text/html' http://127.0.0.1:3000/projects/rowlens/ | grep -q '<div id="root">'
               exit 0

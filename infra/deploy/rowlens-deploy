@@ -1,0 +1,214 @@
+#!/usr/bin/env bash
+# rowlens-deploy — the only thing the RowLens CI key may run on the server (ADR-0002, #25).
+#
+# Installed at /opt/rowlens/bin/rowlens-deploy by infra/deploy/install.sh, and bound to the CI key in
+# authorized_keys with `restrict,command="/opt/rowlens/bin/rowlens-deploy"`. CI can therefore only ask
+# for one of the commands below; the compose file stays on the server, so CI chooses *which image tag*
+# runs, never *how* it runs.
+#
+# Commands (from SSH_ORIGINAL_COMMAND when forced, else from the arguments):
+#   deploy <tag>   GHCR token on stdin (may be empty to use images already on the host).
+#                  pull → DB backup → migrate (if defined) → up → readiness check → keep, or roll back.
+#   rollback       redeploy the previous tag (images are kept locally).
+#   status         print current/previous tag and container state.
+#
+# Exit codes: 0 ok · 2 failed, nothing to roll back to · 3 failed, rolled back · 4 rollback failed too
+#             64 usage · 75 another deploy is running.
+
+set -euo pipefail
+umask 027
+
+ROWLENS_HOME="${ROWLENS_HOME:-/opt/rowlens}"
+HEALTH_TIMEOUT="${ROWLENS_HEALTH_TIMEOUT:-90}"
+HEALTH_URL="${ROWLENS_HEALTH_URL:-http://127.0.0.1:3000/projects/rowlens/health/ready}"
+REGISTRY_USER="${ROWLENS_REGISTRY_USER:-ewoutbarendregt}"
+IMAGES=(ghcr.io/ewoutbarendregt/rowlens-web ghcr.io/ewoutbarendregt/rowlens-worker)
+KEEP_BACKUPS=10
+TAG_RE='^(sha-[0-9a-f]{7,40}|v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?)$'
+
+STATE="$ROWLENS_HOME/state"
+COMPOSE_FILE="$ROWLENS_HOME/docker-compose.yml"
+# Separate credential store: never touch the deploy user's ~/.docker (trustable's CD uses it).
+export DOCKER_CONFIG="$ROWLENS_HOME/.docker"
+
+log() { printf '%s rowlens-deploy: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
+die() {
+  local code="$1"
+  shift
+  log "$*"
+  exit "$code"
+}
+
+compose() {
+  # release.env carries ROWLENS_TAG so manual `docker compose` calls see the running version.
+  local env_files=(--env-file "$ROWLENS_HOME/.env")
+  [[ -f "$STATE/release.env" ]] && env_files+=(--env-file "$STATE/release.env")
+  docker compose -p rowlens -f "$COMPOSE_FILE" "${env_files[@]}" "$@"
+}
+
+read_state() { [[ -f "$STATE/$1" ]] && cat "$STATE/$1" || true; }
+
+write_release() {
+  local current="$1" previous="$2"
+  mkdir -p "$STATE"
+  printf '%s\n' "$current" >"$STATE/current-tag.tmp" && mv "$STATE/current-tag.tmp" "$STATE/current-tag"
+  if [[ -n "$previous" ]]; then
+    printf '%s\n' "$previous" >"$STATE/previous-tag.tmp" && mv "$STATE/previous-tag.tmp" "$STATE/previous-tag"
+  fi
+  printf 'ROWLENS_TAG=%s\n' "$current" >"$STATE/release.env.tmp" && mv "$STATE/release.env.tmp" "$STATE/release.env"
+}
+
+# Ready = the web container runs the wanted image *and* its readiness endpoint answers. Checking the
+# image matters: if `up` failed, the old container could still answer the health check.
+wait_ready() {
+  local tag="$1" deadline=$((SECONDS + HEALTH_TIMEOUT)) image
+  while ((SECONDS < deadline)); do
+    image="$(ROWLENS_TAG="$tag" compose ps --format '{{.Image}}' web 2>/dev/null || true)"
+    if [[ "$image" == "ghcr.io/ewoutbarendregt/rowlens-web:$tag" ]] &&
+      ROWLENS_TAG="$tag" compose exec -T web wget -q -O /dev/null "$HEALTH_URL" 2>/dev/null; then
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+# Explicit `|| return 1`: callers use this in `if`, where bash ignores `set -e`.
+start_tag() {
+  local tag="$1"
+  ROWLENS_TAG="$tag" compose up -d --remove-orphans --pull never || return 1
+  wait_ready "$tag"
+}
+
+backup_db() {
+  local tag="$1" dir="$ROWLENS_HOME/backups"
+  if ! compose ps --status running --services 2>/dev/null | grep -qx db; then
+    log "db not running yet; no pre-deploy backup needed"
+    return 0
+  fi
+  mkdir -p "$dir"
+  local file
+  file="$dir/pre-deploy-$(date -u +%Y%m%dT%H%M%SZ)-$tag.dump"
+  compose exec -T db pg_dump -U rowlens_owner -d rowlens -Fc >"$file"
+  log "database backed up to $file"
+  # Keep the newest $KEEP_BACKUPS pre-deploy dumps.
+  find "$dir" -maxdepth 1 -name 'pre-deploy-*.dump' -printf '%T@ %p\n' | sort -rn |
+    tail -n +$((KEEP_BACKUPS + 1)) | cut -d' ' -f2- | xargs -r rm --
+}
+
+migrate() {
+  local tag="$1"
+  if compose --profile migrate config --services 2>/dev/null | grep -qx migrate; then
+    log "running migrations for $tag"
+    ROWLENS_TAG="$tag" compose --profile migrate run --rm migrate
+  else
+    log "no migrate service defined; skipping migrations"
+  fi
+}
+
+prune_images() {
+  local keep_current="$1" keep_previous="$2" image tag
+  for image in "${IMAGES[@]}"; do
+    while read -r tag; do
+      [[ -z "$tag" || "$tag" == "$keep_current" || "$tag" == "$keep_previous" ]] && continue
+      docker image rm "$image:$tag" >/dev/null 2>&1 || true
+    done < <(docker image ls "$image" --format '{{.Tag}}')
+  done
+}
+
+cmd_deploy() {
+  local tag="$1" token current previous
+  token=""
+  # Token arrives on stdin from CI; an interactive run (tty) has none.
+  [[ -t 0 ]] || token="$(head -c 4096 || true)"
+  current="$(read_state current-tag)"
+  previous="$(read_state previous-tag)"
+  # Default for every compose call below; start_tag/wait_ready pass their own tag explicitly.
+  export ROWLENS_TAG="$tag"
+  log "deploying $tag (current: ${current:-none})"
+
+  if [[ -n "$token" ]]; then
+    printf '%s' "$token" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin >/dev/null
+    local pulled=0
+    ROWLENS_TAG="$tag" compose pull --quiet && pulled=1
+    docker logout ghcr.io >/dev/null 2>&1 || true
+    ((pulled)) || die 2 "pull failed for $tag; nothing changed"
+  else
+    log "no registry token given; using images already on the host"
+  fi
+
+  backup_db "$tag" || die 2 "pre-deploy database backup failed; nothing changed"
+  migrate "$tag" || die 2 "migrations failed; containers not restarted (see the pre-deploy backup)"
+
+  if start_tag "$tag"; then
+    if [[ "$tag" != "$current" ]]; then
+      write_release "$tag" "$current"
+    else
+      write_release "$tag" "$previous"
+    fi
+    prune_images "$tag" "$(read_state previous-tag)"
+    log "deployed $tag; ready"
+    return 0
+  fi
+
+  log "$tag did not become ready within ${HEALTH_TIMEOUT}s"
+  compose logs --no-color --tail 50 web >&2 || true
+  local fallback="${current:-}"
+  [[ "$fallback" == "$tag" ]] && fallback="$previous"
+  if [[ -z "$fallback" ]]; then
+    compose stop web >/dev/null 2>&1 || true
+    die 2 "no previous release to roll back to; web stopped"
+  fi
+  log "rolling back to $fallback"
+  if start_tag "$fallback"; then
+    die 3 "rolled back to $fallback"
+  fi
+  die 4 "rollback to $fallback failed too; manual attention needed"
+}
+
+cmd_rollback() {
+  local current previous
+  current="$(read_state current-tag)"
+  previous="$(read_state previous-tag)"
+  [[ -n "$previous" ]] || die 2 "no previous release recorded"
+  log "rolling back from ${current:-none} to $previous"
+  start_tag "$previous" || die 4 "rollback to $previous did not become ready"
+  write_release "$previous" "$current"
+  log "rolled back to $previous; ready"
+}
+
+cmd_status() {
+  local current
+  current="$(read_state current-tag)"
+  printf 'current: %s\nprevious: %s\n' "${current:-none}" "$(read_state previous-tag)"
+  [[ -n "$current" ]] || return 0
+  compose ps --format 'table {{.Service}}\t{{.Image}}\t{{.Status}}' || true
+}
+
+main() {
+  local -a words
+  if [[ -n "${SSH_ORIGINAL_COMMAND:-}" ]]; then
+    # Never eval: split on whitespace and validate every word.
+    read -r -a words <<<"$SSH_ORIGINAL_COMMAND"
+  else
+    words=("$@")
+  fi
+  [[ "${#words[@]}" -ge 1 ]] || die 64 "usage: deploy <tag> | rollback | status"
+
+  [[ -f "$COMPOSE_FILE" ]] || die 64 "missing $COMPOSE_FILE (run infra/deploy/install.sh)"
+  mkdir -p "$STATE"
+  exec 9>"$STATE/.lock"
+  flock -n 9 || die 75 "another deploy is running"
+
+  case "${words[0]}:${#words[@]}" in
+    deploy:2)
+      [[ "${words[1]}" =~ $TAG_RE ]] || die 64 "invalid tag: $(printf '%q' "${words[1]}")"
+      cmd_deploy "${words[1]}"
+      ;;
+    rollback:1) cmd_rollback ;;
+    status:1) cmd_status ;;
+    *) die 64 "usage: deploy <tag> | rollback | status" ;;
+  esac
+}
+
+main "$@"

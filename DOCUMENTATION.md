@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — #25 Manual deploy: images on main, workflow_dispatch deploy, server script with rollback
+
+**Session**: claude/feat/25-manual-deploy (stacked on claude/docs/23-server-setup-runbook)
+**Changed**: .github/workflows/{images,deploy,ci}.yml, infra/deploy/{rowlens-deploy,install.sh,known_hosts}, infra/deploy/test/{run.sh,rehearse.sh,stub/docker}, infra/compose/docker-compose.prod.yml (now web + db), apps/web/Dockerfile (APP_VERSION build arg), docs/adr/0002-hosting-and-isolation.md, docs/runbooks/server-setup.md, BUILD.md, CLAUDE.md, TEST.md
+**Summary**: Merges to main now build and push sha-tagged images; deploying is a manual, owner-only workflow that SSHes with the CI key into a forced-command script (`rowlens-deploy`) on the server, which pulls with the run's short-lived token, backs up the DB, migrates, starts, checks that web runs the new tag and is ready, and rolls back otherwise. Covered by 71 stubbed checks, a mutation check and a real-Docker rehearsal, all in CI. Nothing installed on the server yet (install.sh needs approval).
+**Prompts used**: "Build #25 deploy".
+
 ## 2026-11-01 — /opt/rowlens and .env created on trustable-prod (#23)
 
 **Session**: claude/docs/23-server-setup-runbook
