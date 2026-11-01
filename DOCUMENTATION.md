@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Handoff to Codex: AGENTS.md and docs/HANDOFF.md
+
+**Session**: claude/docs/handoff-codex
+**Changed**: AGENTS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Ewout continues with Codex. AGENTS.md (read automatically by Codex) carries the hard rules, his way of working (deploy only on request, local stack first, stacked-PR merge order, no popups, measure layouts) and the commands; docs/HANDOFF.md the current state: production `sha-c15cb47`, the open PR stack and merge order, the next deploy's server steps, local state and the open work. All branches pushed; nothing merged or deployed.
+**Prompts used**: "kun je de sessie veiligstellen zodat ik verder kan met codex".
+
 ## 2026-11-01 — Confirmations in the page instead of browser popups
 
 **Session**: claude/feat/60-drawing
