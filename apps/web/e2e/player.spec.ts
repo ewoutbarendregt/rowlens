@@ -39,6 +39,14 @@ test('steps exactly one frame forward and back, across keyframes', async ({ page
   }
 });
 
+test('quick presses never lose a step (no waiting between them)', async ({ page }) => {
+  // Regression: a late `seeked` of a replaced seek used to reset the pending step (#59 E2E).
+  for (let n = 0; n < 20; n++) await press(page, '.');
+  await expectFrame(page, 20);
+  for (let n = 0; n < 15; n++) await press(page, ',');
+  await expectFrame(page, 5);
+});
+
 test('buttons step frames and seconds (0.1 s = 3 frames at 30 fps)', async ({ page }) => {
   await page.getByRole('button', { name: /next frame|volgende frame/i }).click();
   await expectFrame(page, 1);

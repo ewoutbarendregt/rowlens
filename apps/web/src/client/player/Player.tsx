@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { formatFrameTime } from './frames.ts';
 import { playerStrings } from './strings.ts';
 import { SPEEDS, type PlayerMeasurement, type Speed, usePlayer } from './usePlayer.ts';
@@ -14,6 +14,22 @@ export interface PlayerProps {
   /** Every presented frame; lets the page keep the position across a rendition switch. */
   onFrame?: (frame: number) => void;
   onMeasure?: (m: PlayerMeasurement) => void;
+  /** Moments shown above the scrub bar (notes, #59); tapping one jumps to its frame. */
+  markers?: readonly PlayerMarker[];
+  /** Lets the page seek and pause, e.g. when a note in a list is chosen. */
+  handle?: Ref<PlayerHandle>;
+}
+
+export interface PlayerMarker {
+  id: string;
+  frame: number;
+  /** Accessible name, e.g. "Note at frame 120: blade late". */
+  label: string;
+}
+
+export interface PlayerHandle {
+  seekToFrame: (frame: number) => void;
+  pause: () => void;
 }
 
 const SPEED_KEYS: Record<string, Speed> = { '1': 0.25, '2': 0.5, '3': 1 };
@@ -23,7 +39,16 @@ function isTyping(target: EventTarget | null): boolean {
   return target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName);
 }
 
-export function Player({ src, fps, poster, startFrame, onFrame, onMeasure }: PlayerProps) {
+export function Player({
+  src,
+  fps,
+  poster,
+  startFrame,
+  onFrame,
+  onMeasure,
+  markers,
+  handle,
+}: PlayerProps) {
   const t = useMemo(() => playerStrings(), []);
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
 
@@ -34,6 +59,19 @@ export function Player({ src, fps, poster, startFrame, onFrame, onMeasure }: Pla
       start.current = undefined;
     }
   }, [p.ready, p]);
+
+  useImperativeHandle(
+    handle,
+    () => ({
+      seekToFrame: (frame: number) => {
+        p.seekToFrame(frame);
+      },
+      pause: () => {
+        if (p.playing) p.togglePlay();
+      },
+    }),
+    [p],
+  );
 
   const frameCallback = useRef(onFrame);
   frameCallback.current = onFrame;
@@ -168,6 +206,23 @@ export function Player({ src, fps, poster, startFrame, onFrame, onMeasure }: Pla
         )}
       </div>
 
+      {markers !== undefined && markers.length > 0 && (
+        <div className="player__markers" data-testid="player-markers">
+          {markers.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`player__marker${m.frame === p.frame ? ' player__marker--here' : ''}`}
+              style={{ left: `${String((m.frame / last) * 100)}%` }}
+              aria-label={m.label}
+              title={m.label}
+              onClick={() => {
+                p.seekToFrame(m.frame);
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="player__scrub">
         {loopStyle !== undefined && (
           <div

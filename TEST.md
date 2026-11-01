@@ -35,6 +35,9 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | Edge E2E with the worker | upload → worker → "Ready" with `30 fps · 640×360 · 0:04`; renditions checked by hand: H.264 High, CFR 30, 120 frames, keyframe every 8 frames, no metadata; synthetic 4K60 HEVC portrait: upright 1080×1920 / 540×960, 180 frames, GPS stripped | ✅ passing |
 | Media delivery (`api/videos.test.ts`, `api/videos.db.test.ts`) | 15 range cases (start-end, open, suffix, clamped, unsatisfiable, multi/garbage → whole); facts without keys; whole/206/suffix/416 with headers; poster JPEG; 404 for no cookie, not ready, missing rendition, unknown name, a rendition key outside the video's folder; another club's video and media 404 | ✅ passing |
 | Edge E2E player on own video | upload → worker → Ready → player page: poster, 10 exact `.` steps on the H.264 rendition (Chrome), `currentTime` agrees; phone-sized Chrome: taps +1f ×12 and +0.1 s land on frame 15 = burned-in number, no horizontal overflow | ✅ passing |
+| Notes API (`api/annotations.db.test.ts`) | 6: create (trimmed) → list in frame order → edit → delete; refusals (empty, > 2000, nameless, negative/fractional frame, frame ≥ frame_count); 409 before processing; cascade on video delete; another club's video/notes 404 and unchanged; database key refuses a note on another club's video | ✅ passing |
+| E2E notes (`e2e/notes.spec.ts`, edge, processed video) | note at frame 10 → list + marker; away and back via list and marker; reload keeps note and remembered name; edit; delete removes marker; repeated 10× without a flake | ✅ passing |
+| E2E player regression (`e2e/player.spec.ts`) | 20 quick presses without waiting land on frame 20 and back to 5 (BUG-004: fails 12/12 with the old `seeked` handler) | ✅ passing |
 | Readiness with DB (`readiness.db.test.ts`) | 3: 200 when Postgres answers; 503 within 5 s when unreachable; 503 on a wrong password | ✅ passing |
 | `server/app.ts` | 13 (health/readiness, base-path scoping, redirect, SPA fallback, API 404 JSON, asset caching, build-info mismatch, CSP, request ids) | ✅ passing |
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
@@ -55,6 +58,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
 | 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
 | 2026-11-01 | claude/feat/31-database | `pnpm test`, `pnpm e2e:edge`, `run.sh`, `rehearse.sh` | 79 passed (16 db); 8 passed; 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/59-frame-notes | `pnpm test`, local + edge E2E, player spec ×3, notes spec ×10 | 170 passed; 28 + 13 passed; 42 passed; 10 passed |
 | 2026-11-01 | claude/fix/47-rendition-size | worker `pytest`, edge E2E, size check in the worker image | 37 passed; 12 passed; 576p 0.78 Mbit/s → 1.7×, 4K60 40 Mbit/s → 0.14× |
 | 2026-11-01 | claude/feat/49-player-own-videos | `pnpm test`, local + edge E2E | 164 passed; 26 + 12 passed |
 | 2026-11-01 | claude/feat/47-worker-transcode | `pnpm test`, worker `pytest`, local + edge E2E, `rehearse.sh` | 145 passed; 33 passed; 26 + 12 passed; rehearsal passed |
