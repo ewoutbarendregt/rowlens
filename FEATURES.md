@@ -25,7 +25,7 @@ Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live o
 | Sessions with optional metadata | must | planned |
 | Resumable phone upload (tus) | must | planned |
 | Transcoding (CFR, short GOP, renditions, poster) | must | planned |
-| Player: 0.25/0.5/1×, ±1 frame, ±0.1 s, loop, fullscreen iOS/Android, keyboard | must | planned |
+| Player: 0.25/0.5/1×, ±1 frame, ±0.1 s, loop, fullscreen iOS/Android, keyboard | must | in progress: demo works on desktop (#51); phone measurements, thumbnails and accessibility pass to do |
 | Conversation per session with timestamp links | must | planned |
 | Annotations: text, line, arrow, angle; open/resolved/focus | must | planned |
 | E-mail notifications with opt-out | must | planned |

@@ -1,0 +1,10 @@
+{
+  // Playwright specs run in Node but pass callbacks into the browser (page.evaluate), so they need
+  // both Node and DOM types. Kept apart so server code never sees DOM globals.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "noEmit": true
+  },
+  "include": ["."]
+}

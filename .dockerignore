@@ -1,0 +1,8 @@
+# Keep build contexts small and free of local-only files.
+**/node_modules
+**/dist
+**/.venv
+**/playwright-report
+**/test-results
+apps/web/public/demo-media
+.git

@@ -44,6 +44,35 @@ rate limit per user. Upload completion enqueues a `video.probe` → `video.trans
 - **M1 spike (first sprint)**: measure start time on throttled 4G and step latency on iPhone + Android
   with GOP 0.25 s vs. 0.5 s vs. all-intra 540p; record results in this ADR.
 
+## Spike results (#51, 2026-11-01, desktop)
+
+Demo page `/projects/rowlens/demo/player` (dev builds only, `VITE_FEATURE_PLAYER_DEMO`), clips from
+`pnpm demo:media` with the frame number burned into every frame. Measured with headless Google Chrome
+(H.264) and Playwright Chromium (VP9), stepping 90 frames forward and back across keyframes:
+
+| Rendition | Wrong frames | Step → frame shown (median / p95) | Loop 100–160 at 1× |
+|---|---|---|---|
+| H.264 60 fps, GOP 0.25 s, 1080p | 0 | 15.6 / 21 ms | ≤ 2 frames past the end |
+| H.264 60 fps, GOP 0.5 s, 1080p | 0 | 15.9 / 21 ms | ≤ 2 frames past the end |
+| H.264 60 fps, all-intra, 540p | 0 | 15.6 / 20 ms | ≤ 2 frames past the end |
+
+A step costs one display refresh on a laptop; GOP length makes no measurable difference there. It is
+expected to matter on phones (weaker decoders), which is still to be measured: iPhone Safari and Android
+Chrome over the LAN (`pnpm --filter @rowlens/web dev:client --host`). Until then **GOP 0.25 s stays**.
+
+What the spike changed in the design:
+- **Frame from `mediaTime` is rounded, not floored.** Containers round presentation timestamps (WebM to
+  1 ms: frame 10 at 30 fps starts at 0.333 s → 9.99 → floored to frame 9). `currentTime`, which can be
+  anywhere inside a frame, is still floored.
+- **A pending step target is cleared on `seeked`**, not only when the presented frame equals it;
+  otherwise one mis-mapped frame made every later step count from a stale base.
+- **Looping pauses, seeks while paused, then resumes.** Seeking while playing took ~1 s in Chromium and
+  overshot the loop by ~60 frames at 1×; re-seeking on every frame during a seek cancelled it repeatedly.
+- **Hidden tabs/panes don't paint frames**, so `requestVideoFrameCallback` doesn't fire there; timing
+  measurements are only valid on a visible page.
+- Feature-flagged pages must be excluded with a standalone exported constant read via dot notation,
+  plus a build step that drops unreachable chunks (Rolldown keeps emitting them).
+
 ## Consequences
 
 - One 2-min 4K60 transcode is CPU-heavy (several minutes on 2 vCPU); acceptable with background processing

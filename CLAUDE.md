@@ -53,6 +53,9 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 pnpm --filter @rowlens/web dev:server      # Fastify :3000; BASE_PATH defaults to /projects/rowlens
 pnpm --filter @rowlens/web dev:client      # Vite dev server, proxies /api + /health to :3000
 pnpm build && pnpm --filter @rowlens/web e2e   # Playwright smoke (once: playwright install chromium)
+pnpm demo:media [my-clip.mov]                  # player demo clips (ffmpeg in Docker), then:
+#   http://localhost:5173/projects/rowlens/demo/player   (dev server; add --host to test on a phone)
+pnpm demo:media --e2e && VITE_FEATURE_PLAYER_DEMO=true pnpm build && pnpm --filter @rowlens/web e2e
 pnpm edge:up && pnpm e2e:edge && pnpm edge:down  # behind a Caddy mirroring trustable.nl, :8080
 
 # Deploy script (Linux semantics, so run in containers on a Mac)

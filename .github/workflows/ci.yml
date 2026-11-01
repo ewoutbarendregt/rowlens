@@ -50,10 +50,26 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
+      - name: Player test fixture (VP9 clip with burned-in frame numbers)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-dejavu-core
+          ROWLENS_MEDIA_LOCAL_FFMPEG=1 bash scripts/demo-media/generate.sh --e2e
+      - name: Build (with the player demo, for its E2E test)
+        run: pnpm build
+        env:
+          VITE_FEATURE_PLAYER_DEMO: 'true'
+      - name: Production bundle contains no demo code
+        run: |
+          rm -rf apps/web/dist && pnpm build
+          if grep -rl "PlayerDemo\|demo-media\|requestVideoFrameCallback" apps/web/dist/client --include=*.js; then
+            echo "::error::Feature-flagged demo code leaked into the production bundle"
+            exit 1
+          fi
+          VITE_FEATURE_PLAYER_DEMO=true pnpm build
       - name: Install Playwright browser
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
-      - name: E2E smoke (desktop + mobile Chromium)
+      - name: E2E smoke + player (desktop + mobile Chromium)
         run: pnpm --filter @rowlens/web e2e
       - name: Upload Playwright report
         if: failure()

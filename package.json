@@ -18,7 +18,8 @@
     "build": "pnpm -r build",
     "edge:up": "docker compose -f infra/compose/docker-compose.edge.yml up -d --build --wait",
     "edge:down": "docker compose -f infra/compose/docker-compose.edge.yml down",
-    "e2e:edge": "pnpm --filter @rowlens/web e2e:edge"
+    "e2e:edge": "pnpm --filter @rowlens/web e2e:edge",
+    "demo:media": "bash scripts/demo-media/generate.sh"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
