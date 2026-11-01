@@ -51,6 +51,9 @@ docker pull -q postgres:16-alpine >/dev/null
 mkdir -p "$WORK/home"
 cp "$REPO/infra/compose/docker-compose.prod.yml" "$WORK/home/docker-compose.yml"
 printf 'NODE_ENV=production\nPUBLIC_ORIGIN=http://localhost\nBASE_PATH=/projects/rowlens\nPOSTGRES_PASSWORD=rehearsal\nROWLENS_APP_DB_PASSWORD=rehearsal_app_only\n' >"$WORK/home/.env"
+# Bind mounts are resolved by the host's Docker, so the media dir must be a host path.
+mkdir -p "$WORK/home/media"
+echo "ROWLENS_MEDIA_DIR=$WORK/home/media" >>"$WORK/home/.env"
 
 # The runner is root (it needs the Docker socket); on Linux the files it creates in the bind mount would
 # then be unreadable for the host user, so hand them back after every run.

@@ -4,7 +4,8 @@
 #
 #   ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status
 #
-# Worker (#33) and media storage (#32) are added with their stories.
+# Worker (#33) is added with its story. Video bytes live in /opt/rowlens/media (ADR-0006), owned by
+# deploy (uid 1000) = the image's `node` user, so the bind mount needs no ownership change.
 #
 # Database roles (ADR-0005): `migrate` connects as the owner, `web` as rowlens_app (no BYPASSRLS).
 # Both passwords come from /opt/rowlens/.env, which Compose also reads for the variables below.
@@ -23,6 +24,10 @@ services:
     env_file: /opt/rowlens/.env
     environment:
       DATABASE_URL: postgres://rowlens_app:${ROWLENS_APP_DB_PASSWORD:?ROWLENS_APP_DB_PASSWORD is required}@db:5432/rowlens
+      MEDIA_DIR: /media
+    volumes:
+      # Overridable only for the deploy rehearsal, which runs this file on a laptop.
+      - ${ROWLENS_MEDIA_DIR:-/opt/rowlens/media}:/media
     networks:
       internal: {}
       # Shared with trustable's Caddy, which routes /projects/rowlens/* here (trustable.nl#377).

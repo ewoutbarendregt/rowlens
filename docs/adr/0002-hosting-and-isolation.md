@@ -21,7 +21,7 @@ would own our containers.
    compose file, `.env` (mode 640), volumes (`rowlens_*`) and networks. Nothing in `/opt/trustable` changes
    except the Caddyfile route (ADR-0003).
 2. Networks:
-   - `rowlens_internal` (`internal: true`): web, worker, db, minio. Not reachable from other projects.
+   - `rowlens_internal` (`internal: true`): web, worker, db (minio dropped: ADR-0006 amendment). Not reachable from other projects.
    - The **web container alone** also joins the existing **`trustable_proxy`** network as an
      `external: true` network, with alias `rowlens-web`, so Caddy can reach it. DB, worker and storage are
      never on `trustable_proxy`.

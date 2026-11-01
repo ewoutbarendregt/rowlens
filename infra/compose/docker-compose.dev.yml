@@ -1,4 +1,5 @@
-# Local development only: PostgreSQL + MinIO (S3) for running the web app and worker on a laptop.
+# Local development only: PostgreSQL for running the web app and worker on a laptop. Video bytes go
+# in a plain directory (MEDIA_DIR in apps/web/.env), like production (ADR-0006, amended).
 #   docker compose -f infra/compose/docker-compose.dev.yml up -d
 # Never deployed. Credentials below are throwaway local defaults.
 name: rowlens-dev
@@ -17,15 +18,5 @@ services:
       interval: 5s
       retries: 10
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address :9001
-    environment:
-      MINIO_ROOT_USER: rowlens_dev
-      MINIO_ROOT_PASSWORD: rowlens_dev_only
-    ports: ['127.0.0.1:9000:9000', '127.0.0.1:9001:9001']
-    volumes: [minio_data:/data]
-
 volumes:
   db_data:
-  minio_data:

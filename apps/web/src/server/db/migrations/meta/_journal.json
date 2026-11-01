@@ -15,6 +15,13 @@
       "when": 1793546550525,
       "tag": "0001_pilot_club",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793548112657,
+      "tag": "0002_sessions_videos",
+      "breakpoints": true
     }
   ]
 }
