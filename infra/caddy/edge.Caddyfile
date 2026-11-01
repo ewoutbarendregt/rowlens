@@ -1,0 +1,39 @@
+# Local mirror of trustable.nl's production Caddyfile (trustable.nl repo, main, 2026-11-01), served
+# over plain HTTP on localhost. Only the RowLens route is ours; the rest is copied so we can check that
+# adding it doesn't change how AudioScribe and the trustable.nl site are routed. AudioScribe and the
+# trustable.nl web app are replaced by stand-ins that echo the path they receive.
+#
+# Differences from production: no TLS (`auto_https off`), site address `:80` instead of trustable.nl,
+# no www/api site blocks, admin API off.
+
+{
+  auto_https off
+  admin off
+}
+
+:80 {
+  # AudioScribe — strip prefix then proxy (flush_interval -1 required for SSE)
+  redir /projects/audioscribe /projects/audioscribe/ 308
+  route /projects/audioscribe/* {
+    uri strip_prefix /projects/audioscribe
+    reverse_proxy audioscribe:8080 {
+      flush_interval -1
+    }
+  }
+
+  import rowlens.caddy
+
+  # Default: Trustable web app
+  route {
+    reverse_proxy web:8080
+  }
+
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    X-Content-Type-Options  "nosniff"
+    X-Frame-Options         "SAMEORIGIN"
+    Referrer-Policy         "strict-origin-when-cross-origin"
+    Permissions-Policy      "geolocation=(), microphone=(), camera=()"
+    -Server
+  }
+}

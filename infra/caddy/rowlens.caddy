@@ -1,0 +1,18 @@
+# RowLens route inside the trustable.nl site block (ADR-0003, issue #24).
+#
+# This file is the single source of the change proposed for trustable.nl's Caddyfile: the PR there
+# pastes it verbatim, directly above "# Default: Trustable web app". The local edge stack imports
+# it, so what we test locally is exactly what we propose for production.
+
+# RowLens — mounted at its base path; the prefix is NOT stripped
+redir /projects/rowlens /projects/rowlens/ 308
+route /projects/rowlens/* {
+  request_body {
+    # tus chunks are 16 MB; whole videos never go in one request
+    max_size 64MB
+  }
+  reverse_proxy rowlens-web:3000 {
+    # streaming responses (video ranges, progress events)
+    flush_interval -1
+  }
+}

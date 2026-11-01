@@ -1,0 +1,53 @@
+# Local "edge" stack: RowLens behind a Caddy that mirrors trustable.nl's production routing.
+# Lets you test the Caddy route proposed in #24 and the app's base-path handling before deploying.
+#
+#   pnpm edge:up      # build rowlens-web and start; open http://localhost:8080/projects/rowlens/
+#   pnpm e2e:edge     # Playwright checks through Caddy
+#   pnpm edge:down
+#
+# Never deployed. Networks mirror ADR-0002: only rowlens-web shares the proxy network with Caddy.
+name: rowlens-edge
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports: ['127.0.0.1:${EDGE_PORT:-8080}:80']
+    volumes:
+      - ../caddy/edge.Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../caddy/rowlens.caddy:/etc/caddy/rowlens.caddy:ro
+    networks: [proxy]
+    depends_on:
+      rowlens-web: { condition: service_healthy }
+      audioscribe: { condition: service_started }
+      web: { condition: service_started }
+
+  rowlens-web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    image: rowlens-web:edge
+    environment:
+      PUBLIC_ORIGIN: http://localhost:${EDGE_PORT:-8080}
+      APP_VERSION: edge
+    networks:
+      proxy:
+        aliases: [rowlens-web]
+      internal: {}
+
+  # Stand-ins for the apps that share the production Caddy.
+  audioscribe:
+    image: caddy:2-alpine
+    environment: { STANDIN_NAME: audioscribe }
+    volumes: ['../caddy/standin.Caddyfile:/etc/caddy/Caddyfile:ro']
+    networks: [proxy]
+
+  web:
+    image: caddy:2-alpine
+    environment: { STANDIN_NAME: trustable }
+    volumes: ['../caddy/standin.Caddyfile:/etc/caddy/Caddyfile:ro']
+    networks: [proxy]
+
+networks:
+  proxy: {}
+  internal:
+    internal: true

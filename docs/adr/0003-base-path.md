@@ -26,7 +26,10 @@ The path is shared with trustable.nl's own SPA and AudioScribe: **same origin**.
    An E2E test runs the full app behind a Caddy container with the same route as prod.
 4. Cookies: `__Secure-rowlens_sid`, `HttpOnly; Secure; SameSite=Lax; Path=/projects/rowlens`.
    (`__Host-` is impossible with a non-root path.)
-5. Proposed Caddy change (trustable.nl repo, **needs your approval**; placed before the default route):
+5. Proposed Caddy change (trustable.nl repo, **needs your approval**; placed before the default route).
+   The source of truth is [`infra/caddy/rowlens.caddy`](../../infra/caddy/rowlens.caddy); the local edge
+   stack (`pnpm edge:up`, `pnpm e2e:edge`, also in CI) imports that file into a copy of trustable.nl's
+   Caddyfile and tests it:
 
    ```caddy
    # RowLens — mounted at its base path; prefix is NOT stripped
@@ -49,6 +52,14 @@ The path is shared with trustable.nl's own SPA and AudioScribe: **same origin**.
   `localStorage`. **Recommendation: move to an own host (`rowlens.trustable.nl` or a product domain) before
   onboarding a second club.** Because of (1)–(2) that move is a config change, not a code change.
 - Service worker scope is limited to `/projects/rowlens/`, which is what we want.
+- Found with the edge stack (2026-11-01):
+  - `request_body max_size` is a backstop only: Caddy enforces it while the upstream reads the body, so a
+    response sent without reading it never produces a 413. The tus endpoint must enforce chunk and upload
+    sizes itself (#46).
+  - trustable.nl's site-wide headers override ours where both set them: `Referrer-Policy` becomes
+    `strict-origin-when-cross-origin`, and `Permissions-Policy: geolocation=(), microphone=(), camera=()`
+    applies to RowLens. **In-browser voice notes (getUserMedia) are therefore blocked on this origin**;
+    they need the own host, or a change to trustable.nl's header block.
 
 ## Alternatives considered
 

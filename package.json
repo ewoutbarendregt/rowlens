@@ -15,7 +15,10 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "edge:up": "docker compose -f infra/compose/docker-compose.edge.yml up -d --build --wait",
+    "edge:down": "docker compose -f infra/compose/docker-compose.edge.yml down",
+    "e2e:edge": "pnpm --filter @rowlens/web e2e:edge"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
