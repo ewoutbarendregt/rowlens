@@ -812,6 +812,16 @@ a.list__item {
   border-color: rgb(255 255 255 / 0.2);
 }
 
+/* Page buttons in the player's toolbar (draw tools, quality) stay readable on black. */
+.page .player--fullscreen .player__toolbar button.button--quiet {
+  border-color: #93a4ae;
+  color: #e6eef2;
+}
+
+.page .player--fullscreen .player__toolbar button[aria-pressed='true'] {
+  color: #10212b;
+}
+
 /* ---------------------------------------------------------------- player demo (#51, dev only) */
 
 .demo {
