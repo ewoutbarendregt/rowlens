@@ -126,11 +126,11 @@ def _store_metadata(conn: psycopg.Connection, club: UUID, video_id: UUID, p: Pro
     with in_club(conn, club):
         conn.execute(
             "update video set fps_num = %s, fps_den = %s, width = %s, height = %s,"
-            " duration_ms = %s, frame_count = %s, codec = %s, rotation = %s, vfr = %s"
-            " where id = %s",
+            " duration_ms = %s, frame_count = %s, codec = %s, rotation = %s, vfr = %s,"
+            " recorded_at = %s where id = %s",
             (
                 p.fps.numerator, p.fps.denominator, p.width, p.height, round(p.duration_s * 1000),
-                p.frame_count, p.codec, p.rotation, p.vfr, video_id,
+                p.frame_count, p.codec, p.rotation, p.vfr, p.recorded_at, video_id,
             ),
         )  # fmt: skip
 

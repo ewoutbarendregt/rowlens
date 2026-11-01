@@ -36,6 +36,13 @@
       "when": 1793558953261,
       "tag": "0004_annotations",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793565180047,
+      "tag": "0005_video_seq_recorded_at",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { rememberedName, rememberName } from '../notes/name.ts';
 import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
+import { videoDisplayName } from './displayName.ts';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
 
 interface VideoDetail {
@@ -16,6 +17,8 @@ interface VideoDetail {
   sessionId: string;
   sessionTitle: string;
   filename: string;
+  seq: number | null;
+  recordedAt: string | null;
   perspective: Perspective;
   status: VideoStatus;
   fpsNum: number | null;
@@ -159,10 +162,10 @@ export function VideoPage() {
         <nav className="page__nav">
           <Link to={`/sessions/${video.sessionId}`}>← {t.backToSession(video.sessionTitle)}</Link>
         </nav>
-        <h1 className="video-title">{video.filename}</h1>
+        <h1 className="video-title">{videoDisplayName(video)}</h1>
         <p className="muted video-facts">
           {t.perspectives[video.perspective]}
-          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>}
+          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>} · {video.filename}
         </p>
       </header>
 

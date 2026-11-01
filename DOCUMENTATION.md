@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Video display name: [session]-[#]-[start]-[length]
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/db/{schema.ts,migrations/0005_video_seq_recorded_at.sql}, src/server/api/{uploads,sessions,videos}.ts (+ upload db test), src/client/sessions/{displayName.ts,displayName.test.ts,SessionPage.tsx,VideoPage.tsx}, worker/src/rowlens_worker/video/{probe,process}.py, worker/tests/test_probe.py, e2e/{helpers,upload.spec}.ts, BUILD.md
+**Summary**: Ewout wants videos named `[sessienaam]-[#]-[tijdstip start]-[lengte]`. A read-only look at his iPhone uploads showed two times in the file: `creation_time` = when it was sent (18:08 the next day), Apple's creationdate = filming start (09:48); the worker now stores the latter as `recorded_at`. Videos get a fixed number per session. Checked locally: `Zaterdag CX4+-2-09:48-0:07`.
+**Prompts used**: "de displaynaam van de video moet worden [sessienaam]-[#]-[tijdstip start]-[lengte]".
+
 ## 2026-11-01 — Delete a whole note: every drawing and remark at a frame (#60)
 
 **Session**: claude/feat/60-drawing

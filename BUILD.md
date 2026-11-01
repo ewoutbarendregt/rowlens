@@ -124,6 +124,18 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
   note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
 
+## Video names (Ewout, 2026-11-01)
+
+- Shown as `[session]-[#]-[start]-[length]`, e.g. `Zaterdag CX4+-2-09:48-1:27`
+  (`client/sessions/displayName.ts`); unknown parts `??:??` / `?:??`. The original file name stays
+  as a detail.
+- `video.seq`: 1, 2, 3… per session in upload order, given at upload creation (under the creation
+  lock) and never renumbered; unique per session. Migration 0005 numbers existing videos.
+- `video.recorded_at`: the worker reads Apple's `com.apple.quicktime.creationdate` first (filming
+  start, with its offset), then `creation_time` (on iPhones often the export/send time: 18:08 the
+  next day for a clip filmed at 09:48); 1904/1970 and zone-less values are ignored. Videos
+  processed before this have none until re-uploaded.
+
 ## Drawings at a frame (#60)
 
 - Same `annotation` table: kinds `line`, `arrow` (2 points), `angle` (3: arm, vertex, arm), points as

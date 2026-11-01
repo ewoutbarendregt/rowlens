@@ -27,7 +27,8 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
   await expect(video.getByTestId('video-status')).toHaveText(/^(Ready|Klaar)$/, {
     timeout: 60_000,
   });
-  await video.getByRole('link', { name: 'stroke.webm', exact: true }).click();
+  // The display name: [session]-[#]-[start]-[length]; the E2E clip has no recording time.
+  await video.getByRole('link', { name: `${title}-1-??:??-0:04`, exact: true }).click();
   await expect(page.getByTestId('player-frame')).toHaveText('0');
   // Steps need the frame count from the metadata; before that they clamp to frame 0.
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);

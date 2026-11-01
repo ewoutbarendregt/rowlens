@@ -10,11 +10,14 @@ import {
   sessionStrings,
   type VideoStatus,
 } from './strings.ts';
+import { videoDisplayName } from './displayName.ts';
 import { retryable, useUploads } from './useUploads.ts';
 
 interface SessionVideo {
   id: string;
   filename: string;
+  seq: number | null;
+  recordedAt: string | null;
   perspective: Perspective;
   status: VideoStatus;
   statusReason: string | null;
@@ -73,8 +76,16 @@ export function SessionPage() {
   // Videos this tab is uploading right now are shown in the queue, not as "stopped".
   const inQueue = new Set(uploads.queue.map((f) => `${f.file.name}|${String(f.file.size)}`));
 
+  const nameOf = (v: SessionVideo) =>
+    videoDisplayName({
+      sessionTitle: session?.title ?? '',
+      seq: v.seq,
+      recordedAt: v.recordedAt,
+      durationMs: v.durationMs,
+    });
+
   const remove = (v: SessionVideo) => {
-    if (!window.confirm(t.confirmDelete(v.filename))) return;
+    if (!window.confirm(t.confirmDelete(nameOf(v)))) return;
     void api(`/api/videos/${v.id}`, { method: 'DELETE' }).finally(load);
   };
 
@@ -107,7 +118,7 @@ export function SessionPage() {
                 <Link
                   to={`/videos/${v.id}`}
                   className="video__thumb"
-                  aria-label={t.watch(v.filename)}
+                  aria-label={t.watch(nameOf(v))}
                 >
                   <img
                     src={appUrl(`/api/videos/${v.id}/media/poster`)}
@@ -120,13 +131,13 @@ export function SessionPage() {
               <div>
                 {v.status === 'ready' ? (
                   <Link to={`/videos/${v.id}`} className="video__name">
-                    <strong>{v.filename}</strong>
+                    <strong>{nameOf(v)}</strong>
                   </Link>
                 ) : (
-                  <strong>{v.filename}</strong>
+                  <strong>{nameOf(v)}</strong>
                 )}
                 <span className="muted">
-                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
+                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)} · {v.filename}
                 </span>
                 <span className={`badge badge--${v.status}`} data-testid="video-status">
                   {v.status === 'processing' && v.processingProgress !== null

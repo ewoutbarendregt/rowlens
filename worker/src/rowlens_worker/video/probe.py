@@ -6,6 +6,7 @@ import json
 import shutil
 import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from fractions import Fraction
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,8 @@ class Probe:
     has_audio: bool
     #: Whole-file bitrate (bit/s) if known; caps the renditions' bitrate (#47).
     bitrate: int | None = None
+    #: When the recording started, if the file says (the video's display name shows it).
+    recorded_at: datetime | None = None
 
     @property
     def frame_count(self) -> int:
@@ -143,7 +146,30 @@ def parse_probe(data: dict[str, Any]) -> Probe:
         vfr=vfr,
         has_audio=any(s.get("codec_type") == "audio" for s in streams),
         bitrate=_bitrate(fmt, duration),
+        recorded_at=_recorded_at(fmt, video),
     )
+
+
+# Apple's tag is the moment filming started, in local time with its offset. `creation_time` is
+# often when the file was exported or sent (an iPhone clip on production: filmed 09:48 on the 31st,
+# creation_time 18:08 the next day), so it only counts when Apple's tag is missing.
+_RECORDED_TAGS = ("com.apple.quicktime.creationdate", "creation_time")
+
+
+def _recorded_at(fmt: dict[str, Any], video: dict[str, Any]) -> datetime | None:
+    for key in _RECORDED_TAGS:
+        for tags in (fmt.get("tags", {}), video.get("tags", {})):
+            value = tags.get(key)
+            if not isinstance(value, str):
+                continue
+            try:
+                parsed = datetime.fromisoformat(value.strip())
+            except ValueError:
+                continue
+            # Unset camera clocks write 1904 or 1970; a time without a zone can't be placed.
+            if parsed.tzinfo is not None and 2000 <= parsed.year <= 2100:
+                return parsed
+    return None
 
 
 def _bitrate(fmt: dict[str, Any], duration: float) -> int | None:

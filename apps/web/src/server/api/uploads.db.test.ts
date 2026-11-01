@@ -197,6 +197,26 @@ describe('tus upload', () => {
     expect((await patch(location, MP4.length, Buffer.from('x'))).statusCode).toBe(409);
   });
 
+  it('numbers the videos of a session 1, 2, 3 in upload order, per session', async () => {
+    const a = await newSession();
+    const b = await newSession();
+    const ids = [];
+    for (const session of [a, a, b, a]) {
+      const res = await create(session, MP4.length);
+      ids.push(String(res.headers['location']).split('/').at(-1) ?? '');
+    }
+    const seqs = await asOwner<{ id: string; seq: number }>(
+      'select id, seq from video where id = any($1)',
+      [ids],
+    );
+    const seqOf = (id: string) => seqs.find((r) => r.id === id)?.seq;
+    expect(ids.map(seqOf)).toEqual([1, 2, 1, 3]);
+    const listed = await app.inject({ url: `${BASE}/api/sessions/${a}`, headers: { cookie } });
+    expect(
+      listed.json<{ videos: { seq: number; recordedAt: null }[] }>().videos.map((v) => v.seq),
+    ).toEqual([1, 2, 3]);
+  });
+
   it('rejects a complete upload that is not a video and deletes its bytes', async () => {
     const sessionId = await newSession();
     const pdf = Buffer.from('%PDF-1.7 pretending to be a movie');

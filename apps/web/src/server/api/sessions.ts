@@ -70,6 +70,8 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         .select({
           id: video.id,
           filename: video.originalFilename,
+          seq: video.seq,
+          recordedAt: video.recordedAt,
           perspective: video.perspective,
           status: video.status,
           statusReason: video.statusReason,

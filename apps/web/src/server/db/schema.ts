@@ -108,6 +108,10 @@ export const video = pgTable(
     uploadedBytes: bigint('uploaded_bytes', { mode: 'number' }).notNull().default(0),
     status: videoStatus('status').notNull().default('uploading'),
     statusReason: text('status_reason'),
+    /** 1, 2, 3… within its session, in upload order; fixed once given (display name). */
+    seq: integer('seq'),
+    /** When the recording started, from the file (Apple's creationdate first; see the worker). */
+    recordedAt: timestamp('recorded_at', { withTimezone: true }),
     /** 0–100 while the worker processes it (#48). */
     processingProgress: smallint('processing_progress'),
     // Technical metadata from ffprobe (#47). Frame indices everywhere refer to the CFR renditions,
@@ -139,6 +143,7 @@ export const video = pgTable(
     index('video_session_idx').on(t.sessionId),
     // Target of annotation's (club_id, video_id) key, like rowing_session's for video.
     unique('video_club_id_id_unique').on(t.clubId, t.id),
+    unique('video_session_seq_unique').on(t.sessionId, t.seq),
     tenantPolicy('video_tenant', t.clubId),
   ],
 ).enableRLS();
