@@ -39,6 +39,8 @@ WORKDIR /app
 COPY --from=build /out/package.json ./
 COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /repo/apps/web/dist ./dist
+# /media pre-created (uid 1000, like the server's media dir) so a named volume starts out writable.
+RUN install -d -o node -g node /media
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \

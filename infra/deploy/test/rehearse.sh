@@ -6,11 +6,12 @@
 #   infra/deploy/test/rehearse.sh
 #
 # Creates and afterwards removes: network trustable_proxy (local only), project rowlens-rehearsal,
-# images ghcr.io/ewoutbarendregt/rowlens-web:sha-000000{1,2,b}.
+# images ghcr.io/ewoutbarendregt/rowlens-{web,worker}:sha-000000{1,2,b}.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 IMG=ghcr.io/ewoutbarendregt/rowlens-web
+WORKER_IMG=ghcr.io/ewoutbarendregt/rowlens-worker
 WORK="$(mktemp -d)"
 created_network=0
 
@@ -21,7 +22,8 @@ cleanup() {
     -f /opt/rowlens/docker-compose.yml --env-file /opt/rowlens/.env down -v --remove-orphans \
     >/dev/null 2>&1 || true
   docker run --rm -v "$WORK:/w" rowlens-rehearsal-runner chown -R "$(id -u):$(id -g)" /w >/dev/null 2>&1 || true
-  docker image rm "$IMG:sha-0000001" "$IMG:sha-0000002" "$IMG:sha-000000b" >/dev/null 2>&1 || true
+  docker image rm "$IMG:sha-0000001" "$IMG:sha-0000002" "$IMG:sha-000000b" \
+    "$WORKER_IMG:sha-0000001" "$WORKER_IMG:sha-0000002" "$WORKER_IMG:sha-000000b" >/dev/null 2>&1 || true
   ((created_network)) && docker network rm trustable_proxy >/dev/null 2>&1 || true
   rm -rf "$WORK"
 }
@@ -37,12 +39,14 @@ docker network create trustable_proxy >/dev/null && created_network=1
 # prunes every RowLens image except the current and previous release.
 build() {
   docker build -q -f "$REPO/apps/web/Dockerfile" --build-arg APP_VERSION="$1" -t "$IMG:$1" "$REPO" >/dev/null
+  docker build -q -t "$WORKER_IMG:$1" "$REPO/worker" >/dev/null
 }
 build_broken() {
   # Starts, but never serves: readiness never passes.
   build sha-0000002
   printf 'FROM %s\nCMD ["node", "-e", "setInterval(() => {}, 1000)"]\n' "$IMG:sha-0000002" |
     docker build -q -t "$IMG:sha-000000b" - >/dev/null
+  docker tag "$WORKER_IMG:sha-0000002" "$WORKER_IMG:sha-000000b"
 }
 docker pull -q postgres:16-alpine >/dev/null
 
@@ -88,6 +92,7 @@ build sha-0000002
 expect 0 deploy sha-0000002
 assert() { if "${@:2}"; then echo "ok: $1"; else echo "FAIL: $1" >&2; exit 1; fi; }
 assert "migrations applied" test "$(psql 'select count(*) from drizzle.__drizzle_migrations')" -ge 1
+assert "worker running" test "$(docker inspect -f '{{.State.Running}}' rowlens-worker-1)" = true
 assert "app role cannot bypass RLS" test "$(psql "select rolbypassrls from pg_roles where rolname = 'rowlens_app'")" = f
 assert "pre-deploy backup written" compgen -G "$WORK/home/backups/pre-deploy-*-sha-0000002.dump"
 echo "== broken release rolls back"

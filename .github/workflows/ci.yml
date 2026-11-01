@@ -96,6 +96,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Install Playwright browser
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
+      - name: Test clip for the upload → processing E2E
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-dejavu-core
+          ROWLENS_MEDIA_LOCAL_FFMPEG=1 bash scripts/demo-media/generate.sh --e2e
       - name: Start edge stack
         run: pnpm edge:up
       - name: E2E through Caddy
@@ -210,4 +215,4 @@ jobs:
           docker logs web; exit 1
       - name: Smoke test worker image
         if: matrix.name == 'worker'
-        run: docker run --rm rowlens-worker:ci
+        run: docker run --rm rowlens-worker:ci sh -c "python -c 'import rowlens_worker.__main__' && ffmpeg -hide_banner -version | head -1"

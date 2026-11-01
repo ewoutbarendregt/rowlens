@@ -1,6 +1,6 @@
 # ADR-0008: Postgres-backed job queue shared by Node and Python
 
-- **Status**: proposed
+- **Status**: accepted (implemented in #47, 2026-11-01)
 - **Date**: 2026-11-01
 
 ## Context
@@ -35,3 +35,17 @@ just for a queue at this scale.
 
 - **Redis + Celery/RQ** — mature in Python, awkward to enqueue from Node, extra service. Rejected for now.
 - **pg-boss** / **Procrastinate** — each is single-language; we'd have to reimplement the other side.
+
+## Implementation notes (#47, 2026-11-01)
+
+- Tenancy: RLS shows the worker (role `rowlens_app`) one club at a time, so claiming goes through
+  `rowlens_claim_job(worker, types, lease)` (SECURITY DEFINER, pinned search_path). It also marks
+  jobs whose lease expired on their last attempt as `dead`. Everything after the claim (renew,
+  succeed, fail, the video updates) runs in the job's club via `set_config('app.club_id', …, true)`.
+- Statuses: `queued | running | succeeded | dead` (no separate `failed`: a failed attempt goes back to
+  `queued` with backoff 30 s × 4ⁿ⁻¹, max 1 h; out of attempts or a permanent error → `dead`).
+- One job type so far, `video.process` (probe + transcode + poster in one job, idempotency key
+  `video.process:<videoId>`), inserted in the same transaction that marks the upload complete.
+- Job schemas: the payload is `{videoId}` only; the shared contracts package (#20) is still to do.
+- Wake-up: an AFTER INSERT trigger does `pg_notify('rowlens_jobs', type)`; workers also poll (5 s).
+- Shutdown: SIGTERM kills ffmpeg and puts the job back without counting the attempt.

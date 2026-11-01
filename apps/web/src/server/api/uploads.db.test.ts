@@ -173,6 +173,12 @@ describe('tus upload', () => {
 
     const id = location.split('/').at(-1) ?? '';
     expect(await media.size(originalKey(pilotClubId, id))).toBe(MP4.length);
+    // Completion enqueued exactly one processing job for the worker (#47).
+    expect(
+      await asOwner('select type, payload, status from job where idempotency_key = $1', [
+        `video.process:${id}`,
+      ]),
+    ).toEqual([{ type: 'video.process', payload: { videoId: id }, status: 'queued' }]);
     const session = await app.inject({
       url: `${BASE}/api/sessions/${sessionId}`,
       headers: { cookie },

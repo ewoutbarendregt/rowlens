@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
+import { edgeUrl } from './env.ts';
 import { signIn } from './helpers.ts';
 
 // Session + resumable upload (#45, #46) through the real UI. The clip is the VP9 player fixture
@@ -33,7 +34,16 @@ test('create a session, upload a video and a fake one, delete the video', async 
   const videos = page.getByTestId('video');
   await expect(videos).toHaveCount(2);
   const stroke = videos.filter({ hasText: 'stroke.webm' });
-  await expect(stroke.getByTestId('video-status')).toHaveText(/Uploaded|Geüpload/);
+  if (edgeUrl === undefined) {
+    // No worker next to the local E2E server: the upload waits for processing.
+    await expect(stroke.getByTestId('video-status')).toHaveText(/Uploaded|Geüpload/);
+  } else {
+    // The edge stack runs the worker (#47): the page refreshes itself until the clip is ready.
+    await expect(stroke.getByTestId('video-status')).toHaveText(/^(Ready|Klaar)$/, {
+      timeout: 60_000,
+    });
+    await expect(stroke.getByTestId('video-facts')).toHaveText(/^30 fps · 640×360 · 0:04$/);
+  }
   await expect(stroke).toContainText(/From the bank|Vanaf de kant/);
   await expect(videos.filter({ hasText: 'fake.mov' }).getByTestId('video-status')).toHaveText(
     /Not a video|Geen video/,
