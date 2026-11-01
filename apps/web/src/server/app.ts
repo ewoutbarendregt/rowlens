@@ -7,9 +7,12 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest }
 import { sql } from 'drizzle-orm';
 import { stripBasePath } from '../shared/base-path.ts';
 import { clubRoutes } from './api/club.ts';
+import { sessionRoutes } from './api/sessions.ts';
+import { uploadRoutes } from './api/uploads.ts';
 import type { AppConfig } from './config.ts';
 import type { Database } from './db/client.ts';
 import { healthRoutes, type ReadinessCheck } from './health.ts';
+import { MediaStore } from './media/store.ts';
 import { createPilotGate } from './pilot/gate.ts';
 
 /** Written by the Vite build next to index.html; lets the server refuse a client built for another base path. */
@@ -22,6 +25,8 @@ export interface BuildAppOptions {
   readinessChecks?: readonly ReadinessCheck[];
   /** `rowlens_app` connection; without one, every club route is 404 and the pilot gate is closed. */
   database?: Database | null;
+  /** Overrides MEDIA_DIR (tests use a fake disk). */
+  media?: MediaStore | null;
   /** Tests without a database stand in for the pilot club lookup. */
   resolvePilotClubId?: () => Promise<string | null>;
   /** Pino logging; off in tests. */
@@ -100,6 +105,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   const db = opts.database ?? null;
   const gate = createPilotGate({
     basePath: base,
+    attemptsPerMinute: config.pilot?.attemptsPerMinute ?? 5,
     publicOrigin: config.publicOrigin,
     secrets:
       config.pilot === null || (db === null && opts.resolvePilotClubId === undefined)
@@ -116,7 +122,18 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
       }),
   });
   await app.register(gate.routes, { prefix: base });
-  if (db !== null) await app.register(clubRoutes, { prefix: base, db, guard: gate.guard });
+  if (db !== null) {
+    await app.register(clubRoutes, { prefix: base, db, guard: gate.guard });
+    const media =
+      opts.media !== undefined
+        ? opts.media
+        : config.media.dir === null
+          ? null
+          : new MediaStore(config.media.dir);
+    const clubOpts = { db, guard: gate.guard, media, limits: config.media, basePath: base };
+    await app.register(sessionRoutes, { prefix: base, ...clubOpts });
+    await app.register(uploadRoutes, { prefix: base, ...clubOpts });
+  }
 
   const indexHtml = clientDir === null ? null : await loadClient(clientDir, base);
   if (clientDir !== null) {

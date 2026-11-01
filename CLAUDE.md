@@ -67,7 +67,7 @@ infra/deploy/test/rehearse.sh                    # real compose + Postgres again
 cd worker && uv sync
 uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest
 
-# Local infrastructure (Postgres :5433, MinIO :9000/:9001)
+# Local infrastructure (Postgres :5433; video bytes in apps/web/.media)
 docker compose -f infra/compose/docker-compose.dev.yml up -d
 cp apps/web/.env.example apps/web/.env && pnpm db:migrate   # then dev:server uses the database
 pnpm --filter @rowlens/web db:generate                       # new migration from db/schema.ts

@@ -14,7 +14,7 @@ apps/web/            TypeScript web tier, one container (ADR-0004)
 packages/            shared TS packages (contracts, i18n) — added in M0/M1
 worker/              Python 3.12 (uv): probing, transcoding, analysis
   src/rowlens_worker/metrics/   analysis math; value-with-evidence or refusal
-infra/compose/       dev compose (Postgres + MinIO) and the DRAFT prod compose
+infra/compose/       dev compose (Postgres), edge stack, prod compose
 docs/adr/            Architecture Decision Records
 docs/analysis/       perspective validity rules
 docs/privacy/        processors and data flows
@@ -26,10 +26,10 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 - `trustable-prod` (Hetzner CX32, 4 vCPU / 8 GB, 150 GB disk, 80 GB free), shared with trustable.nl and
   AudioScribe. Caddy (owned by trustable.nl) routes `/projects/rowlens/*` unchanged to `rowlens-web:3000`.
-- Own Compose project `rowlens` in `/opt/rowlens`: `web`, `worker`, `db` (Postgres 16), optional `minio`.
+- Own Compose project `rowlens` in `/opt/rowlens`: `web`, `worker`, `db` (Postgres 16).
   Internal network for everything; only `web` joins `trustable_proxy`. CPU/memory limits on all services.
-- Video bytes behind a `BlobStore` interface (S3 API), served by MinIO on the local disk for the pilot,
-  **hard-capped at 30 GB**; uploads pause at 85 % root-disk use. No video backup during the pilot (ADR-0006).
+- Video bytes in `/opt/rowlens/media` behind `MediaStore` (keys, never paths; ADR-0006 amended: a
+  directory, not MinIO), **hard-capped at 30 GB**; uploads pause at 85 % root-disk use. No video backup during the pilot (ADR-0006).
 - Jobs: Postgres table with `SKIP LOCKED` + `LISTEN/NOTIFY`, consumed by the Python worker.
 - Tenancy: app-layer policies + Postgres RLS; `club_id` on every tenant table; cross-club tests.
 - Auth: e-mail OTP + invitations; `__Secure-rowlens_sid` cookie with `Path=/projects/rowlens`.
@@ -47,6 +47,26 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Security headers via `@fastify/helmet`: strict CSP (no inline script/style, `frame-ancestors 'none'`);
   HSTS is left to Caddy. `X-Request-Id` is accepted if well-formed, otherwise generated, and echoed.
 - Readiness checks are pluggable (`ReadinessCheck[]`); with `DATABASE_URL` set, `db` is one of them.
+
+## Sessions and upload (#44 minimal, #45, #46, #50)
+
+- Tables `rowing_session` and `video` (both `club_id` + RLS; a video's `(club_id, session_id)` must
+  match a session of the same club). Status: uploading → uploaded → (processing → ready | failed);
+  `rejected` = complete but not a video (bytes deleted).
+- API (all behind the pilot guard, `private, no-store`): `GET/POST /api/sessions`,
+  `GET /api/sessions/:id` (with videos), `DELETE /api/videos/:id` (row + every byte under its key).
+- Upload: our own tus 1.0 server (core + creation + termination) at `/api/uploads`, not
+  `@tus/server` (its v2 converts requests and loses the per-request club context). Creation checks
+  `Upload-Length` ≤ 4 GB, type/extension, the session (RLS), 60 creations/h per IP, disk < 85 %, and
+  reserves the size against the 30 GB cap under `pg_advisory_xact_lock` (via SECURITY DEFINER
+  `rowlens_media_bytes()`, since RLS shows one club). PATCH: ≤ 64 MB per request, offset must match
+  the file on disk (the file is the truth after a crash), one PATCH per upload at a time. On the last
+  byte, magic bytes decide uploaded vs rejected; ffprobe follows in the worker (#47).
+- Client: tus-js-client, 16 MB chunks, retries only what a new attempt can fix, resumes a file chosen
+  again on the same device (fingerprint in localStorage), keeps the screen awake and warns before
+  leaving while uploading. Camera position (boat/bank/drone) per file.
+- Media: `MediaStore` (`server/media/store.ts`), keys `clubs/{club}/videos/{video}/original`;
+  `MEDIA_DIR` (prod `/media` = `/opt/rowlens/media`; dev `apps/web/.media`).
 
 ## Pilot access code (#84)
 

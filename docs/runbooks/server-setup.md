@@ -35,6 +35,10 @@ From #84 (pilot access code):
    `/opt/rowlens/.env`; then `rowlens-deploy deploy <same tag>` restarts `web` with it. Until then the
    gate says "not open yet". A new code later = the same steps; it signs everyone out.
 
+From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned by `deploy`
+(uid 1000, the image's `node` user; checked read-only 2026-11-01), and step 2's compose file mounts
+it into `web`. Disk then: 150 GB, 47 % used; uploads pause at 85 %.
+
 Without step 1, the deploy stops at `compose pull` ("ROWLENS_APP_DB_PASSWORD is required") and nothing
 changes. The first deploy afterwards creates `rowlens_app`, applies `0000_init` and switches `web` to it.
 

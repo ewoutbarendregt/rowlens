@@ -2,6 +2,9 @@
 // (Testcontainers; removed when this process exits), migrated like production, then the built app
 // (`dist/server/main.js`) connected as rowlens_app. Needs Docker and `pnpm build`.
 import { randomBytes } from 'node:crypto';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { migrateDatabase } from '../src/server/db/migrate.ts';
 import { hashAccessCode } from '../src/server/pilot/code.ts';
@@ -23,10 +26,16 @@ appUrl.password = APP_PASSWORD;
 process.env['DATABASE_URL'] = appUrl.toString();
 process.env['PILOT_ACCESS_CODE_HASH'] = await hashAccessCode(pilotCode);
 process.env['SESSION_SECRET'] = randomBytes(32).toString('hex');
+// Every test signs in; the browser projects share one IP.
+process.env['PILOT_ATTEMPTS_PER_MINUTE'] = '100';
+const media = await mkdtemp(join(tmpdir(), 'rowlens-e2e-media-'));
+process.env['MEDIA_DIR'] = media;
 
 for (const signal of ['SIGTERM', 'SIGINT'] as const) {
   process.once(signal, () => {
-    void db.stop().finally(() => process.exit(0));
+    void Promise.allSettled([db.stop(), rm(media, { recursive: true, force: true })]).finally(() =>
+      process.exit(0),
+    );
   });
 }
 

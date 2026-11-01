@@ -1,0 +1,54 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { expect, test } from '@playwright/test';
+import { signIn } from './helpers.ts';
+
+// Session + resumable upload (#45, #46) through the real UI. The clip is the VP9 player fixture
+// (`pnpm demo:media --e2e`; CI generates it); a fake .mov checks the magic-byte rejection.
+const FIXTURE = fileURLToPath(new URL('../public/demo-media/e2e-30fps.webm', import.meta.url));
+
+test('create a session, upload a video and a fake one, delete the video', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
+  await signIn(page);
+  await page.getByRole('link', { name: /^(Sessions and videos|Trainingen en video’s)$/ }).click();
+
+  const title = `E2E ${info.project.name} ${String(Date.now())}`;
+  await page.getByLabel(/^(Title|Titel)$/).fill(title);
+  await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+
+  await page.getByLabel(/^(Choose videos|Video’s kiezen)$/).setInputFiles([
+    { name: 'stroke.webm', mimeType: 'video/webm', buffer: readFileSync(FIXTURE) },
+    { name: 'fake.mov', mimeType: 'video/quicktime', buffer: Buffer.from('not really a movie') },
+  ]);
+  const queue = page.getByTestId('upload-queue');
+  await queue.getByRole('combobox').first().selectOption('bank');
+  await page.getByRole('button', { name: /^(Upload|Uploaden)$/ }).click();
+
+  await expect(queue.getByTestId('upload-done')).toHaveCount(1);
+  await expect(queue.getByRole('alert')).toHaveText(/not a video|geen video/i);
+
+  const videos = page.getByTestId('video');
+  await expect(videos).toHaveCount(2);
+  const stroke = videos.filter({ hasText: 'stroke.webm' });
+  await expect(stroke.getByTestId('video-status')).toHaveText(/Uploaded|Geüpload/);
+  await expect(stroke).toContainText(/From the bank|Vanaf de kant/);
+  await expect(videos.filter({ hasText: 'fake.mov' }).getByTestId('video-status')).toHaveText(
+    /Not a video|Geen video/,
+  );
+
+  page.once('dialog', (d) => void d.accept());
+  await stroke.getByRole('button', { name: /^(Delete|Verwijderen)$/ }).click();
+  await expect(videos).toHaveCount(1);
+
+  await page.getByRole('link', { name: /All sessions|Alle trainingen/ }).click();
+  await expect(page.getByTestId('session-list')).toContainText(title);
+});
+
+test('club pages send you to the gate without access', async ({ page }) => {
+  await page.goto('./sessions');
+  await expect(page).toHaveURL(/\/projects\/rowlens\/$/);
+  await expect(page.getByLabel(/^(Access code|Toegangscode)$/)).toBeVisible();
+});

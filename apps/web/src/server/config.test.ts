@@ -13,6 +13,12 @@ describe('loadConfig', () => {
       logLevel: 'info',
       clientDir: undefined,
       databaseUrl: undefined,
+      media: {
+        dir: null,
+        capBytes: 30 * 1024 ** 3,
+        maxUploadBytes: 4 * 1024 ** 3,
+        diskPauseRatio: 0.85,
+      },
       pilot: null,
     });
   });

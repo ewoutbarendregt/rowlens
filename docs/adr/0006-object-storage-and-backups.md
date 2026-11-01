@@ -1,6 +1,7 @@
 # ADR-0006: Object storage, disk safety and backups
 
 - **Status**: accepted (2026-11-01). Pilot choice: local disk with a hard cap and no video backup.
+  **Amended 2026-11-01**: a plain directory instead of MinIO (see "Amendment" at the end).
 - **Date**: 2026-11-01
 
 ## Context
@@ -51,3 +52,21 @@
 
 The cap is reached regularly, a second club onboards, or analysis artefacts (M2) need space. The
 preferred next step is still Hetzner Object Storage with originals replicated to a second location.
+
+## Amendment (2026-11-01): a directory, not MinIO
+
+MinIO stopped publishing community Docker images and binaries in late 2025, and its open-source
+repository is in maintenance mode, so adding it to the shared server now means running an image
+that no longer gets updates. Approved by Ewout with the upload plan:
+
+- Video bytes go in a plain directory, `/opt/rowlens/media`, bind-mounted into `web` at `/media`
+  (`MEDIA_DIR`). `deploy` (uid 1000) owns it, which is also the image's `node` user, so no
+  ownership change is needed.
+- The rules above still hold: code addresses media by key (`clubs/{clubId}/videos/{videoId}/…`)
+  through one class (`apps/web/src/server/media/store.ts`), never by path, and media is served only
+  through the app after the access check.
+- The cap is enforced by the app alone (no MinIO bucket quota as a backstop): the declared size of
+  every upload is reserved against `MEDIA_CAP_BYTES` before any byte is accepted, under a
+  database lock, and uploads pause at 85 % root-disk use.
+- Moving to Hetzner Object Storage later replaces the store class and the upload path (tus to S3
+  multipart); the keys stay the same, so the data moves with `rclone`/`aws s3 sync`.
