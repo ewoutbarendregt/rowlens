@@ -138,6 +138,128 @@ describe('notes pinned to a frame', () => {
     ).toBe(201);
   });
 
+  it('stores drawings with their points (#60)', async () => {
+    const v = await videoIn(pilot);
+    const line = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'line',
+      frame: 30,
+      points: [
+        [0.1, 0.2],
+        [0.5, 0.6],
+      ],
+      authorName: 'Coach',
+    });
+    expect(line.statusCode).toBe(201);
+    expect(line.json()).toMatchObject({
+      kind: 'line',
+      frame: 30,
+      body: '',
+      shape: {
+        points: [
+          [0.1, 0.2],
+          [0.5, 0.6],
+        ],
+      },
+    });
+    const angle = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'angle',
+      frame: 30,
+      points: [
+        [0, 0],
+        [0.5, 0.5],
+        [1, 0],
+      ],
+      body: 'knee at the catch',
+      authorName: 'Coach',
+    });
+    expect(angle.json()).toMatchObject({ kind: 'angle', body: 'knee at the catch' });
+    const arrow = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'arrow',
+      frame: 31,
+      points: [
+        [0.9, 0.9],
+        [1, 1],
+      ],
+      authorName: 'Coach',
+    });
+    expect(arrow.statusCode).toBe(201);
+    const kinds = (await list(v))
+      .json<{ annotations: { kind: string }[] }>()
+      .annotations.map((a) => a.kind);
+    expect(kinds.sort()).toEqual(['angle', 'arrow', 'line']);
+  });
+
+  it('refuses drawings with the wrong number of points, or points outside the picture', async () => {
+    const v = await videoIn(pilot);
+    const bad = [
+      { kind: 'line', frame: 1, points: [[0.1, 0.1]], authorName: 'A' },
+      {
+        kind: 'angle',
+        frame: 1,
+        points: [
+          [0, 0],
+          [1, 1],
+        ],
+        authorName: 'A',
+      },
+      {
+        kind: 'arrow',
+        frame: 1,
+        points: [
+          [0, 0],
+          [1.2, 0.5],
+        ],
+        authorName: 'A',
+      },
+      {
+        kind: 'arrow',
+        frame: 1,
+        points: [
+          [-0.1, 0],
+          [0.5, 0.5],
+        ],
+        authorName: 'A',
+      },
+      {
+        kind: 'circle',
+        frame: 1,
+        points: [
+          [0, 0],
+          [1, 1],
+        ],
+        authorName: 'A',
+      },
+      {
+        kind: 'note',
+        frame: 1,
+        points: [
+          [0, 0],
+          [1, 1],
+        ],
+        authorName: 'A',
+      },
+    ];
+    for (const body of bad) {
+      expect((await send('POST', `/api/videos/${v}/annotations`, body)).statusCode).toBe(400);
+    }
+  });
+
+  it('only notes can be edited; drawings are deleted and redrawn', async () => {
+    const v = await videoIn(pilot);
+    const line = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'line',
+      frame: 2,
+      points: [
+        [0, 0],
+        [1, 1],
+      ],
+      authorName: 'A',
+    });
+    const id = line.json<{ id: string }>().id;
+    expect((await send('PATCH', `/api/annotations/${id}`, { body: 'x' })).statusCode).toBe(404);
+    expect((await send('DELETE', `/api/annotations/${id}`)).statusCode).toBe(204);
+  });
+
   it('needs a processed video: frames exist only in the CFR renditions', async () => {
     const v = await videoIn(pilot, 'processing', null);
     const res = await send('POST', `/api/videos/${v}/annotations`, {
