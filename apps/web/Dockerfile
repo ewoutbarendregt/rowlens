@@ -1,5 +1,17 @@
 # syntax=docker/dockerfile:1
 # Build context: repository root (see .github/workflows/ci.yml).
+
+# Player demo clips (#51), generated here so the image never depends on files from a laptop.
+# Empty unless the demo is enabled.
+FROM debian:trixie-slim AS demo-media
+ARG VITE_FEATURE_PLAYER_DEMO=false
+COPY scripts/demo-media/generate.sh /generate.sh
+RUN if [ "$VITE_FEATURE_PLAYER_DEMO" = "true" ]; then \
+      apt-get update && apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core >/dev/null \
+      && ROWLENS_MEDIA_LOCAL_FFMPEG=1 bash /generate.sh --out /out \
+      && rm -rf /var/lib/apt/lists/*; \
+    else mkdir -p /out; fi
+
 FROM node:22-alpine AS build
 WORKDIR /repo
 RUN corepack enable
@@ -7,9 +19,12 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile --filter @rowlens/web...
 COPY apps/web apps/web
+COPY --from=demo-media /out apps/web/public/demo-media
 # The SPA is built for one base path; the server refuses to start with a different one (ADR-0003).
 ARG BASE_PATH=/projects/rowlens
-ENV BASE_PATH=${BASE_PATH}
+# Build-time feature flag (src/client/features.ts); off by default, so the demo isn't in the bundle.
+ARG VITE_FEATURE_PLAYER_DEMO=false
+ENV BASE_PATH=${BASE_PATH} VITE_FEATURE_PLAYER_DEMO=${VITE_FEATURE_PLAYER_DEMO}
 RUN pnpm --filter @rowlens/web build \
  && pnpm --filter @rowlens/web deploy --prod --legacy /out
 

@@ -15,7 +15,8 @@ test('home page loads and reaches the API under the base path', async ({ page })
   expect(response?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
 
   await expect(page.getByRole('heading', { level: 1, name: 'RowLens' })).toBeVisible();
-  await expect(page.getByTestId('app-version')).toHaveText(`v${expectedVersion}`);
+  // Commit tags (e2e, sha-…) are shown as-is; only semver gets a "v" prefix.
+  await expect(page.getByTestId('app-version')).toHaveText(expectedVersion);
 
   expect(sameOriginPaths.length).toBeGreaterThan(0);
   for (const path of sameOriginPaths) expect(path.startsWith(`${BASE}/`)).toBe(true);

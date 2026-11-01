@@ -6,7 +6,7 @@
   "scripts": {
     "build": "rm -rf dist && vite build && tsc -p tsconfig.build.json",
     "start": "node dist/server/main.js",
-    "typecheck": "tsc --noEmit && tsc --noEmit -p src/client",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p src/client && tsc -p e2e",
     "test": "vitest run",
     "dev:server": "node --watch --experimental-strip-types src/server/main.ts",
     "dev:client": "vite",

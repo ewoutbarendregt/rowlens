@@ -1,0 +1,10 @@
+/**
+ * Build-time feature flags (until the per-club flag service, #21). A disabled feature is removed from
+ * the production bundle entirely, which only works if:
+ * - flags are read with dot notation (`import.meta.env.VITE_X`; bracket access isn't replaced), and
+ * - each flag is its own exported constant (the bundler doesn't fold properties of an exported object).
+ */
+
+/** Player spike (#51): dev server always; production builds only with VITE_FEATURE_PLAYER_DEMO=true. */
+export const PLAYER_DEMO =
+  import.meta.env.DEV || import.meta.env.VITE_FEATURE_PLAYER_DEMO === 'true';

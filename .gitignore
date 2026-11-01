@@ -35,3 +35,6 @@ test-results/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Generated demo clips for the player demo (pnpm demo:media)
+apps/web/public/demo-media/

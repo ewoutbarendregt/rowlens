@@ -50,10 +50,26 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
+      - name: Player test fixture (VP9 clip with burned-in frame numbers)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-dejavu-core
+          ROWLENS_MEDIA_LOCAL_FFMPEG=1 bash scripts/demo-media/generate.sh --e2e
+      - name: Build (with the player demo, for its E2E test)
+        run: pnpm build
+        env:
+          VITE_FEATURE_PLAYER_DEMO: 'true'
+      - name: Production bundle contains no demo code
+        run: |
+          rm -rf apps/web/dist && pnpm build
+          if grep -rl "PlayerDemo\|demo-media\|requestVideoFrameCallback" apps/web/dist/client --include=*.js; then
+            echo "::error::Feature-flagged demo code leaked into the production bundle"
+            exit 1
+          fi
+          VITE_FEATURE_PLAYER_DEMO=true pnpm build
       - name: Install Playwright browser
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
-      - name: E2E smoke (desktop + mobile Chromium)
+      - name: E2E smoke + player (desktop + mobile Chromium)
         run: pnpm --filter @rowlens/web e2e
       - name: Upload Playwright report
         if: failure()
@@ -165,6 +181,8 @@ jobs:
           push: false
           load: true
           tags: rowlens-${{ matrix.name }}:ci
+          # Same as main's images (images.yml): player demo on.
+          build-args: VITE_FEATURE_PLAYER_DEMO=true
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
       - name: Smoke test web image
@@ -174,6 +192,7 @@ jobs:
           for _ in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/live; then
               curl -fsS -H 'accept: text/html' http://127.0.0.1:3000/projects/rowlens/ | grep -q '<div id="root">'
+              curl -fsS http://127.0.0.1:3000/projects/rowlens/demo-media/manifest.json | jq -e 'length > 0'
               exit 0
             fi
             sleep 1

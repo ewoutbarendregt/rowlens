@@ -26,6 +26,8 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
 | `infra/deploy/rowlens-deploy` unit (`test/run.sh`, stubbed docker, Ubuntu) | 71 checks: input validation and forced-command injection, token handling, deploy/redeploy, rollback on unhealthy or failed `up`, first-deploy failure, pull failure, DB backup + retention, migrations, rollback/status, locking | ✅ passing |
 | `rowlens-deploy` rehearsal (`test/rehearse.sh`, real Docker) | first deploy, second deploy with real `pg_dump`, broken release auto-rollback (exit 3), manual rollback, status | ✅ passing |
+| `client/player/frames.ts` | 24: round-trips for every frame at 24–240 fps and 59.94, presentation timestamps at 1 ms / 1/15360 / 1/90000 precision, clamping, ±seconds, time format, loop range and jump | ✅ passing |
+| E2E player (`e2e/player.spec.ts`, VP9 fixture, desktop + mobile Chromium) | 6: ±1 frame over 20 frames and back across keyframes (readout and `currentTime` agree), buttons ±1f/±0.1s/±1s and bounds, speed buttons, loop at 0.25×/0.5×/1× stays ≤ 1 frame past its end | ✅ passing |
 | E2E smoke (`e2e/smoke.spec.ts`) | 3 × desktop + mobile Chromium (home + API under base, deep link shell, nothing outside base) | ✅ passing |
 | `stroke_rate` | 8 (even rhythm, NTSC fps, refusals, invalid input) | ✅ passing |
 
@@ -37,8 +39,21 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/19-web-app-skeleton | `pnpm test`, `pnpm --filter @rowlens/web e2e` | 38 passed; 6 passed |
 | 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
 | 2026-11-01 | claude/feat/25-manual-deploy | `infra/deploy/test/run.sh` (Ubuntu), `rehearse.sh` | 71 passed; rehearsal passed |
+| 2026-11-01 | claude/feat/51-player-demo | `pnpm test`, `pnpm --filter @rowlens/web e2e`, `pnpm e2e:edge` | 62 passed; 18 passed; 8 passed |
 
 ## Playwright prompts
+
+### Player spike (#51)
+
+Prompt used: "Player demo first" — a dev-only demo with clips whose frames show their own number;
+verify stepping, ±0.1 s/±1 s, speeds and loop in the browser, then in Playwright.
+
+Found while testing (all fixed, see ADR-0007 "Spike results"): loop overshoot of ~60 frames at 1×
+(seek while playing + re-seeking every frame); frames floored from millisecond-rounded WebM timestamps
+landing one frame early; a stale step target after such a mis-mapped frame; the demo chunk shipping in
+production builds (object-property flag, bracket env access, Rolldown emitting eliminated chunks).
+Measurement caveat: the in-app browser pane, when hidden, doesn't paint, so rVFC stops; time only on a
+visible page or headless Playwright. Real Chrome (H.264) results are in ADR-0007; phones still to do.
 
 ### Deploy script (#25)
 

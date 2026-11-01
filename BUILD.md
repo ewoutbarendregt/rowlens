@@ -53,6 +53,25 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 Server state, pending manual steps and rollback: [docs/runbooks/server-setup.md](docs/runbooks/server-setup.md).
 
+## Player (ADR-0007, #51)
+
+`apps/web/src/client/player/`: `frames.ts` (pure frame arithmetic, unit-tested at 24–240 fps and
+1 ms / 1/15360 / 1/90000 timestamp precision), `usePlayer.ts` (state, `requestVideoFrameCallback`
+frame tracking with a `currentTime` fallback, stepping that chains while a seek is in flight, loop by
+pause → seek → play, fullscreen with an iPhone CSS fallback, start/step measurements), `Player.tsx`
+(controls, keyboard, hold-to-repeat buttons), `strings.ts` (NL/EN until #34).
+
+- Demo page `/demo/player` exists only when `PLAYER_DEMO` (`src/client/features.ts`) is true: always in
+  `vite` dev, in builds only with `VITE_FEATURE_PLAYER_DEMO=true` (CI's E2E build). CI checks that a
+  production build contains no demo code; `dropUnreachableChunks` in `vite.config.ts` removes chunks that
+  Rolldown emits for eliminated dynamic imports.
+- Demo clips: `pnpm demo:media [clip …]` (ffmpeg in Docker, `scripts/demo-media/`) writes to the
+  gitignored `apps/web/public/demo-media/`; `.dockerignore` keeps local clips out of images.
+- **Production currently runs with the demo on** (Ewout, 2026-11-01, to try it on phones):
+  `images.yml` builds with `VITE_FEATURE_PLAYER_DEMO=true`, and the Dockerfile's `demo-media` stage
+  generates the synthetic clips inside the image (~70 MB). It's public (no login yet) and contains no
+  user data. To turn it off, drop that build arg; the bundle check in CI proves the off state.
+
 ## Local edge stack (`infra/compose/docker-compose.edge.yml`)
 
 `pnpm edge:up` builds rowlens-web and starts it behind Caddy at http://localhost:8080, using a copy of
