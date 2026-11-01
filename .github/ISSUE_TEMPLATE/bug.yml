@@ -1,0 +1,28 @@
+name: Bug
+description: Something does not work as it should
+labels: ['bug']
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens vs. what should happen
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: input
+    id: env
+    attributes:
+      label: Device / browser / version
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options: [low, medium, high, critical]
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: 'Do not paste personal data, e-mail addresses or video links of other users.'
