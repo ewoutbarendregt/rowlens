@@ -4,6 +4,8 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    // server.ts imports the migrate code from src/.
+    "rootDir": "..",
     "noEmit": true
   },
   "include": ["."]

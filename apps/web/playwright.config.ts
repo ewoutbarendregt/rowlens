@@ -24,7 +24,9 @@ export default defineConfig({
     edgeUrl !== undefined
       ? []
       : {
-          command: 'node dist/server/main.js',
+          // Starts a throwaway Postgres, migrates it, then runs dist/server/main.js (needs Docker).
+          command: 'node --experimental-strip-types e2e/server.ts',
+          timeout: 120_000,
           url: `${origin}/projects/rowlens/health/live`,
           reuseExistingServer: process.env['CI'] === undefined,
           env: {

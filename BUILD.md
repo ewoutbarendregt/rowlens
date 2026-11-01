@@ -64,6 +64,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   runs before `up` in `rowlens-deploy`. `web` gets `DATABASE_URL` for `rowlens_app`; `DATABASE_URL` is
   required in production. Migrations must be backward compatible with the previous release (expand,
   then contract), because a rollback keeps the migrated schema.
+- E2E: Playwright's web server is `e2e/server.ts`, which starts a throwaway Postgres (Testcontainers),
+  migrates it and then runs `dist/server/main.js`, so E2E needs Docker like the `db` tests.
 - Local: `docker compose -f infra/compose/docker-compose.dev.yml up -d`, copy `apps/web/.env.example` to
   `apps/web/.env`, `pnpm db:migrate`, then `dev:server` picks up the database.
 - Source maps are built `hidden` (not referenced from public bundles).
