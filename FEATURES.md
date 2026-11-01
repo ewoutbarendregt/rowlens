@@ -7,8 +7,8 @@ Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live o
 | Feature | Priority | Status |
 |---|---|---|
 | Monorepo, CI (lint/type/test/build/scan), templates, ADRs | must | in progress (Phase 0) |
-| Base-path-aware web skeleton + health endpoints | must | in progress (#19, PR open) |
-| Approval-gated CD to trustable-prod with rollback | must | planned |
+| Base-path-aware web skeleton + health endpoints | must | done (#19), live at trustable.nl/projects/rowlens |
+| Manual CD to trustable-prod with rollback (no staging: local + prod only) | must | done (#25) |
 | Object storage decision + disk monitoring | must | planned |
 | E-mail OTP login, sessions, CSRF, rate limits | must | planned |
 | i18n framework NL/EN | must | planned |

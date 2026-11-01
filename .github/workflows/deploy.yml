@@ -14,7 +14,7 @@ on:
         required: true
         type: string
       check_public_url:
-        description: Also check https://trustable.nl/projects/rowlens/ (needs the Caddy route, trustable.nl#377)
+        description: Also check that https://trustable.nl/projects/rowlens/ serves the new tag
         type: boolean
         default: true
 
@@ -98,7 +98,7 @@ jobs:
             fi
             sleep 3
           done
-          echo "::error::$PUBLIC_URL/health/live does not report $TAG (is the Caddy route live?)"
+          echo "::error::$PUBLIC_URL/health/live does not report $TAG"
           exit 1
 
       - name: Remove key

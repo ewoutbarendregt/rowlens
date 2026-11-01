@@ -7,7 +7,7 @@
 ## Context
 
 RowLens must run on the existing `trustable-prod` VPS next to trustable.nl and AudioScribe without
-touching them, and must be able to move later (separate web/worker/storage hosts, staging + prod).
+touching them, and must be able to move later (separate web/worker/storage hosts).
 
 AudioScribe is deployed as a profile inside trustable's own Compose project. That works for one small
 container, but it couples AudioScribe's definition to the trustable repo. RowLens has five services
@@ -36,7 +36,10 @@ would own our containers.
    (`docker image prune` filtered by `label=org.opencontainers.image.source=…/rowlens`).
 7. CD (prepared in M0, enabled after your approval): GitHub Actions → GHCR → SSH as `deploy` with a
    **new, RowLens-only deploy key** → `docker compose -p rowlens pull && run migrate && up -d` → health
-   check → roll back to the previous tag on failure. A staging target is defined but disabled.
+   check → roll back to the previous tag on failure.
+   **Environments: local development and production only** (decided 2026-11-01). There is no RowLens
+   staging; pre-production testing happens locally (`pnpm dev:*`, the edge stack behind a Caddy mirror,
+   and the deploy rehearsal).
    **Approval gate**: the repo stays private on the free plan (decided 2026-11-01), so GitHub environment
    reviewers and branch protection are not available. Instead, merges to `main` only build and push images;
    **deploying is a separate `workflow_dispatch` workflow** that only the repo owner can trigger, given an

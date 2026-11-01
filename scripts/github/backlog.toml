@@ -299,16 +299,6 @@ ac = [
 ]
 
 [[story]]
-epic = "hosting"
-title = "Prepare (disabled) staging deployment target"
-labels = ["infra", "should"]
-story = "As an operator, I want a staging target defined, so that we can switch it on when the staging server is ready."
-ac = [
-  "Deploy workflow accepts a `staging` target input; disabled until the staging server has room",
-  "Deploy script parameterised by host and base URL",
-]
-
-[[story]]
 epic = "auth"
 title = "E-mail OTP login: request code, verify, session, logout"
 labels = ["security", "must"]
