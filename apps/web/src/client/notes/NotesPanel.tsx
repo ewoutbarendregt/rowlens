@@ -220,6 +220,25 @@ export function NotesPanel(props: NotesPanelProps) {
                     ))}
                   </div>
                 )}
+
+                <div className="moment__footer">
+                  <button
+                    type="button"
+                    className="button--quiet moment__delete"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm(t.confirmDeleteMoment(at))) {
+                        void run(
+                          api(`/api/videos/${videoId}/frames/${String(at)}/annotations`, {
+                            method: 'DELETE',
+                          }),
+                        );
+                      }
+                    }}
+                  >
+                    {t.deleteMoment}
+                  </button>
+                </div>
               </div>
             </li>
           );

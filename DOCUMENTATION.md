@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Delete a whole note: every drawing and remark at a frame (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/api/annotations.ts (+ db tests), src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/styles.css, e2e/drawing.spec.ts, BUILD.md
+**Summary**: Ewout: a whole note must be deletable with all its drawings and remarks. New `DELETE /api/videos/:id/frames/:frame/annotations` (one transaction, only that frame of that video, RLS; other clubs 404) and a red "Notitie verwijderen" button with a confirmation in each section. Tests: only the frame's items go, other frames and videos stay, other clubs can't; E2E deletes a whole note and checks after a reload.
+**Prompts used**: "je moet de hele notitie kunnen verwijderen met alle tekeningen en opmerkingen".
+
 ## 2026-11-01 — Frame sections: click to jump and select, explanation always open (#60)
 
 **Session**: claude/feat/60-drawing

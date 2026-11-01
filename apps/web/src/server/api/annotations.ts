@@ -6,6 +6,7 @@ import { withTenant } from '../db/tenant.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
+const frameParams = z.object({ id: z.uuid(), frame: z.coerce.number().int().min(0) });
 const text = z.string().trim().min(1).max(2000);
 const author = z.string().trim().min(1).max(60);
 /** A point as a fraction of the picture (0–1 from the left and from the top), #60. */
@@ -123,6 +124,34 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
     );
     return row ?? notFound(reply);
   });
+
+  // A whole moment (Ewout: one note per frame): every drawing and remark at that frame, in one
+  // transaction, so it never half-disappears.
+  app.delete(
+    '/api/videos/:id/frames/:frame/annotations',
+    { preHandler: guard },
+    async (req, reply) => {
+      const params = frameParams.safeParse(req.params);
+      if (!params.success) return notFound(reply);
+      const deleted = await withTenant(db, tenantOf(req), async (tx) => {
+        const [v] = await tx
+          .select({ id: video.id })
+          .from(video)
+          .where(eq(video.id, params.data.id));
+        if (v === undefined) return null;
+        return tx
+          .delete(annotation)
+          .where(and(eq(annotation.videoId, v.id), eq(annotation.frame, params.data.frame)))
+          .returning({ id: annotation.id });
+      });
+      if (deleted === null || deleted.length === 0) return notFound(reply);
+      req.log.info(
+        { videoId: params.data.id, frame: params.data.frame, count: deleted.length },
+        'moment deleted',
+      );
+      return reply.code(204).send();
+    },
+  );
 
   app.delete('/api/annotations/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);

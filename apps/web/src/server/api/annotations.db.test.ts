@@ -300,6 +300,62 @@ describe('notes pinned to a frame', () => {
     ]);
   });
 
+  it('deletes a whole moment: every drawing and remark at one frame, nothing else', async () => {
+    const v = await videoIn(pilot);
+    const other = await videoIn(pilot);
+    const line = {
+      kind: 'line',
+      points: [
+        [0, 0],
+        [1, 1],
+      ],
+      authorName: 'A',
+    };
+    await send('POST', `/api/videos/${v}/annotations`, { ...line, frame: 40 });
+    await send('POST', `/api/videos/${v}/annotations`, { ...line, kind: 'arrow', frame: 40 });
+    await send('POST', `/api/videos/${v}/annotations`, {
+      frame: 40,
+      body: 'explanation',
+      authorName: 'A',
+    });
+    await send('POST', `/api/videos/${v}/annotations`, {
+      frame: 40,
+      body: 'second remark',
+      authorName: 'B',
+    });
+    await send('POST', `/api/videos/${v}/annotations`, {
+      frame: 41,
+      body: 'next frame',
+      authorName: 'A',
+    });
+    await send('POST', `/api/videos/${other}/annotations`, { ...line, frame: 40 });
+
+    expect((await send('DELETE', `/api/videos/${v}/frames/40/annotations`)).statusCode).toBe(204);
+    const left = (await list(v)).json<{ annotations: { frame: number }[] }>().annotations;
+    expect(left.map((a) => a.frame)).toEqual([41]);
+    expect((await list(other)).json<{ annotations: unknown[] }>().annotations).toHaveLength(1);
+    // Nothing left at that frame (or a bad frame): the same 404 as an unknown route.
+    expect((await send('DELETE', `/api/videos/${v}/frames/40/annotations`)).statusCode).toBe(404);
+    expect((await send('DELETE', `/api/videos/${v}/frames/-1/annotations`)).statusCode).toBe(404);
+  });
+
+  it("can't delete another club's moment", async () => {
+    const [club] = await asOwner<{ id: string }>(
+      `insert into club (slug, name) values ('m-' || gen_random_uuid(), 'Other') returning id`,
+    );
+    const theirs = await videoIn(club?.id ?? '');
+    await asOwner(
+      `insert into annotation (club_id, video_id, frame, body, author_name) values ($1, $2, 7, 'theirs', 'B')`,
+      [club?.id, theirs],
+    );
+    expect((await send('DELETE', `/api/videos/${theirs}/frames/7/annotations`)).statusCode).toBe(
+      404,
+    );
+    expect(await asOwner('select body from annotation where video_id = $1', [theirs])).toEqual([
+      { body: 'theirs' },
+    ]);
+  });
+
   it('a note can only point at a video of its own club (database key)', async () => {
     const [other] = await asOwner<{ id: string }>(
       `insert into club (slug, name) values ('k-' || gen_random_uuid(), 'Other') returning id`,

@@ -143,6 +143,8 @@ scripts/github/      backlog/labels/milestones bootstrap
   Frame link also brings the video into view. The section of the frame on screen is selected
   (`aria-current`, orange). A frame without a section gets the field at the top; the name is a
   field of its own above. One marker per frame. Storage: one row per drawing/note (Ewout, 2026-11-01).
+- "Notitie verwijderen" deletes a whole section: `DELETE /api/videos/:id/frames/:frame/annotations`
+  removes every drawing and remark at that frame in one transaction (404 if nothing there).
 
 ## Notes pinned to a frame (#59)
 

@@ -78,4 +78,14 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await expect(shapes).toHaveCount(1);
   await expect(drawings).toHaveCount(1);
   await expect(moment).toHaveCount(1);
+
+  // The whole note goes at once: remaining drawing, explanation and marker.
+  page.once('dialog', (d) => void d.accept());
+  await moment.getByRole('button', { name: /^(Delete note|Notitie verwijderen)$/ }).click();
+  await expect(moment).toHaveCount(0);
+  await expect(shapes).toHaveCount(0);
+  await expect(page.getByTestId('player-markers')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId('player-frame')).toBeVisible();
+  await expect(moment).toHaveCount(0);
 });

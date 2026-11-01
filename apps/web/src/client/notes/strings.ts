@@ -15,6 +15,9 @@ const en = {
   explanationPlaceholder: 'What do you see here? (empty and save to remove)',
   selected: 'selected',
   otherNotes: 'Also on this frame',
+  deleteMoment: 'Delete note',
+  confirmDeleteMoment: (frame: number) =>
+    `Delete the note at frame ${String(frame)}, with all its drawings and remarks, for everyone?`,
   drawingsHere: 'Drawings on this frame',
   deleteDrawing: (what: string) => `Delete ${what}`,
   drawing: { line: 'Line', arrow: 'Arrow', angle: (deg: number) => `Angle ${String(deg)}°` },
@@ -51,6 +54,9 @@ const nl: typeof en = {
   explanationPlaceholder: 'Wat zie je hier? (leegmaken en opslaan verwijdert hem)',
   selected: 'geselecteerd',
   otherNotes: 'Ook op dit frame',
+  deleteMoment: 'Notitie verwijderen',
+  confirmDeleteMoment: (frame: number) =>
+    `De notitie bij frame ${String(frame)} met alle tekeningen en opmerkingen voor iedereen verwijderen?`,
   drawingsHere: 'Tekeningen op dit frame',
   deleteDrawing: (what: string) => `${what} verwijderen`,
   drawing: { line: 'Lijn', arrow: 'Pijl', angle: (deg: number) => `Hoek ${String(deg)}°` },
