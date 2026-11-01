@@ -23,6 +23,11 @@ describe('loadConfig', () => {
     });
   });
 
+  it('takes API_PORT over PORT (dev tools set PORT for the front end)', () => {
+    expect(loadConfig({ PORT: '5174', API_PORT: '3100' }).port).toBe(3100);
+    expect(loadConfig({ PORT: '5174' }).port).toBe(5174);
+  });
+
   it('normalises BASE_PATH and coerces PORT', () => {
     const config = loadConfig({ BASE_PATH: 'projects/rowlens/', PORT: '8080' });
     expect(config.basePath).toBe('/projects/rowlens');

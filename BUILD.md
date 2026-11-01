@@ -100,6 +100,17 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
   has no H.264) and steps 10 frames exactly.
 
+## Local development (iterate on the laptop)
+
+- `pnpm dev:up`: Postgres (127.0.0.1:5434) and the worker (production image, ffmpeg inside) from
+  `infra/compose/docker-compose.dev.yml`, then the migrations. The worker shares `apps/web/.media`
+  with the web app through a bind mount.
+- `pnpm dev`: `dev:server` (Fastify on API_PORT 3100, `--watch`) and `dev:client` (Vite on DEV_PORT
+  5174, hot reload, proxying `/api` and `/health`). Ports come from `apps/web/.env` and avoid the
+  local trustable.nl stack (5173, 5433). API_PORT wins over PORT in the server config, because the
+  preview pane and Vite set PORT for the front end.
+- `.claude/launch.json` `rowlens` runs `pnpm dev` in the browser pane.
+
 ## Video page layout (BUG-005, Ewout's laptop feedback)
 
 - Stage: `--aspect` (video width/height, set inline from metadata) and `--stage-cap`; width =

@@ -67,9 +67,11 @@ infra/deploy/test/rehearse.sh                    # real compose + Postgres again
 cd worker && uv sync
 uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest
 
-# Local infrastructure (Postgres :5433; video bytes in apps/web/.media)
-docker compose -f infra/compose/docker-compose.dev.yml up -d
-cp apps/web/.env.example apps/web/.env && pnpm db:migrate   # then dev:server uses the database
+# Local development: the whole app on the laptop (iterate here; deploy only on Ewout's request)
+cp apps/web/.env.example apps/web/.env   # once; add a pilot code hash (pilot:code) + SESSION_SECRET
+pnpm dev:up      # Postgres :5434 + worker (ffmpeg) in Docker, migrations; video bytes in apps/web/.media
+pnpm dev         # web with hot reload → http://localhost:5174/projects/rowlens/ (API on :3100)
+pnpm dev:down    # stop Postgres and worker (data stays in the Docker volume)
 pnpm --filter @rowlens/web db:generate                       # new migration from db/schema.ts
 pnpm test                    # unit + db tests (db: Postgres via Testcontainers, needs Docker)
 pnpm --filter @rowlens/web exec vitest run --project unit    # without Docker

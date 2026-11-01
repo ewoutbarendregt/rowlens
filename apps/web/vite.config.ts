@@ -1,11 +1,14 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { normalizeBasePath } from './src/shared/base-path.ts';
 
 // The client is built for one base path (ADR-0003); the server checks build-info.json at startup.
 const basePath = normalizeBasePath(process.env['BASE_PATH'] ?? '/projects/rowlens');
+// Local settings from apps/web/.env (all keys, not only VITE_*); the process environment wins.
+const fileEnv = loadEnv('development', import.meta.dirname, '');
+const env = (key: string) => process.env[key] ?? fileEnv[key];
 // API_PORT, not PORT: dev tooling often sets PORT for Vite itself.
-const apiTarget = `http://127.0.0.1:${process.env['API_PORT'] ?? '3000'}`;
+const apiTarget = `http://127.0.0.1:${env('API_PORT') ?? '3000'}`;
 
 function buildInfo(): Plugin {
   return {
@@ -63,7 +66,9 @@ export default defineConfig({
     sourcemap: 'hidden', // maps for error decoding, not linked from public bundles
   },
   server: {
-    // `pnpm dev:client` + `pnpm dev:server`: Vite serves the SPA, Fastify the API and health.
+    // `pnpm dev` runs both: Vite serves the SPA (hot reload), Fastify the API, health and media.
+    port: Number(env('DEV_PORT') ?? 5173),
+    strictPort: true,
     proxy: {
       [`${basePath}/api`]: apiTarget,
       [`${basePath}/health`]: apiTarget,

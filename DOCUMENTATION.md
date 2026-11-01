@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Local development stack: iterate on the laptop
+
+**Session**: claude/chore/local-dev
+**Changed**: infra/compose/docker-compose.dev.yml (worker, port 5434), apps/web/{vite.config.ts,.env.example}, apps/web/src/server/{config.ts,config.test.ts} (API_PORT wins), package.json (dev:up, dev, dev:down), .claude/launch.json, CLAUDE.md, BUILD.md
+**Summary**: Ewout wants to iterate locally and deploy later. The whole app now runs on the laptop: Postgres and the worker in Docker, the web app with hot reload on :5174 (his RowLens port; trustable.nl's local stack keeps 5173/5433). Verified the full flow locally (code → session → portrait upload → worker 0.9 s → player with notes). Found on the way: the preview pane sets PORT for the process, so the server took the front end's port; API_PORT now wins. The old RowLens preview server on 5174 (demo era) was stopped and replaced.
+**Prompts used**: "ik wil graag itereren op mijn local machine, pas later deployen we weer"; "5147 is toch de rowlens demo".
+
 ## 2026-11-01 — Laptop layout for portrait video; 30 fps for phone clips on a 600 Hz grid
 
 **Session**: claude/fix/laptop-portrait-layout
