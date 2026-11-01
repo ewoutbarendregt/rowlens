@@ -7,6 +7,12 @@ import { useHoldRepeat } from './useHoldRepeat.ts';
 export interface PlayerProps {
   src: string;
   fps: number;
+  /** Shown before the first frame decodes. */
+  poster?: string;
+  /** Frame to show once loaded, e.g. after switching rendition (remount with `key`). */
+  startFrame?: number;
+  /** Every presented frame; lets the page keep the position across a rendition switch. */
+  onFrame?: (frame: number) => void;
   onMeasure?: (m: PlayerMeasurement) => void;
 }
 
@@ -17,9 +23,23 @@ function isTyping(target: EventTarget | null): boolean {
   return target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName);
 }
 
-export function Player({ src, fps, onMeasure }: PlayerProps) {
+export function Player({ src, fps, poster, startFrame, onFrame, onMeasure }: PlayerProps) {
   const t = useMemo(() => playerStrings(), []);
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
+
+  const start = useRef(startFrame);
+  useEffect(() => {
+    if (p.ready && start.current !== undefined && start.current > 0) {
+      p.seekToFrame(start.current);
+      start.current = undefined;
+    }
+  }, [p.ready, p]);
+
+  const frameCallback = useRef(onFrame);
+  frameCallback.current = onFrame;
+  useEffect(() => {
+    frameCallback.current?.(p.frame);
+  }, [p.frame]);
 
   // Keyboard shortcuts (ADR-0007). Buttons keep their own Space/Enter; the scrub slider keeps arrows.
   // Subscribed once; reads the latest player state through a ref (it changes every frame).
@@ -125,6 +145,7 @@ export function Player({ src, fps, onMeasure }: PlayerProps) {
         <video
           ref={p.videoRef}
           src={src}
+          poster={poster}
           playsInline
           muted
           preload="auto"

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Player on the club's own videos (#49, #52)
+
+**Session**: claude/feat/49-player-own-videos
+**Changed**: apps/web/src/server/api/videos.ts (+ unit and db tests), src/server/app.ts, src/client/player/Player.tsx (poster, startFrame, onFrame), src/client/sessions/{VideoPage.tsx,SessionPage.tsx,strings.ts}, src/client/{App.tsx,styles.css}, apps/web/{vitest.config.ts,playwright.config.ts}, e2e/upload.spec.ts, api/uploads.db.test.ts, .github/workflows/ci.yml, docs/adr/0007, BUILD.md, TEST.md
+**Summary**: PR 5 of the upload plan. Renditions and posters streamed with byte ranges behind the guard and RLS; a video page with the frame-accurate player, 540p/1080p switch at the same frame, posters in the session list. Edge E2E now runs Chrome to play H.264 and checks exact steps on the worker's output. Fixed along the way: the player overflowed phone screens (also on the demo page); db test files now run one at a time (the media-cap test raced with files adding videos).
+**Prompts used**: "Yes, keep going".
+
 ## 2026-11-01 — Worker: job queue, probe and transcode (#47, #33, #48)
 
 **Session**: claude/feat/47-worker-transcode

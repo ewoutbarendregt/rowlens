@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
+import { appUrl } from '../env.ts';
 import {
   formatBytes,
   formatDate,
@@ -102,8 +103,28 @@ export function SessionPage() {
             v.status === 'uploading' && !inQueue.has(`${v.filename}|${String(v.sizeBytes)}`);
           return (
             <li key={v.id} className="list__item video" data-testid="video">
+              {v.status === 'ready' && (
+                <Link
+                  to={`/videos/${v.id}`}
+                  className="video__thumb"
+                  aria-label={t.watch(v.filename)}
+                >
+                  <img
+                    src={appUrl(`/api/videos/${v.id}/media/poster`)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </Link>
+              )}
               <div>
-                <strong>{v.filename}</strong>
+                {v.status === 'ready' ? (
+                  <Link to={`/videos/${v.id}`} className="video__name">
+                    <strong>{v.filename}</strong>
+                  </Link>
+                ) : (
+                  <strong>{v.filename}</strong>
+                )}
                 <span className="muted">
                   {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
                 </span>

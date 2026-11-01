@@ -48,6 +48,11 @@ const en = {
     failed: 'Upload failed. Check your connection; it continues where it stopped.',
   },
   leaveWarning: 'Uploads are still running.',
+  quality: 'Quality',
+  qualityHint: '540p starts faster on a slow connection; 1080p shows more detail.',
+  watch: (name: string) => `Watch ${name}`,
+  backToSession: (title: string) => `Back to ${title}`,
+  notReady: 'This video is not ready to watch yet.',
   loadFailed: 'Could not load this page. Check your connection and reload.',
 };
 
@@ -101,6 +106,11 @@ const nl: typeof en = {
     failed: 'Uploaden mislukt. Controleer je verbinding; hij gaat verder waar hij stopte.',
   },
   leaveWarning: 'Er lopen nog uploads.',
+  quality: 'Kwaliteit',
+  qualityHint: '540p start sneller bij een trage verbinding; 1080p laat meer detail zien.',
+  watch: (name: string) => `${name} bekijken`,
+  backToSession: (title: string) => `Terug naar ${title}`,
+  notReady: 'Deze video is nog niet klaar om te bekijken.',
   loadFailed: 'Deze pagina kon niet laden. Controleer je verbinding en herlaad.',
 };
 

@@ -86,6 +86,19 @@ scripts/github/      backlog/labels/milestones bootstrap
   arguments (CFR, GOP, closed GOP, no metadata, renditions per size), keys, backoff; vitest for the
   queue contract; the edge E2E uploads a clip and waits for "Ready" from the real worker.
 
+## Player on the club's own videos (#49, #52)
+
+- `GET /api/videos/:id`: facts for the player (fps as num/den, frame count, size, renditions by name
+  and size; never storage keys). `GET /api/videos/:id/media/{play-1080|play-540|poster}`: after the
+  guard and an RLS read of a `ready` video, streamed from the media dir with single byte ranges
+  (206/416; several ranges → the whole file), `private, max-age=3600`. The key in the renditions
+  JSON must lie under the video's own folder, or it's a 404.
+- `/videos/:id` page: `Player` with the poster; play-540 first on narrow screens or slow/saving
+  connections, else play-1080; a 540p/1080p switch remounts the player at the same frame
+  (`startFrame` / `onFrame` props). Session list: poster thumbnails link to the player.
+- Edge E2E plays the H.264 rendition in Google Chrome (`channel: 'chrome'`; open-source Chromium
+  has no H.264) and steps 10 frames exactly.
+
 ## Pilot access code (#84)
 
 - Until login (#28), one shared code opens the pilot club. `PILOT_ACCESS_CODE_HASH` (scrypt, format

@@ -91,6 +91,14 @@ What the spike changed in the design:
   2160×3840 @ 60, renditions 1080×1920 and 540×960 at 60/1 with all 180 frames, GPS gone.
   Keyframes every 8 frames at 30 fps on the E2E clip. Server timing to be measured after deploy.
 
+### Delivery as implemented (#49, 2026-11-01)
+
+The app streams renditions itself (no presigned URLs: media is a local directory), after the pilot
+guard and an RLS read; byte ranges for seeking, `Cache-Control: private, max-age=3600`. play-540 is
+the default on narrow screens and on `saveData`/2g/3g connections, play-1080 otherwise, switchable
+at the same frame. Checked on the worker's output: the frame number burned into the picture equals
+the player's readout after stepping (desktop Chrome E2E and a phone-sized Chrome run).
+
 ## Consequences
 
 - One 2-min 4K60 transcode is CPU-heavy (several minutes on 2 vCPU); acceptable with background processing

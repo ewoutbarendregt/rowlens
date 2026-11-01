@@ -9,6 +9,7 @@ import { stripBasePath } from '../shared/base-path.ts';
 import { clubRoutes } from './api/club.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
+import { videoRoutes } from './api/videos.ts';
 import type { AppConfig } from './config.ts';
 import type { Database } from './db/client.ts';
 import { healthRoutes, type ReadinessCheck } from './health.ts';
@@ -133,6 +134,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
     const clubOpts = { db, guard: gate.guard, media, limits: config.media, basePath: base };
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
+    await app.register(videoRoutes, { prefix: base, ...clubOpts });
   }
 
   const indexHtml = clientDir === null ? null : await loadClient(clientDir, base);

@@ -94,8 +94,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Install Playwright browser
-        run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
+      - name: Install Playwright browsers (Chrome plays the worker's H.264)
+        run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium chrome
       - name: Test clip for the upload → processing E2E
         run: |
           sudo apt-get update -qq

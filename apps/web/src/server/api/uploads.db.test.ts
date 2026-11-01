@@ -267,9 +267,7 @@ describe('tus upload', () => {
   });
 
   it('enforces the global media cap, counting reserved bytes of unfinished uploads', async () => {
-    const [used] = await asOwner<{ bytes: string }>(
-      `select coalesce(sum(size_bytes), 0) as bytes from video where status <> 'rejected'`,
-    );
+    const [used] = await asOwner<{ bytes: string }>('select rowlens_media_bytes() as bytes');
     const capped = await start({ MEDIA_CAP_BYTES: String(Number(used?.bytes) + 100) });
     try {
       const c = await signIn(capped);
