@@ -44,7 +44,6 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
 
   await page.goto(videoUrl);
   await expect(page.getByTestId('player-frame')).toHaveText('0');
-  await page.getByLabel(/^(Your name|Je naam)$/).fill('E2E coach');
   // Steps need the metadata, and the keys must reach the player, not the name field.
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
   await page.locator('h1').click();

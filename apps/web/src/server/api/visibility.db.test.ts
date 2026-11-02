@@ -268,6 +268,31 @@ describe('what a rower sees (#40)', () => {
     expect((await send('DELETE', `/api/annotations/${ownId}`, as.a)).statusCode).toBe(204);
   });
 
+  it('names a note after the account, never after what the client sends (#106)', async () => {
+    // A is linked to the roster entry "A <tag>": that name, whatever the request says.
+    const linked = await send('POST', `/api/videos/${videoId}/annotations`, as.a, {
+      kind: 'note',
+      frame: 40,
+      body: 'Linked',
+      authorName: 'Someone else',
+    });
+    expect(linked.json()).toMatchObject({ authorName: `A ${tag}` });
+    // The coach has no roster entry: the account's own name, and no name field is needed.
+    const unlinked = await send('POST', `/api/videos/${videoId}/annotations`, as.coach, {
+      kind: 'note',
+      frame: 41,
+      body: 'Unlinked',
+    });
+    expect(unlinked.statusCode).toBe(201);
+    expect(unlinked.json()).toMatchObject({ authorName: `coach ${tag}` });
+    // The page shows the same name before anything is written ("as …").
+    const status = await app.inject({ url: `${BASE}/api/auth/status`, headers: { cookie: as.a } });
+    expect(status.json()).toMatchObject({ user: { authorName: `A ${tag}` } });
+    for (const frame of [40, 41]) {
+      await send('DELETE', `/api/videos/${videoId}/frames/${String(frame)}/annotations`, as.coach);
+    }
+  });
+
   it('a rower sees the sessions they create and can keep its lineup', async () => {
     const created = await send('POST', '/api/sessions', as.b, {
       title: `B's own ${tag}`,

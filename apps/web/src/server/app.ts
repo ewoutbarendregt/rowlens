@@ -86,6 +86,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
 
   app.decorateRequest('tenant', null);
   app.decorateRequest('role', null);
+  app.decorateRequest('accountName', null);
 
   await app.register(helmet, {
     // HSTS is set once, by Caddy, for the whole trustable.nl origin.

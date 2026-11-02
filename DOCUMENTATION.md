@@ -2,6 +2,20 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Merge language switch and retarget video notes
+
+**Session**: codex/feat/106-notes-in-video
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: PR #124 was merged into `main` as `fd8b19c` without deleting its branch, then PR #125 was retargeted from `claude/feat/ui-language` to `main`; it remained conflict-free and mergeable. No deployment was performed.
+**Prompts used**: "ok merge 124 en daarna retarget 125"
+
+## 2026-11-02 — Notes and drawings in the video; account is the author (#106)
+
+**Session**: codex/feat/106-notes-in-video
+**Changed**: apps/web/src/client/{auth/useAuth.ts,drawing/DrawTools.tsx,notes/{NotesPanel.tsx,VideoNotesOverlay.tsx,overlay.ts,overlay.test.ts,strings.ts},sessions/VideoPage.tsx,styles.css}, apps/web/src/server/{app.ts,auth/gate.ts,api/{annotations.ts,annotations.db.test.ts,author.ts,visibility.db.test.ts}}, apps/web/e2e/{assign,drawing,notes,share}.spec.ts, docs/HANDOFF.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md
+**Summary**: Notes, explanations and drawings now appear together inside the video for a configurable 0.5/1/2-second hold, with a remembered eye/`N` toggle, a shared rower filter and automatic placement away from drawing strokes. The free author field is gone: the server uses the linked roster name or signed-in account and ignores spoofed client names; PR #125 is stacked on #124 and verified with 385 web tests, 44 worker tests, 38 local and 21 edge E2E checks plus WebKit phone/fullscreen and 1000×540 measurements.
+**Prompts used**: "kun je afmaken wat claude code gestart was?"
+
 ## 2026-11-02 — Dutch by default, language switch (part of #34)
 
 **Session**: claude/feat/ui-language

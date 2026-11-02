@@ -1,4 +1,5 @@
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { accountAuthor } from '../api/author.ts';
 import { DEFAULT_LANGUAGE, LANGUAGES } from '../../shared/languages.ts';
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
@@ -17,6 +18,8 @@ declare module 'fastify' {
     tenant: TenantContext | null;
     /** The member's role in the club; null on the pilot-code path, which has no user. */
     role: Role | null;
+    /** The signed-in account's own name; null on the pilot-code path. */
+    accountName: string | null;
   }
 }
 
@@ -213,6 +216,10 @@ export function createAuthGate(opts: {
           sql`select count(*)::int as n from rower where user_id = ${session.userId}`,
         ),
       );
+      // The name notes get when this person writes them ("as Anna de Vries").
+      const authorName = await withTenant(opts.db, session, (tx) =>
+        accountAuthor(tx, session.userId, session.displayName),
+      );
       return {
         enabled: true,
         access: true,
@@ -222,6 +229,7 @@ export function createAuthGate(opts: {
           locale: session.locale,
           role: session.role,
           linked: (linked.rows[0]?.n ?? 0) > 0,
+          authorName,
         },
       };
     });
@@ -377,6 +385,7 @@ export function createAuthGate(opts: {
     if (!validCsrf(req, session)) return reply.code(403).send({ error: 'invalid_csrf' });
     req.tenant = { clubId: session.clubId, userId: session.userId, role: session.role };
     req.role = session.role;
+    req.accountName = session.displayName;
     setSessionCookies(
       reply,
       readCookie(req, sessionCookie) ?? '',
