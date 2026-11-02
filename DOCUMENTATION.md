@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Deploy sha-5ee4d69 with e-mail login
+
+**Session**: claude/docs/102-coach-rower-backlog
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; server: `/opt/rowlens/bin/rowlens-deploy`, `/opt/rowlens/.env`
+**Summary**: With Ewout's approval: reinstalled the deploy script (#98), added the e-mail login settings to `/opt/rowlens/.env` (addresses typed by Ewout in his terminal, the Resend key copied on the server from AudioScribe's env file without printing it, pepper generated on the server; backup `.env.bak-20261102`) and deployed `sha-5ee4d69` (run 41405215472). Migrations 0005–0006 applied; RowLens ready and reporting `sha-5ee4d69`, auth enabled; trustable.nl, api.trustable.nl and AudioScribe answer 200; disk 48 %. A real login e-mail is not yet verified. Closed #28, #53, #54, #60 after checking their criteria against `main`; commented what is left on #22, #29, #30, #33, #39, #59.
+**Prompts used**: "Gebruik de api key voor resend die we ook gebruiken voor audioscribe"; "Issues die al gemerged en afgehandeld zijn kun je natuurlijk sluiten"; "Ja, uitvoeren".
+
 ## 2026-11-02 — Backlog: coach & rower focus
 
 **Session**: claude/docs/102-coach-rower-backlog
