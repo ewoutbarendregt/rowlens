@@ -57,6 +57,13 @@
       "when": 1793625715334,
       "tag": "0007_rower_roster",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793626325450,
+      "tag": "0008_session_lineup",
+      "breakpoints": true
     }
   ]
 }

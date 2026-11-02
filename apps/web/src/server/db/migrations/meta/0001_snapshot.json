@@ -41,9 +41,7 @@
       "uniqueConstraints": {
         "club_slug_unique": {
           "name": "club_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "nullsNotDistinct": false
         }
       },
@@ -52,9 +50,7 @@
           "name": "club_read_own",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"club\".\"id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
       },

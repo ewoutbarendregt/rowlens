@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Session lineup: who sat in which seat (#103)
+
+**Session**: claude/feat/103-session-lineup (stacked on claude/feat/104-rower-roster-2)
+**Changed**: apps/web/src/shared/boats.ts (+ test), apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0008_session_lineup.sql (+ meta), apps/web/src/server/api/{lineups.ts,lineups.db.test.ts,rowers.ts,sessions.ts,videos.ts}, apps/web/src/server/app.ts, apps/web/src/client/lineup/*, apps/web/src/client/sessions/{SessionPage,SessionsPage,VideoPage}.tsx, apps/web/src/client/rowers/strings.ts, apps/web/src/client/styles.css, apps/web/e2e/lineup.spec.ts, BUILD.md, FEATURES.md
+**Summary**: A session now has a boat class and a lineup: per seat a rower from the roster or one added on the spot, copy from an earlier session, saved as a whole. Shown on the session page, the session list and under the video title. Fixed a phone overflow of the picker's × button (measured 380 px page on a 375 px screen). Not deployed.
+**Prompts used**: "Ja, plan #104 + #103".
+
 ## 2026-11-02 — Club roster: rowers without an account (#104)
 
 **Session**: claude/feat/104-rower-roster

@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-011] A long word in a session title widened the page on a phone — low
+**Location**: apps/web/src/client/styles.css (`.page h1`, `.lineup__boat select`)
+**Status**: fixed (#116)
+**Found**: 2026-11-02, CI E2E on PR #116 (mobile Chromium)
+**Description**: The session heading didn't wrap long words, and the lineup's "copy from an earlier session" select grew to its longest option. With the E2E's long titles a 375 px phone page became 490–526 px wide, so a click on "Upload" landed beside the button and the upload test timed out.
+**Fix**: `overflow-wrap: anywhere` on page headings; the lineup selects are capped to their grid track. The lineup E2E now asserts no horizontal overflow on a phone.
+
 ### [BUG-010] Login e-mails never left the server: outbound port 465 is blocked — high
 **Location**: apps/web/src/server/auth/mail.ts (`smtpDelivery`), `/opt/rowlens/.env` (`SMTP_PORT`)
 **Status**: fixed (#114, deployed `sha-6fbd5a6` with `SMTP_PORT=587`; first real login verified 2026-11-02)

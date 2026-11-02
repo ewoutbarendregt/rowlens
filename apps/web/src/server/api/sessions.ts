@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { videoKey } from '../media/store.ts';
+import { lineupOf } from './lineups.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const newSession = z.object({
@@ -28,6 +29,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           title: rowingSession.title,
           date: rowingSession.sessionDate,
           createdAt: rowingSession.createdAt,
+          boatType: rowingSession.boatType,
           videoCount: count(video.id),
         })
         .from(rowingSession)
@@ -64,10 +66,12 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           title: rowingSession.title,
           date: rowingSession.sessionDate,
           createdAt: rowingSession.createdAt,
+          boatType: rowingSession.boatType,
         })
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
       if (session === undefined) return null;
+      const lineup = await lineupOf(tx, session.id);
       const videos = await tx
         .select({
           id: video.id,
@@ -90,7 +94,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         .from(video)
         .where(eq(video.sessionId, session.id))
         .orderBy(video.createdAt);
-      return { ...session, videos };
+      return { ...session, lineup, videos };
     });
     return result ?? notFound(reply);
   });

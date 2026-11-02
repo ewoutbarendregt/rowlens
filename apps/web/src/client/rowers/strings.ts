@@ -40,7 +40,7 @@ const en = {
   pick: 'Choose a rower',
   clear: (name: string) => `Remove ${name}`,
   addNamed: (name: string) => `Add “${name}”`,
-  typeToAdd: 'Type a name to search or add',
+  typeToAdd: 'Search or add a name',
   inUse: 'already in this lineup',
 };
 
@@ -83,7 +83,7 @@ const nl: typeof en = {
   pick: 'Kies een roeier',
   clear: (name: string) => `${name} weghalen`,
   addNamed: (name: string) => `“${name}” toevoegen`,
-  typeToAdd: 'Typ een naam om te zoeken of toe te voegen',
+  typeToAdd: 'Zoek of voeg toe',
   inUse: 'staat al in deze opstelling',
 };
 

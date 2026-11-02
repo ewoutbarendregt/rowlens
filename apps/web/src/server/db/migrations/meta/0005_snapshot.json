@@ -103,14 +103,8 @@
           "name": "annotation_video_fk",
           "tableFrom": "annotation",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -122,9 +116,7 @@
           "name": "annotation_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -183,9 +175,7 @@
         "club_slug_unique": {
           "name": "club_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {
@@ -193,9 +183,7 @@
           "name": "club_read_own",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"club\".\"id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
       },
@@ -327,12 +315,8 @@
           "name": "job_club_id_club_id_fk",
           "tableFrom": "job",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -342,9 +326,7 @@
         "job_idempotency_key_unique": {
           "name": "job_idempotency_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "idempotency_key"
-          ]
+          "columns": ["idempotency_key"]
         }
       },
       "policies": {
@@ -352,9 +334,7 @@
           "name": "job_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -427,12 +407,8 @@
           "name": "rowing_session_club_id_club_id_fk",
           "tableFrom": "rowing_session",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -442,10 +418,7 @@
         "rowing_session_club_id_id_unique": {
           "name": "rowing_session_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         }
       },
       "policies": {
@@ -453,9 +426,7 @@
           "name": "rowing_session_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -654,14 +625,8 @@
           "name": "video_session_fk",
           "tableFrom": "video",
           "tableTo": "rowing_session",
-          "columnsFrom": [
-            "club_id",
-            "session_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "session_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -671,18 +636,12 @@
         "video_club_id_id_unique": {
           "name": "video_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         },
         "video_session_seq_unique": {
           "name": "video_session_seq_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_id",
-            "seq"
-          ]
+          "columns": ["session_id", "seq"]
         }
       },
       "policies": {
@@ -690,9 +649,7 @@
           "name": "video_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -705,43 +662,22 @@
     "public.annotation_kind": {
       "name": "annotation_kind",
       "schema": "public",
-      "values": [
-        "note",
-        "line",
-        "arrow",
-        "angle"
-      ]
+      "values": ["note", "line", "arrow", "angle"]
     },
     "public.job_status": {
       "name": "job_status",
       "schema": "public",
-      "values": [
-        "queued",
-        "running",
-        "succeeded",
-        "dead"
-      ]
+      "values": ["queued", "running", "succeeded", "dead"]
     },
     "public.video_perspective": {
       "name": "video_perspective",
       "schema": "public",
-      "values": [
-        "boat",
-        "bank",
-        "drone"
-      ]
+      "values": ["boat", "bank", "drone"]
     },
     "public.video_status": {
       "name": "video_status",
       "schema": "public",
-      "values": [
-        "uploading",
-        "uploaded",
-        "processing",
-        "ready",
-        "failed",
-        "rejected"
-      ]
+      "values": ["uploading", "uploaded", "processing", "ready", "failed", "rejected"]
     }
   },
   "schemas": {},

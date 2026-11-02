@@ -9,6 +9,7 @@ interface SessionSummary {
   title: string;
   date: string;
   createdAt: string;
+  boatType: string | null;
   videoCount: number;
 }
 
@@ -96,7 +97,10 @@ export function SessionsPage() {
           {sessions.map((s) => (
             <li key={s.id}>
               <Link className="list__item" to={`/sessions/${s.id}`}>
-                <strong>{s.title}</strong>
+                <strong>
+                  {s.title}
+                  {s.boatType !== null && <span className="muted"> · {s.boatType}</span>}
+                </strong>
                 <span className="muted">
                   {formatDate(s.date)} · {t.createdAt(formatCreatedTime(s.createdAt))} ·{' '}
                   {t.videos(s.videoCount)}

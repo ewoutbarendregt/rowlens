@@ -4,12 +4,14 @@ import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
 import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
 import { DrawTools } from '../drawing/DrawTools.tsx';
+import { LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
 import { rememberedName, rememberName } from '../notes/name.ts';
 import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { videoDisplayName } from './displayName.ts';
+import type { BoatClass } from '../../shared/boats.ts';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
 
 interface VideoDetail {
@@ -27,6 +29,8 @@ interface VideoDetail {
   height: number | null;
   durationMs: number | null;
   renditions: { name: string; width: number; height: number }[];
+  boatType: BoatClass | null;
+  lineup: LineupSeat[];
 }
 
 /** Narrow screens and saving/slow connections start on 540p (player spike, ADR-0007). */
@@ -167,6 +171,7 @@ export function VideoPage() {
           {t.perspectives[video.perspective]}
           {video.status === 'ready' && <> · {formatVideoFacts(video)}</>} · {video.filename}
         </p>
+        <LineupSummary boatType={video.boatType} lineup={video.lineup} />
       </header>
 
       {!ready && <p role="status">{t.notReady}</p>}

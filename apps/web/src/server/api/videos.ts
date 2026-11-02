@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { videoKey } from '../media/store.ts';
+import { lineupOf } from './lineups.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
@@ -36,6 +37,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
           id: video.id,
           sessionId: video.sessionId,
           sessionTitle: rowingSession.title,
+          boatType: rowingSession.boatType,
           filename: video.originalFilename,
           seq: video.seq,
           recordedAt: video.recordedAt,
@@ -59,15 +61,17 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
   app.get('/api/videos/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
-    const row = await readyVideo(tenantOf(req).clubId, params.data.id);
+    const tenant = tenantOf(req);
+    const row = await readyVideo(tenant.clubId, params.data.id);
     if (row === undefined) return notFound(reply);
+    const lineup = await withTenant(db, tenant, (tx) => lineupOf(tx, row.sessionId));
     const renditions = ((row.renditions ?? []) as Rendition[]).map(({ name, width, height }) => ({
       name,
       width,
       height,
     }));
     void reply.header('cache-control', 'private, no-store');
-    return { ...row, renditions };
+    return { ...row, renditions, lineup };
   });
 
   app.get('/api/videos/:id/media/:name', { preHandler: guard }, async (req, reply) => {
