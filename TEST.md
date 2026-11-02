@@ -77,6 +77,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 | 2026-11-01 | claude/feat/31-database (CI fix) | `pnpm --filter @rowlens/web e2e` (server with Testcontainers Postgres) | 18 passed, 12 edge-only skipped |
 | 2026-11-01 | codex/feat/delete-session | `pnpm test`; format/lint/typecheck/build; `playwright test e2e/upload.spec.ts`; manual local UI at laptop + 390×844 | 191 passed; checks/build passed; 4 passed; deletion and creation timestamp checked |
 | 2026-11-01 | codex/feat/28-30-email-auth | format/lint/typecheck; web + Postgres integration; worker checks; production build; local + edge desktop/mobile Playwright; deploy suite + rehearsal; local stack + browser | checks passed; 207 web + 44 worker + 30 local E2E + 15 edge E2E passed (8 edge-only skipped locally); deploy 77 + rehearsal passed; OTP login checked locally |
+| 2026-11-02 | claude/feat/ui-classical | format/lint/typecheck; `pnpm test`; local E2E (player-demo build); edge E2E; local E2E on iPhone 13 WebKit (scratch config adding the device); video sizes on the local stack (375×812, 1000×540, 1440×900, landscape + portrait) | 378 passed (incl. 30 contrast checks, month grouping, crew text); 38 passed; 21 passed (8 skipped); 19 passed (10 edge-only skipped); landscape 343×193 / 427×240 / 985×554 (≥ baseline), no horizontal scroll |
 
 ## Playwright prompts
 

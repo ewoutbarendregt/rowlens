@@ -99,3 +99,45 @@ export function applyFilters<T extends SessionRow>(rows: readonly T[], f: Filter
   };
   return kept.sort(order[f.sort]);
 }
+
+export interface MonthGroup<T> {
+  /** `YYYY-MM`, or null when the list isn't sorted by date (one flat table). */
+  month: string | null;
+  rows: T[];
+}
+
+/** Consecutive rows of the same month, in the list's own order (mockup 1d: a table per month). */
+export function groupByMonth<T extends SessionRow>(
+  rows: readonly T[],
+  sort: Sort,
+): MonthGroup<T>[] {
+  if (sort !== 'date-desc' && sort !== 'date-asc')
+    return rows.length === 0 ? [] : [{ month: null, rows: [...rows] }];
+  const groups: MonthGroup<T>[] = [];
+  for (const row of rows) {
+    const month = row.date.slice(0, 7);
+    const last = groups.at(-1);
+    if (last?.month === month) last.rows.push(row);
+    else groups.push({ month, rows: [row] });
+  }
+  return groups;
+}
+
+/**
+ * The crew in one line, bow to stroke by first name, the cox after a dot: "Anna, Tom · cox Lieke".
+ * Null when there is no lineup.
+ */
+export function crewText(
+  lineup: readonly { seat: number; displayName: string }[],
+  coxLabel: string,
+): string | null {
+  if (lineup.length === 0) return null;
+  const first = (name: string) => name.trim().split(/\s+/)[0] ?? name;
+  const rowers = lineup.filter((s) => s.seat !== 0).sort((a, b) => a.seat - b.seat);
+  const cox = lineup.find((s) => s.seat === 0);
+  const names = rowers.map((s) => first(s.displayName)).join(', ');
+  if (cox === undefined) return names;
+  return names === ''
+    ? `${coxLabel} ${first(cox.displayName)}`
+    : `${names} · ${coxLabel} ${first(cox.displayName)}`;
+}

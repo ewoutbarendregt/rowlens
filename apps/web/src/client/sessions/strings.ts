@@ -85,6 +85,11 @@ const en = {
   showing: (shown: number, total: number) =>
     shown === total ? `${String(total)} sessions` : `${String(shown)} of ${String(total)} sessions`,
   notesForMe: (n: number) => (n === 1 ? '1 note for you' : `${String(n)} notes for you`),
+  withNotesForYou: (n: number) => `${String(n)} with notes for you`,
+  filtersInLink: 'Filters stay in the link, so a shared URL shows the same list.',
+  columns: { session: 'Session', crew: 'Crew', videos: 'Videos', forYou: 'For you' },
+  noLineup: 'No lineup yet',
+  cox: 'cox',
   unlinked:
     'You see the sessions you made or rowed in, but your account isn’t linked to your name in the roster yet. Ask a coach or the admin to add your e-mail address to your name on the Rowers page.',
 };
@@ -179,6 +184,11 @@ const nl: typeof en = {
       ? `${String(total)} trainingen`
       : `${String(shown)} van ${String(total)} trainingen`,
   notesForMe: (n: number) => (n === 1 ? '1 notitie voor jou' : `${String(n)} notities voor jou`),
+  withNotesForYou: (n: number) => `${String(n)} met notities voor jou`,
+  filtersInLink: 'Filters blijven in de link, dus een gedeelde URL toont dezelfde lijst.',
+  columns: { session: 'Training', crew: 'Ploeg', videos: 'Video’s', forYou: 'Voor jou' },
+  noLineup: 'Nog geen opstelling',
+  cox: 'stuur',
   unlinked:
     'Je ziet de trainingen die je aanmaakte of waarin je roeide, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag een coach of de beheerder je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
 };
@@ -203,6 +213,31 @@ export function formatDate(iso: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${iso}T00:00:00Z`));
+}
+
+/** "Sun" and "1 Nov" for the date column; the year too when the list isn't grouped by month. */
+export function formatDayParts(iso: string, withYear = false): { weekday: string; day: string } {
+  const locale = lang() === 'nl' ? 'nl-NL' : 'en-GB';
+  const date = new Date(`${iso}T00:00:00Z`);
+  return {
+    weekday: new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(date),
+    day: new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: withYear ? 'numeric' : undefined,
+      timeZone: 'UTC',
+    }).format(date),
+  };
+}
+
+/** A month heading from `YYYY-MM`: "November 2026", in Dutch with a capital too ("November 2026"). */
+export function formatMonth(month: string): string {
+  const text = new Intl.DateTimeFormat(lang() === 'nl' ? 'nl-NL' : 'en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${month}-01T00:00:00Z`));
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 /** The database creation timestamp in the viewer's local time; tests can pin a time zone. */

@@ -6,6 +6,7 @@ import { authStrings } from '../auth/strings.ts';
 import type { AuthState } from '../auth/useAuth.ts';
 import { rowerStrings } from '../rowers/strings.ts';
 import { sessionStrings } from '../sessions/strings.ts';
+import { Icon } from './icons.tsx';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
 
 /**
@@ -49,6 +50,7 @@ export function AppHeader({ state }: { state: Extract<AuthState, { kind: 'open' 
         <details className="account" data-testid="account-menu">
           <summary aria-label={t.account}>
             <span className="account__email">{state.user.email}</span>
+            <Icon name="chevronDown" size={14} />
           </summary>
           <div className="account__panel">
             <p className="muted">

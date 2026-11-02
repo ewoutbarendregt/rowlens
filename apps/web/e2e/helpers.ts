@@ -8,7 +8,8 @@ export async function signIn(page: Page, email: string = authEmail): Promise<voi
   await page.getByRole('button', { name: /^(Send code|Stuur code)$/ }).click();
   await page.getByLabel(/^(Login code|Inlogcode)$/).fill(authCode);
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click();
-  await expect(page.getByTestId('club-name')).toBeVisible();
+  // The club name is hidden on a phone; the account menu is always there.
+  await expect(page.getByTestId('account-menu')).toBeVisible();
 }
 
 /** Opens the account menu in the header and signs out (#108). */

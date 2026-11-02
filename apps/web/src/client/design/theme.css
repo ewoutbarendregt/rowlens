@@ -1,0 +1,144 @@
+/* RowLens on top of the Classical design system (ADR-0014).
+   classical.css (imported first) defines the system's tokens and components for a light ground.
+   This file adds the semantic names RowLens's stylesheet binds to, and the dark and high-contrast
+   modes Classical doesn't have, derived from its ramps. Keep colours as hex here:
+   src/server/ui-theme-contrast.test.ts reads them and checks every text pair against WCAG AA. */
+
+:root {
+  /* Surfaces: Classical draws with hairlines, not fills. */
+  --color-surface-canvas: var(--color-bg);
+  --color-surface-raised: var(--color-bg);
+  --color-surface-overlay: var(--color-bg);
+  --color-surface-sunken: var(--color-surface);
+  --color-surface-hover: color-mix(in srgb, var(--color-text) 7%, transparent);
+  --color-surface-selected: color-mix(in srgb, var(--color-accent) 10%, transparent);
+
+  /* Text */
+  --color-text-primary: var(--color-text);
+  --color-text-secondary: #444141;
+  --color-text-muted: #605d5d;
+  /* The accent passes 3:1 for strokes and large text; running text in the accent takes 700. */
+  --color-text-brand: #7d5411;
+  --color-text-on-brand: var(--color-bg);
+
+  /* Accent as stroke; the few fills are light tints. */
+  --color-fill-brand: var(--color-accent);
+  --color-fill-brand-hover: #a06f24;
+  --color-fill-brand-subtle: #fff3e4;
+  --color-fill-danger: #8f2b22;
+  --color-fill-danger-hover: #6f1f18;
+
+  /* Rules and edges */
+  --color-border-subtle: var(--color-divider);
+  --color-border-default: var(--color-divider);
+  --color-border-control: color-mix(in srgb, var(--color-text) 40%, transparent);
+  --color-border-focus: var(--color-accent);
+  --color-border-indicator: var(--color-accent);
+
+  /* Status: Classical is mono; green and red are added muted, to sit with the gold. */
+  --color-status-success-fill: #e3ece2;
+  --color-status-success-text: #2e5e34;
+  --color-status-warning-fill: #fff3e4;
+  --color-status-warning-text: #5a3b0a;
+  --color-status-danger-fill: #f6e2df;
+  --color-status-danger-text: #8f2b22;
+  --color-status-neutral-fill: #eae7e7;
+  --color-status-neutral-text: #444141;
+  --color-chart-3: #c28d41;
+
+  /* Type: Lora everywhere but headings; figures tabular where they stand as numbers. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-body);
+  --text-micro: 0.6875rem;
+  --text-small: 0.75rem;
+  --text-body: 0.875rem;
+  --text-title: 1rem;
+  --text-section: 1.5625rem;
+  --text-page: 2.625rem;
+  --leading-tight: 1.12;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --tracking-tight: -0.015em;
+  --tracking-label: 0.08em;
+  --tracking-eyebrow: 0.1em;
+  --weight-regular: 400;
+  /* Classical caps interface weight at semibold. */
+  --weight-bold: 600;
+
+  /* Spacing (Classical has 1, 2, 3, 4, 6, 8 at density 1.15) and radii */
+  --space-5: 23px;
+  --space-7: 46px;
+  --radius-xs: 2px;
+  --radius-full: 9999px;
+  --border-emphasis: 2px;
+
+  /* Elevation is a whisper; controls carry none. */
+  --elevation-raised: none;
+  --elevation-overlay: var(--shadow-md);
+  --elevation-nav: none;
+  --elevation-control: none;
+  --elevation-control-hover: none;
+  --elevation-quiet: none;
+  --elevation-quiet-hover: none;
+
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --opacity-disabled: 0.45;
+  --duration-fast: 120ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --z-sticky: 10;
+  --z-dropdown: 30;
+}
+
+/* Dark: the deep warm near-black Classical uses for its colophon pages, paper-coloured type, the
+   gold lifted to 400 so strokes and links still read. */
+[data-theme='dark'] {
+  --color-bg: #1c1b1a;
+  --color-surface: #262423;
+  --color-text: #ece8e3;
+  --color-accent: #e1ad66;
+  --color-divider: color-mix(in srgb, #ece8e3 18%, transparent);
+  --color-text-secondary: #d3cec8;
+  --color-text-muted: #b4afa9;
+  --color-text-brand: #e1ad66;
+  --color-fill-brand-hover: #facb8d;
+  --color-fill-brand-subtle: #3a2f1c;
+  --color-fill-danger: #f2a99f;
+  --color-fill-danger-hover: #f7c3bb;
+  --color-status-success-fill: #23302a;
+  --color-status-success-text: #a9d3a9;
+  --color-status-warning-fill: #3a2f1c;
+  --color-status-warning-text: #f5cd96;
+  --color-status-danger-fill: #3b2422;
+  --color-status-danger-text: #f2a99f;
+  --color-status-neutral-fill: #2d2b2b;
+  --color-status-neutral-text: #d3cec8;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 3px 10px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 55%);
+}
+
+/* High contrast: black on white, hairlines become real lines, the gold goes to its darkest steps. */
+[data-theme='hc'] {
+  --color-bg: #ffffff;
+  --color-surface: #f8f4f4;
+  --color-text: #000000;
+  --color-accent: #7d5411;
+  --color-divider: color-mix(in srgb, #000000 60%, transparent);
+  --color-text-secondary: #1a1a1a;
+  --color-text-muted: #333333;
+  --color-text-brand: #5a3b0a;
+  --color-fill-brand-hover: #5a3b0a;
+  --color-fill-brand-subtle: #fff3e4;
+  --color-fill-danger: #7a1d15;
+  --color-fill-danger-hover: #5a140f;
+  --color-status-success-fill: #ffffff;
+  --color-status-success-text: #1d4d24;
+  --color-status-warning-fill: #ffffff;
+  --color-status-warning-text: #3a270d;
+  --color-status-danger-fill: #ffffff;
+  --color-status-danger-text: #7a1d15;
+  --color-status-neutral-fill: #ffffff;
+  --color-status-neutral-text: #000000;
+  --color-border-control: #000000;
+}

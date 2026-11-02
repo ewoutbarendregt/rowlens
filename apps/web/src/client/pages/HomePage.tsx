@@ -15,15 +15,19 @@ export function HomePage() {
   if (state.kind === 'open') return <Navigate to="/sessions" replace />;
 
   return (
-    <main className="shell">
-      <h1 className="wordmark">RowLens</h1>
-      {version !== null && (
-        <p className="version" data-testid="app-version">
-          {/^\d/.test(version) ? `v${version}` : version}
-        </p>
-      )}
-      {state.kind === 'closed' && <p className="version">{t.closed}</p>}
-      {state.kind === 'locked' && <LoginGate onAccess={refresh} />}
+    <main className="shell login">
+      <div className="login__card">
+        <header className="login__head">
+          <h1 className="wordmark">RowLens</h1>
+          {version !== null && (
+            <span className="version" data-testid="app-version">
+              {/^\d/.test(version) ? `v${version}` : version}
+            </span>
+          )}
+        </header>
+        {state.kind === 'closed' && <p className="version">{t.closed}</p>}
+        {state.kind === 'locked' && <LoginGate onAccess={refresh} />}
+      </div>
       <ThemeSwitch />
       {PLAYER_DEMO && (
         <Link className="home-link" to="/demo/player">

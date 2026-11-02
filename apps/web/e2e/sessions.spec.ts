@@ -37,7 +37,7 @@ test('lands on the sessions list, filters by rower, sorts by title, keeps it on 
   await search.fill(tag);
   await expect(page).toHaveURL(/q=/);
   await filters.getByLabel(/^(Sort by|Sorteren op)/).selectOption('title');
-  const titles = page.getByTestId('session').locator('strong');
+  const titles = page.getByTestId('session');
   await expect(titles).toHaveCount(2);
   await expect(titles.first()).toContainText(`A second ${tag}`);
 
@@ -54,4 +54,10 @@ test('lands on the sessions list, filters by rower, sorts by title, keeps it on 
   await expect(page.getByTestId('session')).toContainText(`A second ${tag}`);
   await page.getByRole('button', { name: /^(Clear filters|Filters wissen)$/ }).click();
   await expect(page).not.toHaveURL(/rower=/);
+
+  // Sorted by title it is one table; sorted by date, one table per month under a month heading.
+  const month = page.getByTestId('session-list').getByRole('heading', { level: 2 });
+  await expect(month).toHaveCount(0);
+  await filters.getByLabel(/^(Sort by|Sorteren op)/).selectOption('date-desc');
+  await expect(month.first()).toHaveText(/^\p{L}+ \d{4}$/u);
 });

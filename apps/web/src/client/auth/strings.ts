@@ -7,6 +7,9 @@ const en = {
   codeTitle: 'Check your email',
   codeSent:
     'If this address has access, a six-digit code is on its way. It is valid for 10 minutes.',
+  codeSentIf: 'If',
+  codeSentRest: 'has access, a six-digit code is on its way. It is valid for 10 minutes.',
+  thirtyDays: 'Signed in for 30 days on this device.',
   codeLabel: 'Login code',
   verify: 'Sign in',
   checking: 'Checking…',
@@ -39,6 +42,9 @@ const nl: typeof en = {
   codeTitle: 'Controleer je e-mail',
   codeSent:
     'Als dit adres toegang heeft, is er een zescijferige code onderweg. Die is 10 minuten geldig.',
+  codeSentIf: 'Als',
+  codeSentRest: 'toegang heeft, is er een zescijferige code onderweg. Die is 10 minuten geldig.',
+  thirtyDays: 'Je blijft 30 dagen ingelogd op dit apparaat.',
   codeLabel: 'Inlogcode',
   verify: 'Inloggen',
   checking: 'Controleren…',
