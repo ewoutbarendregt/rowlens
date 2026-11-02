@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Assign a note to rowers (#105)
+
+**Session**: claude/feat/105-assign-notes (stacked on claude/feat/ui-design-tokens)
+**Changed**: apps/web/src/server/db/schema.ts, migrations/0009_note_rowers.sql (+ meta), apps/web/src/server/api/{moments.ts,moments.db.test.ts,annotations.ts,rowers.ts}, apps/web/src/server/app.ts, apps/web/src/client/notes/{NotesPanel.tsx,assignees.ts,assignees.test.ts,strings.ts}, apps/web/src/client/rowers/RowerPicker.tsx, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/assign.spec.ts, BUILD.md, FEATURES.md
+**Summary**: A note (the frame's drawings and explanation) is now a `moment` row that can be assigned to rowers, with the session lineup suggested first and a "whole crew" shortcut; every change is logged (who, when); a "Notes for" filter shows one rower's notes. Edge E2E 18/18 green. Not merged or deployed.
+**Prompts used**: "Plan #105" (plan approved).
+
 ## 2026-11-02 — UI style from the design system, light/dark/high-contrast switch (ADR-0012)
 
 **Session**: claude/feat/ui-design-tokens

@@ -37,6 +37,14 @@ const en = {
   marker: (frame: number, body: string) => `Note at frame ${String(frame)}: ${body}`,
   here: 'on this frame',
   failed: 'Could not save. Check your connection and try again.',
+  assignedTo: 'For',
+  assignPicker: (frame: number) => `Add a rower to the note at frame ${String(frame)}`,
+  wholeCrew: 'Whole crew',
+  unassign: (name: string) => `Remove ${name} from this note`,
+  notesFor: 'Notes for',
+  everyone: 'Everyone',
+  noneFor: (name: string) => `No notes for ${name} on this video.`,
+  archived: 'archived',
 };
 
 const nl: typeof en = {
@@ -77,6 +85,14 @@ const nl: typeof en = {
   marker: (frame: number, body: string) => `Notitie bij frame ${String(frame)}: ${body}`,
   here: 'op dit frame',
   failed: 'Opslaan lukte niet. Controleer je verbinding en probeer het opnieuw.',
+  assignedTo: 'Voor',
+  assignPicker: (frame: number) => `Roeier toevoegen aan de notitie bij frame ${String(frame)}`,
+  wholeCrew: 'Hele ploeg',
+  unassign: (name: string) => `${name} weghalen bij deze notitie`,
+  notesFor: 'Notities voor',
+  everyone: 'Iedereen',
+  noneFor: (name: string) => `Geen notities voor ${name} bij deze video.`,
+  archived: 'gearchiveerd',
 };
 
 export type NotesStrings = typeof en;

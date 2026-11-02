@@ -2,7 +2,10 @@ import { type SubmitEvent, useEffect, useId, useState } from 'react';
 import { api } from '../api.ts';
 import { angleDegrees, type DrawingKind, type Point, type Size } from '../drawing/geometry.ts';
 import { formatFrameTime } from '../player/frames.ts';
+import { RowerPicker } from '../rowers/RowerPicker.tsx';
+import type { Rower } from '../rowers/useRoster.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
+import { framesFor, type MomentRowers, rowersWithNotes } from './assignees.ts';
 import { moments } from './moments.ts';
 import { rememberName } from './name.ts';
 import { notesStrings } from './strings.ts';
@@ -43,6 +46,13 @@ interface NotesPanelProps {
   /** `reveal`: also bring the video into view (the section's Frame link), not for clicks in a section. */
   onJump: (frame: number, reveal: boolean) => void;
   onWriting: () => void;
+  /** Who each note is for (#105), from the annotations response. */
+  momentRowers: MomentRowers[];
+  /** The active club roster, to pick rowers from. */
+  roster: Rower[];
+  /** The session lineup with seats, offered first. */
+  suggestions: readonly { id: string; label: string }[];
+  onRosterChanged: () => void;
 }
 
 /**
@@ -77,9 +87,16 @@ export function NotesPanel(props: NotesPanelProps) {
       });
   };
 
+  const [forRower, setForRower] = useState<string | null>(null);
   const named = name.trim() !== '';
-  const all = moments(annotations);
-  const hasSectionHere = all.some((m) => m.frame === frame);
+  const everything = moments(annotations);
+  const hasSectionHere = everything.some((m) => m.frame === frame);
+  const withNotes = rowersWithNotes(props.momentRowers);
+  // A filter on someone who no longer has notes here falls back to everyone.
+  const filter = withNotes.some((r) => r.id === forRower) ? forRower : null;
+  const shown = framesFor(props.momentRowers, filter);
+  const all = shown === null ? everything : everything.filter((m) => shown.has(m.frame));
+  const rowersAt = new Map(props.momentRowers.map((m) => [m.frame, m.rowers]));
 
   /** Creates, changes or (when emptied) removes the explanation of a frame. */
   const saveExplanation = (at: number, note: Annotation | undefined, text: string) => {
@@ -138,7 +155,32 @@ export function NotesPanel(props: NotesPanelProps) {
         </p>
       )}
 
-      {all.length === 0 && <p className="muted">{t.none}</p>}
+      {withNotes.length > 0 && (
+        <div className="form notes__filter">
+          <label htmlFor={`${id}-for`}>{t.notesFor}</label>
+          <select
+            id={`${id}-for`}
+            value={filter ?? ''}
+            onChange={(e) => {
+              setForRower(e.target.value === '' ? null : e.target.value);
+            }}
+          >
+            <option value="">{t.everyone}</option>
+            {withNotes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {everything.length === 0 && <p className="muted">{t.none}</p>}
+      {filter !== null && all.length === 0 && (
+        <p className="muted">
+          {t.noneFor(withNotes.find((r) => r.id === filter)?.displayName ?? '')}
+        </p>
+      )}
       <ol className="list" data-testid="notes">
         {all.map(({ frame: at, notes, drawings }) => {
           const time = formatFrameTime(at, fps);
@@ -209,6 +251,16 @@ export function NotesPanel(props: NotesPanelProps) {
                   </ul>
                 )}
 
+                <Assignees
+                  videoId={videoId}
+                  frame={at}
+                  assigned={rowersAt.get(at) ?? []}
+                  roster={props.roster}
+                  suggestions={props.suggestions}
+                  onChanged={props.onChanged}
+                  onRosterChanged={props.onRosterChanged}
+                />
+
                 <Explanation
                   key={
                     explanation === undefined
@@ -274,6 +326,104 @@ export function NotesPanel(props: NotesPanelProps) {
         })}
       </ol>
     </section>
+  );
+}
+
+/**
+ * Who this note is for (#105): a chip per rower, a picker with the lineup first, and "whole crew".
+ * Every change is saved straight away, like deleting a drawing.
+ */
+function Assignees(props: {
+  videoId: string;
+  frame: number;
+  assigned: MomentRowers['rowers'];
+  roster: Rower[];
+  suggestions: readonly { id: string; label: string }[];
+  onChanged: () => void;
+  onRosterChanged: () => void;
+}) {
+  const t = notesStrings();
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const ids = props.assigned.map((r) => r.id);
+  const missingCrew = props.suggestions.filter((s) => !ids.includes(s.id)).map((s) => s.id);
+
+  const save = (rowerIds: string[]) => {
+    setBusy(true);
+    setFailed(false);
+    void api(`/api/videos/${props.videoId}/frames/${String(props.frame)}/rowers`, {
+      method: 'PUT',
+      body: { rowerIds },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(String(res.status));
+        props.onChanged();
+      })
+      .catch(() => {
+        setFailed(true);
+      })
+      .finally(() => {
+        setBusy(false);
+      });
+  };
+
+  return (
+    <div className="assignees" data-testid="assignees">
+      <span className="assignees__label">{t.assignedTo}:</span>
+      {props.assigned.length > 0 && (
+        <ul className="assignees__list">
+          {props.assigned.map((r) => (
+            <li key={r.id} className="chip chip--rower" data-testid="assignee">
+              <span>
+                {r.displayName}
+                {r.archived && <span className="muted"> · {t.archived}</span>}
+              </span>
+              <button
+                type="button"
+                className="chip__remove"
+                aria-label={t.unassign(r.displayName)}
+                disabled={busy}
+                onClick={() => {
+                  save(ids.filter((id) => id !== r.id));
+                }}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="assignees__add">
+        <RowerPicker
+          label={t.assignPicker(props.frame)}
+          rowers={props.roster}
+          value={null}
+          unavailable={new Set(ids)}
+          suggested={props.suggestions}
+          onChange={(r) => {
+            if (r !== null) save([...ids, r.id]);
+          }}
+          onAdded={props.onRosterChanged}
+        />
+        {missingCrew.length > 0 && (
+          <button
+            type="button"
+            className="button--quiet assignees__crew"
+            disabled={busy}
+            onClick={() => {
+              save([...ids, ...missingCrew]);
+            }}
+          >
+            {t.wholeCrew}
+          </button>
+        )}
+      </div>
+      {failed && (
+        <p role="alert" className="error">
+          {t.failed}
+        </p>
+      )}
+    </div>
   );
 }
 

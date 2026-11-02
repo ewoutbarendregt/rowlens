@@ -6,6 +6,7 @@ import type { Tx } from '../db/client.ts';
 import { rower } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { mergeLineupSeats } from './lineups.ts';
+import { mergeMomentRowers } from './moments.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
@@ -50,11 +51,12 @@ function emailTaken(error: unknown): 'email_taken' {
 }
 
 /**
- * Moves everything that points at `from` to `into`, then removes `from`: lineups (#103) now, note
- * assignments (#105) add their step here, so a merge never loses data.
+ * Moves everything that points at `from` to `into`, then removes `from`: lineups (#103) and note
+ * assignments (#105); whatever points at a rower later adds its step here, so a merge loses nothing.
  */
 async function mergeRowers(tx: Tx, clubId: string, from: string, into: string): Promise<void> {
   await mergeLineupSeats(tx, from, into);
+  await mergeMomentRowers(tx, from, into);
   const [source] = await tx
     .select({ email: rower.email, userId: rower.userId })
     .from(rower)
