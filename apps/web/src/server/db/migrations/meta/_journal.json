@@ -50,6 +50,13 @@
       "when": 1793567527581,
       "tag": "0006_email_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793625715334,
+      "tag": "0007_rower_roster",
+      "breakpoints": true
     }
   ]
 }

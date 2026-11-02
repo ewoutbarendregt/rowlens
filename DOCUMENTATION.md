@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Club roster: rowers without an account (#104)
+
+**Session**: claude/feat/104-rower-roster
+**Changed**: apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0007_rower_roster.sql (+ meta), apps/web/src/server/api/rowers.ts (+ db test), apps/web/src/server/app.ts, apps/web/src/shared/names.ts (+ test), apps/web/src/client/rowers/*, apps/web/src/client/ui/ConfirmInline.tsx, apps/web/src/client/{App.tsx,pages/HomePage.tsx,sessions/SessionsPage.tsx,styles.css}, apps/web/e2e/rowers.spec.ts, BUILD.md, FEATURES.md
+**Summary**: New tenant table `rower` and a Rowers page where coaches add, edit, archive and merge rowers and coxes who may not have an account; adding a name that looks like an existing one asks first. `RowerPicker` (search as you type, add inline) is ready for lineups (#103). Not deployed.
+**Prompts used**: "Ja, plan #104 + #103" (plan approved: roster + lineup, two stacked PRs).
+
 ## 2026-11-02 — Deploy sha-6fbd5a6: login mail over port 587
 
 **Session**: main (PR #114 merged by Claude on Ewout's "merge en deploy")

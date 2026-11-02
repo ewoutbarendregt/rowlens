@@ -11,6 +11,8 @@ interface ConfirmInlineProps {
   onCancel: () => void;
   /** Small, for inside a chip: "Ja" / "Nee". */
   compact?: boolean;
+  /** For confirmations that don't delete, e.g. "Ja, samenvoegen". */
+  yesLabel?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ export function ConfirmInline({
   onConfirm,
   onCancel,
   compact = false,
+  yesLabel,
 }: ConfirmInlineProps) {
   const l = navigator.language.toLowerCase().startsWith('nl') ? labels.nl : labels.en;
   const yes = useRef<HTMLButtonElement>(null);
@@ -49,7 +52,7 @@ export function ConfirmInline({
       <span className="confirm__question">{question}</span>
       <span className="confirm__actions">
         <button ref={yes} type="button" className="confirm__yes" onClick={onConfirm}>
-          {compact ? l.short.yes : l.yes}
+          {yesLabel ?? (compact ? l.short.yes : l.yes)}
         </button>
         <button type="button" className="button--quiet" onClick={onCancel}>
           {compact ? l.short.no : l.no}

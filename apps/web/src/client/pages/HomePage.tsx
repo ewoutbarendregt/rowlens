@@ -3,6 +3,7 @@ import { api } from '../api.ts';
 import { LoginGate } from '../auth/LoginGate.tsx';
 import { authStrings } from '../auth/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
+import { rowerStrings } from '../rowers/strings.ts';
 import { PLAYER_DEMO } from '../features.ts';
 import { useAppVersion } from '../useAppVersion.ts';
 import { useState } from 'react';
@@ -42,6 +43,9 @@ export function HomePage() {
           </p>
           <Link className="button-link" to="/sessions">
             {t.openSessions}
+          </Link>
+          <Link className="button-link" to="/rowers">
+            {rowerStrings().rowers}
           </Link>
           <button className="button--quiet" type="button" onClick={logoutOthers}>
             {t.logoutOthers}

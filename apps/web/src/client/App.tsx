@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router';
 import { PLAYER_DEMO } from './features.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
+import { RowersPage } from './rowers/RowersPage.tsx';
 import { RequireAuth } from './sessions/RequireAuth.tsx';
 import { SessionPage } from './sessions/SessionPage.tsx';
 import { SessionsPage } from './sessions/SessionsPage.tsx';
@@ -30,6 +31,14 @@ export function App() {
         element={
           <RequireAuth>
             <SessionPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="rowers"
+        element={
+          <RequireAuth>
+            <RowersPage />
           </RequireAuth>
         }
       />
