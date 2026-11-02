@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — UI style from the design system, light/dark/high-contrast switch (ADR-0012)
+
+**Session**: claude/feat/ui-design-tokens
+**Changed**: apps/web/src/client/design/* (new), apps/web/src/client/styles.css, apps/web/src/client/main.tsx, apps/web/src/client/ui/{theme.ts,theme.test.ts,ThemeSwitch.tsx}, apps/web/src/client/pages/HomePage.tsx, docs/adr/0012-ui-design-tokens.md, docs/adr/README.md, BUILD.md, DOCUMENTATION.md
+**Summary**: RowLens now uses the Nouryon Design System's tokens and fonts (style only: no name, logo or brand mark) with its button/input/panel/status look on the existing markup, and a light/dark/high-contrast choice per device instead of following the OS. Video sizes measured unchanged (343×193 phone, 427×240 at 1000×540, 970×546 at 1440×900); the video page header got 22 px shorter. Not merged or deployed: Ewout tests locally first.
+**Prompts used**: "i want you to use the design system from '/Users/ewout/src/Nouryon/Nouryon Design System'"; answers: style only (no brand), light by default with a switch.
+
 ## 2026-11-02 — Session lineup: who sat in which seat (#103)
 
 **Session**: claude/feat/103-session-lineup (stacked on claude/feat/104-rower-roster-2)

@@ -179,6 +179,16 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## UI style and colour modes (ADR-0012)
+
+- `apps/web/src/client/design/`: `tokens.css` (byte-for-byte copy of the design system's tokens; see
+  `design/README.md` for source, commit and update steps), `fonts.css` + `fonts/` (Arimo, IBM Plex Mono,
+  OFL), `LICENSES.md`. Imported in `main.tsx` before `styles.css`.
+- `styles.css` binds to semantic tokens only; RowLens's own values are `--rl-draw*` (drawings) and
+  `--rl-here*` (the frame on screen). Controls keep 44 px touch targets.
+- Colour mode: `client/ui/theme.ts` (saved per device, light by default) and `ThemeSwitch` on the home
+  page set `data-theme="dark"|"hc"` on `<html>`; applied before the first render.
+
 ## Club roster (#104)
 
 - Table `rower` (`club_id` + RLS): a person who rows or coxes, **with or without an account**.

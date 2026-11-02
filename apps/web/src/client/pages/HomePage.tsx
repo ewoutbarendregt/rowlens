@@ -4,6 +4,7 @@ import { LoginGate } from '../auth/LoginGate.tsx';
 import { authStrings } from '../auth/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { rowerStrings } from '../rowers/strings.ts';
+import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { PLAYER_DEMO } from '../features.ts';
 import { useAppVersion } from '../useAppVersion.ts';
 import { useState } from 'react';
@@ -56,6 +57,7 @@ export function HomePage() {
           </button>
         </section>
       )}
+      <ThemeSwitch />
       {PLAYER_DEMO && (
         <Link className="home-link" to="/demo/player">
           ▶ demo/player
