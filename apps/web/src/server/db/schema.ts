@@ -139,6 +139,36 @@ export const userSession = pgTable(
   ],
 ).enableRLS();
 
+/**
+ * A person in the club's roster (#104), rower or cox, with or without an account: coaches add them by
+ * name so they can be put in a lineup and given notes before they ever log in. `userId` links the entry
+ * to an account later (#110); `email` only helps that link. Entries are archived, not deleted.
+ */
+export const rower = pgTable(
+  'rower',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    displayName: text('display_name').notNull(),
+    email: text('email'),
+    userId: uuid('user_id').references(() => appUser.id, { onDelete: 'set null' }),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Target of the (club_id, rower_id) keys of tables that point at a rower.
+    unique('rower_club_id_id_unique').on(t.clubId, t.id),
+    unique('rower_club_email_unique').on(t.clubId, t.email),
+    unique('rower_club_user_unique').on(t.clubId, t.userId),
+    check('rower_name_check', sql`char_length(${t.displayName}) between 1 and 60`),
+    check('rower_email_check', sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`),
+    tenantPolicy('rower_tenant', t.clubId),
+  ],
+).enableRLS();
+
 /** A training on the water: the unit coaches upload to and crews discuss (#44, minimal for the pilot). */
 export const rowingSession = pgTable(
   'rowing_session',

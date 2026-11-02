@@ -8,6 +8,7 @@ import { sql } from 'drizzle-orm';
 import { stripBasePath } from '../shared/base-path.ts';
 import { annotationRoutes } from './api/annotations.ts';
 import { clubRoutes } from './api/club.ts';
+import { rowerRoutes } from './api/rowers.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
 import { videoRoutes } from './api/videos.ts';
@@ -164,6 +165,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
     await app.register(videoRoutes, { prefix: base, ...clubOpts });
     await app.register(annotationRoutes, { prefix: base, ...clubOpts });
+    await app.register(rowerRoutes, { prefix: base, ...clubOpts });
   }
 
   const indexHtml = clientDir === null ? null : await loadClient(clientDir, base);
