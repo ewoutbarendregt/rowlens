@@ -46,4 +46,18 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await expect(page.getByTestId('rower-list')).toContainText(`Bram ${tag}`);
   await page.goto('./sessions');
   await expect(page.getByTestId('session-list')).toContainText(`Lineup ${tag} · C2x`);
+
+  // A next session offers this lineup to copy; its long title must not widen the page on a phone.
+  await page.getByLabel(/^(Title|Titel)$/).fill(`Next ${tag} with a rather long session title`);
+  await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
+  const copy = page.getByTestId('lineup').getByLabel(/^(Copy from|Kopieer van)/);
+  const earlier = await copy.locator('option', { hasText: `Lineup ${tag}` }).getAttribute('value');
+  await copy.selectOption(earlier ?? '');
+  await expect(
+    page.getByTestId('lineup').getByRole('combobox', { name: /^(Bow|Boeg) \(1\)$/ }),
+  ).toHaveValue(`Anna ${tag}`);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBe(0);
 });

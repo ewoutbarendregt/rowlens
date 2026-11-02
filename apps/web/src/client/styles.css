@@ -162,6 +162,8 @@ body {
 
 .page h1 {
   margin-block: 0.5rem 0.25rem;
+  /* A long word in a session title must wrap instead of widening a phone page (BUG-011). */
+  overflow-wrap: anywhere;
 }
 
 .page__nav {
@@ -1247,13 +1249,20 @@ a.list__item {
 
 .lineup__boat {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem;
+}
+
+/* A select is as wide as its longest option (a long session title) unless the track caps it. */
+.lineup__boat select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 @media (min-width: 560px) {
   .lineup__boat {
-    grid-template-columns: auto minmax(8rem, 12rem) 1fr;
+    grid-template-columns: auto minmax(8rem, 12rem) minmax(0, 1fr);
     align-items: center;
   }
 }
