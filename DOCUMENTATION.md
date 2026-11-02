@@ -2,6 +2,34 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Deploy sha-6fbd5a6: login mail over port 587
+
+**Session**: main (PR #114 merged by Claude on Ewout's "merge en deploy")
+**Changed**: server `/opt/rowlens/.env` (`SMTP_PORT=587`, backup `.env.bak-20261102b`); docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Merged #114 (`6fbd5a6`), switched the server to SMTP port 587 and deployed `sha-6fbd5a6` (run 41407466779, pre-deploy DB backup taken). RowLens ready and reporting `sha-6fbd5a6` with `SMTP_PORT=587`; trustable.nl, api.trustable.nl and AudioScribe answer 200; no error log lines. Ewout confirmed that the login e-mail arrives and login works (one code used, one active session).
+**Prompts used**: "Ja, merge en deploy".
+
+## 2026-11-02 — No login mail: outbound port 465 blocked (BUG-010)
+
+**Session**: claude/fix/30-smtp-starttls (code, PR #114); claude/docs/102-coach-rower-backlog (this log, runbook)
+**Changed**: apps/web/src/server/auth/mail.ts, apps/web/src/server/auth/mail.test.ts, BUGS.md, docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Ewout's first production login sent no mail: the code was stored, but smtp.resend.com:465 times out from trustable-prod while 587 connects (AudioScribe uses 587). #114 makes STARTTLS mandatory on every port except 465 and adds 10 s timeouts; checked against the real Resend 587 with an invalid key (STARTTLS ok, 535 after 984 ms). Ewout chose the fix before switching the server to 587.
+**Prompts used**: "Geen mail ontvangen"; "Eerst de TLS-fix".
+
+## 2026-11-02 — Deploy sha-5ee4d69 with e-mail login
+
+**Session**: claude/docs/102-coach-rower-backlog
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md; server: `/opt/rowlens/bin/rowlens-deploy`, `/opt/rowlens/.env`
+**Summary**: With Ewout's approval: reinstalled the deploy script (#98), added the e-mail login settings to `/opt/rowlens/.env` (addresses typed by Ewout in his terminal, the Resend key copied on the server from AudioScribe's env file without printing it, pepper generated on the server; backup `.env.bak-20261102`) and deployed `sha-5ee4d69` (run 41405215472). Migrations 0005–0006 applied; RowLens ready and reporting `sha-5ee4d69`, auth enabled; trustable.nl, api.trustable.nl and AudioScribe answer 200; disk 48 %. A real login e-mail is not yet verified. Closed #28, #53, #54, #60 after checking their criteria against `main`; commented what is left on #22, #29, #30, #33, #39, #59.
+**Prompts used**: "Gebruik de api key voor resend die we ook gebruiken voor audioscribe"; "Issues die al gemerged en afgehandeld zijn kun je natuurlijk sluiten"; "Ja, uitvoeren".
+
+## 2026-11-02 — Backlog: coach & rower focus
+
+**Session**: claude/docs/102-coach-rower-backlog
+**Changed**: FEATURES.md, PLAN.md, DOCUMENTATION.md; GitHub issues #102–#112, labels `coach` and `rower`
+**Summary**: Ewout's coach and rower ideas are now epic #102 with ten stories (roster without accounts, lineups, note assignment, notes in the video, voice notes, my sessions, my notes, first-login claim, reassign, sharing). Three of them are marked decision-needed: where transcription runs (privacy), name matching on first login, and whether rowers can reassign freely. FEATURES.md statuses were brought up to date with what is merged. Done-but-open issues were listed for Ewout and left open.
+**Prompts used**: "Evalueer de backlog, we focussen eerste op coaches en roeiers. Voeg deze ideeën toe aan de backlog: …" (coach: positions per session, dictated notes with transcription, notes in the video on/off, assign notes to a rower, add rowers without an account, select known rowers; rower: my sessions, my notes with the video fragment, claim notes on first login, reassign notes, share notes individually or with the crew).
+
 ## 2026-11-01 — Handoff from Codex back to Claude
 
 **Session**: codex/feat/28-30-email-auth

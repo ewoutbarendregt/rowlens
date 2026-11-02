@@ -4,7 +4,7 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-010] Login e-mails never left the server: outbound port 465 is blocked — high
 **Location**: apps/web/src/server/auth/mail.ts (`smtpDelivery`), `/opt/rowlens/.env` (`SMTP_PORT`)
-**Status**: fixed in code (needs `SMTP_PORT=587` on the server and a deploy)
+**Status**: fixed (#114, deployed `sha-6fbd5a6` with `SMTP_PORT=587`; first real login verified 2026-11-02)
 **Found**: 2026-11-02, first real login on production after deploying `sha-5ee4d69`
 **Description**: The runbook prescribed Resend's port 465, but trustable-prod (Hetzner) blocks outbound 465; 587 is open and is what AudioScribe uses. The code was stored and the request answered 202, but the mail connection hung for nodemailer's default 2-minute timeout, so no mail arrived and the log said nothing for minutes. Plain 587 alone would also have let a stripped STARTTLS send the API key unencrypted.
 **Fix**: Port 587 with `requireTLS` (STARTTLS is mandatory on every port except 465), 10 s connection/greeting timeouts so failures show in the log quickly; unit tests for both. Server: `SMTP_PORT=587`.
