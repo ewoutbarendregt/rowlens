@@ -15,6 +15,11 @@ const viewers: Record<string, Viewer> = {
 const table: [string, Action, Record<keyof typeof viewers, boolean>][] = [
   ['access', { kind: 'manage_access' }, { admin: true, coach: false, rower: false, pilot: false }],
   [
+    'session creator',
+    { kind: 'assign_session_creator' },
+    { admin: true, coach: false, rower: false, pilot: false },
+  ],
+  [
     'own annotation',
     { kind: 'edit_annotation', authorUserId: ME },
     { admin: true, coach: true, rower: true, pilot: true },
@@ -61,7 +66,7 @@ describe('can', () => {
     expect(can(anonymous, { kind: 'unshare', sharedByUserId: null })).toBe(false);
   });
 
-  it('only rowers have a restricted view', () => {
-    expect(Object.values(viewers).map(seesAll)).toEqual([true, true, false, true]);
+  it('only the admin (and the pilot path) sees the whole club', () => {
+    expect(Object.values(viewers).map(seesAll)).toEqual([true, false, false, true]);
   });
 });

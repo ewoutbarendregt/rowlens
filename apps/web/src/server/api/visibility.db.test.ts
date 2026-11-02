@@ -17,13 +17,21 @@ const tag = randomUUID().slice(0, 8);
 const COACH = `coach-${tag}@example.com`;
 const A = `a-${tag}@example.com`;
 const B = `b-${tag}@example.com`;
+const COACH2 = `coach2-${tag}@example.com`;
+const ADMIN = `admin-${tag}@example.com`;
 
 let app: FastifyInstance;
 let handle: DatabaseHandle;
 let codes: LoginMail[] = [];
 let ip = 0;
 let club = '';
-const as: Record<'coach' | 'a' | 'b', string> = { coach: '', a: '', b: '' };
+const as: Record<'coach' | 'a' | 'b' | 'coach2' | 'admin', string> = {
+  coach: '',
+  a: '',
+  b: '',
+  coach2: '',
+  admin: '',
+};
 const roster: Record<'a' | 'b' | 'c', string> = { a: '', b: '', c: '' };
 let sessionId = '';
 let videoId = '';
@@ -82,7 +90,8 @@ beforeAll(async () => {
   app = await buildApp({
     config: loadConfig({
       PUBLIC_ORIGIN: ORIGIN,
-      AUTH_ALLOWED_EMAILS: COACH,
+      AUTH_ALLOWED_EMAILS: `${COACH},${COACH2}`,
+      AUTH_ADMIN_EMAILS: ADMIN,
       OTP_PEPPER: 'c'.repeat(64),
     }),
     clientDir: null,
@@ -111,6 +120,8 @@ beforeAll(async () => {
   as.coach = await signIn(COACH);
   as.a = await signIn(A);
   as.b = await signIn(B);
+  as.coach2 = await signIn(COACH2);
+  as.admin = await signIn(ADMIN);
 
   // A session the coach made, with A and C in the lineup and a ready video with two coach notes.
   const created = await send('POST', '/api/sessions', as.coach, {
@@ -295,5 +306,56 @@ describe('what a rower sees (#40)', () => {
       'rowing_session',
       'video',
     ]);
+  });
+});
+
+describe('coaches see their own sessions; the admin sees and assigns all (#108)', () => {
+  it("a coach doesn't see another coach's session; the admin does", async () => {
+    expect(await sessionsOf('coach2')).not.toContain(sessionId);
+    expect((await send('GET', `/api/videos/${videoId}`, as.coach2)).statusCode).toBe(404);
+    expect(await sessionsOf('admin')).toContain(sessionId);
+    expect(await frames('admin')).toEqual(await frames('coach'));
+  });
+
+  it('only the admin gives a session to a coach, who then sees all its notes', async () => {
+    const coach2Id = (
+      await asOwner<{ id: string }>(`select id from app_user where email = $1`, [COACH2])
+    )[0]?.id;
+    expect(
+      (await send('PATCH', `/api/sessions/${sessionId}/creator`, as.coach, { userId: coach2Id }))
+        .statusCode,
+    ).toBe(404);
+    const detail = await send('GET', `/api/sessions/${sessionId}`, as.admin);
+    expect(detail.json<{ coaches: { email: string }[] }>().coaches.map((c) => c.email)).toContain(
+      COACH2,
+    );
+    expect(
+      (await send('PATCH', `/api/sessions/${sessionId}/creator`, as.admin, { userId: coach2Id }))
+        .statusCode,
+    ).toBe(204);
+    expect(await sessionsOf('coach2')).toContain(sessionId);
+    expect(await frames('coach2')).toEqual(await frames('admin'));
+    const note = (await notes('coach2'))?.annotations[0];
+    expect(note?.canEdit).toBe(true);
+    // Not a member: refused.
+    expect(
+      (
+        await send('PATCH', `/api/sessions/${sessionId}/creator`, as.admin, {
+          userId: randomUUID(),
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect((await send('GET', `/api/sessions/${sessionId}`, as.coach2)).json()).not.toHaveProperty(
+      'coaches',
+    );
+  });
+
+  it("lists each session with the viewer's seat and the notes meant for them", async () => {
+    const list = (await send('GET', '/api/sessions', as.a)).json<{
+      sessions: { id: string; mySeat: number | null; notesForMe: number }[];
+    }>().sessions;
+    const mine = list.find((s) => s.id === sessionId);
+    expect(mine?.mySeat).toBe(1);
+    expect(mine?.notesForMe).toBeGreaterThanOrEqual(1);
   });
 });

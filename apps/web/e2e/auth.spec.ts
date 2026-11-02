@@ -36,6 +36,7 @@ test('email code opens the club, persists and sign-out revokes it', async ({ pag
   await page.reload();
   await expect(page.getByTestId('club-name')).toHaveText('Pilot');
 
+  await page.getByTestId('account-menu').locator('summary').click();
   await page.getByRole('button', { name: /^(Sign out|Afmelden)$/ }).click();
   await expect(email).toBeVisible();
 });

@@ -405,8 +405,17 @@ export const annotation = pgTable(
       'insert',
       sql`${seesAll} or (${t.authorUserId} = ${me} and rowlens_can_see_video(${t.videoId}))`,
     ),
-    rolePolicy('annotation_role_edit', 'update', sql`${seesAll} or ${t.authorUserId} = ${me}`),
-    rolePolicy('annotation_role_delete', 'delete', sql`${seesAll} or ${t.authorUserId} = ${me}`),
+    // Coaches may change every note in a session they can see; rowers only their own (#108).
+    rolePolicy(
+      'annotation_role_edit',
+      'update',
+      sql`${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'annotation_role_delete',
+      'delete',
+      sql`${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId})`,
+    ),
   ],
 ).enableRLS();
 

@@ -1,5 +1,4 @@
 import { type SubmitEvent, useId, useState } from 'react';
-import { Link } from 'react-router';
 import { nameMatches } from '../../shared/names.ts';
 import { api } from '../api.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
@@ -48,9 +47,6 @@ export function RowersPage() {
 
   return (
     <main className="page">
-      <nav className="page__nav">
-        <Link to="/">{t.home}</Link> · <Link to="/sessions">{t.sessions}</Link>
-      </nav>
       <h1>{t.rowers}</h1>
       <p className="muted">{t.intro}</p>
       {roster.failed && <p role="alert">{t.loadFailed}</p>}

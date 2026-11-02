@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Sessions list as start page, own sessions, admin panel (#108)
+
+**Session**: claude/feat/108-session-list
+**Changed**: migrations/0012_coach_own_sessions.sql (+ meta), apps/web/src/server/db/schema.ts, apps/web/src/server/auth/{can.ts,can.test.ts}, apps/web/src/server/api/{sessions.ts,visibility.db.test.ts}, apps/web/src/client/ui/AppHeader.tsx, apps/web/src/client/sessions/{SessionsPage.tsx,filter.ts,filter.test.ts,SessionPage.tsx,RequireAuth.tsx,strings.ts}, apps/web/src/client/admin/{AccessPage.tsx,strings.ts}, apps/web/src/client/{App.tsx,pages/HomePage.tsx,auth/strings.ts,rowers/RowersPage.tsx,styles.css}, apps/web/e2e/*, docs/adr/0013-role-visibility.md, BUILD.md, FEATURES.md
+**Summary**: After login the sessions list is the start page, with a header on every page; the list filters (period, rower, boat, title, notes for me) and sorts, kept in the URL. Only the admin sees all sessions; coaches and rowers their own; the admin gives a session to a coach. Admin panel with Users and Roles tabs. Found and fixed on the way: filter inputs bound straight to the URL lost typed text on phones.
+**Prompts used**: "als ik inlog wil ik een lijst zien van alle sessies. ik wil de lijst kunnen filteren en sorteren. de admin ziet alle sessies, andere gebruikers zien alleen hun eigen sessies. het beheer van de gebruikers en rollen en rechten zit in een admin panel dat alleen zichtbaar is voor de admin"; answers: coach sees created/lineup; filter on date, rower, boat/title, notes; admin panel as fixed place with fixed rights.
+
 ## 2026-11-02 — What a rower sees (#40) and sharing notes (#112)
 
 **Session**: claude/feat/40-role-visibility

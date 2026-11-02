@@ -35,7 +35,14 @@ export function App() {
           </RequireAuth>
         }
       />
-      <Route path="admin" element={<AccessPage />} />
+      <Route
+        path="admin"
+        element={
+          <RequireAuth role="admin">
+            <AccessPage />
+          </RequireAuth>
+        }
+      />
       <Route
         path="rowers"
         element={

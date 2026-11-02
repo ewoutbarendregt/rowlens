@@ -26,6 +26,7 @@ const en = {
   logoutOthers: 'Sign out other devices',
   othersDone: 'Other devices have been signed out.',
   logout: 'Sign out',
+  account: 'Account and sign out',
 };
 
 const nl: typeof en = {
@@ -57,6 +58,7 @@ const nl: typeof en = {
   logoutOthers: 'Andere apparaten afmelden',
   othersDone: 'De andere apparaten zijn afgemeld.',
   logout: 'Afmelden',
+  account: 'Account en afmelden',
 };
 
 export type AuthStrings = typeof en;

@@ -1490,3 +1490,264 @@ a.list__item {
   background: var(--color-fill-brand-subtle);
   color: var(--color-text-secondary);
 }
+
+/* ---------------------------------------------------------------- app header (#108) */
+
+/* Scrolls with the page: fixed it would cost a phone ~110 px and cover the video page's sticky player. */
+.app-header {
+  position: relative;
+  z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+  box-shadow: var(--elevation-nav);
+}
+
+.app-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  width: min(100%, 96rem);
+  margin-inline: auto;
+  padding: var(--space-2) max(16px, env(safe-area-inset-left));
+}
+
+.app-header__brand {
+  color: var(--color-text-brand);
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
+}
+
+.app-header__club {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  font-weight: var(--weight-regular);
+}
+
+.app-header__nav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.app-header__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.app-header__nav a:hover {
+  background: var(--color-surface-hover);
+}
+
+.app-header__nav a.active {
+  color: var(--color-text-brand);
+  font-weight: var(--weight-bold);
+  box-shadow: inset 0 -2px 0 var(--color-border-indicator);
+}
+
+.account {
+  position: relative;
+  margin-left: auto;
+}
+
+.account summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 14rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.account summary::-webkit-details-marker {
+  display: none;
+}
+
+.account__email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account__panel {
+  position: absolute;
+  right: 0;
+  z-index: var(--z-dropdown);
+  display: grid;
+  gap: var(--space-3);
+  width: min(22rem, calc(100vw - 32px));
+  margin-top: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-overlay);
+  box-shadow: var(--elevation-overlay);
+}
+
+.account__panel p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.account__panel .theme-switch {
+  margin: 0;
+}
+
+.account__panel button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-fill-brand);
+  color: var(--color-text-on-brand);
+  font: inherit;
+  cursor: pointer;
+}
+
+.account__panel button.button--quiet {
+  border-color: var(--color-border-control);
+  background: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+}
+
+/* ---------------------------------------------------------------- session list (#108) */
+
+.page__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.filters {
+  margin-block: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+}
+
+.filters summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.filters__grid {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: var(--space-3);
+}
+
+.filters__grid label {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  font-size: var(--text-body);
+}
+
+.filters__grid input,
+.filters__grid select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.filters__grid .filters__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+}
+
+.filters__grid .filters__check input {
+  width: auto;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .filters__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+  }
+}
+
+.session__me {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.creator {
+  margin-block: var(--space-3);
+}
+
+/* ---------------------------------------------------------------- admin panel (#108) */
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  margin-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.page button.tabs__tab {
+  border: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  box-shadow: none;
+}
+
+.page button.tabs__tab:hover {
+  background: var(--color-surface-hover);
+}
+
+.page button.tabs__tab[aria-selected='true'] {
+  color: var(--color-text-brand);
+  font-weight: var(--weight-bold);
+  box-shadow: inset 0 -2px 0 var(--color-border-indicator);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+}
+
+.roles-table th,
+.roles-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-subtle);
+  text-align: start;
+  vertical-align: top;
+}
+
+.roles-table thead th {
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}

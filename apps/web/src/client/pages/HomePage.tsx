@@ -1,31 +1,18 @@
-import { Link } from 'react-router';
-import { api } from '../api.ts';
+import { Link, Navigate } from 'react-router';
 import { LoginGate } from '../auth/LoginGate.tsx';
 import { authStrings } from '../auth/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
-import { adminStrings } from '../admin/strings.ts';
-import { rowerStrings } from '../rowers/strings.ts';
-import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { PLAYER_DEMO } from '../features.ts';
+import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { useAppVersion } from '../useAppVersion.ts';
-import { useState } from 'react';
 
+/** The login page; once signed in, the sessions list is the start page (#108). */
 export function HomePage() {
   const version = useAppVersion();
   const { state, refresh } = useAuth();
-  const [othersDone, setOthersDone] = useState(false);
   const t = authStrings();
 
-  const logout = () => {
-    void api('/api/auth/logout', { method: 'POST' }).finally(refresh);
-  };
-
-  const logoutOthers = () => {
-    setOthersDone(false);
-    void api('/api/auth/logout-others', { method: 'POST' }).then((response) => {
-      if (response.ok) setOthersDone(true);
-    });
-  };
+  if (state.kind === 'open') return <Navigate to="/sessions" replace />;
 
   return (
     <main className="shell">
@@ -37,32 +24,6 @@ export function HomePage() {
       )}
       {state.kind === 'closed' && <p className="version">{t.closed}</p>}
       {state.kind === 'locked' && <LoginGate onAccess={refresh} />}
-      {state.kind === 'open' && (
-        <section className="club" aria-label={state.club.name}>
-          <h2 data-testid="club-name">{state.club.name}</h2>
-          <p>
-            {t.signedIn} <strong>{state.user.email}</strong>.
-          </p>
-          <Link className="button-link" to="/sessions">
-            {t.openSessions}
-          </Link>
-          <Link className="button-link" to="/rowers">
-            {rowerStrings().rowers}
-          </Link>
-          {state.user.role === 'admin' && (
-            <Link className="button-link button-link--quiet" to="/admin">
-              {adminStrings().admin}
-            </Link>
-          )}
-          <button className="button--quiet" type="button" onClick={logoutOthers}>
-            {t.logoutOthers}
-          </button>
-          {othersDone && <p role="status">{t.othersDone}</p>}
-          <button type="button" onClick={logout}>
-            {t.logout}
-          </button>
-        </section>
-      )}
       <ThemeSwitch />
       {PLAYER_DEMO && (
         <Link className="home-link" to="/demo/player">

@@ -28,6 +28,34 @@ const en = {
   removeYes: 'Yes, remove',
   self: 'You can’t change your own access.',
   lastAdmin: 'There must be at least one admin.',
+  tabs: { users: 'Users', roles: 'Roles' },
+  rolesIntro:
+    'What each role sees and may do. The roles are fixed; give someone another role under Users.',
+  can: 'Sees and may',
+  rights: [
+    {
+      what: 'Sessions',
+      admin: 'All of the club',
+      coach: 'Made by them or rowed in',
+      rower: 'Made by them or rowed in',
+    },
+    {
+      what: 'Notes in those sessions',
+      admin: 'All, and change them',
+      coach: 'All, and change them',
+      rower: 'Meant for or shared with them; change their own',
+    },
+    { what: 'Write and draw notes', admin: 'Yes', coach: 'Yes', rower: 'Yes' },
+    {
+      what: 'Share notes',
+      admin: 'Yes, and take back any share',
+      coach: 'Yes, and take back any share',
+      rower: 'Yes, take back their own',
+    },
+    { what: 'Upload videos, lineups, roster', admin: 'Yes', coach: 'Yes', rower: 'Yes' },
+    { what: 'Admin: users and roles', admin: 'Yes', coach: 'No', rower: 'No' },
+    { what: 'Give a session to a coach', admin: 'Yes', coach: 'No', rower: 'No' },
+  ],
 };
 
 const nl: typeof en = {
@@ -58,6 +86,34 @@ const nl: typeof en = {
   removeYes: 'Ja, intrekken',
   self: 'Je kunt je eigen toegang niet wijzigen.',
   lastAdmin: 'Er moet minstens één beheerder blijven.',
+  tabs: { users: 'Gebruikers', roles: 'Rollen' },
+  rolesIntro:
+    'Wat elke rol ziet en mag. De rollen liggen vast; geef iemand een andere rol onder Gebruikers.',
+  can: 'Ziet en mag',
+  rights: [
+    {
+      what: 'Trainingen',
+      admin: 'Alle van de club',
+      coach: 'Zelf aangemaakt of in meegeroeid',
+      rower: 'Zelf aangemaakt of in meegeroeid',
+    },
+    {
+      what: 'Notities in die trainingen',
+      admin: 'Alle, en wijzigen',
+      coach: 'Alle, en wijzigen',
+      rower: 'Voor hem of met hem gedeeld; eigen wijzigen',
+    },
+    { what: 'Notities schrijven en tekenen', admin: 'Ja', coach: 'Ja', rower: 'Ja' },
+    {
+      what: 'Notities delen',
+      admin: 'Ja, en elk delen intrekken',
+      coach: 'Ja, en elk delen intrekken',
+      rower: 'Ja, eigen delen intrekken',
+    },
+    { what: 'Video’s uploaden, opstellingen, ploeglijst', admin: 'Ja', coach: 'Ja', rower: 'Ja' },
+    { what: 'Beheer: gebruikers en rollen', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
+    { what: 'Een training aan een coach geven', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
+  ],
 };
 
 export type AdminStrings = typeof en;

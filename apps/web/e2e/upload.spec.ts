@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
-import { signIn } from './helpers.ts';
+import { openNewSession, signIn } from './helpers.ts';
 
 // Session + resumable upload (#45, #46) through the real UI. The clip is the VP9 player fixture
 // (`pnpm demo:media --e2e`; CI generates it); a fake .mov checks the magic-byte rejection.
@@ -13,7 +13,8 @@ test('create a session, upload a video and a fake one, delete the video', async 
 }, info) => {
   test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
   await signIn(page);
-  await page.getByRole('link', { name: /^(Sessions and videos|Trainingen en video’s)$/ }).click();
+  await page.getByRole('link', { name: /^(Sessions|Trainingen)$/ }).click();
+  await openNewSession(page);
 
   const title = `E2E ${info.project.name} ${String(Date.now())}`;
   await page.getByLabel(/^(Title|Titel)$/).fill(title);
