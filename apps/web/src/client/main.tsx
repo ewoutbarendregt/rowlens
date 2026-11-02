@@ -3,7 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { App } from './App.tsx';
 import { basePath } from './env.ts';
+import { applyTheme, savedTheme } from './ui/theme.ts';
+import './design/fonts.css';
+import './design/tokens.css';
 import './styles.css';
+
+// Before the first render, so a dark choice doesn't flash light first.
+applyTheme(savedTheme());
 
 const root = document.getElementById('root');
 if (root === null) throw new Error('#root missing from index.html');
