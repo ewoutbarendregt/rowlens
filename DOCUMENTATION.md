@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Deploy sha-6fbd5a6: login mail over port 587
+
+**Session**: main (PR #114 merged by Claude on Ewout's "merge en deploy")
+**Changed**: server `/opt/rowlens/.env` (`SMTP_PORT=587`, backup `.env.bak-20261102b`); docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Merged #114 (`6fbd5a6`), switched the server to SMTP port 587 and deployed `sha-6fbd5a6` (run 41407466779, pre-deploy DB backup taken). RowLens ready and reporting `sha-6fbd5a6` with `SMTP_PORT=587`; trustable.nl, api.trustable.nl and AudioScribe answer 200; no error log lines. Real mail delivery still to be confirmed by Ewout.
+**Prompts used**: "Ja, merge en deploy".
+
 ## 2026-11-02 — No login mail: outbound port 465 blocked (BUG-010)
 
 **Session**: claude/fix/30-smtp-starttls (code, PR #114); claude/docs/102-coach-rower-backlog (this log, runbook)
