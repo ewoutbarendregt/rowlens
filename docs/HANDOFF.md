@@ -5,28 +5,25 @@ handoff that used to be in this file; `DOCUMENTATION.md` remains the detailed ne
 
 ## Current repository state
 
-- `main` / `origin/main`: **`fd8b19c`**, the Dutch-by-default interface and language switch from
-  #124, on top of the Classical sessions UI and coach/rower workflow.
-- Current worktree: **`codex/feat/106-notes-in-video`**, pushed and clean after PR #125.
+- `main` / `origin/main`: **`ee73740`**, notes and drawings inside the video (#125) on top of the
+  Dutch-by-default interface and language switch (#124).
+- Current worktree: **`codex/docs/deploy-ee73740`**, used only to record the completed deployment.
 - Local stack: Postgres on 5434, worker and the Vite/API development processes are running. The edge
   stack was stopped after its tests.
-- Production: **`sha-96a0202`**, deployed 2026-11-02. Do not deploy again without Ewout's explicit
-  approval; do not infer approval from that earlier deploy.
+- Production: **`sha-ee73740`**, deployed 2026-11-02 at 20:51 UTC. The public readiness endpoint
+  reports that version with its database check healthy; the trustable.nl, API and AudioScribe
+  neighbour checks all returned 200. Do not deploy again without Ewout's explicit approval.
 
-## Open product PR
+## Product PR state
 
-**#125** `feat(notes)`: notes and drawings inside the video (#106), remembered on/off and hold
-controls, shared rower filter, and server-controlled account/roster author names. PR #124 was merged
-without deleting its branch; #125 is retargeted to `main` and remains mergeable.
-
-Wait for the fresh post-retarget CI run, then merge #125 only when Ewout asks. Nothing is authorised
-to deploy merely because the PR is ready.
+PR #124 (interface language) and PR #125 (notes in the video) are merged. There is no open product PR
+in this stack; only the deployment-log documentation belongs after `main` now.
 
 Older documentation PRs #83, #89 and #117 are still open with conflicts and are not in this product
 stack. Dependabot's major Node 26 and Python 3.15 PRs (#72/#73) should still be closed rather than
 merged; see the older log for the remaining dependency PRs.
 
-## What #125 contains
+## What the latest release contains
 
 - Notes, explanation text and drawings appear together inside the video. They remain for a saved
   0.5/1/2-second hold (default one second); a dark card automatically chooses the corner furthest
@@ -38,7 +35,7 @@ merged; see the older log for the remaining dependency PRs.
   falling back to the account display name, and ignores a spoofed client name. The rollback-only
   pilot path still requires a validated label.
 
-## Verification for #125
+## Verification for the latest release
 
 - Format, lint, typecheck and production/edge builds passed.
 - 385 web tests and 44 worker tests passed.
@@ -46,13 +43,14 @@ merged; see the older log for the remaining dependency PRs.
   those passed in the local run).
 - WebKit measurements: phone 390×844 stage 358×201; iPhone immersive fullscreen stage 374×201;
   low laptop 1000×540 stage 427×240. The overlay stayed inside the video and no page overflowed.
+- The `main` images workflow published `sha-ee73740`; deploy run `41522914840` succeeded. Production
+  runs the matching web and worker images, and the web container plus database are healthy.
 
 ## Suggested next work
 
-1. Have Ewout review #125 locally; merge only on request after the post-retarget CI run is green.
-2. Continue the coach/rower workflow: a cross-session “My notes” view (#109), then notifications,
+1. Continue the coach/rower workflow: a cross-session “My notes” view (#109), then notifications,
    annotation status/auditability and quota hardening.
-3. Stroke marking (#85), thumbnail strip/retry, and real-device Android/4K checks remain open.
+2. Stroke marking (#85), thumbnail strip/retry, and real-device Android/4K checks remain open.
 
 Production commands, secrets handling and neighbour checks remain in `AGENTS.md` and
 `docs/runbooks/server-setup.md`. Never send user video, names or e-mail addresses to an external AI
