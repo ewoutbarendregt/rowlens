@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Merge and deploy notes-in-video release
+
+**Session**: codex/docs/deploy-ee73740
+**Changed**: docs/HANDOFF.md, docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: PR #125 was merged into `main` as `ee73740`, the matching web and worker images were published, and GitHub deploy run 41522914840 deployed `sha-ee73740` to production. RowLens readiness reported the expected version and a healthy database; RowLens, trustable.nl, the public API and AudioScribe all returned HTTP 200, and no shared server component was changed.
+**Prompts used**: "merge en deploy maar"
+
 ## 2026-11-02 — Merge language switch and retarget video notes
 
 **Session**: codex/feat/106-notes-in-video
