@@ -50,7 +50,14 @@ case "$sub" in
     if [[ "$args" == *wget* ]]; then has "$(running)" "${STUB_HEALTHY_TAGS:-}" || exit 1; fi
     if [[ "$args" == *pg_dump* ]]; then echo "PGDMP-fake"; fi
     ;;
-  config) [[ "${STUB_HAS_MIGRATE:-0}" == 1 ]] && echo migrate ;;
+  config)
+    # Like newer Compose: the file's ${ROWLENS_TAG:?…} must be set, or config fails.
+    if [[ -z "${ROWLENS_TAG:-}" || "${STUB_CONFIG_FAIL:-0}" == 1 ]]; then
+      echo "required variable ROWLENS_TAG is missing a value" >&2
+      exit 1
+    fi
+    [[ "${STUB_HAS_MIGRATE:-0}" == 1 ]] && echo migrate
+    ;;
   run) exit "${STUB_MIGRATE_EXIT:-0}" ;;
   stop) rm -f "$STUB_DIR/running" ;;
 esac

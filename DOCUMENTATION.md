@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Deploy script: a first deploy can no longer skip migrations (BUG-009)
+
+**Session**: claude/fix/deploy-migrate-detect
+**Changed**: infra/deploy/rowlens-deploy, infra/deploy/test/{run.sh,stub/docker}, BUGS.md, TEST.md
+**Summary**: CI's rehearsal on #97 failed: the first deploy skipped the migrations because `compose config` ran without ROWLENS_TAG (no release.env yet), newer Compose refused, and the suppressed error read as "no migrate service". Now the tag is passed and a config failure stops the deploy. Stub suite 77 passed (2 of the new checks fail on the old script); rehearsal passed. Production unaffected so far (release.env exists there); the server's copy of the script is updated with install.sh at the next approved deploy.
+**Prompts used**: none (found by CI while working on #97).
+
 ## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
 
 **Session**: claude/fix/ios-player-half

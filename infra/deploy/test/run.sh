@@ -181,6 +181,23 @@ run "" deploy sha-aaaaaaa
 check "exit 0" test "$code" -eq 0
 check "migrate ran with new tag" grep -q "ROWLENS_TAG=sha-aaaaaaa docker compose .* run --rm migrate" "$STUB_DIR/calls"
 
+t "first deploy: the migrate check sees the new tag (no release.env yet)"
+setup
+export STUB_HAS_MIGRATE=1 STUB_HEALTHY_TAGS="sha-aaaaaaa"
+run "" deploy sha-aaaaaaa
+check "exit 0" test "$code" -eq 0
+check "config with the tag" grep -q "ROWLENS_TAG=sha-aaaaaaa docker compose .* config --services" "$STUB_DIR/calls"
+check "migrate ran" grep -q "run --rm migrate" "$STUB_DIR/calls"
+
+t "a failing compose config stops the deploy instead of skipping migrations"
+setup
+export STUB_HAS_MIGRATE=1 STUB_CONFIG_FAIL=1 STUB_HEALTHY_TAGS="sha-aaaaaaa"
+run "" deploy sha-aaaaaaa
+check "exit 2" test "$code" -eq 2
+check "no up" bash -c '! grep -q " up " "$1"' _ "$STUB_DIR/calls"
+check "no migrate run" bash -c '! grep -q "run --rm migrate" "$1"' _ "$STUB_DIR/calls"
+unset STUB_CONFIG_FAIL
+
 # ---------------------------------------------------------------- rollback, status, locking
 t "rollback swaps current and previous"
 setup
