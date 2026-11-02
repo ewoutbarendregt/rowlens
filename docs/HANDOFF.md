@@ -5,23 +5,22 @@ handoff that used to be in this file; `DOCUMENTATION.md` remains the detailed ne
 
 ## Current repository state
 
-- `main` / `origin/main`: **`96a0202`**, the Classical sessions UI (#123) on top of the coach/rower
-  workflow through #122.
+- `main` / `origin/main`: **`fd8b19c`**, the Dutch-by-default interface and language switch from
+  #124, on top of the Classical sessions UI and coach/rower workflow.
 - Current worktree: **`codex/feat/106-notes-in-video`**, pushed and clean after PR #125.
 - Local stack: Postgres on 5434, worker and the Vite/API development processes are running. The edge
   stack was stopped after its tests.
 - Production: **`sha-96a0202`**, deployed 2026-11-02. Do not deploy again without Ewout's explicit
   approval; do not infer approval from that earlier deploy.
 
-## Open product PRs, in merge order
+## Open product PR
 
-1. **#124** `feat(i18n)`: Dutch by default, instant Nederlands/English switch, and OTP mail in the
-   chosen language. Base `main`; all eight CI jobs were green when #125 was opened.
-2. **#125** `feat(notes)`: notes and drawings inside the video (#106), remembered on/off and hold
-   controls, shared rower filter, and server-controlled account/roster author names. Stacked on #124.
+**#125** `feat(notes)`: notes and drawings inside the video (#106), remembered on/off and hold
+controls, shared rower filter, and server-controlled account/roster author names. PR #124 was merged
+without deleting its branch; #125 is retargeted to `main` and remains mergeable.
 
-Merge the bottom PR without deleting its branch, retarget #125 to `main`, wait for CI, then merge it.
-Nothing is authorised to merge or deploy merely because the PRs are ready.
+Wait for the fresh post-retarget CI run, then merge #125 only when Ewout asks. Nothing is authorised
+to deploy merely because the PR is ready.
 
 Older documentation PRs #83, #89 and #117 are still open with conflicts and are not in this product
 stack. Dependabot's major Node 26 and Python 3.15 PRs (#72/#73) should still be closed rather than
@@ -50,7 +49,7 @@ merged; see the older log for the remaining dependency PRs.
 
 ## Suggested next work
 
-1. Have Ewout review #124 and #125 locally; merge only on request, in the order above.
+1. Have Ewout review #125 locally; merge only on request after the post-retarget CI run is green.
 2. Continue the coach/rower workflow: a cross-session “My notes” view (#109), then notifications,
    annotation status/auditability and quota hardening.
 3. Stroke marking (#85), thumbnail strip/retry, and real-device Android/4K checks remain open.

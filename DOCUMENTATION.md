@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Merge language switch and retarget video notes
+
+**Session**: codex/feat/106-notes-in-video
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: PR #124 was merged into `main` as `fd8b19c` without deleting its branch, then PR #125 was retargeted from `claude/feat/ui-language` to `main`; it remained conflict-free and mergeable. No deployment was performed.
+**Prompts used**: "ok merge 124 en daarna retarget 125"
+
 ## 2026-11-02 — Notes and drawings in the video; account is the author (#106)
 
 **Session**: codex/feat/106-notes-in-video
