@@ -3,6 +3,7 @@ import { api } from '../api.ts';
 import { LoginGate } from '../auth/LoginGate.tsx';
 import { authStrings } from '../auth/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
+import { adminStrings } from '../admin/strings.ts';
 import { rowerStrings } from '../rowers/strings.ts';
 import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { PLAYER_DEMO } from '../features.ts';
@@ -48,6 +49,11 @@ export function HomePage() {
           <Link className="button-link" to="/rowers">
             {rowerStrings().rowers}
           </Link>
+          {state.user.role === 'admin' && (
+            <Link className="button-link button-link--quiet" to="/admin">
+              {adminStrings().admin}
+            </Link>
+          )}
           <button className="button--quiet" type="button" onClick={logoutOthers}>
             {t.logoutOthers}
           </button>

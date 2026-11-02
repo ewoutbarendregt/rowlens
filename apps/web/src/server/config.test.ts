@@ -75,6 +75,7 @@ describe('loadConfig', () => {
     });
     expect(config.auth).toEqual({
       allowedEmails: new Set(['coach@example.com', 'rower@example.com']),
+      adminEmails: new Set(),
       otpPepper: 'a'.repeat(64),
       clubSlug: 'pilot',
       testCode: null,

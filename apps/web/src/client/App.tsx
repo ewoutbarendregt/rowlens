@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
+import { AccessPage } from './admin/AccessPage.tsx';
 import { PLAYER_DEMO } from './features.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
@@ -34,6 +35,7 @@ export function App() {
           </RequireAuth>
         }
       />
+      <Route path="admin" element={<AccessPage />} />
       <Route
         path="rowers"
         element={

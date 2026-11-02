@@ -23,6 +23,11 @@ Nothing under `/opt/trustable` has been changed.
 
 ## Still to do on the server
 
+For #42 (admin access), at the deploy that contains it: add `AUTH_ADMIN_EMAILS` (the first admin's
+address, entered by Ewout through a terminal prompt as before, with a `.env` backup first). Migration
+0010 adds roles, the access list and its log. The two addresses in `AUTH_ALLOWED_EMAILS` keep working
+as coach; they can be moved into the app's list later.
+
 From #28–#30 (e-mail authentication): login is enabled since `sha-5ee4d69` and the first real login
 worked on 2026-11-02 (`sha-6fbd5a6`, port 587); the pilot code no longer opens the app. Still to check:
 the EN mail, logout and "log out other devices"; after that

@@ -2,9 +2,9 @@ import { expect, type Page } from '@playwright/test';
 import { authCode, authEmail } from './env.ts';
 
 /** Through email OTP authentication like a club member (#28). */
-export async function signIn(page: Page): Promise<void> {
+export async function signIn(page: Page, email: string = authEmail): Promise<void> {
   await page.goto('./');
-  await page.getByLabel(/^(Email address|E-mailadres)$/).fill(authEmail);
+  await page.getByLabel(/^(Email address|E-mailadres)$/).fill(email);
   await page.getByRole('button', { name: /^(Send code|Stuur code)$/ }).click();
   await page.getByLabel(/^(Login code|Inlogcode)$/).fill(authCode);
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click();

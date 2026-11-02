@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loginMessage, smtpTransportOptions } from './mail.ts';
+import { inviteMessage, loginMessage, smtpTransportOptions } from './mail.ts';
 
 const smtp = {
   host: 'smtp.resend.com',
@@ -44,5 +44,21 @@ describe('loginMessage', () => {
     expect(message.text).toContain('https://trustable.nl/projects/rowlens/');
     expect(message.html).toContain('>012345<');
     expect(message.html).toContain('href="https://trustable.nl/projects/rowlens/"');
+  });
+});
+
+describe('inviteMessage', () => {
+  it('says it in Dutch and English with an absolute link, and escapes the club name', () => {
+    const message = inviteMessage({
+      email: 'rower@example.com',
+      clubName: 'Roeiclub <Test> & Co',
+      loginUrl: 'https://trustable.nl/projects/rowlens/',
+    });
+    expect(message.subject).toContain('Toegang tot RowLens');
+    expect(message.text).toContain('Je hebt toegang');
+    expect(message.text).toContain('You now have access');
+    expect(message.text).toContain('https://trustable.nl/projects/rowlens/');
+    expect(message.html).toContain('Roeiclub &#60;Test&#62; &#38; Co');
+    expect(message.html).not.toContain('<Test>');
   });
 });

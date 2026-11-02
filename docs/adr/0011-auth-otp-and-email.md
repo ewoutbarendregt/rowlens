@@ -34,3 +34,12 @@ notifications with opt-out, NL/EN. AudioScribe and trustable.nl already use OTP 
 
 - No passwords to store or reset. Inbox access = account access; sessions are revocable.
 - E-mail deliverability matters: SPF/DKIM/DMARC for the sender domain must be verified in Resend.
+
+## Addendum 2026-11-02: in-app access list and roles (#42)
+
+Admins now admit people in the app (Admin → Access) with a role (rower, coach, admin) instead of
+the operator editing `AUTH_ALLOWED_EMAILS`. The first admins come from the server setting
+`AUTH_ADMIN_EMAILS`: always admin and not editable in the app, so a club can't lock itself out and no
+personal e-mail address has to live in the repository. `AUTH_ALLOWED_EMAILS` keeps working (as coach).
+Removing someone deletes their membership, which ends their sessions. Invitation token links remain
+later work.

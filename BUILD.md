@@ -179,6 +179,21 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## Admin: who may log in (#42)
+
+- Roles on `membership`: `rower | coach | admin`. Login (`auth/gate.ts` `roleFor`) decides access and
+  role in this order: `AUTH_ADMIN_EMAILS` (server, always admin, not editable in the app) → the
+  in-app list `club_access` (RLS) → `AUTH_ALLOWED_EMAILS` (server, coach). Anyone else: the same 202,
+  no code. `rowlens_auth_ensure_user` sets the membership role on every code request;
+  `rowlens_auth_session` returns it, the guard puts it on `req.role`, `/api/auth/status` on `user.role`.
+- API `api/access.ts` (admins only, 404 otherwise): list (both sources, with last activity through
+  `rowlens_club_members()`, which only sees the current club), add (+ bilingual invitation mail;
+  access stays if the mail fails), change role, remove (deletes the membership, so sessions and codes
+  end by cascade). Refuses changing your own access and removing the last admin. Every change goes to
+  the append-only `club_access_log`.
+- UI: `client/admin/AccessPage.tsx` (`/admin`), linked on the home page for admins only.
+- What rowers and coaches may do otherwise is still the same; that's #40.
+
 ## Who a note is for (#105)
 
 - Table `moment` (`club_id` + RLS): the note at one frame of a video as one row, `unique(video_id,

@@ -6,6 +6,7 @@ import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
 import { sql } from 'drizzle-orm';
 import { stripBasePath } from '../shared/base-path.ts';
+import { accessRoutes } from './api/access.ts';
 import { annotationRoutes } from './api/annotations.ts';
 import { clubRoutes } from './api/club.ts';
 import { lineupRoutes } from './api/lineups.ts';
@@ -15,8 +16,8 @@ import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
 import { videoRoutes } from './api/videos.ts';
 import { createAuthGate } from './auth/gate.ts';
-import type { DeliverLoginCode } from './auth/mail.ts';
-import { smtpDelivery } from './auth/mail.ts';
+import type { DeliverInvite, DeliverLoginCode } from './auth/mail.ts';
+import { smtpDelivery, smtpInviteDelivery } from './auth/mail.ts';
 import type { AppConfig } from './config.ts';
 import type { Database } from './db/client.ts';
 import { healthRoutes, type ReadinessCheck } from './health.ts';
@@ -39,6 +40,8 @@ export interface BuildAppOptions {
   resolvePilotClubId?: () => Promise<string | null>;
   /** Test seam for OTP delivery; production derives this from the SMTP configuration. */
   deliverLoginCode?: DeliverLoginCode;
+  /** Test seam for invitation mails (#42), like deliverLoginCode. */
+  deliverInvite?: DeliverInvite;
   /** Pino logging; off in tests. */
   logger?: boolean;
 }
@@ -82,6 +85,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   });
 
   app.decorateRequest('tenant', null);
+  app.decorateRequest('role', null);
 
   await app.register(helmet, {
     // HSTS is set once, by Caddy, for the whole trustable.nl origin.
@@ -170,6 +174,18 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
     await app.register(rowerRoutes, { prefix: base, ...clubOpts });
     await app.register(lineupRoutes, { prefix: base, ...clubOpts });
     await app.register(momentRoutes, { prefix: base, ...clubOpts });
+    if (config.auth !== null) {
+      const deliverInvite =
+        opts.deliverInvite ??
+        (config.auth.smtp === null ? undefined : smtpInviteDelivery(config.auth.smtp));
+      await app.register(accessRoutes, {
+        prefix: base,
+        ...clubOpts,
+        auth: config.auth,
+        publicOrigin: config.publicOrigin,
+        ...(deliverInvite === undefined ? {} : { deliverInvite }),
+      });
+    }
   }
 
   const indexHtml = clientDir === null ? null : await loadClient(clientDir, base);

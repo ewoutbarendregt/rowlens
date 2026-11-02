@@ -9,11 +9,18 @@ import { withTenant } from '../db/tenant.ts';
 import { hmac, newCode, newToken, safeEqual, sha256 } from './crypto.ts';
 import type { DeliverLoginCode } from './mail.ts';
 
+export type Role = 'rower' | 'coach' | 'admin';
+
 declare module 'fastify' {
   interface FastifyRequest {
     tenant: TenantContext | null;
+    /** The member's role in the club; null on the pilot-code path, which has no user. */
+    role: Role | null;
   }
 }
+
+const asRole = (value: unknown): Role | null =>
+  value === 'rower' || value === 'coach' || value === 'admin' ? value : null;
 
 const SESSION_DAYS = 30;
 const CODE_MINUTES = 10;
@@ -43,6 +50,7 @@ interface Identity {
 interface SessionIdentity extends Identity {
   sessionId: string;
   csrfHash: string;
+  role: Role;
 }
 
 export interface AuthGate {
@@ -81,15 +89,33 @@ export function createAuthGate(opts: {
     ]);
   };
 
+  /**
+   * Who may log in, and as what (#42): server admins are always admin; otherwise the app's access
+   * list decides; the server's coach list is the fallback. Anyone else gets nothing.
+   */
+  const roleFor = async (email: string): Promise<Role | null> => {
+    const auth = opts.auth;
+    if (auth === null) return null;
+    if (auth.adminEmails.has(email)) return 'admin';
+    const result = await opts.db.execute<{ role: string | null }>(
+      sql`select rowlens_auth_access(${email}, ${auth.clubSlug}) as role`,
+    );
+    const listed = asRole(result.rows[0]?.role);
+    if (listed !== null) return listed;
+    return auth.allowedEmails.has(email) ? 'coach' : null;
+  };
+
   const identityFor = async (email: string, ensure: boolean, locale: 'nl' | 'en') => {
-    if (opts.auth === null || !opts.auth.allowedEmails.has(email)) return null;
+    if (opts.auth === null) return null;
+    const role = await roleFor(email);
+    if (role === null) return null;
     const name =
       email
         .slice(0, email.indexOf('@'))
         .replace(/[._-]+/g, ' ')
         .trim() || 'Roeier';
     const query = ensure
-      ? sql`select * from rowlens_auth_ensure_user(${email}, ${name}, ${locale}, ${opts.auth.clubSlug})`
+      ? sql`select * from rowlens_auth_ensure_user(${email}, ${name}, ${locale}, ${opts.auth.clubSlug}, ${role})`
       : sql`select * from rowlens_auth_identity(${email})`;
     const result = await opts.db.execute<{
       user_id: string;
@@ -130,11 +156,14 @@ export function createAuthGate(opts: {
       email: string;
       display_name: string;
       locale: string;
+      role: string;
     }>(sql`select * from rowlens_auth_session(${sha256(token)})`);
     const row = result.rows[0];
-    return row === undefined
+    const role = asRole(row?.role);
+    return row === undefined || role === null
       ? null
       : {
+          role,
           sessionId: row.session_id,
           userId: row.user_id,
           clubId: row.club_id,
@@ -178,7 +207,12 @@ export function createAuthGate(opts: {
       return {
         enabled: true,
         access: true,
-        user: { email: session.email, displayName: session.displayName, locale: session.locale },
+        user: {
+          email: session.email,
+          displayName: session.displayName,
+          locale: session.locale,
+          role: session.role,
+        },
       };
     });
 
@@ -334,6 +368,7 @@ export function createAuthGate(opts: {
     }
     if (!validCsrf(req, session)) return reply.code(403).send({ error: 'invalid_csrf' });
     req.tenant = { clubId: session.clubId, userId: session.userId };
+    req.role = session.role;
     setSessionCookies(
       reply,
       readCookie(req, sessionCookie) ?? '',
