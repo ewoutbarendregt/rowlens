@@ -11,6 +11,8 @@ import {
   sessionStrings,
   type VideoStatus,
 } from './strings.ts';
+import type { BoatClass } from '../../shared/boats.ts';
+import { LineupCard, type LineupSeat } from '../lineup/LineupCard.tsx';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { videoDisplayName } from './displayName.ts';
 import { retryable, useUploads } from './useUploads.ts';
@@ -42,6 +44,8 @@ interface SessionDetail {
   title: string;
   date: string;
   createdAt: string;
+  boatType: BoatClass | null;
+  lineup: LineupSeat[];
   videos: SessionVideo[];
 }
 
@@ -132,6 +136,15 @@ export function SessionPage() {
       <p className="muted">
         {formatDate(session.date)} · {t.createdAt(formatCreatedTime(session.createdAt))}
       </p>
+
+      <LineupCard
+        sessionId={session.id}
+        boatType={session.boatType}
+        lineup={session.lineup}
+        onSaved={(boatType, lineup) => {
+          setSession((s) => (s === null ? s : { ...s, boatType, lineup }));
+        }}
+      />
 
       {session.videos.length === 0 && <p className="muted">{t.noVideos}</p>}
       <ul className="list" data-testid="video-list">

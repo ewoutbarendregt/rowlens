@@ -1,4 +1,5 @@
 import { type SQL, type SQLWrapper, sql } from 'drizzle-orm';
+import { BOAT_CLASS_NAMES } from '../../shared/boats.ts';
 import {
   bigint,
   boolean,
@@ -13,6 +14,7 @@ import {
   pgPolicy,
   pgRole,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -179,13 +181,51 @@ export const rowingSession = pgTable(
       .references(() => club.id),
     title: text('title').notNull(),
     sessionDate: date('session_date').notNull(),
+    /** Boat class of the lineup (#103), one of shared/boats.ts; null until a lineup is set. */
+    boatType: text('boat_type'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    check(
+      'rowing_session_boat_type_check',
+      sql.raw(`boat_type in (${BOAT_CLASS_NAMES.map((b) => `'${b}'`).join(', ')})`),
+    ),
     // Target of video's (club_id, session_id) key: a video can't point into another club's session.
     unique('rowing_session_club_id_id_unique').on(t.clubId, t.id),
     index('rowing_session_club_date_idx').on(t.clubId, t.sessionDate),
     tenantPolicy('rowing_session_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/**
+ * Who sat where in a session (#103): seat 1 = bow … n = stroke, 0 = cox (shared/boats.ts). An empty
+ * seat has no row. A rower sits in one seat per session; rowers are archived, never deleted, so the
+ * key to `rower` restricts while deleting the session cascades.
+ */
+export const lineupSeat = pgTable(
+  'lineup_seat',
+  {
+    clubId: uuid('club_id').notNull(),
+    sessionId: uuid('session_id').notNull(),
+    seat: smallint('seat').notNull(),
+    rowerId: uuid('rower_id').notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'lineup_seat_pk', columns: [t.sessionId, t.seat] }),
+    unique('lineup_seat_session_rower_unique').on(t.sessionId, t.rowerId),
+    foreignKey({
+      name: 'lineup_seat_session_fk',
+      columns: [t.clubId, t.sessionId],
+      foreignColumns: [rowingSession.clubId, rowingSession.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'lineup_seat_rower_fk',
+      columns: [t.clubId, t.rowerId],
+      foreignColumns: [rower.clubId, rower.id],
+    }).onDelete('restrict'),
+    index('lineup_seat_rower_idx').on(t.rowerId),
+    check('lineup_seat_seat_check', sql`${t.seat} between 0 and 8`),
+    tenantPolicy('lineup_seat_tenant', t.clubId),
   ],
 ).enableRLS();
 

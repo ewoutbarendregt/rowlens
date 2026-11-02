@@ -196,6 +196,22 @@ scripts/github/      backlog/labels/milestones bootstrap
   Reused by lineups (#103), note assignment (#105) and sharing (#112).
 - Permissions: every signed-in club member may edit the roster during the one-club phase (roles: #40).
 
+## Session lineup (#103)
+
+- `rowing_session.boat_type` (check against `shared/boats.ts`: coastal `C1x, C2x, C2x+, C4x+, C4+` first,
+  then flat-water classes) and table `lineup_seat` (`club_id` + RLS): seat 1 = bow … n = stroke, 0 = cox;
+  PK `(session_id, seat)`, a rower once per session. Keys `(club_id, session_id)` → session **cascade**,
+  `(club_id, rower_id)` → `rower` **restrict** (rowers are archived, never deleted).
+- API `apps/web/src/server/api/lineups.ts`: `PUT /api/sessions/:id/lineup` replaces the whole lineup in
+  one transaction (seats checked against the boat; unknown rower → 400; an archived rower may stay in a
+  seat they already had but can't be seated anew); `GET /api/lineups/recent` for "copy from an earlier
+  session". Session detail, session list and video detail include `boatType`/`lineup`. Merging two
+  roster entries moves their seats (`mergeLineupSeats`).
+- UI: `client/lineup/LineupCard.tsx` on the session page (boat, a `RowerPicker` per seat, copy, one
+  save button that appears on change; the draft only resets when the saved lineup changes, not on the
+  3 s refresh while videos process) and `LineupSummary` under the video title. Per-video changes
+  (seat swaps during a session) are not modelled yet.
+
 ## E-mail OTP authentication (#28–#30, ADR-0011)
 
 - The first club is operator-managed through `AUTH_ALLOWED_EMAILS`; requesting a code always returns
