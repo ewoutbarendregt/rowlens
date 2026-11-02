@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
 import { migrateDatabase } from '../src/server/db/migrate.ts';
-import { authCode, authEmail } from './env.ts';
+import { adminEmail, authCode, authEmail } from './env.ts';
 
 const APP_PASSWORD = 'e2e_app_password_only';
 
@@ -23,6 +23,7 @@ appUrl.username = 'rowlens_app';
 appUrl.password = APP_PASSWORD;
 process.env['DATABASE_URL'] = appUrl.toString();
 process.env['AUTH_ALLOWED_EMAILS'] = authEmail;
+process.env['AUTH_ADMIN_EMAILS'] = adminEmail;
 process.env['OTP_PEPPER'] = 'e'.repeat(64);
 process.env['AUTH_TEST_CODE'] = authCode;
 process.env['AUTH_OTP_PER_EMAIL_15M'] = '1000';

@@ -86,7 +86,7 @@ export const membership = pgTable(
   (t) => [
     unique('membership_club_user_unique').on(t.clubId, t.userId),
     index('membership_user_idx').on(t.userId),
-    check('membership_role_check', sql`${t.role} in ('rower', 'coach')`),
+    check('membership_role_check', sql`${t.role} in ('rower', 'coach', 'admin')`),
     tenantPolicy('membership_tenant', t.clubId),
   ],
 ).enableRLS();
@@ -442,5 +442,55 @@ export const momentRowerLog = pgTable(
     }).onDelete('cascade'),
     index('moment_rower_log_moment_idx').on(t.momentId, t.at),
     tenantPolicy('moment_rower_log_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/**
+ * Who may log in to a club, managed in the app by its admins (#42): e-mail and role. Server settings
+ * (AUTH_ADMIN_EMAILS, AUTH_ALLOWED_EMAILS) add to this list; see auth/gate.ts for the order.
+ */
+export const clubAccess = pgTable(
+  'club_access',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    email: text('email').notNull(),
+    role: text('role').notNull(),
+    addedByUserId: uuid('added_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('club_access_club_email_unique').on(t.clubId, t.email),
+    check('club_access_role_check', sql`${t.role} in ('rower', 'coach', 'admin')`),
+    check(
+      'club_access_email_check',
+      sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`,
+    ),
+    tenantPolicy('club_access_tenant', t.clubId),
+  ],
+).enableRLS();
+
+export const clubAccessAction = pgEnum('club_access_action', ['added', 'role_changed', 'removed']);
+
+/** Append-only: who admitted whom, changed a role or removed access, and when (#42, #43). */
+export const clubAccessLog = pgTable(
+  'club_access_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    email: text('email').notNull(),
+    action: clubAccessAction('action').notNull(),
+    role: text('role'),
+    byUserId: uuid('by_user_id'),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('club_access_log_club_at_idx').on(t.clubId, t.at),
+    tenantPolicy('club_access_log_tenant', t.clubId),
   ],
 ).enableRLS();

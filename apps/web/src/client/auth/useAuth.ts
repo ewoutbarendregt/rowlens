@@ -5,6 +5,7 @@ interface AuthUser {
   email: string;
   displayName: string;
   locale: 'nl' | 'en';
+  role: 'rower' | 'coach' | 'admin';
 }
 
 export type AuthState =

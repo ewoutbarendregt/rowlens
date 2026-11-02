@@ -43,8 +43,10 @@ const envSchema = z.object({
     .string()
     .regex(/^[0-9a-f]{64,}$/, 'at least 64 hex characters')
     .optional(),
-  /** Comma-separated one-club pilot allowlist; invitations replace this later. */
+  /** Comma-separated addresses that may log in as coach (server-managed; the app's list adds to it). */
   AUTH_ALLOWED_EMAILS: z.string().optional(),
+  /** Comma-separated addresses that are always admin (#42): the first admins, outside the app. */
+  AUTH_ADMIN_EMAILS: z.string().optional(),
   /** HMAC key for OTPs and rate-limit identifiers (`openssl rand -hex 32`). */
   OTP_PEPPER: z
     .string()
@@ -93,7 +95,10 @@ export interface AppConfig {
     attemptsPerMinute: number;
   } | null;
   auth: {
+    /** Server-managed coaches. */
     allowedEmails: ReadonlySet<string>;
+    /** Server-managed admins: always admin, can't be removed in the app. */
+    adminEmails: ReadonlySet<string>;
     otpPepper: string;
     clubSlug: string;
     testCode: string | null;
@@ -131,17 +136,26 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   if (e.NODE_ENV === 'production' && e.DATABASE_URL === undefined) {
     throw new Error('Invalid configuration: DATABASE_URL is required in production');
   }
-  const allowedEmails = (e.AUTH_ALLOWED_EMAILS ?? '')
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter((email) => email !== '');
-  for (const email of allowedEmails) {
-    if (!z.email().safeParse(email).success) {
-      throw new Error(`Invalid configuration: invalid AUTH_ALLOWED_EMAILS entry ${email}`);
+  const emailList = (name: 'AUTH_ALLOWED_EMAILS' | 'AUTH_ADMIN_EMAILS') => {
+    const list = (e[name] ?? '')
+      .split(',')
+      .map((email) => email.trim().toLowerCase())
+      .filter((email) => email !== '');
+    for (const email of list) {
+      if (!z.email().safeParse(email).success) {
+        throw new Error(`Invalid configuration: invalid ${name} entry ${email}`);
+      }
     }
-  }
-  if (allowedEmails.length > 0 && e.OTP_PEPPER === undefined) {
-    throw new Error('Invalid configuration: OTP_PEPPER is required with AUTH_ALLOWED_EMAILS');
+    return list;
+  };
+  const allowedEmails = emailList('AUTH_ALLOWED_EMAILS');
+  const adminEmails = emailList('AUTH_ADMIN_EMAILS');
+  // Login is on once the server names anyone; admins then admit the rest in the app.
+  const authConfigured = allowedEmails.length + adminEmails.length > 0;
+  if (authConfigured && e.OTP_PEPPER === undefined) {
+    throw new Error(
+      'Invalid configuration: OTP_PEPPER is required with AUTH_ALLOWED_EMAILS or AUTH_ADMIN_EMAILS',
+    );
   }
   if (e.AUTH_TEST_CODE !== undefined && e.NODE_ENV !== 'test') {
     throw new Error('Invalid configuration: AUTH_TEST_CODE is allowed only in NODE_ENV=test');
@@ -165,7 +179,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
           password: e.SMTP_PASSWORD,
           from: e.MAIL_FROM,
         };
-  if (e.NODE_ENV === 'production' && allowedEmails.length > 0 && smtp === null) {
+  if (e.NODE_ENV === 'production' && authConfigured && smtp === null) {
     throw new Error('Invalid configuration: SMTP is required when authentication is enabled');
   }
   const port = e.API_PORT ?? e.PORT;
@@ -200,10 +214,11 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
             attemptsPerMinute: e.PILOT_ATTEMPTS_PER_MINUTE,
           },
     auth:
-      allowedEmails.length === 0 || e.OTP_PEPPER === undefined
+      !authConfigured || e.OTP_PEPPER === undefined
         ? null
         : {
             allowedEmails: new Set(allowedEmails),
+            adminEmails: new Set(adminEmails),
             otpPepper: e.OTP_PEPPER,
             clubSlug: e.PILOT_CLUB_SLUG,
             testCode: e.AUTH_TEST_CODE ?? null,

@@ -103,7 +103,7 @@ describe('email OTP authentication', () => {
       from pg_proc
       where proname like 'rowlens_auth_%'
       order by proname`);
-    expect(functions).toHaveLength(4);
+    expect(functions).toHaveLength(5);
     for (const fn of functions) {
       expect(fn).toMatchObject({ prosecdef: true, proconfig: ['search_path=public, pg_temp'] });
     }

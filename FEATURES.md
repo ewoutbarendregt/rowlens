@@ -44,7 +44,7 @@ statement covering roster names of people without an account (#64).
 | Feature | Priority | Status |
 |---|---|---|
 | Clubs, memberships, crews, roles rower/coach | must | in progress: club + membership exist; crews (#41) and roster (#104) to do |
-| Invitations by e-mail | must | planned (#42) |
+| Invitations by e-mail | must | in progress: admins admit people with a role + invitation mail (PR open); token links later (#42) |
 | Tenant isolation (RLS) + cross-club tests | must | done for current tables (#39) |
 | Sessions with optional metadata | must | in progress: create/list/delete done; lineup (#103) and other metadata to do |
 | Resumable phone upload (tus) | must | done; real-device 4K test (#45) to do |

@@ -33,6 +33,7 @@ services:
       DATABASE_URL: postgres://rowlens_app:edge_app_password_only@db:5432/rowlens
       # Test-only: production rejects AUTH_TEST_CODE at startup.
       AUTH_ALLOWED_EMAILS: coach.e2e@example.com
+      AUTH_ADMIN_EMAILS: admin.e2e@example.com
       OTP_PEPPER: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
       AUTH_TEST_CODE: '284619'
       AUTH_OTP_PER_EMAIL_15M: '1000'

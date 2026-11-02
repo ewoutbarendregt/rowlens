@@ -9,6 +9,36 @@ export interface LoginMail {
 
 export type DeliverLoginCode = (mail: LoginMail) => Promise<void>;
 
+/** "You have access to RowLens" (#42), sent when an admin admits an address. */
+export interface InviteMail {
+  email: string;
+  clubName: string;
+  loginUrl: string;
+}
+
+export type DeliverInvite = (mail: InviteMail) => Promise<void>;
+
+const escapeHtml = (value: string) =>
+  value.replace(/[&<>"']/g, (c) => `&#${String(c.charCodeAt(0))};`);
+
+/**
+ * The invitation in Dutch and English in one mail: the admin doesn't know the person's language,
+ * and RowLens learns it at their first login.
+ */
+export function inviteMessage({ clubName, loginUrl }: InviteMail): {
+  subject: string;
+  text: string;
+  html: string;
+} {
+  const nl = `Je hebt toegang tot RowLens van ${clubName}. Log in met dit e-mailadres; je krijgt dan een code per mail.`;
+  const en = `You now have access to RowLens for ${clubName}. Sign in with this e-mail address and we'll send you a code.`;
+  return {
+    subject: `Toegang tot RowLens / Access to RowLens (${clubName})`,
+    text: `${nl}\n\n${en}\n\n${loginUrl}`,
+    html: `<p>${escapeHtml(nl)}</p><p>${escapeHtml(en)}</p><p><a href="${escapeHtml(loginUrl)}">Open RowLens</a></p>`,
+  };
+}
+
 export function loginMessage({ code, locale, loginUrl }: LoginMail): {
   subject: string;
   text: string;
@@ -64,5 +94,12 @@ export function smtpDelivery(config: SmtpConfig): DeliverLoginCode {
       to: mail.email,
       ...message,
     });
+  };
+}
+
+export function smtpInviteDelivery(config: SmtpConfig): DeliverInvite {
+  const transport = nodemailer.createTransport(smtpTransportOptions(config));
+  return async (mail) => {
+    await transport.sendMail({ from: config.from, to: mail.email, ...inviteMessage(mail) });
   };
 }

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Admin: give people access with a role (#42)
+
+**Session**: claude/feat/42-admin-access (stacked on claude/feat/105-assign-notes)
+**Changed**: apps/web/src/server/db/schema.ts, migrations/0010_admin_access.sql (+ meta; replaces the auth SQL functions), apps/web/src/server/{config.ts,app.ts}, apps/web/src/server/auth/{gate.ts,mail.ts,mail.test.ts,gate.db.test.ts}, apps/web/src/server/api/{access.ts,access.db.test.ts}, apps/web/src/client/admin/*, apps/web/src/client/{App.tsx,auth/useAuth.ts,pages/HomePage.tsx,styles.css}, apps/web/e2e/{admin.spec.ts,env.ts,server.ts,helpers.ts}, infra/compose/docker-compose.edge.yml, apps/web/.env.example, docs/adr/0011-auth-otp-and-email.md, docs/runbooks/server-setup.md, BUILD.md, FEATURES.md
+**Summary**: Admins admit e-mail addresses in the app with a role (rower, coach, admin), change roles and remove access (which ends the person's sessions); every change is logged; an invitation mail goes out in NL and EN. The first admins come from the new server setting `AUTH_ADMIN_EMAILS` (Ewout's address only in the local, uncommitted `.env`; on the server after approval). Not merged or deployed.
+**Prompts used**: "ik heb een admin functie nodig om gebruikers toe te laten tot het systeem. ikzelf ben de eerste admin: …"; answers: admin adds e-mail addresses; roles rower, coach, admin.
+
 ## 2026-11-02 — Assign a note to rowers (#105)
 
 **Session**: claude/feat/105-assign-notes (stacked on claude/feat/ui-design-tokens)
