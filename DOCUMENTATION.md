@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — What a rower sees (#40) and sharing notes (#112)
+
+**Session**: claude/feat/40-role-visibility
+**Changed**: apps/web/src/server/db/{schema.ts,tenant.ts}, migrations/0011_role_visibility.sql (+ meta), apps/web/src/server/auth/{can.ts,can.test.ts,gate.ts}, apps/web/src/server/api/{annotations.ts,moments.ts,sessions.ts,videos.ts,visibility.db.test.ts}, apps/web/src/client/notes/{NotesPanel.tsx,assignees.ts,strings.ts}, apps/web/src/client/sessions/{SessionsPage.tsx,VideoPage.tsx,strings.ts}, apps/web/src/client/{auth/useAuth.ts,styles.css}, apps/web/e2e/share.spec.ts, docs/adr/0013-role-visibility.md, BUILD.md, FEATURES.md
+**Summary**: Rowers now see only their sessions and the notes assigned or shared to them or written by them, enforced with restrictive RLS policies on top of the club policy; they change only their own annotations. Notes can be shared with a rower or the session's crew and taken back. Login links the roster entry with the account's exact e-mail. 10 visibility DB tests through the real login flow, 46 can() tests, edge E2E 20/20. Not merged or deployed.
+**Prompts used**: "Merge, dan #40+#112"; answers: rower sees sessions they rowed in; notes private to coaches + assignees; rowers may write notes, share, upload and keep roster/lineups.
+
 ## 2026-11-02 — Admin: give people access with a role (#42)
 
 **Session**: claude/feat/42-admin-access (stacked on claude/feat/105-assign-notes)

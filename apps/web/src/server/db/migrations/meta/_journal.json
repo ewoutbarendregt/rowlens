@@ -78,6 +78,13 @@
       "when": 1793634207997,
       "tag": "0010_admin_access",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793640785171,
+      "tag": "0011_role_visibility",
+      "breakpoints": true
     }
   ]
 }

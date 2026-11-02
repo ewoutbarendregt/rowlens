@@ -1473,3 +1473,20 @@ a.list__item {
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
 }
+
+/* ---------------------------------------------------------------- sharing a note (#112) */
+
+.chip.chip--share {
+  border-color: var(--color-border-default);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-primary);
+}
+
+/* Design-system callout: a note on the page, not an error. */
+.page .callout {
+  margin-block: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-left: var(--border-emphasis) solid var(--color-border-indicator);
+  background: var(--color-fill-brand-subtle);
+  color: var(--color-text-secondary);
+}

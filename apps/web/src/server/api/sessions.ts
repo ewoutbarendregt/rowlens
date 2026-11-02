@@ -50,6 +50,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           clubId: tenantOf(req).clubId,
           title: body.data.title,
           sessionDate: body.data.date,
+          createdByUserId: tenantOf(req).userId,
         })
         .returning({ id: rowingSession.id }),
     );

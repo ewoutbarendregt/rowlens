@@ -2,14 +2,23 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database, Tx } from './client.ts';
 
-/** Who is acting, in which club (ADR-0005). Roles are added with the permission model (#40). */
+/** Who is acting, in which club, as what (ADR-0005, ADR-0013). */
 export interface TenantContext {
   clubId: string;
   /** Authenticated user; `null` only for the legacy pilot-code rollback path. */
   userId: string | null;
+  /**
+   * The member's role. Rowers see only their own sessions and the notes meant for them (restrictive
+   * RLS policies read `app.role`); absent for the worker and the pilot-code path, which see the club.
+   */
+  role?: 'rower' | 'coach' | 'admin' | null;
 }
 
-const contextSchema = z.object({ clubId: z.uuid(), userId: z.uuid().nullable() });
+const contextSchema = z.object({
+  clubId: z.uuid(),
+  userId: z.uuid().nullable(),
+  role: z.enum(['rower', 'coach', 'admin']).nullable().optional(),
+});
 
 /**
  * Runs `fn` in a transaction scoped to one club: RLS policies see `app.club_id` / `app.user_id`
@@ -21,10 +30,10 @@ export async function withTenant<T>(
   ctx: TenantContext,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  const { clubId, userId } = contextSchema.parse(ctx);
+  const { clubId, userId, role } = contextSchema.parse(ctx);
   return db.transaction(async (tx) => {
     await tx.execute(
-      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true)`,
+      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${role ?? ''}, true)`,
     );
     return fn(tx);
   });

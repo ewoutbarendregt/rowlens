@@ -5,6 +5,7 @@ import { rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { videoKey } from '../media/store.ts';
 import { lineupOf } from './lineups.ts';
+import type { TenantContext } from '../db/tenant.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
@@ -30,8 +31,10 @@ interface Rendition {
 export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, done) => {
   const { db, guard, media } = opts;
 
-  const readyVideo = async (clubId: string, id: string) => {
-    const [row] = await withTenant(db, { clubId, userId: null }, (tx) =>
+  // The request's tenant, role included: a rower may only stream videos of sessions they can see.
+  const readyVideo = async (tenant: TenantContext, id: string) => {
+    const clubId = tenant.clubId;
+    const [row] = await withTenant(db, tenant, (tx) =>
       tx
         .select({
           id: video.id,
@@ -62,7 +65,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
     const tenant = tenantOf(req);
-    const row = await readyVideo(tenant.clubId, params.data.id);
+    const row = await readyVideo(tenant, params.data.id);
     if (row === undefined) return notFound(reply);
     const lineup = await withTenant(db, tenant, (tx) => lineupOf(tx, row.sessionId));
     const renditions = ((row.renditions ?? []) as Rendition[]).map(({ name, width, height }) => ({
@@ -78,7 +81,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     const params = mediaParams.safeParse(req.params);
     if (!params.success || media === null) return notFound(reply);
     const clubId = tenantOf(req).clubId;
-    const row = await readyVideo(clubId, params.data.id);
+    const row = await readyVideo(tenantOf(req), params.data.id);
     if (row?.status !== 'ready') return notFound(reply);
 
     const { name } = params.data;

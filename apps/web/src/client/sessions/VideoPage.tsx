@@ -8,7 +8,7 @@ import { LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
 import { rememberedName, rememberName } from '../notes/name.ts';
 import { lineupStrings } from '../lineup/strings.ts';
-import { lineupSuggestions, type MomentRowers } from '../notes/assignees.ts';
+import { lineupSuggestions, type MomentRowers, type MomentShares } from '../notes/assignees.ts';
 import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
 import { useRoster } from '../rowers/useRoster.ts';
 import { notesStrings } from '../notes/strings.ts';
@@ -60,6 +60,7 @@ export function VideoPage() {
   const player = useRef<PlayerHandle>(null);
   const [notes, setNotes] = useState<Annotation[]>([]);
   const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
+  const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
   const roster = useRoster();
   const [name, setName] = useState(rememberedName);
   const [tool, setTool] = useState<DrawingKind | null>(null);
@@ -68,13 +69,18 @@ export function VideoPage() {
     api(`/api/videos/${id}/annotations`)
       .then((res) =>
         res.ok
-          ? (res.json() as Promise<{ annotations: Annotation[]; moments?: MomentRowers[] }>)
+          ? (res.json() as Promise<{
+              annotations: Annotation[];
+              moments?: MomentRowers[];
+              shares?: MomentShares[];
+            }>)
           : null,
       )
       .then((body) => {
         if (body !== null) {
           setNotes(body.annotations);
           setMomentRowers(body.moments ?? []);
+          setMomentShares(body.shares ?? []);
         }
       })
       .catch(() => {
@@ -260,6 +266,7 @@ export function VideoPage() {
               onNameChange={setName}
               onChanged={loadNotes}
               momentRowers={momentRowers}
+              momentShares={momentShares}
               roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
               suggestions={lineupSuggestions(
                 video.boatType,
