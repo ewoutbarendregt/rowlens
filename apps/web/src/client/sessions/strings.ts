@@ -1,3 +1,4 @@
+import { type Language, lang, locale } from '../i18n/language.ts';
 // Sessions and upload strings in NL and EN (moves into the i18n catalogs with #34).
 const en = {
   sessions: 'Sessions',
@@ -198,15 +199,12 @@ export type Perspective = keyof SessionStrings['perspectives'];
 export type VideoStatus = keyof SessionStrings['status'];
 export type UploadError = keyof SessionStrings['errors'];
 
-export const lang = (): 'nl' | 'en' =>
-  navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en';
-
 export function sessionStrings(): SessionStrings {
   return lang() === 'nl' ? nl : en;
 }
 
 export function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat(lang() === 'nl' ? 'nl-NL' : 'en-GB', {
+  return new Intl.DateTimeFormat(locale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
@@ -217,11 +215,11 @@ export function formatDate(iso: string): string {
 
 /** "Sun" and "1 Nov" for the date column; the year too when the list isn't grouped by month. */
 export function formatDayParts(iso: string, withYear = false): { weekday: string; day: string } {
-  const locale = lang() === 'nl' ? 'nl-NL' : 'en-GB';
+  const loc = locale();
   const date = new Date(`${iso}T00:00:00Z`);
   return {
-    weekday: new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(date),
-    day: new Intl.DateTimeFormat(locale, {
+    weekday: new Intl.DateTimeFormat(loc, { weekday: 'short', timeZone: 'UTC' }).format(date),
+    day: new Intl.DateTimeFormat(loc, {
       day: 'numeric',
       month: 'short',
       year: withYear ? 'numeric' : undefined,
@@ -232,7 +230,7 @@ export function formatDayParts(iso: string, withYear = false): { weekday: string
 
 /** A month heading from `YYYY-MM`: "November 2026", in Dutch with a capital too ("November 2026"). */
 export function formatMonth(month: string): string {
-  const text = new Intl.DateTimeFormat(lang() === 'nl' ? 'nl-NL' : 'en-GB', {
+  const text = new Intl.DateTimeFormat(locale(), {
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
@@ -244,9 +242,9 @@ export function formatMonth(month: string): string {
 export function formatCreatedTime(
   iso: string,
   timeZone?: string,
-  language: 'nl' | 'en' = lang(),
+  language: Language = lang(),
 ): string {
-  return new Intl.DateTimeFormat(language === 'nl' ? 'nl-NL' : 'en-GB', {
+  return new Intl.DateTimeFormat(locale(language), {
     hour: '2-digit',
     minute: '2-digit',
     hourCycle: 'h23',
@@ -263,8 +261,7 @@ export function formatVideoFacts(v: {
   durationMs: number | null;
 }): string | null {
   if (v.fpsNum === null || v.fpsDen === null || v.width === null || v.height === null) return null;
-  const locale = lang() === 'nl' ? 'nl-NL' : 'en-GB';
-  const fps = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(
+  const fps = new Intl.NumberFormat(locale(), { maximumFractionDigits: 2 }).format(
     v.fpsNum / v.fpsDen,
   );
   const total = Math.round((v.durationMs ?? 0) / 1000);
@@ -280,7 +277,7 @@ export function formatBytes(bytes: number): string {
     value /= 1000;
     unit += 1;
   }
-  const n = new Intl.NumberFormat(lang() === 'nl' ? 'nl-NL' : 'en-GB', {
+  const n = new Intl.NumberFormat(locale(), {
     maximumFractionDigits: unit >= 2 ? 1 : 0,
   }).format(value);
   return `${n} ${units[unit] ?? 'B'}`;

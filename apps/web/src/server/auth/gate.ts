@@ -1,4 +1,5 @@
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { DEFAULT_LANGUAGE, LANGUAGES } from '../../shared/languages.ts';
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { AppConfig } from '../config.ts';
@@ -29,6 +30,8 @@ const requestBody = z.object({
     .email()
     .max(254)
     .transform((v) => v.trim().toLowerCase()),
+  // The language on screen, so the code mail matches it; anything else falls back to Dutch.
+  language: z.enum(LANGUAGES).optional().catch(undefined),
 });
 const verifyBody = z.object({
   email: z
@@ -235,9 +238,7 @@ export function createAuthGate(opts: {
       if (!body.success || !(await rateHit('otp-ip', req.ip, 3600, auth.limits.otpPerIpHour))) {
         return reply.code(202).send({ accepted: true });
       }
-      const locale: 'nl' | 'en' = req.headers['accept-language']?.toLowerCase().startsWith('en')
-        ? 'en'
-        : 'nl';
+      const locale = body.data.language ?? DEFAULT_LANGUAGE;
       const identity = await identityFor(body.data.email, true, locale);
       if (identity === null) return reply.code(202).send({ accepted: true });
       if (!(await rateHit('otp-email', identity.email, 15 * 60, auth.limits.otpPerEmail15m))) {
@@ -264,7 +265,7 @@ export function createAuthGate(opts: {
           req.log.info({ email: identity.email, code }, 'development OTP code');
         } else {
           void opts
-            .deliver({ email: identity.email, code, locale: identity.locale, loginUrl })
+            .deliver({ email: identity.email, code, locale, loginUrl })
             .catch((error: unknown) => {
               req.log.error({ error }, 'OTP mail failed');
             });

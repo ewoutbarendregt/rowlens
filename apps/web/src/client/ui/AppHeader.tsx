@@ -7,6 +7,7 @@ import type { AuthState } from '../auth/useAuth.ts';
 import { rowerStrings } from '../rowers/strings.ts';
 import { sessionStrings } from '../sessions/strings.ts';
 import { Icon } from './icons.tsx';
+import { LanguageSwitch } from './LanguageSwitch.tsx';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
 
 /**
@@ -56,6 +57,7 @@ export function AppHeader({ state }: { state: Extract<AuthState, { kind: 'open' 
             <p className="muted">
               {t.signedIn} <strong>{state.user.email}</strong>.
             </p>
+            <LanguageSwitch />
             <ThemeSwitch />
             <button className="button--quiet" type="button" onClick={logoutOthers}>
               {t.logoutOthers}

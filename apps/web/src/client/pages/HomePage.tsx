@@ -3,6 +3,7 @@ import { LoginGate } from '../auth/LoginGate.tsx';
 import { authStrings } from '../auth/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { PLAYER_DEMO } from '../features.ts';
+import { LanguageSwitch } from '../ui/LanguageSwitch.tsx';
 import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { useAppVersion } from '../useAppVersion.ts';
 
@@ -28,6 +29,7 @@ export function HomePage() {
         {state.kind === 'closed' && <p className="version">{t.closed}</p>}
         {state.kind === 'locked' && <LoginGate onAccess={refresh} />}
       </div>
+      <LanguageSwitch />
       <ThemeSwitch />
       {PLAYER_DEMO && (
         <Link className="home-link" to="/demo/player">

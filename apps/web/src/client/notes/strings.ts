@@ -1,3 +1,4 @@
+import { lang } from '../i18n/language.ts';
 // Notes strings in NL and EN (moves into the i18n catalogs with #34).
 const en = {
   notes: 'Notes and drawings',
@@ -111,6 +112,6 @@ const nl: typeof en = {
 
 export type NotesStrings = typeof en;
 
-export function notesStrings(language: string = navigator.language): NotesStrings {
+export function notesStrings(language: string = lang()): NotesStrings {
   return language.toLowerCase().startsWith('nl') ? nl : en;
 }

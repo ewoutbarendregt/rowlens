@@ -1,5 +1,5 @@
 import type { SeatRole } from '../../shared/boats.ts';
-import { lang } from '../sessions/strings.ts';
+import { lang } from '../i18n/language.ts';
 
 // Lineup strings in NL and EN (move into the i18n catalogs with #34).
 const en = {

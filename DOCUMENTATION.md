@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Dutch by default, language switch (part of #34)
+
+**Session**: claude/feat/ui-language
+**Changed**: apps/web/src/shared/languages.ts, apps/web/src/client/i18n/{language.ts,language.test.ts}, apps/web/src/client/ui/{LanguageSwitch.tsx,AppHeader.tsx,ConfirmInline.tsx,ThemeSwitch.tsx}, apps/web/src/client/{App.tsx,main.tsx,pages/HomePage.tsx,pages/PlayerDemoPage.tsx,player/Player.tsx}, apps/web/src/client/{auth,notes,player,sessions,admin,lineup,rowers}/strings.ts, apps/web/src/client/auth/LoginGate.tsx, apps/web/src/client/admin/AccessPage.tsx, apps/web/src/server/auth/{gate.ts,gate.db.test.ts}, apps/web/e2e/player.spec.ts, docs/adr/{0015-interface-language.md,README.md}, BUILD.md, FEATURES.md, TEST.md, BUGS.md
+**Summary**: The interface is Dutch unless English is chosen on the device; a Nederlands/English switch sits on the login page and in the account menu and works instantly without reloading. The browser's language no longer decides. The login-code mail follows the language on screen. Also: production deploy of sha-96a0202 (#122 + #123) after adding `AUTH_ADMIN_EMAILS` to the server's `.env` (entered by Ewout in a terminal prompt; backup made).
+**Prompts used**: "merge en deploy nu eerst. daarna: default moet de ui in het NL zijn, er moet een taalswitch zijn naar EN, later mogelijk nog andere talen. daarna pr b"
+
 ## 2026-11-02 — Classical style from the mockups: login, header, sessions table per month
 
 **Session**: claude/feat/ui-classical (stacked on claude/feat/108-session-list)

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { lang } from '../sessions/strings.ts';
+import { lang } from '../i18n/language.ts';
 import { applyTheme, savedTheme, saveTheme, THEMES, type Theme } from './theme.ts';
 
 const labels = {

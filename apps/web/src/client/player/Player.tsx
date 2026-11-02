@@ -4,7 +4,6 @@ import {
   type Ref,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
 } from 'react';
 import { formatFrameTime } from './frames.ts';
@@ -63,7 +62,7 @@ export function Player({
   toolbar,
   overlay,
 }: PlayerProps) {
-  const t = useMemo(() => playerStrings(), []);
+  const t = playerStrings();
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
 
   const start = useRef(startFrame);

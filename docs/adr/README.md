@@ -16,5 +16,6 @@
 | [0012](0012-ui-design-tokens.md) | UI style from the Nouryon Design System, without its brand | superseded by 0014 |
 | [0013](0013-role-visibility.md) | What a rower sees, enforced by the database | accepted |
 | [0014](0014-classical-design-system.md) | Classical design system, self-hosted, with derived dark and high-contrast modes | accepted |
+| [0015](0015-interface-language.md) | Dutch by default, with a language switch | accepted |
 
 New ADR: copy `0000-template.md` to the next number.

@@ -1,3 +1,4 @@
+import { lang } from '../i18n/language.ts';
 // Player strings in NL and EN. Moves into the i18n catalogs with #34; kept here so no user-facing
 // string is hard-coded in components in the meantime.
 const en = {
@@ -46,6 +47,6 @@ const nl: typeof en = {
 
 export type PlayerStrings = typeof en;
 
-export function playerStrings(language: string = navigator.language): PlayerStrings {
+export function playerStrings(language: string = lang()): PlayerStrings {
   return language.toLowerCase().startsWith('nl') ? nl : en;
 }

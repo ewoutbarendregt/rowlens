@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { lang } from '../i18n/language.ts';
 
 const labels = {
   en: { yes: 'Yes, delete', no: 'Cancel', short: { yes: 'Yes', no: 'No' } },
@@ -27,7 +28,7 @@ export function ConfirmInline({
   compact = false,
   yesLabel,
 }: ConfirmInlineProps) {
-  const l = navigator.language.toLowerCase().startsWith('nl') ? labels.nl : labels.en;
+  const l = labels[lang()];
   const yes = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     yes.current?.focus();

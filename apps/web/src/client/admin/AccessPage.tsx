@@ -2,7 +2,7 @@ import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react
 import { Navigate } from 'react-router';
 import { api } from '../api.ts';
 import { useAuth } from '../auth/useAuth.ts';
-import { lang } from '../sessions/strings.ts';
+import { locale } from '../i18n/language.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { adminStrings } from './strings.ts';
 
@@ -30,7 +30,7 @@ const errorText = (t: ReturnType<typeof adminStrings>, error: string | undefined
           : t.failed;
 
 const formatWhen = (iso: string) =>
-  new Intl.DateTimeFormat(lang() === 'nl' ? 'nl-NL' : 'en-GB', {
+  new Intl.DateTimeFormat(locale(), {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(iso));

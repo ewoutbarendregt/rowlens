@@ -52,7 +52,7 @@ test('buttons step frames and seconds (0.1 s = 3 frames at 30 fps)', async ({ pa
   await expectFrame(page, 1);
   await page.getByRole('button', { name: /forward 0\.1|0,1 seconde vooruit/i }).click();
   await expectFrame(page, 4);
-  await page.getByRole('button', { name: /forward 1 second|1 seconde vooruit/i }).click();
+  await page.getByRole('button', { name: /^(forward 1 second|1 seconde vooruit)$/i }).click();
   await expectFrame(page, 34);
   await press(page, 'Shift+ArrowLeft');
   await expectFrame(page, 4);
