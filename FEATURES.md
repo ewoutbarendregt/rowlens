@@ -37,7 +37,7 @@ statement covering roster names of people without an account (#64).
 | Manual CD to trustable-prod with rollback (no staging: local + prod only) | must | done (#25, #98) |
 | Media storage (directory store, 30 GB cap, 85 % disk pause) | must | done; disk alerts (#36) planned |
 | E-mail OTP login, sessions, CSRF, rate limits | must | done (#101), not yet configured on production (needs Resend) |
-| i18n framework NL/EN | must | planned (#34) |
+| i18n framework NL/EN | must | in progress: Dutch default + language switch done locally, PR open (ADR-0015); catalog format and lint rule planned (#34) |
 | Observability: structured logs, error tracking, metrics | must | planned (#35) |
 | DB backups off-server + restore test | must | planned (#37); pre-deploy backups exist |
 

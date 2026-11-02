@@ -127,6 +127,21 @@ describe('email OTP authentication', () => {
     expect(delivered).toEqual([]);
   });
 
+  it('sends the code mail in the language on screen, Dutch by default', async () => {
+    const languageOf = async (body: Record<string, string>) => {
+      delivered = [];
+      // Four requests are over the per-address limit; that limit has its own test.
+      await asOwner(`delete from auth_event`);
+      await post('/api/auth/otp', { email: EMAIL, ...body }, { 'accept-language': 'en-US' });
+      return delivered[0]?.locale;
+    };
+    // The browser's language doesn't decide; the switch does.
+    expect(await languageOf({})).toBe('nl');
+    expect(await languageOf({ language: 'en' })).toBe('en');
+    expect(await languageOf({ language: 'nl' })).toBe('nl');
+    expect(await languageOf({ language: 'xx' })).toBe('nl');
+  });
+
   it('stores only HMACs, expires codes and never stores the plaintext code', async () => {
     const code = await requestCode();
     const [row] = await asOwner<{

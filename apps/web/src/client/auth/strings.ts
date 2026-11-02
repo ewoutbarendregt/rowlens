@@ -1,3 +1,4 @@
+import { lang } from '../i18n/language.ts';
 const en = {
   title: 'Sign in to RowLens',
   intro: 'Enter the email address registered with your club. We will send you a six-digit code.',
@@ -69,6 +70,6 @@ const nl: typeof en = {
 
 export type AuthStrings = typeof en;
 
-export function authStrings(language: string = navigator.language): AuthStrings {
+export function authStrings(language: string = lang()): AuthStrings {
   return language.toLowerCase().startsWith('nl') ? nl : en;
 }

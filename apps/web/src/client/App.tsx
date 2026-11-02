@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
 import { AccessPage } from './admin/AccessPage.tsx';
 import { PLAYER_DEMO } from './features.ts';
+import { useLanguage } from './i18n/language.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { RowersPage } from './rowers/RowersPage.tsx';
@@ -16,6 +17,9 @@ const PlayerDemoPage = PLAYER_DEMO
   : null;
 
 export function App() {
+  // Strings are read while rendering: a language switch re-renders everything from here, without
+  // remounting (a playing video and running uploads carry on).
+  useLanguage();
   return (
     <Routes>
       <Route index element={<HomePage />} />

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { lang } from '../i18n/language.ts';
 import { useSearchParams } from 'react-router';
 import { appUrl } from '../env.ts';
 import { Player } from '../player/Player.tsx';
@@ -78,7 +79,7 @@ function median(values: number[]): number {
 const ms = (value: number | undefined) => (value === undefined ? '–' : `${value.toFixed(0)} ms`);
 
 export function PlayerDemoPage() {
-  const t = navigator.language.toLowerCase().startsWith('nl') ? copy.nl : copy.en;
+  const t = copy[lang()];
   const [clips, setClips] = useState<DemoClip[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [params, setParams] = useSearchParams();

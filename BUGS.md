@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-012] Player "quick presses" E2E flaked once on iPhone WebKit — low
+**Location**: apps/web/e2e/player.spec.ts:42
+**Status**: open
+**Found**: 2026-11-02, local E2E on iPhone 13 WebKit (scratch config; not in CI)
+**Description**: The frame counter didn't reach the expected frame after rapid key presses in one of four runs; three reruns passed. Chromium (CI) has never shown it. Likely timing in WebKit's seek events under load.
+**Fix**: —
+
 ### [BUG-011] A long word in a session title widened the page on a phone — low
 **Location**: apps/web/src/client/styles.css (`.page h1`, `.lineup__boat select`)
 **Status**: fixed (#116)

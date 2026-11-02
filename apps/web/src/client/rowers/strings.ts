@@ -1,4 +1,4 @@
-import { lang } from '../sessions/strings.ts';
+import { lang } from '../i18n/language.ts';
 
 // Roster strings in NL and EN (move into the i18n catalogs with #34).
 const en = {

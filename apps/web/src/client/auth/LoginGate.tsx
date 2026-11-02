@@ -1,4 +1,5 @@
 import { type SubmitEvent, useId, useState } from 'react';
+import { lang } from '../i18n/language.ts';
 import { api } from '../api.ts';
 import { Icon } from '../ui/icons.tsx';
 import { authStrings } from './strings.ts';
@@ -18,7 +19,7 @@ export function LoginGate({ onAccess }: { onAccess: () => void }) {
     event.preventDefault();
     setBusy(true);
     setProblem(null);
-    void api('/api/auth/otp', { method: 'POST', body: { email } })
+    void api('/api/auth/otp', { method: 'POST', body: { email, language: lang() } })
       .then((response) => {
         if (response.status === 202) setStep('code');
         else setProblem('failed');

@@ -251,6 +251,16 @@ scripts/github/      backlog/labels/milestones bootstrap
   date, otherwise one table) and `crewText` ("Anna, Tom · cox Lieke"). The whole row opens the session;
   the title is the link for keyboards. Below 760 px each row is a stacked block.
 
+## Interface language (ADR-0015)
+
+- `client/i18n/language.ts`: `lang()` (saved choice per device, else Dutch), `locale()` for `Intl`,
+  `setLanguage()` (saves, sets `<html lang>`, notifies) and `useLanguage()`. `App` subscribes, so a
+  switch re-renders everything without remounting. Every `*Strings()` and formatter reads `lang()`;
+  nothing reads `navigator.language` any more.
+- `ui/LanguageSwitch.tsx` on the home page and in the account menu. The language list is
+  `shared/languages.ts`, shared with the server: `POST /api/auth/otp` takes `language` and sends the
+  code mail in it (default Dutch).
+
 ## Club roster (#104)
 
 - Table `rower` (`club_id` + RLS): a person who rows or coxes, **with or without an account**.
