@@ -1,5 +1,5 @@
 import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Navigate } from 'react-router';
 import { api } from '../api.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { lang } from '../sessions/strings.ts';
@@ -46,6 +46,7 @@ export function AccessPage() {
   const [role, setRole] = useState<Role>('rower');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; alert: boolean } | null>(null);
+  const [tab, setTab] = useState<'users' | 'roles'>('users');
 
   const load = useCallback(async () => {
     try {
@@ -92,53 +93,113 @@ export function AccessPage() {
 
   return (
     <main className="page">
-      <nav className="page__nav">
-        <Link to="/">{t.home}</Link>
-      </nav>
-      <p className="eyebrow">{t.admin}</p>
-      <h1>{t.access}</h1>
-      <p className="muted">{t.intro}</p>
-      {failed && <p role="alert">{t.loadFailed}</p>}
-
-      <form className="card form" onSubmit={(e) => void admit(e)} aria-labelledby={`${formId}-h`}>
-        <h2 id={`${formId}-h`}>{t.admit}</h2>
-        <label htmlFor={`${formId}-email`}>{t.email}</label>
-        <input
-          id={`${formId}-email`}
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
-          autoComplete="off"
-          required
-        />
-        <label htmlFor={`${formId}-role`}>{t.role}</label>
-        <select
-          id={`${formId}-role`}
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value as Role);
-          }}
-        >
-          {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {t.roles[r]}
-            </option>
-          ))}
-        </select>
-        <button type="submit" disabled={busy || email.trim() === ''}>
-          {t.admit}
-        </button>
-        {message !== null && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
-      </form>
-
-      <h2>{t.people}</h2>
-      <ul className="list" data-testid="access-list">
-        {(entries ?? []).map((entry) => (
-          <AccessRow key={entry.email} entry={entry} onChanged={load} />
+      <h1>{t.admin}</h1>
+      <div className="tabs" role="tablist" aria-label={t.admin}>
+        {(['users', 'roles'] as const).map((name) => (
+          <button
+            key={name}
+            type="button"
+            role="tab"
+            id={`${formId}-tab-${name}`}
+            aria-selected={tab === name}
+            aria-controls={`${formId}-panel-${name}`}
+            className="tabs__tab"
+            onClick={() => {
+              setTab(name);
+            }}
+          >
+            {t.tabs[name]}
+          </button>
         ))}
-      </ul>
+      </div>
+
+      {tab === 'roles' ? (
+        <section
+          role="tabpanel"
+          id={`${formId}-panel-roles`}
+          aria-labelledby={`${formId}-tab-roles`}
+          data-testid="roles"
+        >
+          <p className="muted">{t.rolesIntro}</p>
+          <div className="table-wrap">
+            <table className="roles-table">
+              <thead>
+                <tr>
+                  <th scope="col">{t.can}</th>
+                  {ROLES.map((r) => (
+                    <th key={r} scope="col">
+                      {t.roles[r]}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {t.rights.map((right) => (
+                  <tr key={right.what}>
+                    <th scope="row">{right.what}</th>
+                    {ROLES.map((r) => (
+                      <td key={r}>{right[r]}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : (
+        <section
+          role="tabpanel"
+          id={`${formId}-panel-users`}
+          aria-labelledby={`${formId}-tab-users`}
+        >
+          <p className="muted">{t.intro}</p>
+          {failed && <p role="alert">{t.loadFailed}</p>}
+
+          <form
+            className="card form"
+            onSubmit={(e) => void admit(e)}
+            aria-labelledby={`${formId}-h`}
+          >
+            <h2 id={`${formId}-h`}>{t.admit}</h2>
+            <label htmlFor={`${formId}-email`}>{t.email}</label>
+            <input
+              id={`${formId}-email`}
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+              }}
+              autoComplete="off"
+              required
+            />
+            <label htmlFor={`${formId}-role`}>{t.role}</label>
+            <select
+              id={`${formId}-role`}
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value as Role);
+              }}
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {t.roles[r]}
+                </option>
+              ))}
+            </select>
+            <button type="submit" disabled={busy || email.trim() === ''}>
+              {t.admit}
+            </button>
+            {message !== null && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
+          </form>
+
+          <h2>{t.people}</h2>
+          <ul className="list" data-testid="access-list">
+            {(entries ?? []).map((entry) => (
+              <AccessRow key={entry.email} entry={entry} onChanged={load} />
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

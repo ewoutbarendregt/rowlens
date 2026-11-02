@@ -179,6 +179,18 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## Sessions list, header and admin panel (#108)
+
+- After login `/` goes to `/sessions`. Every signed-in page has `ui/AppHeader.tsx` (Sessions, Rowers,
+  Admin for admins, account menu with display mode and sign-out), rendered by `RequireAuth`
+  (`role="admin"` guards `/admin`).
+- `GET /api/sessions` adds `lineup`, `mySeat` and `notesForMe`; the page filters and sorts on the
+  client (`sessions/filter.ts`: period, rower, boat, title words, notes for me; five sorts). The page
+  owns the filters and mirrors them into the URL (inputs bound straight to the URL lag on phones).
+- Visibility: only the admin sees the club; coaches see their own sessions and all notes in them
+  (ADR-0013 addendum, migration 0012). The admin gives a session to a coach on its page.
+- Admin panel `/admin`: tabs Users (access list) and Roles (what each role sees and may do).
+
 ## What a rower sees, and sharing notes (#40, #112, ADR-0013)
 
 - `withTenant` sets `app.role`; restrictive RLS policies (migration 0011) limit rowers to sessions they

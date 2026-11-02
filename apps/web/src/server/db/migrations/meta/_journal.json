@@ -85,6 +85,13 @@
       "when": 1793640785171,
       "tag": "0011_role_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793642987692,
+      "tag": "0012_coach_own_sessions",
+      "breakpoints": true
     }
   ]
 }

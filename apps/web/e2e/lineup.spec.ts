@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { openNewSession, signIn } from './helpers.ts';
 
 // Session lineup (#103): choose the boat, fill seats from the roster or add a rower on the spot.
 test('fill a coastal double, adding a rower inline, and keep it after a reload', async ({
@@ -13,6 +13,7 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await expect(page.getByTestId('rower-list')).toContainText(`Anna ${tag}`);
 
   await page.goto('./sessions');
+  await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(`Lineup ${tag}`);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   const lineup = page.getByTestId('lineup');
@@ -48,6 +49,7 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await expect(page.getByTestId('session-list')).toContainText(`Lineup ${tag} · C2x`);
 
   // A next session offers this lineup to copy; its long title must not widen the page on a phone.
+  await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(`Next ${tag} with a rather long session title`);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   const copy = page.getByTestId('lineup').getByLabel(/^(Copy from|Kopieer van)/);

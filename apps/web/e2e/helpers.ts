@@ -11,6 +11,18 @@ export async function signIn(page: Page, email: string = authEmail): Promise<voi
   await expect(page.getByTestId('club-name')).toBeVisible();
 }
 
+/** Opens the account menu in the header and signs out (#108). */
+export async function signOut(page: Page): Promise<void> {
+  await page.getByTestId('account-menu').locator('summary').click();
+  await page.getByRole('button', { name: /^(Sign out|Afmelden)$/ }).click();
+  await expect(page.getByLabel(/^(Email address|E-mailadres)$/)).toBeVisible();
+}
+
+/** The new-session form sits behind a button on the sessions list (#108). */
+export async function openNewSession(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /(New session|Nieuwe training)$/ }).click();
+}
+
 /**
  * Edge stack only (needs the worker): a new session with the E2E clip, processed and opened in the
  * player. Returns at frame 0 with the page focused for keyboard steps.
@@ -18,6 +30,7 @@ export async function signIn(page: Page, email: string = authEmail): Promise<voi
 export async function openProcessedClip(page: Page, clip: Buffer, title: string): Promise<void> {
   await signIn(page);
   await page.goto('./sessions');
+  await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(title);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();

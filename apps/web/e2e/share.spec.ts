@@ -1,18 +1,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { adminEmail, edgeUrl } from './env.ts';
-import { openProcessedClip, signIn } from './helpers.ts';
+import { openProcessedClip, signIn, signOut } from './helpers.ts';
 
 // A rower sees only their sessions and the notes meant for them (#40); sharing with the crew (#112).
 const FIXTURE = fileURLToPath(new URL('../public/demo-media/e2e-30fps.webm', import.meta.url));
 test.skip(edgeUrl === undefined, 'needs the worker: pnpm edge:up && pnpm e2e:edge');
-
-async function signOut(page: Page) {
-  await page.goto('./');
-  await page.getByRole('button', { name: /^(Sign out|Afmelden)$/ }).click();
-  await expect(page.getByLabel(/^(Email address|E-mailadres)$/)).toBeVisible();
-}
 
 test('a coach shares one note with the crew; the rower sees only that note', async ({
   page,

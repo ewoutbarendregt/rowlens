@@ -60,8 +60,33 @@ const en = {
   backToSession: (title: string) => `Back to ${title}`,
   notReady: 'This video is not ready to watch yet.',
   loadFailed: 'Could not load this page. Check your connection and reload.',
+  cancel: 'Cancel',
+  creator: 'Coach (made by)',
+  noCreator: 'Nobody (only the admin sees it)',
+  creatorHint: 'Only you, as admin, see this. The coach chosen here sees this session.',
+  filters: 'Filters',
+  from: 'From',
+  to: 'Until',
+  rower: 'Rower',
+  anyone: 'Anyone',
+  anyBoat: 'Any boat',
+  search: 'Search',
+  searchTitle: 'Words in the title',
+  sortBy: 'Sort by',
+  sorts: {
+    'date-desc': 'Newest first',
+    'date-asc': 'Oldest first',
+    title: 'Title (A–Z)',
+    videos: 'Most videos',
+    notes: 'Most notes for me',
+  },
+  onlyMine: 'Only with notes for me',
+  clearFilters: 'Clear filters',
+  showing: (shown: number, total: number) =>
+    shown === total ? `${String(total)} sessions` : `${String(shown)} of ${String(total)} sessions`,
+  notesForMe: (n: number) => (n === 1 ? '1 note for you' : `${String(n)} notes for you`),
   unlinked:
-    'You only see the sessions you rowed in, but your account isn’t linked to your name in the roster yet. Ask your coach to add your e-mail address to your name on the Rowers page.',
+    'You see the sessions you made or rowed in, but your account isn’t linked to your name in the roster yet. Ask a coach or the admin to add your e-mail address to your name on the Rowers page.',
 };
 
 const nl: typeof en = {
@@ -127,8 +152,35 @@ const nl: typeof en = {
   backToSession: (title: string) => `Terug naar ${title}`,
   notReady: 'Deze video is nog niet klaar om te bekijken.',
   loadFailed: 'Deze pagina kon niet laden. Controleer je verbinding en herlaad.',
+  cancel: 'Annuleren',
+  creator: 'Coach (gemaakt door)',
+  noCreator: 'Niemand (alleen de beheerder ziet hem)',
+  creatorHint: 'Alleen jij als beheerder ziet dit. De coach die je hier kiest, ziet deze training.',
+  filters: 'Filters',
+  from: 'Van',
+  to: 'Tot en met',
+  rower: 'Roeier',
+  anyone: 'Iedereen',
+  anyBoat: 'Elke boot',
+  search: 'Zoeken',
+  searchTitle: 'Woorden in de titel',
+  sortBy: 'Sorteren op',
+  sorts: {
+    'date-desc': 'Nieuwste eerst',
+    'date-asc': 'Oudste eerst',
+    title: 'Titel (A–Z)',
+    videos: 'Meeste video’s',
+    notes: 'Meeste notities voor mij',
+  },
+  onlyMine: 'Alleen met notities voor mij',
+  clearFilters: 'Filters wissen',
+  showing: (shown: number, total: number) =>
+    shown === total
+      ? `${String(total)} trainingen`
+      : `${String(shown)} van ${String(total)} trainingen`,
+  notesForMe: (n: number) => (n === 1 ? '1 notitie voor jou' : `${String(n)} notities voor jou`),
   unlinked:
-    'Je ziet alleen de trainingen waarin je roeide, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag je coach je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
+    'Je ziet de trainingen die je aanmaakte of waarin je roeide, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag een coach of de beheerder je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
 };
 
 export type SessionStrings = typeof en;

@@ -47,6 +47,9 @@ interface SessionDetail {
   boatType: BoatClass | null;
   lineup: LineupSeat[];
   videos: SessionVideo[];
+  /** Admin only (#108): who made it, and the coaches it can be given to. */
+  creatorUserId?: string | null;
+  coaches?: { userId: string; email: string }[];
 }
 
 const PERSPECTIVES: Perspective[] = ['boat', 'bank', 'drone'];
@@ -136,6 +139,34 @@ export function SessionPage() {
       <p className="muted">
         {formatDate(session.date)} · {t.createdAt(formatCreatedTime(session.createdAt))}
       </p>
+
+      {session.coaches !== undefined && (
+        <div className="form creator">
+          <label htmlFor={`${inputId}-creator`}>{t.creator}</label>
+          <select
+            id={`${inputId}-creator`}
+            value={session.creatorUserId ?? ''}
+            onChange={(e) => {
+              const userId = e.target.value === '' ? null : e.target.value;
+              void api(`/api/sessions/${session.id}/creator`, {
+                method: 'PATCH',
+                body: { userId },
+              }).then((res) => {
+                if (res.ok) setSession((s) => (s === null ? s : { ...s, creatorUserId: userId }));
+                else setFailed(true);
+              });
+            }}
+          >
+            <option value="">{t.noCreator}</option>
+            {session.coaches.map((c) => (
+              <option key={c.userId} value={c.userId}>
+                {c.email}
+              </option>
+            ))}
+          </select>
+          <p className="muted hint">{t.creatorHint}</p>
+        </div>
+      )}
 
       <LineupCard
         sessionId={session.id}

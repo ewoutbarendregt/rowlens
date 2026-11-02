@@ -43,3 +43,11 @@ argument holds within a club.
 - The visibility functions run per row; fine for a club's volume, worth an index check if a club grows
   large.
 - A rower who removes themselves from a lineup they didn't create loses sight of that session.
+
+## Addendum 2026-11-02: coaches see their own sessions too (#108)
+
+Ewout: "the admin sees all sessions, other users only their own." `rowlens_sees_all()` is now true
+only for the admin (and for no role: the worker, the pilot path). A coach sees a session on the same
+terms as a rower (created it, in its lineup, a note for them) and, within it, every note, which they
+may change (`rowlens_coaches_video()`). Existing sessions have no maker: only the admin sees them
+until the admin gives them to a coach (`PATCH /api/sessions/:id/creator`, admin only).
