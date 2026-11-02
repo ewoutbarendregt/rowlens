@@ -363,3 +363,84 @@ export const annotation = pgTable(
     tenantPolicy('annotation_tenant', t.clubId),
   ],
 ).enableRLS();
+
+/**
+ * A note as one thing (#105): the drawings and explanation at one frame of a video. Annotations stay
+ * keyed by (video, frame); this row exists once something is attached to the note as a whole (its
+ * rowers now, status #61 and sharing #112 later) and goes when the frame's last annotation goes.
+ */
+export const moment = pgTable(
+  'moment',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').notNull(),
+    frame: integer('frame').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('moment_video_frame_unique').on(t.videoId, t.frame),
+    // Target of the (club_id, moment_id) keys below.
+    unique('moment_club_id_id_unique').on(t.clubId, t.id),
+    foreignKey({
+      name: 'moment_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    check('moment_frame_check', sql`${t.frame} >= 0`),
+    tenantPolicy('moment_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/** Who a note is for (#105). Rowers are archived, never deleted, so that key restricts. */
+export const momentRower = pgTable(
+  'moment_rower',
+  {
+    clubId: uuid('club_id').notNull(),
+    momentId: uuid('moment_id').notNull(),
+    rowerId: uuid('rower_id').notNull(),
+    assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
+    /** null on the pilot-code rollback path, which has no user. */
+    assignedByUserId: uuid('assigned_by_user_id'),
+  },
+  (t) => [
+    primaryKey({ name: 'moment_rower_pk', columns: [t.momentId, t.rowerId] }),
+    foreignKey({
+      name: 'moment_rower_moment_fk',
+      columns: [t.clubId, t.momentId],
+      foreignColumns: [moment.clubId, moment.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'moment_rower_rower_fk',
+      columns: [t.clubId, t.rowerId],
+      foreignColumns: [rower.clubId, rower.id],
+    }).onDelete('restrict'),
+    index('moment_rower_rower_idx').on(t.rowerId),
+    tenantPolicy('moment_rower_tenant', t.clubId),
+  ],
+).enableRLS();
+
+export const momentRowerAction = pgEnum('moment_rower_action', ['assigned', 'unassigned']);
+
+/** Append-only: who added or removed whom on a note, and when (#105 traceability). */
+export const momentRowerLog = pgTable(
+  'moment_rower_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    momentId: uuid('moment_id').notNull(),
+    rowerId: uuid('rower_id').notNull(),
+    action: momentRowerAction('action').notNull(),
+    byUserId: uuid('by_user_id'),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'moment_rower_log_moment_fk',
+      columns: [t.clubId, t.momentId],
+      foreignColumns: [moment.clubId, moment.id],
+    }).onDelete('cascade'),
+    index('moment_rower_log_moment_idx').on(t.momentId, t.at),
+    tenantPolicy('moment_rower_log_tenant', t.clubId),
+  ],
+).enableRLS();

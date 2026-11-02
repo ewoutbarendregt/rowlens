@@ -7,7 +7,10 @@ import { DrawTools } from '../drawing/DrawTools.tsx';
 import { LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
 import { rememberedName, rememberName } from '../notes/name.ts';
+import { lineupStrings } from '../lineup/strings.ts';
+import { lineupSuggestions, type MomentRowers } from '../notes/assignees.ts';
 import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
+import { useRoster } from '../rowers/useRoster.ts';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { videoDisplayName } from './displayName.ts';
@@ -56,14 +59,23 @@ export function VideoPage() {
   const [current, setCurrent] = useState(0);
   const player = useRef<PlayerHandle>(null);
   const [notes, setNotes] = useState<Annotation[]>([]);
+  const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
+  const roster = useRoster();
   const [name, setName] = useState(rememberedName);
   const [tool, setTool] = useState<DrawingKind | null>(null);
 
   const loadNotes = useCallback(() => {
     api(`/api/videos/${id}/annotations`)
-      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Annotation[] }>) : null))
+      .then((res) =>
+        res.ok
+          ? (res.json() as Promise<{ annotations: Annotation[]; moments?: MomentRowers[] }>)
+          : null,
+      )
       .then((body) => {
-        if (body !== null) setNotes(body.annotations);
+        if (body !== null) {
+          setNotes(body.annotations);
+          setMomentRowers(body.moments ?? []);
+        }
       })
       .catch(() => {
         // The player still works; the panel shows what it has.
@@ -247,6 +259,14 @@ export function VideoPage() {
               name={name}
               onNameChange={setName}
               onChanged={loadNotes}
+              momentRowers={momentRowers}
+              roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
+              suggestions={lineupSuggestions(
+                video.boatType,
+                video.lineup,
+                lineupStrings().seatLabel,
+              )}
+              onRosterChanged={() => void roster.reload()}
               onJump={(f, reveal) => {
                 player.current?.seekToFrame(f);
                 const stage = document.querySelector('.player__stage')?.getBoundingClientRect();

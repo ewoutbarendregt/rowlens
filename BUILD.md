@@ -179,6 +179,19 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## Who a note is for (#105)
+
+- Table `moment` (`club_id` + RLS): the note at one frame of a video as one row, `unique(video_id,
+  frame)`, cascade from the video. Created on the first assignment; deleted with the frame's last
+  annotation (`dropEmptyMoments`). Annotations stay keyed by `(video_id, frame)`.
+- `moment_rower` (who it is for; key to `rower` restricts) and the append-only `moment_rower_log`
+  (`assigned`/`unassigned`, by user, at).
+- API `api/moments.ts`: `PUT /api/videos/:id/frames/:frame/rowers {rowerIds}` replaces the set (409
+  without anything at the frame; unknown or other-club rower 400; archived only if already assigned).
+  `GET /api/videos/:id/annotations` includes `moments: [{frame, rowers}]`. Merging rowers moves them.
+- UI: in each note section "For:" chips, a `RowerPicker` with the session lineup first (seat names,
+  `suggested`) and "Whole crew"; a "Notes for" filter above the list (`notes/assignees.ts`).
+
 ## UI style and colour modes (ADR-0012)
 
 - `apps/web/src/client/design/`: `tokens.css` (byte-for-byte copy of the design system's tokens; see

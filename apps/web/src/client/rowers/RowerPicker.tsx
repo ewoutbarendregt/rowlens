@@ -16,6 +16,8 @@ interface RowerPickerProps {
   label: string;
   /** Rowers that can't be picked here (already in another seat). */
   unavailable?: ReadonlySet<string>;
+  /** Shown first, with a hint (e.g. the session lineup with seats, #105). */
+  suggested?: readonly { id: string; label: string }[];
 }
 
 type Option = { kind: 'rower'; rower: Rower } | { kind: 'add'; name: string };
@@ -33,6 +35,7 @@ export function RowerPicker({
   onAdded,
   label,
   unavailable,
+  suggested,
 }: RowerPickerProps) {
   const t = rowerStrings();
   const id = useId();
@@ -44,7 +47,14 @@ export function RowerPicker({
   const [busy, setBusy] = useState(false);
 
   const trimmed = query.trim();
-  const matches = rowers.filter((r) => nameMatches(r.displayName, query)).slice(0, MAX_OPTIONS);
+  const hint = new Map((suggested ?? []).map((s, i) => [s.id, { label: s.label, order: i }]));
+  const matches = rowers
+    .filter((r) => nameMatches(r.displayName, query))
+    // Suggested rowers first, in their own order; the rest keep the roster's (name) order.
+    .map((r, i) => ({ r, key: hint.get(r.id)?.order ?? hint.size + i }))
+    .sort((a, b) => a.key - b.key)
+    .map(({ r }) => r)
+    .slice(0, MAX_OPTIONS);
   const exact = rowers.some((r) => normalizeName(r.displayName) === normalizeName(trimmed));
   const options: Option[] = [
     ...matches.map((rower) => ({ kind: 'rower' as const, rower })),
@@ -167,6 +177,9 @@ export function RowerPicker({
               ) : (
                 <>
                   {option.rower.displayName}
+                  {hint.has(option.rower.id) && (
+                    <span className="muted"> · {hint.get(option.rower.id)?.label}</span>
+                  )}
                   {isUnavailable(option) && <span className="muted"> · {t.inUse}</span>}
                 </>
               )}

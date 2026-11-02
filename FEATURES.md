@@ -12,7 +12,7 @@ growth features. Suggested order:
 |---|---|---|---|---|
 | Club roster: add rowers without an account, pick known rowers | coach | must | done locally, PR open | #104 |
 | Session lineup: who sat in which seat (coastal boats first) | coach | must | done locally, PR open | #103 |
-| Assign a note to one or more rowers | coach | must | planned | #105 |
+| Assign a note to one or more rowers | coach | must | done locally, PR open | #105 |
 | Show notes in the video, on/off toggle | coach, rower | must | planned | #106 |
 | Note visibility: share with a teammate or the whole crew | rower | must | planned, settle with #40 | #112 |
 | First login: claim notes made under my name | rower | must | decision needed (name matching) | #110 |

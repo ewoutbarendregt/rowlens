@@ -64,6 +64,13 @@
       "when": 1793626325450,
       "tag": "0008_session_lineup",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793632875861,
+      "tag": "0009_note_rowers",
+      "breakpoints": true
     }
   ]
 }

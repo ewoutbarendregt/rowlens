@@ -3,6 +3,7 @@ import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { annotation, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
+import { dropEmptyMoments, momentRowersOf } from './moments.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
@@ -61,13 +62,14 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
     const rows = await withTenant(db, tenant, async (tx) => {
       const [v] = await tx.select({ id: video.id }).from(video).where(eq(video.id, params.data.id));
       if (v === undefined) return null;
-      return tx
+      const annotations = await tx
         .select(columns)
         .from(annotation)
         .where(eq(annotation.videoId, v.id))
         .orderBy(asc(annotation.frame), asc(annotation.createdAt));
+      return { annotations, moments: await momentRowersOf(tx, v.id) };
     });
-    return rows === null ? notFound(reply) : { annotations: rows };
+    return rows ?? notFound(reply);
   });
 
   app.post('/api/videos/:id/annotations', { preHandler: guard }, async (req, reply) => {
@@ -139,10 +141,13 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
           .from(video)
           .where(eq(video.id, params.data.id));
         if (v === undefined) return null;
-        return tx
+        const gone = await tx
           .delete(annotation)
           .where(and(eq(annotation.videoId, v.id), eq(annotation.frame, params.data.frame)))
           .returning({ id: annotation.id });
+        // The note's rowers go with it (#105).
+        await dropEmptyMoments(tx, v.id, params.data.frame);
+        return gone;
       });
       if (deleted === null || deleted.length === 0) return notFound(reply);
       req.log.info(
@@ -156,12 +161,15 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
   app.delete('/api/annotations/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
-    const deleted = await withTenant(db, tenantOf(req), (tx) =>
-      tx
+    const deleted = await withTenant(db, tenantOf(req), async (tx) => {
+      const gone = await tx
         .delete(annotation)
         .where(eq(annotation.id, params.data.id))
-        .returning({ id: annotation.id }),
-    );
+        .returning({ videoId: annotation.videoId, frame: annotation.frame });
+      // The last drawing or remark at a frame takes the note (and its rowers) with it.
+      for (const g of gone) await dropEmptyMoments(tx, g.videoId, g.frame);
+      return gone;
+    });
     if (deleted.length === 0) return notFound(reply);
     return reply.code(204).send();
   });
