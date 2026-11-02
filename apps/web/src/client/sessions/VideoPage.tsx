@@ -1,18 +1,36 @@
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
+import { useAuth } from '../auth/useAuth.ts';
 import { appUrl } from '../env.ts';
 import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
 import { DrawTools } from '../drawing/DrawTools.tsx';
 import { LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
-import { rememberedName, rememberName } from '../notes/name.ts';
 import { lineupStrings } from '../lineup/strings.ts';
-import { lineupSuggestions, type MomentRowers, type MomentShares } from '../notes/assignees.ts';
-import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
+import {
+  framesFor,
+  lineupSuggestions,
+  type MomentRowers,
+  type MomentShares,
+  rowersWithNotes,
+} from '../notes/assignees.ts';
+import { type Annotation, describeDrawing, NotesPanel } from '../notes/NotesPanel.tsx';
+import {
+  activeVideoMoment,
+  NOTE_HOLD_OPTIONS,
+  type NoteHoldSeconds,
+  rememberNoteHoldSeconds,
+  rememberNotesVisible,
+  storedNoteHoldSeconds,
+  storedNotesVisible,
+  videoMoments,
+} from '../notes/overlay.ts';
 import { useRoster } from '../rowers/useRoster.ts';
 import { notesStrings } from '../notes/strings.ts';
+import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
+import { Icon } from '../ui/icons.tsx';
 import { videoDisplayName } from './displayName.ts';
 import type { BoatClass } from '../../shared/boats.ts';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
@@ -47,10 +65,17 @@ function preferSmall(): boolean {
   );
 }
 
+function isTyping(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName);
+}
+
 /** One of the club's own videos in the frame-accurate player (#49, #52). */
 export function VideoPage() {
   const t = sessionStrings();
+  const nt = notesStrings();
   const { id = '' } = useParams();
+  const auth = useAuth();
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [rendition, setRendition] = useState<string | null>(null);
@@ -62,8 +87,38 @@ export function VideoPage() {
   const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
   const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
   const roster = useRoster();
-  const [name, setName] = useState(rememberedName);
   const [tool, setTool] = useState<DrawingKind | null>(null);
+  const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
+  const [noteHoldSeconds, setNoteHoldSeconds] = useState(storedNoteHoldSeconds);
+  const [forRower, setForRower] = useState<string | null>(null);
+
+  const toggleNotes = useCallback(() => {
+    setNotesVisible((visible) => {
+      rememberNotesVisible(!visible);
+      return !visible;
+    });
+  }, []);
+
+  // The player owns its other shortcuts; N belongs to the note overlay (#106).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== 'n' ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isTyping(event.target)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      toggleNotes();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toggleNotes]);
 
   const loadNotes = useCallback(() => {
     api(`/api/videos/${id}/annotations`)
@@ -98,25 +153,47 @@ export function VideoPage() {
     [video?.width, video?.height],
   );
 
-  // One marker per frame: its drawings and explanation together (Ewout: one entry per frame).
+  const rowersInNotes = useMemo(() => rowersWithNotes(momentRowers), [momentRowers]);
+  const accountEmail = auth.state.kind === 'open' ? auth.state.user.email.toLowerCase() : null;
+  const myRower =
+    accountEmail === null
+      ? undefined
+      : roster.rowers?.find((rower) => rower.email?.toLowerCase() === accountEmail);
+  const filteredMoments = useMemo(
+    () => videoMoments(notes, framesFor(momentRowers, forRower)),
+    [notes, momentRowers, forRower],
+  );
+  const fps =
+    video?.fpsNum != null && video.fpsDen != null && video.fpsDen > 0
+      ? video.fpsNum / video.fpsDen
+      : 30;
+  const activeMoment = useMemo(() => {
+    // While drawing, the exact frame remains visible even when playback annotations are off.
+    if (!notesVisible && tool === null) return null;
+    return activeVideoMoment(filteredMoments, current, fps, tool === null ? noteHoldSeconds : 0);
+  }, [current, filteredMoments, fps, noteHoldSeconds, notesVisible, tool]);
+
+  // One marker per filtered frame: its drawings and explanation together.
   const markers = useMemo(() => {
-    const nt = notesStrings();
-    return moments(notes).map((m) => {
+    if (!notesVisible) return [];
+    return filteredMoments.map((m) => {
       const parts = [
         ...m.drawings.map((d) => describeDrawing(d, size)),
         ...m.notes.map((n) => (n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body)),
       ];
       return { id: String(m.frame), frame: m.frame, label: nt.marker(m.frame, parts.join(' · ')) };
     });
-  }, [notes, size]);
+  }, [filteredMoments, notesVisible, nt, size]);
 
-  // Drawings show on exactly their frame (#60).
+  // Drawings stay with the explanation during its playback hold (#106).
   const drawingsHere = useMemo(
     () =>
-      notes
-        .filter((n) => n.kind !== 'note' && n.frame === current && n.shape !== null)
-        .map((n) => ({ id: n.id, kind: n.kind as DrawingKind, points: n.shape?.points ?? [] })),
-    [notes, current],
+      (activeMoment?.drawings ?? []).map((drawing) => ({
+        id: drawing.id,
+        kind: drawing.kind as DrawingKind,
+        points: drawing.shape?.points ?? [],
+      })),
+    [activeMoment],
   );
 
   const chooseTool = useCallback((next: DrawingKind | null) => {
@@ -137,13 +214,12 @@ export function VideoPage() {
 
   const saveDrawing = useCallback(
     (kind: DrawingKind, points: Point[]) => {
-      rememberName(name.trim());
       void api(`/api/videos/${id}/annotations`, {
         method: 'POST',
-        body: { kind, frame: frame.current, points, authorName: name },
+        body: { kind, frame: frame.current, points },
       }).finally(loadNotes);
     },
-    [id, name, loadNotes],
+    [id, loadNotes],
   );
 
   useEffect(() => {
@@ -213,17 +289,76 @@ export function VideoPage() {
               markers={markers}
               handle={player}
               overlay={
-                <DrawingLayer
-                  size={size}
-                  drawings={drawingsHere}
-                  tool={tool}
-                  onComplete={saveDrawing}
-                  onCancel={cancelTool}
-                />
+                <>
+                  <DrawingLayer
+                    size={size}
+                    drawings={drawingsHere}
+                    tool={tool}
+                    onComplete={saveDrawing}
+                    onCancel={cancelTool}
+                  />
+                  {notesVisible && tool === null && activeMoment !== null && (
+                    <VideoNotesOverlay moment={activeMoment} />
+                  )}
+                </>
               }
               toolbar={
                 <>
-                  <DrawTools tool={tool} named={name.trim() !== ''} onTool={chooseTool} />
+                  <div className="video-note-controls" role="group" aria-label={nt.videoNotes}>
+                    <button
+                      type="button"
+                      className="button--quiet video-note-controls__toggle"
+                      aria-pressed={notesVisible}
+                      onClick={toggleNotes}
+                    >
+                      <Icon name="eye" />
+                      {notesVisible ? nt.hideVideoNotes : nt.showVideoNotes}
+                      <kbd>N</kbd>
+                    </button>
+                    <label className="video-note-controls__filter">
+                      <span>{nt.hold}</span>
+                      <select
+                        value={noteHoldSeconds}
+                        aria-label={nt.holdTime}
+                        onChange={(event) => {
+                          const value = Number(event.target.value) as NoteHoldSeconds;
+                          setNoteHoldSeconds(value);
+                          rememberNoteHoldSeconds(value);
+                        }}
+                      >
+                        {NOTE_HOLD_OPTIONS.map((seconds) => (
+                          <option key={seconds} value={seconds}>
+                            {nt.seconds(seconds)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {(rowersInNotes.length > 0 || myRower !== undefined) && (
+                      <label className="video-note-controls__filter">
+                        <span>{nt.notesFor}</span>
+                        <select
+                          value={forRower ?? ''}
+                          aria-label={nt.noteFilter}
+                          onChange={(event) => {
+                            setForRower(event.target.value === '' ? null : event.target.value);
+                          }}
+                        >
+                          <option value="">{nt.everyone}</option>
+                          {myRower !== undefined && (
+                            <option value={myRower.id}>{nt.myNotes}</option>
+                          )}
+                          {rowersInNotes
+                            .filter((rower) => rower.id !== myRower?.id)
+                            .map((rower) => (
+                              <option key={rower.id} value={rower.id}>
+                                {rower.displayName}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                    )}
+                  </div>
+                  <DrawTools tool={tool} onTool={chooseTool} />
                   {video.renditions.length > 1 && (
                     <div
                       className="quality"
@@ -262,8 +397,7 @@ export function VideoPage() {
               frame={current}
               size={size}
               annotations={notes}
-              name={name}
-              onNameChange={setName}
+              authorName={auth.state.kind === 'open' ? auth.state.user.authorName : undefined}
               onChanged={loadNotes}
               momentRowers={momentRowers}
               momentShares={momentShares}
@@ -273,6 +407,8 @@ export function VideoPage() {
                 video.lineup,
                 lineupStrings().seatLabel,
               )}
+              forRower={forRower}
+              onForRowerChange={setForRower}
               onRosterChanged={() => void roster.reload()}
               onJump={(f, reveal) => {
                 player.current?.seekToFrame(f);

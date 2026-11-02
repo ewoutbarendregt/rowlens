@@ -34,7 +34,6 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   await expect(page.getByTestId('player-frame')).toHaveText('0');
   await page.locator('h1').click();
   for (let n = 1; n <= 5; n++) await page.keyboard.press('.');
-  await page.getByLabel(/^(Your name|Je naam)$/).fill('E2E coach');
   await page.getByLabel(/^(Note at frame 5|Notitie bij frame 5) \(/).fill('Both: catch too late');
   await page.getByRole('button', { name: /^(Save note|Notitie opslaan)$/ }).click();
 
@@ -43,7 +42,7 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   // The lineup comes first in the picker, with each rower's seat.
   const picker = moment.getByRole('combobox', { name: /frame 5$/ });
   await picker.click();
-  await expect(page.getByRole('option').first()).toHaveText(/Anna .* · (Bow|Boeg) \(1\)/);
+  await expect(page.getByRole('option', { name: /Anna .* · (Bow|Boeg) \(1\)/ })).toBeVisible();
   await page.keyboard.press('Escape');
 
   await moment.getByRole('button', { name: /^(Whole crew|Hele ploeg)$/ }).click();
@@ -60,6 +59,11 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   const filter = page.getByLabel(/^(Notes for|Notities voor)$/);
   await expect(filter.locator('option')).toHaveText([/Everyone|Iedereen/, `Bram ${tag}`]);
   const bram = await filter.locator('option', { hasText: `Bram ${tag}` }).getAttribute('value');
-  await filter.selectOption(bram ?? '');
+  const videoFilter = page.getByLabel(
+    /^(Filter notes in the video|Notities in de video filteren)$/,
+  );
+  await expect(videoFilter.locator('option')).toHaveText([/Everyone|Iedereen/, `Bram ${tag}`]);
+  await videoFilter.selectOption(bram ?? '');
+  await expect(filter).toHaveValue(bram ?? '');
   await expect(page.getByTestId('moment')).toHaveCount(1);
 });

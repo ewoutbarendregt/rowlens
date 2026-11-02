@@ -640,6 +640,12 @@ a.list__item {
   margin-top: 0;
 }
 
+.notes__author {
+  margin: calc(var(--space-2) * -1) 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+}
+
 /* Laptop and up: everything needed while analysing fits in one view. The player column stays
    put; the notes column scrolls on its own; the video gets what height the controls leave. */
 @media (min-width: 1000px) {
@@ -927,6 +933,7 @@ a.list__item {
 .drawing-layer {
   position: absolute;
   inset: 0;
+  z-index: 2;
   width: 100%;
   height: 100%;
   overflow: visible;
@@ -974,6 +981,120 @@ a.list__item {
   stroke-dasharray: 6 6;
   vector-effect: non-scaling-stroke;
   stroke-width: 2 !important;
+}
+
+/* Explanation text in the picture (#106). The corner is chosen from the drawing geometry so the
+   card stays away from the strokes; pointer events keep the video and drawing layer interactive. */
+.video-note-overlay {
+  position: absolute;
+  z-index: 3;
+  width: min(62%, 34rem);
+  max-height: 46%;
+  overflow: hidden;
+  padding: clamp(0.5rem, 1.6vw, 0.9rem) clamp(0.625rem, 2vw, 1rem);
+  border-left: 3px solid #d7a45c;
+  background: rgb(10 9 8 / 0.86);
+  box-shadow: 0 3px 14px rgb(0 0 0 / 0.35);
+  color: #fff;
+  font-size: clamp(0.75rem, 1.8vw, 1rem);
+  line-height: 1.4;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+
+.video-note-overlay--top-left {
+  top: 4%;
+  left: 3%;
+}
+
+.video-note-overlay--top-right {
+  top: 4%;
+  right: 3%;
+}
+
+.video-note-overlay--bottom-left {
+  bottom: 4%;
+  left: 3%;
+}
+
+.video-note-overlay--bottom-right {
+  right: 3%;
+  bottom: 4%;
+}
+
+.video-note-overlay__note + .video-note-overlay__note {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.3);
+}
+
+.video-note-overlay strong {
+  color: #f4c37f;
+  font-size: 0.86em;
+  letter-spacing: 0.04em;
+}
+
+.video-note-overlay p {
+  margin: 0.15rem 0 0;
+}
+
+.video-note-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-block: 0.25rem;
+}
+
+.page .video-note-controls__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.video-note-controls kbd {
+  min-width: 1.4rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  font: 0.75rem/1.4 var(--font-sans);
+  text-align: center;
+}
+
+.video-note-controls__filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-body);
+}
+
+.video-note-controls__filter select {
+  min-height: 36px;
+  max-width: min(14rem, 58vw);
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+  font: inherit;
+}
+
+@media (max-width: 520px) {
+  .video-note-overlay {
+    width: 82%;
+    max-height: 54%;
+  }
+
+  .video-note-controls {
+    align-items: stretch;
+  }
+
+  .video-note-controls__filter {
+    justify-content: space-between;
+    width: 100%;
+  }
 }
 
 /* ---------------------------------------------------------------- player (ADR-0007) */
@@ -1208,6 +1329,21 @@ a.list__item {
 
 .page .player--fullscreen .player__toolbar button[aria-pressed='true'] {
   color: var(--rl-on-draw);
+}
+
+.page .player--fullscreen .video-note-controls kbd {
+  border-color: #93a4ae;
+  color: #e6eef2;
+}
+
+.page .player--fullscreen .video-note-controls__filter,
+.page .player--fullscreen .video-note-controls__filter select {
+  color: #e6eef2;
+}
+
+.page .player--fullscreen .video-note-controls__filter select {
+  border-color: #93a4ae;
+  background: #171717;
 }
 
 /* ---------------------------------------------------------------- player demo (#51, dev only) */

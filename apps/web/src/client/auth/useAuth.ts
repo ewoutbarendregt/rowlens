@@ -4,6 +4,8 @@ import { api } from '../api.ts';
 interface AuthUser {
   email: string;
   displayName: string;
+  /** The club roster name when linked, otherwise the account display name. */
+  authorName: string;
   locale: 'nl' | 'en';
   role: 'rower' | 'coach' | 'admin';
   /** Linked to a roster entry; a rower sees nothing until a coach adds their e-mail there. */

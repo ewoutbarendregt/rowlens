@@ -157,14 +157,14 @@ scripts/github/      backlog/labels/milestones bootstrap
   pixels (`drawing/geometry.ts`), shown with an arc and degrees; yellow with a dark halo.
 - Tools (Lijn/Pijl/Hoek) in the player's toolbar under the controls — close to the picture on a
   phone — and choosing one pauses and scrolls the picture into view; Esc or the same button stops.
-  Drawings need the author's name (from the notes panel). They show on exactly their frame and are
-  deleted (not edited).
+  The signed-in account supplies the author. Drawings show on their frame and during the configured
+  playback hold, and are deleted (not edited).
 - The list has **one section per frame** (`notes/moments.ts`): its drawings as small chips ("Hoek
   128°" ×) and an **always-open explanation field** (the frame's note: Save appears once changed;
   saved empty, it is removed). Clicking anywhere in a section seeks there without scrolling; its
   Frame link also brings the video into view. The section of the frame on screen is selected
-  (`aria-current`, orange). A frame without a section gets the field at the top; the name is a
-  field of its own above. One marker per frame. Storage: one row per drawing/note (Ewout, 2026-11-01).
+  (`aria-current`, orange). A frame without a section gets the field at the top. The account name is
+  shown read-only above the list. One marker per frame. Storage: one row per drawing/note.
 - "Notitie verwijderen" deletes a whole section: `DELETE /api/videos/:id/frames/:frame/annotations`
   removes every drawing and remark at that frame in one transaction (404 if nothing there).
 
@@ -172,12 +172,26 @@ scripts/github/      backlog/labels/milestones bootstrap
 
 - Table `annotation` (`club_id` + RLS; `(club_id, video_id)` must match a video of the same club, cascade
   on video delete): `frame`, `kind` (note now; line/arrow/angle with #60), `body` ≤ 2000, `shape`
-  (drawings), `author_name` 1–60 (typed display label, independent of the login identity), timestamps.
+  (drawings), `author_name` 1–60, `author_user_id`, timestamps. For signed-in accounts the server
+  ignores any client-supplied author and stores the linked roster name, else the account display name;
+  the rollback-only pilot path still requires a typed label.
 - API: `GET/POST /api/videos/:id/annotations` (POST only on a `ready` video, `frame < frame_count`),
   `PATCH/DELETE /api/annotations/:id`. Signed-in members of the one pilot club may edit/delete.
-- UI: notes panel under the player (writing pauses the video; the note goes at the current frame;
-  name remembered in localStorage), list in frame order (tap → frame, notes on this frame
-  highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
+- UI: notes panel beside/under the player (writing pauses the video; the note goes at the current
+  frame), list in frame order (tap → frame, notes on this frame highlighted), markers above the scrub
+  bar (`Player` props `markers`, `handle`).
+
+## Notes in the video (#106)
+
+- `notes/overlay.ts` groups annotations per frame and keeps the latest moment in the picture for a
+  per-device 0.5/1/2-second hold. The default is one second. Its text card chooses the corner furthest
+  from sampled drawing points; the black backdrop and gold author label stay readable on any footage.
+- The eye button and keyboard `N` show/hide annotations and remember the choice. The player filter and
+  notes-panel filter share one state: all notes, the signed-in rower's own assigned notes, or a chosen
+  rower. Hidden/filtered moments also disappear from the timeline markers.
+- `VideoNotesOverlay` and the existing `DrawingLayer` both live inside `.player__stage`, so they scale
+  with portrait/landscape video and remain present in native fullscreen and the iPhone immersive
+  fallback. Drawing mode still shows the exact frame's shapes even when playback notes are off.
 
 ## Sessions list, header and admin panel (#108)
 

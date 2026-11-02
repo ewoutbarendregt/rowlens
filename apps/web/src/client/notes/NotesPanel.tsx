@@ -7,7 +7,6 @@ import type { Rower } from '../rowers/useRoster.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { framesFor, type MomentRowers, type MomentShares, rowersWithNotes } from './assignees.ts';
 import { moments } from './moments.ts';
-import { rememberName } from './name.ts';
 import { notesStrings } from './strings.ts';
 
 /** A note (#59) or a drawing (#60) at one frame, as the API returns it. */
@@ -30,7 +29,7 @@ const editable = (a: Annotation) => a.canEdit !== false;
 export { moments };
 
 /** How a drawing reads in a list or a marker, e.g. "Angle 128°". */
-export function describeDrawing(a: Annotation, size: Size): string {
+export function describeDrawing(a: Pick<Annotation, 'kind' | 'shape'>, size: Size): string {
   const t = notesStrings();
   const [p0, p1, p2] = a.shape?.points ?? [];
   if (a.kind === 'angle' && p0 !== undefined && p1 !== undefined && p2 !== undefined) {
@@ -46,8 +45,8 @@ interface NotesPanelProps {
   /** The picture's display size, for angle values in the list. */
   size: Size;
   annotations: Annotation[];
-  name: string;
-  onNameChange: (name: string) => void;
+  /** The server-controlled name of the signed-in account that writes new notes. */
+  authorName: string | undefined;
   onChanged: () => void;
   /** `reveal`: also bring the video into view (the section's Frame link), not for clicks in a section. */
   onJump: (frame: number, reveal: boolean) => void;
@@ -61,6 +60,9 @@ interface NotesPanelProps {
   /** The session lineup with seats, offered first. */
   suggestions: readonly { id: string; label: string }[];
   onRosterChanged: () => void;
+  /** Shared with the player overlay: both surfaces always show the same rower's notes. */
+  forRower: string | null;
+  onForRowerChange: (rowerId: string | null) => void;
 }
 
 /**
@@ -69,7 +71,7 @@ interface NotesPanelProps {
  * the frame on screen is the selected one. A frame without a section gets the field at the top.
  */
 export function NotesPanel(props: NotesPanelProps) {
-  const { videoId, fps, frame, size, annotations, name } = props;
+  const { videoId, fps, frame, size, annotations } = props;
   const t = notesStrings();
   const id = useId();
   const [busy, setBusy] = useState(false);
@@ -95,13 +97,10 @@ export function NotesPanel(props: NotesPanelProps) {
       });
   };
 
-  const [forRower, setForRower] = useState<string | null>(null);
-  const named = name.trim() !== '';
   const everything = moments(annotations);
   const hasSectionHere = everything.some((m) => m.frame === frame);
   const withNotes = rowersWithNotes(props.momentRowers);
-  // A filter on someone who no longer has notes here falls back to everyone.
-  const filter = withNotes.some((r) => r.id === forRower) ? forRower : null;
+  const filter = props.forRower;
   const shown = framesFor(props.momentRowers, filter);
   const all = shown === null ? everything : everything.filter((m) => shown.has(m.frame));
   const rowersAt = new Map(props.momentRowers.map((m) => [m.frame, m.rowers]));
@@ -109,13 +108,12 @@ export function NotesPanel(props: NotesPanelProps) {
 
   /** Creates, changes or (when emptied) removes the explanation of a frame. */
   const saveExplanation = (at: number, note: Annotation | undefined, text: string) => {
-    rememberName(name.trim());
     const body = text.trim();
     if (note === undefined) {
       return run(
         api(`/api/videos/${videoId}/annotations`, {
           method: 'POST',
-          body: { kind: 'note', frame: at, body, authorName: name },
+          body: { kind: 'note', frame: at, body },
         }),
       );
     }
@@ -127,22 +125,9 @@ export function NotesPanel(props: NotesPanelProps) {
     <section className="card notes" aria-labelledby={`${id}-h`}>
       <h2 id={`${id}-h`}>{t.notes}</h2>
 
-      <div className="form">
-        <label htmlFor={`${id}-name`}>{t.yourName}</label>
-        <input
-          id={`${id}-name`}
-          value={name}
-          maxLength={60}
-          autoComplete="name"
-          onChange={(e) => {
-            props.onNameChange(e.target.value);
-          }}
-          onBlur={() => {
-            rememberName(name.trim());
-          }}
-          required
-        />
-      </div>
+      {props.authorName !== undefined && (
+        <p className="notes__author">{t.writingAs(props.authorName)}</p>
+      )}
 
       {!hasSectionHere && (
         <Explanation
@@ -150,7 +135,7 @@ export function NotesPanel(props: NotesPanelProps) {
           label={t.atFrame(frame, formatFrameTime(frame, fps))}
           placeholder={t.placeholder}
           initial=""
-          canSave={named}
+          canSave
           busy={busy}
           saveLabel={t.save}
           onFocus={props.onWriting}
@@ -171,7 +156,7 @@ export function NotesPanel(props: NotesPanelProps) {
             id={`${id}-for`}
             value={filter ?? ''}
             onChange={(e) => {
-              setForRower(e.target.value === '' ? null : e.target.value);
+              props.onForRowerChange(e.target.value === '' ? null : e.target.value);
             }}
           >
             <option value="">{t.everyone}</option>
@@ -297,7 +282,7 @@ export function NotesPanel(props: NotesPanelProps) {
                   placeholder={t.explanationPlaceholder}
                   initial={explanation?.body ?? ''}
                   author={explanation?.authorName}
-                  canSave={named || explanation !== undefined}
+                  canSave
                   busy={busy}
                   saveLabel={t.update}
                   onFocus={props.onWriting}

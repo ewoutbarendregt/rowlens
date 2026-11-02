@@ -116,6 +116,8 @@ describe('notes pinned to a frame', () => {
       { frame: 1, body: '   ', authorName: 'A' },
       { frame: 1, body: 'x'.repeat(2001), authorName: 'A' },
       { frame: 1, body: 'ok', authorName: '' },
+      // The pilot path has no account to take a name from.
+      { frame: 1, body: 'ok' },
       { frame: -1, body: 'ok', authorName: 'A' },
       { frame: 1.5, body: 'ok', authorName: 'A' },
     ]) {

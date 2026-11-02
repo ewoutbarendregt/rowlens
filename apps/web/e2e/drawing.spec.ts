@@ -15,7 +15,7 @@ async function at(page: Page, fx: number, fy: number) {
   await page.mouse.click(box.x + fx * box.width, box.y + fy * box.height);
 }
 
-test('draw an angle and an arrow at a frame; they show only on that frame', async ({
+test('draw an angle and an arrow at a frame; they remain visible for the note hold', async ({
   page,
 }, info) => {
   test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
@@ -29,8 +29,7 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await expect(frame).toHaveText('10');
 
   const angle = page.getByRole('button', { name: /^(Angle|Hoek)$/ });
-  await expect(angle).toBeDisabled(); // a drawing needs the author's name
-  await page.getByLabel(/^(Your name|Je naam)$/).fill('E2E coach');
+  await expect(angle).toBeEnabled(); // the signed-in account supplies the author
   await angle.click();
   // Arms horizontal and vertical in picture pixels: exactly 90° whatever the picture's shape.
   await at(page, 0.75, 0.5);
@@ -68,8 +67,11 @@ test('draw an angle and an arrow at a frame; they show only on that frame', asyn
   await page.locator('h1').click();
   await page.keyboard.press('.');
   await expect(frame).toHaveText('11');
+  await expect(shapes).toHaveCount(2);
+  await page.keyboard.press('Shift+ArrowRight');
+  await expect(frame).toHaveText('41');
   await expect(shapes).toHaveCount(0);
-  await page.keyboard.press(',');
+  await page.getByTestId('player-markers').getByRole('button').click();
   await expect(frame).toHaveText('10');
   await expect(shapes).toHaveCount(2);
 

@@ -5,13 +5,15 @@ import { annotation, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
 import { can } from '../auth/can.ts';
 import type { TenantContext } from '../db/tenant.ts';
+import { accountAuthor } from './author.ts';
 import { dropEmptyMoments, momentRowersOf, momentSharesOf } from './moments.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
 const frameParams = z.object({ id: z.uuid(), frame: z.coerce.number().int().min(0) });
 const text = z.string().trim().min(1).max(2000);
-const author = z.string().trim().min(1).max(60);
+// Only the pilot-code path (no account) names its author; with an account the server does (#106).
+const author = z.string().trim().min(1).max(60).optional();
 /** A point as a fraction of the picture (0–1 from the left and from the top), #60. */
 const point = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]);
 const newAnnotation = z.discriminatedUnion('kind', [
@@ -109,6 +111,11 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
       // Frames exist only once the worker has made the CFR renditions (ADR-0007).
       if (v.status !== 'ready' || v.frameCount === null) return 'not_ready' as const;
       if (body.data.frame >= v.frameCount) return 'bad_frame' as const;
+      const authorName =
+        tenant.userId === null
+          ? body.data.authorName
+          : await accountAuthor(tx, tenant.userId, req.accountName);
+      if (authorName === undefined || authorName === null) return 'no_author' as const;
       const [row] = await tx
         .insert(annotation)
         .values({
@@ -118,7 +125,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
           kind: body.data.kind,
           body: body.data.body,
           shape: body.data.kind === 'note' ? null : { points: body.data.points },
-          authorName: body.data.authorName,
+          authorName,
           authorUserId: tenant.userId,
         })
         .returning(columns);
@@ -127,6 +134,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
     if (result === 'not_found' || result === undefined) return notFound(reply);
     if (result === 'not_ready') return reply.code(409).send({ error: 'video_not_ready' });
     if (result === 'bad_frame') return reply.code(400).send({ error: 'frame_out_of_range' });
+    if (result === 'no_author') return reply.code(400).send({ error: 'invalid_annotation' });
     return reply.code(201).send(present(result, tenant));
   });
 

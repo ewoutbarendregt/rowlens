@@ -5,13 +5,11 @@ const TOOLS: DrawingKind[] = ['line', 'arrow', 'angle'];
 
 interface DrawToolsProps {
   tool: DrawingKind | null;
-  /** Drawings carry the author's name, typed in the notes panel. */
-  named: boolean;
   onTool: (tool: DrawingKind | null) => void;
 }
 
 /** Line, arrow, angle (#60): in the player's toolbar, right under the picture they draw on. */
-export function DrawTools({ tool, named, onTool }: DrawToolsProps) {
+export function DrawTools({ tool, onTool }: DrawToolsProps) {
   const t = notesStrings();
   return (
     <div className="draw" role="group" aria-label={t.draw}>
@@ -23,7 +21,6 @@ export function DrawTools({ tool, named, onTool }: DrawToolsProps) {
             type="button"
             className="button--quiet"
             aria-pressed={tool === kind}
-            disabled={!named}
             onClick={() => {
               onTool(tool === kind ? null : kind);
             }}
@@ -33,7 +30,7 @@ export function DrawTools({ tool, named, onTool }: DrawToolsProps) {
         ))}
       </div>
       <p className="muted draw__hint" role="status">
-        {!named ? t.needName : tool === null ? '' : t.hints[tool]}
+        {tool === null ? '' : t.hints[tool]}
       </p>
     </div>
   );
