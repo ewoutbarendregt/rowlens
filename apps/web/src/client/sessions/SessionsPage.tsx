@@ -1,6 +1,7 @@
 import { type SubmitEvent, useEffect, useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api } from '../api.ts';
+import { rowerStrings } from '../rowers/strings.ts';
 import { formatCreatedTime, formatDate, sessionStrings } from './strings.ts';
 
 interface SessionSummary {
@@ -56,7 +57,7 @@ export function SessionsPage() {
   return (
     <main className="page">
       <nav className="page__nav">
-        <Link to="/">{t.home}</Link>
+        <Link to="/">{t.home}</Link> · <Link to="/rowers">{rowerStrings().rowers}</Link>
       </nav>
       <h1>{t.sessions}</h1>
       {failed && <p role="alert">{t.loadFailed}</p>}

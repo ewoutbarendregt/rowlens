@@ -179,6 +179,23 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## Club roster (#104)
+
+- Table `rower` (`club_id` + RLS): a person who rows or coxes, **with or without an account**.
+  `display_name` 1–60, optional `email` (lower-case, unique per club, only for linking an account later
+  in #110), `user_id` (null until #110), `archived_at` (archived rowers stay in old lineups but can't be
+  picked). `unique(club_id, id)` is the target of the `(club_id, rower_id)` keys of tables that point at
+  a rower, so a reference can never cross clubs.
+- API `apps/web/src/server/api/rowers.ts`: list (`?archived=include|only`), add, edit/archive, merge.
+  Adding a name that looks like an existing one returns **409 `similar` with candidates** unless
+  `confirmNew` is set: `shared/names.ts` (`similarNames`: equal ignoring accents/case/spaces, one name
+  contained in the other as whole words, or 1–2 letters apart). Merge moves every reference to the kept
+  entry in one transaction (`mergeRowers`; lineups add their step in #103), keeps a missing e-mail.
+- UI: `client/rowers/RowersPage.tsx` (`/rowers`) and `RowerPicker.tsx`, a combobox that searches the
+  roster as you type (`nameMatches`) and offers "add ‘name’" inline, with the same similar-name question.
+  Reused by lineups (#103), note assignment (#105) and sharing (#112).
+- Permissions: every signed-in club member may edit the roster during the one-club phase (roles: #40).
+
 ## E-mail OTP authentication (#28–#30, ADR-0011)
 
 - The first club is operator-managed through `AUTH_ALLOWED_EMAILS`; requesting a code always returns

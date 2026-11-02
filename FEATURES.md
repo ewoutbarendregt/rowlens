@@ -10,7 +10,7 @@ growth features. Suggested order:
 
 | Feature | Who | Priority | Status | Issue |
 |---|---|---|---|---|
-| Club roster: add rowers without an account, pick known rowers | coach | must | planned | #104 |
+| Club roster: add rowers without an account, pick known rowers | coach | must | done locally, PR open | #104 |
 | Session lineup: who sat in which seat (coastal boats first) | coach | must | planned | #103 |
 | Assign a note to one or more rowers | coach | must | planned | #105 |
 | Show notes in the video, on/off toggle | coach, rower | must | planned | #106 |
