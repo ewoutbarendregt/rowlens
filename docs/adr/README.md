@@ -13,7 +13,8 @@
 | [0009](0009-analysis-pipeline.md) | Analysis pipeline outline | proposed |
 | [0010](0010-llm-provider-abstraction.md) | LLM provider abstraction and data minimisation | proposed (provider deferred to M2) |
 | [0011](0011-auth-otp-and-email.md) | E-mail OTP authentication, invitations, e-mail delivery | accepted (auth; invitations deferred) |
-| [0012](0012-ui-design-tokens.md) | UI style from the Nouryon Design System, without its brand | accepted |
+| [0012](0012-ui-design-tokens.md) | UI style from the Nouryon Design System, without its brand | superseded by 0014 |
 | [0013](0013-role-visibility.md) | What a rower sees, enforced by the database | accepted |
+| [0014](0014-classical-design-system.md) | Classical design system, self-hosted, with derived dark and high-contrast modes | accepted |
 
 New ADR: copy `0000-template.md` to the next number.

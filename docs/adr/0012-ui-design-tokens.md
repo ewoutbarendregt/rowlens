@@ -1,6 +1,6 @@
 # ADR-0012: UI style from the Nouryon Design System, without its brand
 
-- **Status**: accepted
+- **Status**: superseded by [ADR-0014](0014-classical-design-system.md) (never deployed)
 - **Date**: 2026-11-02
 
 ## Context

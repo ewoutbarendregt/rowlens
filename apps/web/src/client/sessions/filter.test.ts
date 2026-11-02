@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   activeFilters,
   applyFilters,
+  crewText,
   DEFAULT_FILTERS,
+  groupByMonth,
   type Filters,
   readFilters,
   writeFilters,
@@ -88,5 +90,45 @@ describe('filters in the URL', () => {
     expect(readFilters(new URLSearchParams('from=yesterday&sort=random&mine=yes'))).toEqual(
       DEFAULT_FILTERS,
     );
+  });
+});
+
+describe('groupByMonth', () => {
+  const dated = [
+    row('a', '2026-11-02'),
+    row('b', '2026-11-01'),
+    row('c', '2026-10-31'),
+    row('d', '2026-10-01'),
+  ];
+
+  it('groups consecutive rows by month when sorted by date', () => {
+    expect(groupByMonth(dated, 'date-desc').map((g) => [g.month, g.rows.length])).toEqual([
+      ['2026-11', 2],
+      ['2026-10', 2],
+    ]);
+  });
+
+  it('is one flat group for other sorts, and nothing for no rows', () => {
+    expect(groupByMonth(dated, 'title').map((g) => g.month)).toEqual([null]);
+    expect(groupByMonth([], 'date-desc')).toEqual([]);
+    expect(groupByMonth([], 'title')).toEqual([]);
+  });
+});
+
+describe('crewText', () => {
+  it('lists first names bow to stroke, the cox last', () => {
+    expect(
+      crewText(
+        [
+          { seat: 0, displayName: 'Lieke Smit' },
+          { seat: 2, displayName: 'Tom Bakker' },
+          { seat: 1, displayName: 'Anna de Vries' },
+        ],
+        'cox',
+      ),
+    ).toBe('Anna, Tom · cox Lieke');
+    expect(crewText([{ seat: 1, displayName: 'Tom Bakker' }], 'stuur')).toBe('Tom');
+    expect(crewText([{ seat: 0, displayName: 'Lieke Smit' }], 'stuur')).toBe('stuur Lieke');
+    expect(crewText([], 'cox')).toBeNull();
   });
 });

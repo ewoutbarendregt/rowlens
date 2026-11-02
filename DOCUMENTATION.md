@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Classical style from the mockups: login, header, sessions table per month
+
+**Session**: claude/feat/ui-classical (stacked on claude/feat/108-session-list)
+**Changed**: apps/web/src/client/design/{classical.css,theme.css,README.md,LICENSES.md} (replaces tokens.css, fonts.css, fonts/), apps/web/package.json + pnpm-lock.yaml (@fontsource), apps/web/src/client/{main.tsx,styles.css}, apps/web/src/client/ui/{icons.tsx,AppHeader.tsx}, apps/web/src/client/auth/{LoginGate.tsx,strings.ts}, apps/web/src/client/pages/HomePage.tsx, apps/web/src/client/sessions/{SessionsPage.tsx,filter.ts,filter.test.ts,strings.ts}, apps/web/src/server/ui-theme-contrast.test.ts, apps/web/e2e/{helpers.ts,sessions.spec.ts,lineup.spec.ts}, .prettierignore, docs/adr/{0012-ui-design-tokens.md,0014-classical-design-system.md,README.md}, BUILD.md, FEATURES.md, TEST.md
+**Summary**: RowLens takes the Classical design system of Ewout's mockups (Cormorant Garamond + Lora, gold accent, hairlines, outlined buttons), self-hosted fonts and Lucide icons, with our own dark and high-contrast modes checked for WCAG AA; the Nouryon style of ADR-0012 (never deployed) is gone. Login, code and error screens, the header and the sessions list follow mockups 1a–1d: one table per month (date, session, boat, crew, videos, for you), stacked blocks on a phone, the filters as one row with the "filters stay in the link" hint. Other pages take the style through shared classes. Video sizes unchanged or larger. Local dev DB got demo sessions (local only). Not merged or deployed.
+**Prompts used**: "Use the claude_design MCP … to import this project … Implement: `RowLens Mockups.dc.html`"; "hier is de hele zip file"; answers: "Classical overnemen"; include notes in the video, sessions table per month, author = your account, new video page layout (the last three in PR B).
+
 ## 2026-11-02 — Sessions list as start page, own sessions, admin panel (#108)
 
 **Session**: claude/feat/108-session-list

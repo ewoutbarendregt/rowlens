@@ -234,15 +234,22 @@ scripts/github/      backlog/labels/milestones bootstrap
 - UI: in each note section "For:" chips, a `RowerPicker` with the session lineup first (seat names,
   `suggested`) and "Whole crew"; a "Notes for" filter above the list (`notes/assignees.ts`).
 
-## UI style and colour modes (ADR-0012)
+## UI style and colour modes (ADR-0014)
 
-- `apps/web/src/client/design/`: `tokens.css` (byte-for-byte copy of the design system's tokens; see
-  `design/README.md` for source, commit and update steps), `fonts.css` + `fonts/` (Arimo, IBM Plex Mono,
-  OFL), `LICENSES.md`. Imported in `main.tsx` before `styles.css`.
-- `styles.css` binds to semantic tokens only; RowLens's own values are `--rl-draw*` (drawings) and
-  `--rl-here*` (the frame on screen). Controls keep 44 px touch targets.
-- Colour mode: `client/ui/theme.ts` (saved per device, light by default) and `ThemeSwitch` on the home
-  page set `data-theme="dark"|"hc"` on `<html>`; applied before the first render.
+- `apps/web/src/client/design/`: `classical.css` (the Classical system's `styles.css` without its
+  Google Fonts `@import`; source hash and update steps in `design/README.md`), `theme.css` (semantic
+  tokens on top, plus our dark and high-contrast modes), `LICENSES.md`. Fonts from `@fontsource`
+  (Cormorant Garamond, Lora), imported in `main.tsx` before the design files and `styles.css`.
+- Icons: `client/ui/icons.tsx` (`<Icon name=…>`, a few Lucide paths; decorative unless `label`).
+- `styles.css` binds to the semantic tokens; RowLens's own values are `--rl-draw*` (drawings) and
+  `--rl-here*` (the frame on screen). Controls keep 44 px touch targets and 16 px input text.
+- Contrast: `src/server/ui-theme-contrast.test.ts` reads both CSS files and checks text pairs in light,
+  dark and high contrast against WCAG AA.
+- Colour mode: `client/ui/theme.ts` (saved per device, light by default) and `ThemeSwitch` (home page
+  and account menu) set `data-theme="dark"|"hc"` on `<html>`; applied before the first render.
+- Sessions list (mockup 1d): `sessions/filter.ts` `groupByMonth` (one table per month when sorted by
+  date, otherwise one table) and `crewText` ("Anna, Tom · cox Lieke"). The whole row opens the session;
+  the title is the link for keyboards. Below 760 px each row is a stacked block.
 
 ## Club roster (#104)
 

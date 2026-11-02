@@ -5,17 +5,20 @@ import { api } from '../api.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { lineupStrings } from '../lineup/strings.ts';
 import { useRoster } from '../rowers/useRoster.ts';
+import { Icon } from '../ui/icons.tsx';
 import {
   activeFilters,
   applyFilters,
+  crewText,
   DEFAULT_FILTERS,
+  groupByMonth,
   type Filters,
   readFilters,
   type SessionRow,
   SORTS,
   writeFilters,
 } from './filter.ts';
-import { formatCreatedTime, formatDate, sessionStrings } from './strings.ts';
+import { formatCreatedTime, formatDayParts, formatMonth, sessionStrings } from './strings.ts';
 
 interface SessionSummary extends SessionRow {
   id: string;
@@ -25,7 +28,8 @@ interface SessionSummary extends SessionRow {
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
-const wide = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+const WIDE = '(min-width: 768px)';
+const wide = () => typeof window !== 'undefined' && window.matchMedia(WIDE).matches;
 
 /**
  * The start page after login (#108): the sessions the viewer may see (the admin all, others their
@@ -94,15 +98,34 @@ export function SessionsPage() {
   const initiallyOpen = useRef(wide() || count > 0);
   useEffect(() => {
     if (filtersRef.current !== null && initiallyOpen.current) filtersRef.current.open = true;
+    // On a laptop the filters are a row without a toggle (mockup 1d): growing the window opens them.
+    const query = window.matchMedia(WIDE);
+    const onChange = () => {
+      if (query.matches && filtersRef.current !== null) filtersRef.current.open = true;
+    };
+    query.addEventListener('change', onChange);
+    return () => {
+      query.removeEventListener('change', onChange);
+    };
   }, []);
 
   const shown = sessions === null ? [] : applyFilters(sessions, filters);
   const boats = BOAT_CLASS_NAMES.filter((b) => sessions?.some((s) => s.boatType === b));
+  const groups = groupByMonth(shown, filters.sort);
+  const withNotes = shown.filter((s) => s.notesForMe > 0).length;
 
   return (
-    <main className="page">
+    <main className="page page--wide">
       <div className="page__title">
-        <h1>{t.sessions}</h1>
+        <div>
+          <h1>{t.sessions}</h1>
+          {sessions !== null && sessions.length > 0 && (
+            <p className="page__count" role="status">
+              {t.showing(shown.length, sessions.length)}
+              {withNotes > 0 && <> · {t.withNotesForYou(withNotes)}</>}
+            </p>
+          )}
+        </div>
         {!creating && (
           <button
             type="button"
@@ -110,7 +133,7 @@ export function SessionsPage() {
               setCreating(true);
             }}
           >
-            ＋ {t.newSession}
+            <Icon name="plus" /> {t.newSession}
           </button>
         )}
       </div>
@@ -168,6 +191,20 @@ export function SessionsPage() {
           {count > 0 && <span className="badge">{count}</span>}
         </summary>
         <div className="filters__grid form">
+          <label className="filters__search">
+            {t.search}
+            <span className="search-field">
+              <Icon name="search" size={15} />
+              <input
+                type="search"
+                value={filters.q}
+                placeholder={t.searchTitle}
+                onChange={(e) => {
+                  set({ q: e.target.value });
+                }}
+              />
+            </span>
+          </label>
           <label>
             {t.from}
             <input
@@ -221,17 +258,6 @@ export function SessionsPage() {
             </select>
           </label>
           <label>
-            {t.search}
-            <input
-              type="search"
-              value={filters.q}
-              placeholder={t.searchTitle}
-              onChange={(e) => {
-                set({ q: e.target.value });
-              }}
-            />
-          </label>
-          <label>
             {t.sortBy}
             <select
               value={filters.sort}
@@ -246,6 +272,8 @@ export function SessionsPage() {
               ))}
             </select>
           </label>
+        </div>
+        <div className="filters__footer">
           <label className="filters__check">
             <input
               type="checkbox"
@@ -267,44 +295,86 @@ export function SessionsPage() {
               {t.clearFilters}
             </button>
           )}
+          <span className="filters__hint">{t.filtersInLink}</span>
         </div>
       </details>
 
       {sessions !== null && sessions.length === 0 && <p className="muted">{t.noSessions}</p>}
-      {sessions !== null && sessions.length > 0 && (
-        <p className="muted" role="status">
-          {t.showing(shown.length, sessions.length)}
-        </p>
-      )}
-      {shown.length > 0 && (
-        <ul className="list" data-testid="session-list">
-          {shown.map((s) => (
-            <li key={s.id}>
-              <Link className="list__item" to={`/sessions/${s.id}`} data-testid="session">
-                <strong>
-                  {s.title}
-                  {s.boatType !== null && <span className="muted"> · {s.boatType}</span>}
-                </strong>
-                <span className="muted">
-                  {formatDate(s.date)} · {t.createdAt(formatCreatedTime(s.createdAt))} ·{' '}
-                  {t.videos(s.videoCount)}
-                </span>
-                {(s.mySeat !== null || s.notesForMe > 0) && (
-                  <span className="session__me">
-                    {s.mySeat !== null && s.boatType !== null && (
-                      <span className="badge">
-                        {l.seatLabel(seatRole(s.boatType, s.mySeat), s.mySeat)}
-                      </span>
-                    )}
-                    {s.notesForMe > 0 && (
-                      <span className="badge badge--ready">{t.notesForMe(s.notesForMe)}</span>
-                    )}
-                  </span>
-                )}
-              </Link>
-            </li>
+      {groups.length > 0 && (
+        <div data-testid="session-list">
+          {groups.map((group) => (
+            <section key={group.month ?? 'all'} className="month">
+              {group.month !== null && <h2 className="month__title">{formatMonth(group.month)}</h2>}
+              <table className="table sessions-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{t.date}</th>
+                    <th scope="col">{t.columns.session}</th>
+                    <th scope="col">{l.boat}</th>
+                    <th scope="col">{t.columns.crew}</th>
+                    <th scope="col" className="sessions-table__num">
+                      {t.columns.videos}
+                    </th>
+                    <th scope="col" className="sessions-table__num">
+                      {t.columns.forYou}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.rows.map((s) => {
+                    const day = formatDayParts(s.date, group.month === null);
+                    const crew = crewText(s.lineup, t.cox);
+                    return (
+                      // The whole row opens the session; the title link is what keyboards and
+                      // screen readers use.
+                      <tr
+                        key={s.id}
+                        onClick={(e) => {
+                          if (!(e.target as Element).closest('a'))
+                            void navigate(`/sessions/${s.id}`);
+                        }}
+                      >
+                        <td className="sessions-table__date">
+                          <span className="muted">{day.weekday}</span> {day.day}
+                        </td>
+                        <td className="sessions-table__title">
+                          <Link to={`/sessions/${s.id}`} data-testid="session">
+                            {s.title}
+                          </Link>
+                          <span className="muted">
+                            {t.createdAt(formatCreatedTime(s.createdAt))}
+                          </span>
+                        </td>
+                        <td className="sessions-table__boat">{s.boatType ?? '—'}</td>
+                        <td className="sessions-table__crew">
+                          {crew ?? <span className="muted">{t.noLineup}</span>}
+                        </td>
+                        <td className="sessions-table__num sessions-table__videos">
+                          <span className="wide-only">{s.videoCount}</span>
+                          <span className="narrow-only">{t.videos(s.videoCount)}</span>
+                        </td>
+                        <td className="sessions-table__num sessions-table__me">
+                          {s.mySeat !== null && s.boatType !== null && (
+                            <span className="badge">
+                              {l.seatLabel(seatRole(s.boatType, s.mySeat), s.mySeat)}
+                            </span>
+                          )}
+                          {s.notesForMe > 0 ? (
+                            <span className="badge badge--accent">
+                              {t.notesForMe(s.notesForMe)}
+                            </span>
+                          ) : (
+                            s.mySeat === null && <span className="muted wide-only">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </section>
           ))}
-        </ul>
+        </div>
       )}
     </main>
   );

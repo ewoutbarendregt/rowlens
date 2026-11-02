@@ -1,19 +1,18 @@
-# Design tokens and fonts
+# Design system: Classical
 
-RowLens takes its visual style (colours, type, spacing, radii, motion, focus ring and the three
-colour modes) from an external design system, **without its brand**: no name, logo or brand mark
-appears in the app. See ADR-0012.
+RowLens takes its look from the **Classical** design system that Ewout's mockups ("RowLens
+Mockups.dc.html", Claude Design, 2026-11-02) were made with: Cormorant Garamond headings over Lora
+body text, a single gold accent, hairline rules, outlined buttons and unfilled bordered cards.
+See ADR-0014 (it replaces ADR-0012).
 
-| File                         | What                                                                            | Source                                                                                                                               |
-| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `tokens.css`                 | All design tokens: light on `:root`, `[data-theme="dark"]`, `[data-theme="hc"]` | Byte-for-byte copy of `tokens/nouryon-tokens-1.0.css`, design system v1.0, commit `93a86eb` (2026-09-01), sha256 `2c5a8fae7481f960…` |
-| `fonts.css`, `fonts/*.woff2` | Arimo and IBM Plex Mono, self-hosted                                            | `.design-sync/fonts/` of the same commit; only the `url()` paths changed (`./fonts/`)                                                |
-| `LICENSES.md`                | Font licences (SIL OFL 1.1)                                                     |                                                                                                                                      |
+| File            | What                                                                                                                                                                               | Source                                                                                                                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `classical.css` | The system's tokens (`:root`), base type and component classes (`.btn`, `.input`, `.card`, `.tag`, `.seg`, `.nav`, `.table`, `.dialog`, `.hr`)                                     | Copy of the system's `styles.css` (sha256 `a5fcb177fc30afc9…`) **minus its first line**, the `@import` of Google Fonts: the fonts are self-hosted instead |
+| `theme.css`     | RowLens's semantic tokens on top of Classical, and the **dark** and **high-contrast** modes Classical doesn't have, derived from its ramps (`src/server/ui-theme-contrast.test.ts` checks their contrast) | Ours                                                                                                                                                      |
+| `LICENSES.md`   | Fonts (SIL OFL 1.1) and Lucide icons (ISC)                                                                                                                                         |                                                                                                                                                           |
 
-Don't edit `tokens.css` by hand: to update, copy the file again, record the new commit and
-hash here, and check the pages in all three modes. RowLens binds to the **semantic** tokens only
-(`--color-surface-*`, `--color-text-*`, `--color-fill-*`, `--color-border-*`, `--color-status-*`,
-`--space-*`, `--radius-*`, `--text-*`, `--font-*`), never to primitives or `--slide-*`.
+Fonts come from `@fontsource/cormorant-garamond` and `@fontsource/lora` (imported in `main.tsx`), so
+the browser loads them from our own origin (CSP `font-src 'self'`).
 
-The build (Vite/Lightning CSS) drops comments, so the source's name in the comments of
-`tokens.css` does not reach the published CSS.
+Don't edit `classical.css` by hand: to update, copy the system's `styles.css` again without the
+`@import` line, record the new hash here, and look at the pages in all three modes.

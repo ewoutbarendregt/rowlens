@@ -17,6 +17,8 @@ growth features. Suggested order:
 | Note visibility: share with a teammate or the whole crew | rower | must | done locally with #40 (role visibility), PR open | #112 |
 | First login: claim notes made under my name | rower | must | decision needed (name matching) | #110 |
 | Sessions list as start page: filter and sort; admin sees all, others their own | everyone | must | done locally, PR open | #108 |
+| Look of the mockups (Classical): login, header, sessions table per month | everyone | must | done locally, PR open | ADR-0014 |
+| Video page from the mockups; author = your account | coach, rower | must | planned (with #106) | ADR-0014 |
 | My notes: feedback for me from every coach, with the video moment | rower | must | planned | #109 |
 | Reassign a note to someone else | rower | should | decision needed (free or coach-approved) | #111 |
 | Dictate a note and transcribe it | coach | should | decision needed (where transcription runs, ADR-0010) | #107 |

@@ -2,8 +2,9 @@
    before this file. Bind to semantic tokens only. The few values below are RowLens's own on purpose:
    drawings must stand out on any video, and "the frame on screen" keeps its own orange. */
 :root {
-  --rl-draw: #ffd400;
-  --rl-draw-edge: #b38f00;
+  /* The mockups draw in the gold's light step: readable on video, in the system's palette. */
+  --rl-draw: #facb8d;
+  --rl-draw-edge: #a06f24;
   --rl-on-draw: #14171b;
   --rl-here: var(--color-chart-3);
   --rl-here-text: var(--color-status-warning-text);
@@ -55,9 +56,75 @@ h3 {
 
 .wordmark {
   margin: 0;
-  font-size: clamp(2rem, 8vw, 3.5rem);
+  font-size: clamp(2.5rem, 10vw, 3.25rem);
+  font-weight: 400;
   letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+}
+
+/* Sign in (mockups 1a–1c): one column, the wordmark over a hairline, then the form. */
+.login {
+  align-content: start;
+  padding-top: clamp(32px, 10vh, 72px);
+}
+
+.login__card {
+  width: min(100%, 25rem);
+  text-align: start;
+}
+
+.login__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.login__head .version {
+  font-size: var(--text-small);
+}
+
+.gate h3 {
+  margin: var(--space-6) 0 var(--space-2);
+}
+
+.gate__text {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+  text-align: justify;
+  hyphens: auto;
+}
+
+.gate__label {
+  font-size: var(--text-small);
+  color: var(--color-text-secondary);
+}
+
+.gate__footnote {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+.gate__notice-title {
+  margin: var(--space-6) 0 var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-divider);
+  font-size: 1.25rem;
+}
+
+.gate .button--ghost,
+.page button.button--ghost {
+  justify-self: start;
+  border-color: transparent;
+  padding-inline: var(--space-1);
   color: var(--color-text-brand);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+  cursor: pointer;
 }
 
 .version,
@@ -105,9 +172,9 @@ h3 {
 .club button {
   min-height: 44px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-control);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
-  background: var(--color-surface-canvas);
+  background: transparent;
   color: var(--color-text-primary);
   font: inherit;
 }
@@ -117,26 +184,26 @@ h3 {
   letter-spacing: 0.05em;
 }
 
+/* Classical primary: an accent outline, never a fill. */
 .gate button,
 .club button {
-  border-color: transparent;
-  background: var(--color-fill-brand);
-  color: var(--color-text-on-brand);
-  box-shadow: var(--elevation-control);
+  border-color: var(--color-accent);
+  color: var(--color-text-brand);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: var(--font-heading-weight);
   cursor: pointer;
 }
 
 .gate button:hover,
 .club button:hover {
-  background: var(--color-fill-brand-hover);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .gate button.button--quiet,
 .club button.button--quiet {
-  border-color: var(--color-border-control);
-  background: var(--color-surface-canvas);
+  border-color: var(--color-divider);
   color: var(--color-text-primary);
-  box-shadow: var(--elevation-quiet);
 }
 
 .gate button.button--quiet:hover,
@@ -161,16 +228,41 @@ h3 {
 }
 
 .gate__problem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
   margin: 0;
   color: var(--color-status-danger-text);
-  font-weight: var(--weight-bold);
+  font-size: var(--text-body);
+}
+
+.gate__problem .icon {
+  flex: none;
+  margin-top: 2px;
 }
 
 .gate__notice {
   margin: 0;
-  padding-inline-start: 1.25rem;
-  color: var(--color-text-muted);
-  line-height: 1.45;
+  padding-inline-start: 1.75rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  list-style: lower-roman;
+}
+
+.gate__notice li {
+  padding-inline-start: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.gate__notice li::marker {
+  color: var(--color-text-brand);
+  font-family: var(--font-heading);
+}
+
+.gate button .icon,
+.page button .icon {
+  flex: none;
 }
 
 /* ---------------------------------------------------------------- pages: sessions, upload (#45) */
@@ -184,6 +276,8 @@ h3 {
 .page h1 {
   margin-block: 0.5rem 0.25rem;
   font-size: var(--text-page);
+  /* Classical: the bigger the text, the lighter it sets. */
+  font-weight: 400;
   /* A long word in a session title must wrap instead of widening a phone page (BUG-011). */
   overflow-wrap: anywhere;
 }
@@ -221,24 +315,40 @@ h3 {
 
 .form input,
 .form select,
+.form textarea,
 .page button,
 .file-pick,
 .button-link {
-  /* The design system's controls are 36 px; RowLens keeps 44 px touch targets (ADR-0012). */
+  /* Classical controls are 36 px; RowLens keeps 44 px touch targets (ADR-0014). */
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-control);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
-  background: var(--color-surface-canvas);
+  background: transparent;
   color: var(--color-text-primary);
   font: inherit;
 }
 
-.form input:hover,
-.form select:hover {
-  border-color: var(--color-text-muted);
+.form input,
+.form select,
+.form textarea {
+  caret-color: var(--color-accent);
 }
 
+.form input:hover,
+.form select:hover,
+.form textarea:hover {
+  border-color: var(--color-border-control);
+}
+
+.form input:focus-visible,
+.form select:focus-visible,
+.form textarea:focus-visible {
+  border-color: var(--color-accent);
+  outline-offset: 0;
+}
+
+/* Classical .btn-primary: an accent outline with accent-700 type (AA), never a fill. */
 .page button,
 .file-pick,
 .button-link {
@@ -246,41 +356,44 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding-inline: var(--space-4);
-  border-color: transparent;
-  background: var(--color-fill-brand);
-  color: var(--color-text-on-brand);
-  box-shadow: var(--elevation-control);
+  padding-inline: calc(var(--space-3) * 1.2);
+  border-color: var(--color-accent);
+  background: transparent;
+  color: var(--color-text-brand);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: var(--font-heading-weight);
+  line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
 .page button:hover,
 .file-pick:hover,
 .button-link:hover {
-  background: var(--color-fill-brand-hover);
-  box-shadow: var(--elevation-control-hover);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.page button:active,
+.file-pick:active,
+.button-link:active {
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 .page .button-link,
 .club .button-link {
-  color: var(--color-text-on-brand);
+  color: var(--color-text-brand);
 }
 
-/* Design-system "outline" button. */
+/* Classical .btn-secondary: a hairline outline in the text colour. */
 .page button.button--quiet {
-  border-color: var(--color-border-control);
-  background: var(--color-surface-canvas);
+  border-color: var(--color-divider);
   color: var(--color-text-primary);
-  box-shadow: var(--elevation-quiet);
 }
 
 .page button.button--quiet:hover {
-  background: var(--color-surface-hover);
-  box-shadow: var(--elevation-quiet-hover);
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
 }
 
 .danger-zone {
@@ -298,12 +411,12 @@ h3 {
 
 .page button.button--danger {
   justify-self: start;
-  background: var(--color-fill-danger);
-  color: var(--color-text-on-brand);
+  border-color: var(--color-fill-danger);
+  color: var(--color-fill-danger);
 }
 
 .page button.button--danger:hover {
-  background: var(--color-fill-danger-hover);
+  background: color-mix(in srgb, var(--color-fill-danger) 10%, transparent);
 }
 
 .page button:disabled {
@@ -366,8 +479,10 @@ a.list__item {
 
 .badge {
   justify-self: start;
-  padding: 0.125rem 0.5rem;
-  border-radius: var(--radius-full);
+  /* Classical .tag */
+  padding: 3px 10px;
+  border-radius: calc(var(--radius-md) * 0.75);
+  letter-spacing: 0.02em;
   background: var(--color-status-neutral-fill);
   color: var(--color-status-neutral-text);
   font-size: var(--text-small);
@@ -421,8 +536,10 @@ a.list__item {
 }
 
 .page .quality button[aria-pressed='true'] {
-  background: var(--color-fill-brand);
-  color: var(--color-text-on-brand);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  color: var(--color-text-brand);
 }
 
 /* On a phone the thumbnail, the name and the delete button don't fit side by side. */
@@ -437,8 +554,8 @@ a.list__item {
 .notes textarea {
   min-height: 4.5rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
   font: inherit;
@@ -758,8 +875,8 @@ a.list__item {
 .explanation textarea {
   min-height: 3rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
   font: inherit;
@@ -1010,7 +1127,7 @@ a.list__item {
   padding: 0 0.6rem;
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-lg);
-  background: var(--player-control-bg);
+  background: transparent;
   color: var(--color-text-primary);
   font: inherit;
   font-variant-numeric: tabular-nums;
@@ -1021,10 +1138,12 @@ a.list__item {
   cursor: pointer;
 }
 
+/* Classical .seg: the chosen option is outlined in the accent, not filled. */
 .player__controls button[aria-pressed='true'] {
-  background: var(--player-control-on);
-  border-color: var(--player-control-on);
-  color: var(--color-text-on-brand);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  color: var(--color-text-brand);
 }
 
 .player__controls button:disabled {
@@ -1173,10 +1292,10 @@ a.list__item {
   box-sizing: border-box;
   width: 100%;
   min-height: 44px;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-canvas);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: transparent;
   color: var(--color-text-primary);
   font: inherit;
 }
@@ -1228,8 +1347,8 @@ a.list__item {
   min-width: 0;
   min-height: 44px;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
   font: inherit;
@@ -1250,8 +1369,8 @@ a.list__item {
   margin: 0;
   padding: 0.25rem;
   overflow-y: auto;
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
   list-style: none;
@@ -1370,7 +1489,7 @@ a.list__item {
 .theme-switch button {
   min-height: 44px;
   padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-control);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
@@ -1384,9 +1503,10 @@ a.list__item {
 }
 
 .theme-switch button[aria-pressed='true'] {
-  border-color: transparent;
-  background: var(--color-fill-brand);
-  color: var(--color-text-on-brand);
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  color: var(--color-text-brand);
 }
 
 /* ---------------------------------------------------------------- who a note is for (#105) */
@@ -1461,7 +1581,7 @@ a.list__item {
 .access__actions select {
   min-height: 44px;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-control);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
@@ -1469,7 +1589,7 @@ a.list__item {
 }
 
 .club .button-link.button-link--quiet {
-  border: 1px solid var(--color-border-control);
+  border: 1px solid var(--color-divider);
   background: var(--color-surface-canvas);
   color: var(--color-text-primary);
 }
@@ -1491,79 +1611,85 @@ a.list__item {
   color: var(--color-text-secondary);
 }
 
-/* ---------------------------------------------------------------- app header (#108) */
+/* ---------------------------------------------------------------- app header (#108, mockup 1d) */
 
-/* Scrolls with the page: fixed it would cost a phone ~110 px and cover the video page's sticky player. */
+/* Classical .nav: a hairline under the bar, links in the text colour, the current page underlined in
+   the accent. Scrolls with the page: fixed it would cost a phone space and cover the video page's
+   sticky player. */
 .app-header {
   position: relative;
   z-index: var(--z-sticky);
-  border-bottom: 1px solid var(--color-border-subtle);
-  background: var(--color-surface-raised);
-  box-shadow: var(--elevation-nav);
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-bg);
 }
 
 .app-header__inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-2) clamp(16px, 3vw, 28px);
   width: min(100%, 96rem);
   margin-inline: auto;
-  padding: var(--space-2) max(16px, env(safe-area-inset-left));
+  padding: 10px clamp(16px, 3vw, 40px);
 }
 
 .app-header__brand {
-  color: var(--color-text-brand);
-  font-weight: var(--weight-bold);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-right: auto;
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: var(--font-heading-weight);
   white-space: nowrap;
 }
 
 .app-header__club {
   color: var(--color-text-muted);
+  font-family: var(--font-body);
   font-size: var(--text-small);
-  font-weight: var(--weight-regular);
+  font-weight: 400;
 }
 
 .app-header__nav {
   display: flex;
-  flex: 1 1 auto;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: clamp(12px, 2vw, 28px);
 }
 
 .app-header__nav a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-md);
+  border-bottom: 1px solid transparent;
   color: var(--color-text-primary);
+  font-size: var(--text-body);
   text-decoration: none;
 }
 
 .app-header__nav a:hover {
-  background: var(--color-surface-hover);
+  color: var(--color-text-brand);
 }
 
 .app-header__nav a.active {
+  border-bottom-color: var(--color-accent);
   color: var(--color-text-brand);
-  font-weight: var(--weight-bold);
-  box-shadow: inset 0 -2px 0 var(--color-border-indicator);
 }
 
 .account {
   position: relative;
-  margin-left: auto;
+  padding-left: clamp(12px, 2vw, 20px);
+  border-left: 1px solid var(--color-divider);
 }
 
 .account summary {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   min-height: 44px;
-  max-width: 14rem;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-md);
+  max-width: 16rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
   cursor: pointer;
   list-style: none;
 }
@@ -1587,10 +1713,10 @@ a.list__item {
   width: min(22rem, calc(100vw - 32px));
   margin-top: var(--space-1);
   padding: var(--space-4);
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--color-divider);
   border-radius: var(--radius-lg);
-  background: var(--color-surface-overlay);
-  box-shadow: var(--elevation-overlay);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
 }
 
 .account__panel p {
@@ -1605,18 +1731,31 @@ a.list__item {
 .account__panel button {
   min-height: 44px;
   padding: var(--space-2) var(--space-4);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
-  background: var(--color-fill-brand);
-  color: var(--color-text-on-brand);
-  font: inherit;
+  background: transparent;
+  color: var(--color-text-brand);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: var(--font-heading-weight);
   cursor: pointer;
 }
 
 .account__panel button.button--quiet {
-  border-color: var(--color-border-control);
-  background: var(--color-surface-canvas);
+  border-color: var(--color-divider);
   color: var(--color-text-primary);
+}
+
+/* On a phone the brand and the account share the first line, the links the second. */
+@media (max-width: 559px) {
+  .app-header__nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .app-header__club {
+    display: none;
+  }
 }
 
 /* ---------------------------------------------------------------- session list (#108) */
@@ -1635,58 +1774,290 @@ a.list__item {
   gap: var(--space-2);
 }
 
+.page__count {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.page__title > button .icon {
+  vertical-align: -3px;
+}
+
+/* Mockup 1d: on a laptop the filters are one row between two hairlines; on a phone a fold. */
 .filters {
-  margin-block: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-raised);
+  margin-block: var(--space-4) var(--space-2);
+  border-block: 1px solid var(--color-divider);
 }
 
 .filters summary {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 32px;
+  min-height: 44px;
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
   font-weight: var(--weight-bold);
   cursor: pointer;
 }
 
 .filters__grid {
   grid-template-columns: minmax(0, 1fr);
-  margin-top: var(--space-3);
+  padding-block: var(--space-2) var(--space-3);
 }
 
 .filters__grid label {
   display: grid;
   gap: var(--space-1);
   min-width: 0;
-  font-size: var(--text-body);
+  font-size: var(--text-small);
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
 }
 
 .filters__grid input,
 .filters__grid select {
   box-sizing: border-box;
+  /* 16 px, or iOS zooms in on focus. */
+  font-size: 1rem;
   width: 100%;
   min-width: 0;
 }
 
-.filters__grid .filters__check {
+.search-field {
+  position: relative;
+  display: block;
+}
+
+.search-field .icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  translate: 0 -50%;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.form .search-field input {
+  padding-left: 32px;
+}
+
+.filters__footer {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding-bottom: var(--space-2);
+}
+
+.filters__check {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
   min-height: 44px;
+  font-size: 0.8125rem;
+  cursor: pointer;
 }
 
-.filters__grid .filters__check input {
-  width: auto;
-  min-height: 0;
+.filters__check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+}
+
+.filters__hint {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
 }
 
 @media (min-width: 768px) {
+  .filters summary {
+    display: none;
+  }
+
   .filters__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 2fr) repeat(5, minmax(0, 1fr));
     align-items: end;
+    padding-block: var(--space-3) var(--space-2);
+  }
+}
+
+/* ---------------------------------------------------------------- session table (mockup 1d) */
+
+.month__title {
+  margin: var(--space-6) 0 0;
+  padding-bottom: var(--space-2);
+  color: var(--color-text-brand);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.month:first-child .month__title {
+  margin-top: var(--space-3);
+}
+
+.sessions-table tbody tr {
+  cursor: pointer;
+}
+
+.sessions-table td {
+  vertical-align: top;
+  padding-block: var(--space-3);
+}
+
+.sessions-table .sessions-table__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessions-table__date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessions-table__title a {
+  display: block;
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+  line-height: 1.25;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.sessions-table tbody tr:hover .sessions-table__title a {
+  text-decoration: underline;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 3px;
+}
+
+.sessions-table__title .muted {
+  display: block;
+  font-size: var(--text-small);
+}
+
+.sessions-table__crew {
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+}
+
+.sessions-table__me {
+  white-space: nowrap;
+}
+
+.sessions-table__me .badge + .badge {
+  margin-left: var(--space-1);
+}
+
+.badge--accent {
+  background: var(--color-fill-brand-subtle);
+  color: var(--color-text-brand);
+}
+
+.narrow-only {
+  display: none;
+}
+
+/* Fixed widths, so the columns of every month's table line up. */
+@media (min-width: 760px) {
+  .sessions-table {
+    table-layout: fixed;
+  }
+
+  .sessions-table th:nth-child(1) {
+    width: 7rem;
+  }
+
+  .sessions-table th:nth-child(3) {
+    width: 4.5rem;
+  }
+
+  .sessions-table th:nth-child(4) {
+    width: 30%;
+  }
+
+  .sessions-table th:nth-child(5) {
+    width: 4.5rem;
+  }
+
+  .sessions-table th:nth-child(6) {
+    width: 10rem;
+  }
+
+  .sessions-table__me {
+    white-space: normal;
+  }
+}
+
+/* A phone: every row becomes a stacked block; no sideways scrolling. */
+@media (max-width: 759px) {
+  .sessions-table thead {
+    display: none;
+  }
+
+  .sessions-table,
+  .sessions-table tbody {
+    display: block;
+  }
+
+  .sessions-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'date boat'
+      'title title'
+      'crew crew'
+      'videos me';
+    gap: 4px var(--space-2);
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .sessions-table td {
+    padding: 0;
+    border: 0;
+  }
+
+  .sessions-table__date {
+    grid-area: date;
+    font-size: var(--text-small);
+  }
+
+  .sessions-table__boat {
+    grid-area: boat;
+    font-size: var(--text-small);
+    text-align: right;
+  }
+
+  .sessions-table__title {
+    grid-area: title;
+  }
+
+  .sessions-table__crew {
+    grid-area: crew;
+  }
+
+  .sessions-table .sessions-table__videos {
+    grid-area: videos;
+    text-align: left;
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+  }
+
+  .sessions-table__me {
+    grid-area: me;
+    white-space: normal;
+  }
+
+  .wide-only {
+    display: none;
+  }
+
+  .narrow-only {
+    display: inline;
   }
 }
 

@@ -46,7 +46,10 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await page.goto('./rowers');
   await expect(page.getByTestId('rower-list')).toContainText(`Bram ${tag}`);
   await page.goto('./sessions');
-  await expect(page.getByTestId('session-list')).toContainText(`Lineup ${tag} · C2x`);
+  const row = page.getByTestId('session-list').locator('tr', { hasText: `Lineup ${tag}` });
+  await expect(row).toContainText('C2x');
+  // The crew column lists first names.
+  await expect(row).toContainText('Bram');
 
   // A next session offers this lineup to copy; its long title must not widen the page on a phone.
   await openNewSession(page);

@@ -1,11 +1,10 @@
-# Font licences
+# Licences of what the design layer ships
 
-The fonts in `fonts/` are served to every visitor of RowLens, so their licence travels with them.
+The fonts and icons below are served to every visitor of RowLens, so their licences travel with them.
 
-- **Arimo** (variable, 400 and 700): Copyright 2020 The Arimo Project Authors (https://github.com/googlefonts/arimo). SIL Open Font License 1.1.
-- **IBM Plex Mono** (400 and 700): Copyright 2017 IBM Corp. All rights reserved. SIL Open Font License 1.1.
-
-Both notices were read from the fonts' own name tables (IDs 0 and 14) on 2026-11-02.
+- **Cormorant Garamond** (headings, 400 and 600): Copyright 2015 The Cormorant Project Authors (github.com/CatharsisFonts/Cormorant). SIL Open Font License 1.1. Served from the npm package `@fontsource/cormorant-garamond`.
+- **Lora** (body text, 400, 400 italic and 600): Copyright 2011 The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic), with Reserved Font Name "Lora". SIL Open Font License 1.1. Served from `@fontsource/lora`.
+- **Lucide icons** (a few paths inlined in `ui/icons.tsx`): ISC License, below.
 
 ---
 
@@ -63,3 +62,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 © 2003-2009 SIL International, all rights reserved, unless otherwise noted elsewhere on this page.
 Provided by SIL’s Non-Roman Script Initiative. Contact us at nrsi@sil.org.
+---
+
+## Lucide: ISC License
+
+Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
