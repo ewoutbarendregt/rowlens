@@ -2,12 +2,114 @@
 
 Agent work log, newest first.
 
+## 2026-11-01 — Handoff from Codex back to Claude
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: The handoff now lists the complete green PR stack through #101, the tested e-mail-auth implementation, production preflight, private Resend/allowlist inputs and explicit approval still needed before merge or deploy. The branch is pushed and the worktree is clean so Claude can continue without reconstructing context.
+**Prompts used**: "zorg ervoor dat Claude weer verder kan".
+
+## 2026-11-01 — Production preflight for e-mail authentication
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Read-only production inspection found release `sha-c15cb47` healthy with its rollback release intact, 48% disk usage and all public neighbour checks returning 200. The app database password and current compose are already present; only the #98 deploy-script update and the approved RowLens authentication variables remain before merge/deploy.
+
+## 2026-11-01 — CI accepts Codex branch names
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: .github/workflows/ci.yml, DOCUMENTATION.md
+**Summary**: The branch-name policy now accepts the `codex/` agent prefix required by AGENTS.md alongside the existing `claude/` prefix. This fixes the policy failure on PRs #100 and #101 without weakening the conventional type/slug check.
+
+## 2026-11-01 — One-club e-mail OTP authentication (#28–#30)
+
+**Session**: codex/feat/28-30-email-auth
+**Changed**: apps/web/{package.json,.env.example,playwright.config.ts}, apps/web/src/server/{app.ts,config.ts,auth/,db/schema.ts,db/migrations/0006_email_auth.sql}, apps/web/src/client/{auth/,api.ts,App.tsx,pages/HomePage.tsx,sessions/RequireAuth.tsx,sessions/useUploads.ts,styles.css}, apps/web/e2e/{auth.spec.ts,env.ts,helpers.ts,server.ts,upload.spec.ts}, infra/compose/docker-compose.edge.yml, docs/{HANDOFF.md,adr/0011-auth-otp-and-email.md,runbooks/server-setup.md}, PLAN.md, BUILD.md, TEST.md, DOCUMENTATION.md, pnpm-lock.yaml
+**Summary**: The shared pilot code is replaced in the user flow by NL/EN e-mail OTP for a one-club allowlist: non-enumerating requests, HMAC-only single-use codes, Postgres rate limits, revocable 30-day sessions, CSRF on JSON and tus uploads, and Resend SMTP in production. Multi-club invitations/self-onboarding moved behind completion of the one-club product. Verified with 207 web tests, 44 worker tests, 30 local and 15 edge E2E tests, 77 deploy checks, the real-Docker deploy/rollback rehearsal and the local login flow; production configuration and deployment still require Ewout's explicit approval and Resend key/member list.
+**Prompts used**: "laten we 4 naar achteren schuiven, en eerst de functionaliteit uitontwikkelen voor 1 club, en laten we nu eerst de authenticatie opzetten en deployen naar prod"; "je leest de acties uit github?"; "ok laten we doorgaan".
+
+## 2026-11-01 — Session date now includes its creation time
+
+**Session**: codex/feat/delete-session
+**Changed**: apps/web/src/server/api/{sessions.ts,uploads.db.test.ts}, apps/web/src/client/sessions/{SessionsPage.tsx,SessionPage.tsx,strings.ts,strings.test.ts}, apps/web/e2e/upload.spec.ts, BUILD.md, TEST.md, DOCUMENTATION.md
+**Summary**: Session list items and the session detail now show the selected training date together with the database creation time, labelled in NL/EN and formatted in the viewer's local time. The API exposes `createdAt` on both session representations; checked on the local laptop/phone layouts, with 191 web tests and 4 desktop/mobile E2E tests.
+**Prompts used**: "de timestamp van de sessie moet ook het tijdstip van aanmaken bevatten, niet alleen de datum".
+
+## 2026-11-01 — Delete a whole session with its videos and annotations
+
+**Session**: codex/feat/delete-session
+**Changed**: apps/web/src/server/api/{sessions.ts,sessions.db.test.ts}, apps/web/src/client/sessions/{SessionPage.tsx,strings.ts}, apps/web/src/client/styles.css, apps/web/e2e/upload.spec.ts, BUILD.md, TEST.md, DOCUMENTATION.md
+**Summary**: A training now has an in-page danger zone to delete it for everyone. The tenant-scoped endpoint locks the session against concurrent video creation, cascades database deletion to every video and annotation, and removes each video's original, renditions and poster; cross-club access remains a 404. Checked with 190 web tests, desktop/mobile E2E and the local UI at laptop and 390×844.
+**Prompts used**: "ik wil de hele sectie kunnen deleten, inclusief alle video's en annotaties".
+
+## 2026-11-01 — Handoff to Codex: AGENTS.md and docs/HANDOFF.md
+
+**Session**: claude/docs/handoff-codex
+**Changed**: AGENTS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Ewout continues with Codex. AGENTS.md (read automatically by Codex) carries the hard rules, his way of working (deploy only on request, local stack first, stacked-PR merge order, no popups, measure layouts) and the commands; docs/HANDOFF.md the current state: production `sha-c15cb47`, the open PR stack and merge order, the next deploy's server steps, local state and the open work. All branches pushed; nothing merged or deployed.
+**Prompts used**: "kun je de sessie veiligstellen zodat ik verder kan met codex".
+
+## 2026-11-01 — Confirmations in the page instead of browser popups
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/ui/ConfirmInline.tsx, src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/sessions/SessionPage.tsx, src/client/styles.css, e2e/{drawing,upload}.spec.ts, BUILD.md
+**Summary**: Ewout (screenshot of the browser's "localhost:5174 says" dialog, in English): the confirmation must be in the page. All three `window.confirm`s (whole note, drawing, video) now ask inline where they were clicked, NL/EN. E2E fails on any browser dialog and checks that Cancel deletes nothing.
+**Prompts used**: "deze confirmatie moet niet als popup gebeuren, maar in de pagina zelf".
+
+## 2026-11-01 — Video display name: [session]-[#]-[start]-[length]
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/db/{schema.ts,migrations/0005_video_seq_recorded_at.sql}, src/server/api/{uploads,sessions,videos}.ts (+ upload db test), src/client/sessions/{displayName.ts,displayName.test.ts,SessionPage.tsx,VideoPage.tsx}, worker/src/rowlens_worker/video/{probe,process}.py, worker/tests/test_probe.py, e2e/{helpers,upload.spec}.ts, BUILD.md
+**Summary**: Ewout wants videos named `[sessienaam]-[#]-[tijdstip start]-[lengte]`. A read-only look at his iPhone uploads showed two times in the file: `creation_time` = when it was sent (18:08 the next day), Apple's creationdate = filming start (09:48); the worker now stores the latter as `recorded_at`. Videos get a fixed number per session. Checked locally: `Zaterdag CX4+-2-09:48-0:07`.
+**Prompts used**: "de displaynaam van de video moet worden [sessienaam]-[#]-[tijdstip start]-[lengte]".
+
+## 2026-11-01 — Delete a whole note: every drawing and remark at a frame (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/api/annotations.ts (+ db tests), src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/styles.css, e2e/drawing.spec.ts, BUILD.md
+**Summary**: Ewout: a whole note must be deletable with all its drawings and remarks. New `DELETE /api/videos/:id/frames/:frame/annotations` (one transaction, only that frame of that video, RLS; other clubs 404) and a red "Notitie verwijderen" button with a confirmation in each section. Tests: only the frame's items go, other frames and videos stay, other clubs can't; E2E deletes a whole note and checks after a reload.
+**Prompts used**: "je moet de hele notitie kunnen verwijderen met alle tekeningen en opmerkingen".
+
+## 2026-11-01 — Frame sections: click to jump and select, explanation always open (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/notes/{NotesPanel.tsx,strings.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{notes,drawing}.spec.ts, BUILD.md
+**Summary**: Ewout's feedback on the local build: clicking a frame's section should jump there and show it selected; the drawing labels were too big; the explanation field should always be open. Done: whole section clickable (seek without scrolling the page away on a phone), selected = the frame on screen, smaller chips, an open field per section (edit in place, empty + save removes), the name as its own field. Checked locally on laptop and iPhone; E2E covers click-to-select and the open field (5× without a flake).
+**Prompts used**: "als ik in de sectie van een frame klik, dan moet de video direct naar het bijbehorende moment springen en moet de selectie 'selected' zijn. de aanduidingen van de tekenelementen zijn wel groot en het tekstveld voor de uitleg moet gewoon altijd beschikbaar zijn, niet achter een button".
+
 ## 2026-11-01 — Deploy script: a first deploy can no longer skip migrations (BUG-009)
 
 **Session**: claude/fix/deploy-migrate-detect
 **Changed**: infra/deploy/rowlens-deploy, infra/deploy/test/{run.sh,stub/docker}, BUGS.md, TEST.md
 **Summary**: CI's rehearsal on #97 failed: the first deploy skipped the migrations because `compose config` ran without ROWLENS_TAG (no release.env yet), newer Compose refused, and the suppressed error read as "no migrate service". Now the tag is passed and a config failure stops the deploy. Stub suite 77 passed (2 of the new checks fail on the old script); rehearsal passed. Production unaffected so far (release.env exists there); the server's copy of the script is updated with install.sh at the next approved deploy.
 **Prompts used**: none (found by CI while working on #97).
+## 2026-11-01 — One entry per frame: drawings and their explanation together (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/client/notes/{NotesPanel.tsx,moments.ts,moments.test.ts,strings.ts}, src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/{drawing,notes}.spec.ts, BUILD.md
+**Summary**: Ewout, trying drawing locally: several drawings on one frame should be one note, with room for an explanation. The list now groups per frame: drawings as chips with their own ×, the explanation (added with "Uitleg toevoegen" or edited in the entry), one marker per frame. Data model unchanged. Checked locally on laptop and iPhone sizes; E2E covers two drawings + explanation = one entry.
+**Prompts used**: "als er in 1 frame meerdere figuren zijn getekend, moet dat maar 1 note opleveren. in de note moet je dan ook extra uitleg kunnen geven".
+
+## 2026-11-01 — Drawing lines, arrows and angles at a frame (#60)
+
+**Session**: claude/feat/60-drawing
+**Changed**: apps/web/src/server/api/annotations.ts (+ db test), src/client/drawing/{geometry.ts,geometry.test.ts,DrawingLayer.tsx,DrawTools.tsx}, src/client/notes/{NotesPanel.tsx,name.ts,strings.ts}, src/client/player/Player.tsx (overlay), src/client/sessions/VideoPage.tsx, src/client/styles.css, e2e/drawing.spec.ts, BUILD.md, TEST.md
+**Summary**: PR 7 of the upload plan, built and tried on the local stack. Line, arrow and angle (degrees in picture pixels, with an arc) drawn by taps on a paused frame, stored as picture fractions, rendered in an SVG that scales like the video so they stay on the picture at any size. Trying it on an iPhone-sized WebKit showed the tools were too far from the picture (below the notes): they moved into the player's toolbar, and choosing one scrolls the picture into view.
+**Prompts used**: "Yes, start PR 7"; "Yes, PR 7 locally".
+
+## 2026-11-01 — Local development stack: iterate on the laptop
+
+**Session**: claude/chore/local-dev
+**Changed**: infra/compose/docker-compose.dev.yml (worker, port 5434), apps/web/{vite.config.ts,.env.example}, apps/web/src/server/{config.ts,config.test.ts} (API_PORT wins), package.json (dev:up, dev, dev:down), .claude/launch.json, CLAUDE.md, BUILD.md
+**Summary**: Ewout wants to iterate locally and deploy later. The whole app now runs on the laptop: Postgres and the worker in Docker, the web app with hot reload on :5174 (his RowLens port; trustable.nl's local stack keeps 5173/5433). Verified the full flow locally (code → session → portrait upload → worker 0.9 s → player with notes). Found on the way: the preview pane sets PORT for the process, so the server took the front end's port; API_PORT now wins. The old RowLens preview server on 5174 (demo era) was stopped and replaced.
+**Prompts used**: "ik wil graag itereren op mijn local machine, pas later deployen we weer"; "5147 is toch de rowlens demo".
+
+## 2026-11-01 — Laptop layout for portrait video; 30 fps for phone clips on a 600 Hz grid
+
+**Session**: claude/fix/laptop-portrait-layout
+**Changed**: apps/web/src/client/{styles.css,player/Player.tsx,sessions/VideoPage.tsx}, worker/src/rowlens_worker/video/probe.py, worker/tests/test_probe.py, docs/adr/0007, BUGS.md, BUILD.md, TEST.md
+**Summary**: Ewout's laptop screenshot: a portrait video as a narrow strip with controls stretched below, in a low window (~540 px), and "31.58 fps". Portrait video now gets three zones on laptops (video tall left, controls beside, notes right); the quality switch moved into the player; softer slider focus. The worker now prefers a common average rate (the clip was 29.99 on average but r_frame_rate 600/19, so 5 % of its frames were duplicates). Checked at 1000×540, 1440×860, 1920×1000 and iPhone.
+**Prompts used**: "this does not look good on the laptop" (with screenshot).
 
 ## 2026-11-01 — iPhone portrait video fixed; side-by-side video page on laptops
 

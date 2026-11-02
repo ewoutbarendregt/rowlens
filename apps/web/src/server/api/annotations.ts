@@ -6,12 +6,29 @@ import { withTenant } from '../db/tenant.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
+const frameParams = z.object({ id: z.uuid(), frame: z.coerce.number().int().min(0) });
 const text = z.string().trim().min(1).max(2000);
-const newNote = z.object({
-  frame: z.int().min(0),
-  body: text,
-  authorName: z.string().trim().min(1).max(60),
-});
+const author = z.string().trim().min(1).max(60);
+/** A point as a fraction of the picture (0–1 from the left and from the top), #60. */
+const point = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]);
+const newAnnotation = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('note'), frame: z.int().min(0), body: text, authorName: author }),
+  z.object({
+    kind: z.enum(['line', 'arrow']),
+    frame: z.int().min(0),
+    points: z.tuple([point, point]),
+    body: z.string().trim().max(2000).default(''),
+    authorName: author,
+  }),
+  z.object({
+    kind: z.literal('angle'),
+    frame: z.int().min(0),
+    // Arm, vertex, arm: the angle is measured at the middle point.
+    points: z.tuple([point, point, point]),
+    body: z.string().trim().max(2000).default(''),
+    authorName: author,
+  }),
+]);
 const editNote = z.object({ body: text });
 
 const columns = {
@@ -26,9 +43,9 @@ const columns = {
 };
 
 /**
- * Notes pinned to a frame (#59), behind the guard and RLS like everything in a club. While the
- * pilot has no accounts, everyone with the code may edit or delete any note (the pilot notice
- * says so); with login (#28) that becomes the author only.
+ * Notes (#59) and drawings (#60) pinned to a frame, behind the guard and RLS like everything in a
+ * club. During the one-club phase every signed-in member may edit or delete them; author-only
+ * permissions can be added when roles and crews become part of the product flow.
  */
 export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, done) => {
   const { db, guard } = opts;
@@ -56,8 +73,12 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
   app.post('/api/videos/:id/annotations', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
-    const body = newNote.safeParse(req.body);
-    if (!body.success) return reply.code(400).send({ error: 'invalid_note' });
+    // Older clients send notes without a kind.
+    const raw: unknown = req.body;
+    const withKind =
+      typeof raw === 'object' && raw !== null && !('kind' in raw) ? { ...raw, kind: 'note' } : raw;
+    const body = newAnnotation.safeParse(withKind);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_annotation' });
     const tenant = tenantOf(req);
     const result = await withTenant(db, tenant, async (tx) => {
       const [v] = await tx
@@ -74,8 +95,9 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
           clubId: tenant.clubId,
           videoId: v.id,
           frame: body.data.frame,
-          kind: 'note',
+          kind: body.data.kind,
           body: body.data.body,
+          shape: body.data.kind === 'note' ? null : { points: body.data.points },
           authorName: body.data.authorName,
         })
         .returning(columns);
@@ -102,6 +124,34 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
     );
     return row ?? notFound(reply);
   });
+
+  // A whole moment (Ewout: one note per frame): every drawing and remark at that frame, in one
+  // transaction, so it never half-disappears.
+  app.delete(
+    '/api/videos/:id/frames/:frame/annotations',
+    { preHandler: guard },
+    async (req, reply) => {
+      const params = frameParams.safeParse(req.params);
+      if (!params.success) return notFound(reply);
+      const deleted = await withTenant(db, tenantOf(req), async (tx) => {
+        const [v] = await tx
+          .select({ id: video.id })
+          .from(video)
+          .where(eq(video.id, params.data.id));
+        if (v === undefined) return null;
+        return tx
+          .delete(annotation)
+          .where(and(eq(annotation.videoId, v.id), eq(annotation.frame, params.data.frame)))
+          .returning({ id: annotation.id });
+      });
+      if (deleted === null || deleted.length === 0) return notFound(reply);
+      req.log.info(
+        { videoId: params.data.id, frame: params.data.frame, count: deleted.length },
+        'moment deleted',
+      );
+      return reply.code(204).send();
+    },
+  );
 
   app.delete('/api/annotations/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);

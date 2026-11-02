@@ -84,7 +84,9 @@ What the spike changed in the design:
   phone video comes out upright.
 - **Metadata is stripped** from renditions and poster (`-map_metadata -1`): phone videos carry GPS
   location and device names. The original keeps it but is never served.
-- Nominal rate: `r_frame_rate` unless it's implausible (> 240, or > 20 % off the average, as with
+- Nominal rate (amended, BUG-007): the average if it is a common rate within 1 %, else `r_frame_rate`
+  if common; a phone clip with r_frame_rate 600/19 but an average of 29.99 is 30 fps. Before that:
+  `r_frame_rate` unless it's implausible (> 240, or > 20 % off the average, as with
   Android files reporting 90000/1); then the average, snapped to the nearest common rate within 1 %.
   The VFR flag is a heuristic (average > 0.5 % off the nominal rate).
 - Refused for good (job dead, video `failed` with a reason): no video stream, unreadable, > 30 min,

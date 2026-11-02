@@ -93,3 +93,37 @@ def test_bitrate_from_the_format_or_from_size_and_duration() -> None:
     from_size = {"streams": [video_stream()], "format": {"duration": "80", "size": "8000000"}}
     assert parse_probe(from_size).bitrate == 800_000
     assert parse_probe(data(video_stream())).bitrate is None
+
+
+def test_timestamp_grid_rate_loses_to_a_common_average() -> None:
+    # The production clip: frames on a 600 Hz grid, 19 ticks apart (31.58) with gaps; average 29.99.
+    p = parse_probe(data(video_stream(r_frame_rate="600/19", avg_frame_rate="82200/2741")))
+    assert p.fps == Fraction(30)
+
+
+def test_recording_time_prefers_apples_tag_over_the_export_time() -> None:
+    # The production iPhone clip: filmed 09:48 on 31 Oct, creation_time = when it was sent.
+    payload = data(video_stream(tags={"creation_time": "2026-11-01T18:08:34.000000Z"}))
+    payload["format"]["tags"] = {
+        "creation_time": "2026-11-01T18:08:34.000000Z",
+        "com.apple.quicktime.creationdate": "2026-10-31T09:48:30+01:00",
+    }
+    recorded = parse_probe(payload).recorded_at
+    assert recorded is not None
+    assert recorded.isoformat() == "2026-10-31T09:48:30+01:00"
+
+
+def test_recording_time_falls_back_to_creation_time() -> None:
+    payload = data(video_stream(tags={"creation_time": "2026-10-31T08:15:00.000000Z"}))
+    recorded = parse_probe(payload).recorded_at
+    assert recorded is not None
+    assert recorded.isoformat() == "2026-10-31T08:15:00+00:00"
+
+
+@pytest.mark.parametrize(
+    "value", ["1970-01-01T00:00:00Z", "1904-01-01T00:00:00Z", "yesterday", "2026-10-31T09:48:30"]
+)
+def test_impossible_or_unplaced_recording_times_are_ignored(value: str) -> None:
+    payload = data(video_stream())
+    payload["format"]["tags"] = {"creation_time": value}
+    assert parse_probe(payload).recorded_at is None

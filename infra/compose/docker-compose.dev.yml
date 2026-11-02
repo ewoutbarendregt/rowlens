@@ -1,7 +1,8 @@
-# Local development only: PostgreSQL for running the web app and worker on a laptop. Video bytes go
-# in a plain directory (MEDIA_DIR in apps/web/.env), like production (ADR-0006, amended).
-#   docker compose -f infra/compose/docker-compose.dev.yml up -d
-# Never deployed. Credentials below are throwaway local defaults.
+# Local development only: PostgreSQL and the worker in Docker, the web app on the host with hot
+# reload (`pnpm dev:up`, then `pnpm dev`; see CLAUDE.md). Video bytes go in apps/web/.media, which
+# the web app and this worker share, like production (ADR-0006, amended).
+# Never deployed. Credentials below are throwaway local defaults; port 5434 keeps clear of other
+# projects' Postgres on 5432/5433.
 name: rowlens-dev
 
 services:
@@ -11,12 +12,27 @@ services:
       POSTGRES_DB: rowlens
       POSTGRES_USER: rowlens_owner
       POSTGRES_PASSWORD: rowlens_dev_only
-    ports: ['127.0.0.1:5433:5432']
+    ports: ['127.0.0.1:5434:5432']
     volumes: [db_data:/var/lib/postgresql/data]
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U rowlens_owner -d rowlens']
       interval: 5s
       retries: 10
+
+  # Same image as production; ffmpeg lives here, so the laptop needs none.
+  worker:
+    build:
+      context: ../../worker
+    environment:
+      DATABASE_URL: postgres://rowlens_app:rowlens_app_dev_only@db:5432/rowlens
+      MEDIA_DIR: /media
+      FFMPEG_THREADS: '2'
+      JOB_POLL_SECONDS: '2'
+    volumes: ['../../apps/web/.media:/media']
+    depends_on:
+      db: { condition: service_healthy }
+    # Starts before the first migration on a fresh database; it retries until the tables exist.
+    restart: unless-stopped
 
 volumes:
   db_data:

@@ -6,6 +6,7 @@ import json
 import shutil
 import subprocess
 from dataclasses import dataclass
+from datetime import datetime
 from fractions import Fraction
 from pathlib import Path
 from typing import Any
@@ -40,6 +41,8 @@ class Probe:
     has_audio: bool
     #: Whole-file bitrate (bit/s) if known; caps the renditions' bitrate (#47).
     bitrate: int | None = None
+    #: When the recording started, if the file says (the video's display name shows it).
+    recorded_at: datetime | None = None
 
     @property
     def frame_count(self) -> int:
@@ -75,6 +78,29 @@ def _snap(rate: Fraction) -> Fraction:
     return nearest if abs(nearest - rate) / nearest <= Fraction(1, 100) else rate
 
 
+def _is_common(rate: Fraction | None) -> bool:
+    return rate is not None and _snap(rate) in _COMMON_RATES
+
+
+def _nominal(r: Fraction | None, avg: Fraction | None, measured: Fraction) -> Fraction:
+    """The rate the camera meant to record at.
+
+    1. The average, if it is a common rate: it is what the frames really amount to. A phone clip
+       on production had r_frame_rate 600/19 (31.58, its timestamp grid) but an average of 29.99;
+       choosing 31.58 duplicated ~5 % of the frames.
+    2. r_frame_rate, if it is a common rate (phones dropping frames in low light average below it).
+    3. Otherwise r_frame_rate unless it is far off the average (Android files report 90000/1),
+       else the average.
+    """
+    if _is_common(avg) and avg is not None:
+        return _snap(avg)
+    if _is_common(r) and r is not None:
+        return _snap(r)
+    if r is not None and (avg is None or abs(r - avg) / r <= Fraction(1, 5)):
+        return r
+    return measured
+
+
 def _rotation(stream: dict[str, Any]) -> int:
     for side in stream.get("side_data_list", []):
         if "rotation" in side:
@@ -97,11 +123,7 @@ def parse_probe(data: dict[str, Any]) -> Probe:
     measured = avg or r
     if measured is None:
         raise PermanentError("unreadable", "no frame rate")
-    # r_frame_rate is the container's base rate, which some Android phones report as 90000/1 or
-    # similar; the average then gives the nominal rate.
-    fps = _snap(
-        r if r is not None and (avg is None or abs(r - avg) / r <= Fraction(1, 5)) else measured
-    )
+    fps = _nominal(r, avg, measured)
     vfr = avg is not None and abs(fps - avg) / fps > Fraction(1, 200)
 
     fmt: dict[str, Any] = data.get("format", {})
@@ -124,7 +146,30 @@ def parse_probe(data: dict[str, Any]) -> Probe:
         vfr=vfr,
         has_audio=any(s.get("codec_type") == "audio" for s in streams),
         bitrate=_bitrate(fmt, duration),
+        recorded_at=_recorded_at(fmt, video),
     )
+
+
+# Apple's tag is the moment filming started, in local time with its offset. `creation_time` is
+# often when the file was exported or sent (an iPhone clip on production: filmed 09:48 on the 31st,
+# creation_time 18:08 the next day), so it only counts when Apple's tag is missing.
+_RECORDED_TAGS = ("com.apple.quicktime.creationdate", "creation_time")
+
+
+def _recorded_at(fmt: dict[str, Any], video: dict[str, Any]) -> datetime | None:
+    for key in _RECORDED_TAGS:
+        for tags in (fmt.get("tags", {}), video.get("tags", {})):
+            value = tags.get(key)
+            if not isinstance(value, str):
+                continue
+            try:
+                parsed = datetime.fromisoformat(value.strip())
+            except ValueError:
+                continue
+            # Unset camera clocks write 1904 or 1970; a time without a zone can't be placed.
+            if parsed.tzinfo is not None and 2000 <= parsed.year <= 2100:
+                return parsed
+    return None
 
 
 def _bitrate(fmt: dict[str, Any], duration: float) -> int | None:

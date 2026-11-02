@@ -124,12 +124,23 @@ describe('sessions', () => {
     const id = await newSession();
     const list = await app.inject({ url: `${BASE}/api/sessions`, headers: { cookie } });
     expect(list.headers['cache-control']).toBe('private, no-store');
-    expect(list.json<{ sessions: unknown[] }>().sessions).toContainEqual({
+    const sessions = list.json<{
+      sessions: {
+        id: string;
+        title: string;
+        date: string;
+        createdAt: string;
+        videoCount: number;
+      }[];
+    }>().sessions;
+    const created = sessions.find((session) => session.id === id);
+    expect(created).toMatchObject({
       id,
       title: 'Ochtendtraining',
       date: '2026-10-31',
       videoCount: 0,
     });
+    expect(created?.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:/);
   });
 
   it('rejects invalid sessions', async () => {
@@ -183,6 +194,9 @@ describe('tus upload', () => {
       url: `${BASE}/api/sessions/${sessionId}`,
       headers: { cookie },
     });
+    expect(session.json<{ createdAt: string }>().createdAt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:/,
+    );
     expect(session.json<{ videos: unknown[] }>().videos).toEqual([
       expect.objectContaining({
         id,
@@ -195,6 +209,26 @@ describe('tus upload', () => {
     ]);
     // A finished upload takes no more bytes.
     expect((await patch(location, MP4.length, Buffer.from('x'))).statusCode).toBe(409);
+  });
+
+  it('numbers the videos of a session 1, 2, 3 in upload order, per session', async () => {
+    const a = await newSession();
+    const b = await newSession();
+    const ids = [];
+    for (const session of [a, a, b, a]) {
+      const res = await create(session, MP4.length);
+      ids.push(String(res.headers['location']).split('/').at(-1) ?? '');
+    }
+    const seqs = await asOwner<{ id: string; seq: number }>(
+      'select id, seq from video where id = any($1)',
+      [ids],
+    );
+    const seqOf = (id: string) => seqs.find((r) => r.id === id)?.seq;
+    expect(ids.map(seqOf)).toEqual([1, 2, 1, 3]);
+    const listed = await app.inject({ url: `${BASE}/api/sessions/${a}`, headers: { cookie } });
+    expect(
+      listed.json<{ videos: { seq: number; recordedAt: null }[] }>().videos.map((v) => v.seq),
+    ).toEqual([1, 2, 3]);
   });
 
   it('rejects a complete upload that is not a video and deletes its bytes', async () => {

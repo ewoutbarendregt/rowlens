@@ -3,7 +3,7 @@ import { Route, Routes } from 'react-router';
 import { PLAYER_DEMO } from './features.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
-import { RequirePilot } from './sessions/RequirePilot.tsx';
+import { RequireAuth } from './sessions/RequireAuth.tsx';
 import { SessionPage } from './sessions/SessionPage.tsx';
 import { SessionsPage } from './sessions/SessionsPage.tsx';
 import { VideoPage } from './sessions/VideoPage.tsx';
@@ -20,25 +20,25 @@ export function App() {
       <Route
         path="sessions"
         element={
-          <RequirePilot>
+          <RequireAuth>
             <SessionsPage />
-          </RequirePilot>
+          </RequireAuth>
         }
       />
       <Route
         path="sessions/:id"
         element={
-          <RequirePilot>
+          <RequireAuth>
             <SessionPage />
-          </RequirePilot>
+          </RequireAuth>
         }
       />
       <Route
         path="videos/:id"
         element={
-          <RequirePilot>
+          <RequireAuth>
             <VideoPage />
-          </RequirePilot>
+          </RequireAuth>
         }
       />
       {PlayerDemoPage !== null && (

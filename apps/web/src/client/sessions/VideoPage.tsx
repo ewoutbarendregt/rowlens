@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
-import { type Note, NotesPanel } from '../notes/NotesPanel.tsx';
+import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
+import { DrawTools } from '../drawing/DrawTools.tsx';
+import type { DrawingKind, Point } from '../drawing/geometry.ts';
+import { rememberedName, rememberName } from '../notes/name.ts';
+import { type Annotation, describeDrawing, moments, NotesPanel } from '../notes/NotesPanel.tsx';
 import { notesStrings } from '../notes/strings.ts';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
+import { videoDisplayName } from './displayName.ts';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
 
 interface VideoDetail {
@@ -12,6 +17,8 @@ interface VideoDetail {
   sessionId: string;
   sessionTitle: string;
   filename: string;
+  seq: number | null;
+  recordedAt: string | null;
   perspective: Perspective;
   status: VideoStatus;
   fpsNum: number | null;
@@ -44,11 +51,13 @@ export function VideoPage() {
   const frame = useRef(0);
   const [current, setCurrent] = useState(0);
   const player = useRef<PlayerHandle>(null);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Annotation[]>([]);
+  const [name, setName] = useState(rememberedName);
+  const [tool, setTool] = useState<DrawingKind | null>(null);
 
   const loadNotes = useCallback(() => {
     api(`/api/videos/${id}/annotations`)
-      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Note[] }>) : null))
+      .then((res) => (res.ok ? (res.json() as Promise<{ annotations: Annotation[] }>) : null))
       .then((body) => {
         if (body !== null) setNotes(body.annotations);
       })
@@ -58,14 +67,62 @@ export function VideoPage() {
   }, [id]);
   useEffect(loadNotes, [loadNotes]);
 
+  // The picture's display size (after rotation): the drawings' coordinate system.
+  const size = useMemo(
+    () =>
+      video?.width != null && video.height != null
+        ? { width: video.width, height: video.height }
+        : { width: 1920, height: 1080 },
+    [video?.width, video?.height],
+  );
+
+  // One marker per frame: its drawings and explanation together (Ewout: one entry per frame).
   const markers = useMemo(() => {
     const nt = notesStrings();
-    return notes.map((n) => ({
-      id: n.id,
-      frame: n.frame,
-      label: nt.marker(n.frame, n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body),
-    }));
-  }, [notes]);
+    return moments(notes).map((m) => {
+      const parts = [
+        ...m.drawings.map((d) => describeDrawing(d, size)),
+        ...m.notes.map((n) => (n.body.length > 80 ? `${n.body.slice(0, 80)}…` : n.body)),
+      ];
+      return { id: String(m.frame), frame: m.frame, label: nt.marker(m.frame, parts.join(' · ')) };
+    });
+  }, [notes, size]);
+
+  // Drawings show on exactly their frame (#60).
+  const drawingsHere = useMemo(
+    () =>
+      notes
+        .filter((n) => n.kind !== 'note' && n.frame === current && n.shape !== null)
+        .map((n) => ({ id: n.id, kind: n.kind as DrawingKind, points: n.shape?.points ?? [] })),
+    [notes, current],
+  );
+
+  const chooseTool = useCallback((next: DrawingKind | null) => {
+    if (next !== null) {
+      player.current?.pause();
+      // On a phone the picture may be scrolled away; drawing happens on it.
+      const stage = document.querySelector('.player__stage');
+      const box = stage?.getBoundingClientRect();
+      if (box !== undefined && (box.top < 0 || box.bottom > window.innerHeight)) {
+        stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    setTool(next);
+  }, []);
+  const cancelTool = useCallback(() => {
+    setTool(null);
+  }, []);
+
+  const saveDrawing = useCallback(
+    (kind: DrawingKind, points: Point[]) => {
+      rememberName(name.trim());
+      void api(`/api/videos/${id}/annotations`, {
+        method: 'POST',
+        body: { kind, frame: frame.current, points, authorName: name },
+      }).finally(loadNotes);
+    },
+    [id, name, loadNotes],
+  );
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -92,6 +149,11 @@ export function VideoPage() {
   if (video === null) return null;
 
   const media = (name: string) => appUrl(`/api/videos/${video.id}/media/${name}`);
+  // Display shape from the worker's metadata, known before the video loads: portrait phone video
+  // gets its own laptop layout (video beside its controls).
+  const aspect =
+    video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
+  const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
 
   return (
@@ -100,17 +162,20 @@ export function VideoPage() {
         <nav className="page__nav">
           <Link to={`/sessions/${video.sessionId}`}>← {t.backToSession(video.sessionTitle)}</Link>
         </nav>
-        <h1 className="video-title">{video.filename}</h1>
+        <h1 className="video-title">{videoDisplayName(video)}</h1>
         <p className="muted video-facts">
           {t.perspectives[video.perspective]}
-          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>}
+          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>} · {video.filename}
         </p>
       </header>
 
       {!ready && <p role="status">{t.notReady}</p>}
       {ready && video.fpsNum !== null && video.fpsDen !== null && (
         // Laptop: player (sticky) left, notes right, all in one view. Phone: stacked.
-        <div className="video-layout">
+        <div
+          className={`video-layout${portrait ? ' video-layout--portrait' : ''}`}
+          style={{ '--aspect': String(aspect) } as CSSProperties}
+        >
           <div className="video-layout__player">
             <Player
               key={rendition}
@@ -124,41 +189,69 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
-            />
-            {video.renditions.length > 1 && (
-              <div className="quality" role="group" aria-label={t.quality}>
-                <span>{t.quality}</span>
-                {video.renditions
-                  .map((r) => r.name)
-                  .sort()
-                  .reverse()
-                  .map((name) => (
-                    <button
-                      key={name}
-                      type="button"
-                      className="button--quiet"
-                      aria-pressed={rendition === name}
-                      onClick={() => {
-                        setRendition(name);
-                      }}
+              overlay={
+                <DrawingLayer
+                  size={size}
+                  drawings={drawingsHere}
+                  tool={tool}
+                  onComplete={saveDrawing}
+                  onCancel={cancelTool}
+                />
+              }
+              toolbar={
+                <>
+                  <DrawTools tool={tool} named={name.trim() !== ''} onTool={chooseTool} />
+                  {video.renditions.length > 1 && (
+                    <div
+                      className="quality"
+                      role="group"
+                      aria-label={t.quality}
+                      title={t.qualityHint}
                     >
-                      {name.replace('play-', '')}p
-                    </button>
-                  ))}
-                <span className="muted">{t.qualityHint}</span>
-              </div>
-            )}
+                      <span>{t.quality}</span>
+                      {video.renditions
+                        .map((r) => r.name)
+                        .sort()
+                        .reverse()
+                        .map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            className="button--quiet"
+                            aria-pressed={rendition === name}
+                            onClick={() => {
+                              setRendition(name);
+                            }}
+                          >
+                            {name.replace('play-', '')}p
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </>
+              }
+            />
           </div>
           <aside className="video-layout__side">
             <NotesPanel
               videoId={video.id}
               fps={video.fpsNum / video.fpsDen}
               frame={current}
-              notes={notes}
+              size={size}
+              annotations={notes}
+              name={name}
+              onNameChange={setName}
               onChanged={loadNotes}
-              onJump={(f) => {
+              onJump={(f, reveal) => {
                 player.current?.seekToFrame(f);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
+                if (
+                  reveal &&
+                  stage !== undefined &&
+                  (stage.top < 0 || stage.bottom > window.innerHeight)
+                ) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
               }}
               onWriting={() => {
                 player.current?.pause();

@@ -11,6 +11,9 @@ import { clubRoutes } from './api/club.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
 import { videoRoutes } from './api/videos.ts';
+import { createAuthGate } from './auth/gate.ts';
+import type { DeliverLoginCode } from './auth/mail.ts';
+import { smtpDelivery } from './auth/mail.ts';
 import type { AppConfig } from './config.ts';
 import type { Database } from './db/client.ts';
 import { healthRoutes, type ReadinessCheck } from './health.ts';
@@ -31,6 +34,8 @@ export interface BuildAppOptions {
   media?: MediaStore | null;
   /** Tests without a database stand in for the pilot club lookup. */
   resolvePilotClubId?: () => Promise<string | null>;
+  /** Test seam for OTP delivery; production derives this from the SMTP configuration. */
+  deliverLoginCode?: DeliverLoginCode;
   /** Pino logging; off in tests. */
   logger?: boolean;
 }
@@ -62,10 +67,14 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   });
 
   // CSRF: browsers send Origin on every state-changing request; only our own origin may make one.
-  // Together with SameSite=Strict cookies this covers the pilot gate and every later form or upload.
+  // Authenticated requests additionally use a per-session double-submit token in the auth gate.
   app.addHook('onRequest', async (req, reply) => {
     if (UNSAFE_METHODS.has(req.method) && req.headers.origin !== config.publicOrigin) {
       return reply.code(403).send({ error: 'forbidden_origin' });
+    }
+    const fetchSite = req.headers['sec-fetch-site'];
+    if (UNSAFE_METHODS.has(req.method) && fetchSite !== undefined && fetchSite !== 'same-origin') {
+      return reply.code(403).send({ error: 'forbidden_site' });
     }
   });
 
@@ -105,7 +114,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
   }
 
   const db = opts.database ?? null;
-  const gate = createPilotGate({
+  const pilotGate = createPilotGate({
     basePath: base,
     attemptsPerMinute: config.pilot?.attemptsPerMinute ?? 5,
     publicOrigin: config.publicOrigin,
@@ -123,16 +132,34 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
         return r.rows[0]?.id ?? null;
       }),
   });
-  await app.register(gate.routes, { prefix: base });
+  if (config.auth === null) await app.register(pilotGate.routes, { prefix: base });
   if (db !== null) {
-    await app.register(clubRoutes, { prefix: base, db, guard: gate.guard });
+    let guard = pilotGate.guard;
+    if (config.auth !== null) {
+      const deliver =
+        opts.deliverLoginCode ??
+        (config.auth.smtp === null ? undefined : smtpDelivery(config.auth.smtp));
+      const authGate = createAuthGate({
+        db,
+        auth: config.auth,
+        basePath: base,
+        publicOrigin: config.publicOrigin,
+        ...(deliver === undefined ? {} : { deliver }),
+        ...(config.auth.testCode === null
+          ? {}
+          : { generateCode: () => config.auth?.testCode ?? '000000' }),
+      });
+      await app.register(authGate.routes, { prefix: base });
+      guard = authGate.guard;
+    }
+    await app.register(clubRoutes, { prefix: base, db, guard });
     const media =
       opts.media !== undefined
         ? opts.media
         : config.media.dir === null
           ? null
           : new MediaStore(config.media.dir);
-    const clubOpts = { db, guard: gate.guard, media, limits: config.media, basePath: base };
+    const clubOpts = { db, guard, media, limits: config.media, basePath: base };
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
     await app.register(videoRoutes, { prefix: base, ...clubOpts });

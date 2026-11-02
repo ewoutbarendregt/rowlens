@@ -1,20 +1,25 @@
 import { useCallback, useEffect, useId, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
 import {
   formatBytes,
+  formatCreatedTime,
   formatDate,
   formatVideoFacts,
   type Perspective,
   sessionStrings,
   type VideoStatus,
 } from './strings.ts';
+import { ConfirmInline } from '../ui/ConfirmInline.tsx';
+import { videoDisplayName } from './displayName.ts';
 import { retryable, useUploads } from './useUploads.ts';
 
 interface SessionVideo {
   id: string;
   filename: string;
+  seq: number | null;
+  recordedAt: string | null;
   perspective: Perspective;
   status: VideoStatus;
   statusReason: string | null;
@@ -36,6 +41,7 @@ interface SessionDetail {
   id: string;
   title: string;
   date: string;
+  createdAt: string;
   videos: SessionVideo[];
 }
 
@@ -43,10 +49,12 @@ const PERSPECTIVES: Perspective[] = ['boat', 'bank', 'drone'];
 
 export function SessionPage() {
   const t = sessionStrings();
+  const navigate = useNavigate();
   const { id = '' } = useParams();
   const inputId = useId();
   const [session, setSession] = useState<SessionDetail | null>(null);
   const [failed, setFailed] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
 
   const load = useCallback(() => {
     api(`/api/sessions/${id}`)
@@ -73,9 +81,36 @@ export function SessionPage() {
   // Videos this tab is uploading right now are shown in the queue, not as "stopped".
   const inQueue = new Set(uploads.queue.map((f) => `${f.file.name}|${String(f.file.size)}`));
 
+  const nameOf = (v: SessionVideo) =>
+    videoDisplayName({
+      sessionTitle: session?.title ?? '',
+      seq: v.seq,
+      recordedAt: v.recordedAt,
+      durationMs: v.durationMs,
+    });
+
+  // A video waiting for the in-page "yes" (no browser popup).
+  const [confirming, setConfirming] = useState<string | null>(null);
   const remove = (v: SessionVideo) => {
-    if (!window.confirm(t.confirmDelete(v.filename))) return;
+    setConfirming(null);
     void api(`/api/videos/${v.id}`, { method: 'DELETE' }).finally(load);
+  };
+  const [confirmingSession, setConfirmingSession] = useState(false);
+  const [deletingSession, setDeletingSession] = useState(false);
+  const removeSession = () => {
+    if (deletingSession) return;
+    setDeletingSession(true);
+    setDeleteFailed(false);
+    void api(`/api/sessions/${id}`, { method: 'DELETE' })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        void navigate('/sessions', { replace: true });
+      })
+      .catch(() => {
+        setDeleteFailed(true);
+        setDeletingSession(false);
+        setConfirmingSession(false);
+      });
   };
 
   if (failed) {
@@ -94,7 +129,9 @@ export function SessionPage() {
         <Link to="/sessions">← {t.back}</Link>
       </nav>
       <h1>{session.title}</h1>
-      <p className="muted">{formatDate(session.date)}</p>
+      <p className="muted">
+        {formatDate(session.date)} · {t.createdAt(formatCreatedTime(session.createdAt))}
+      </p>
 
       {session.videos.length === 0 && <p className="muted">{t.noVideos}</p>}
       <ul className="list" data-testid="video-list">
@@ -107,7 +144,7 @@ export function SessionPage() {
                 <Link
                   to={`/videos/${v.id}`}
                   className="video__thumb"
-                  aria-label={t.watch(v.filename)}
+                  aria-label={t.watch(nameOf(v))}
                 >
                   <img
                     src={appUrl(`/api/videos/${v.id}/media/poster`)}
@@ -120,13 +157,13 @@ export function SessionPage() {
               <div>
                 {v.status === 'ready' ? (
                   <Link to={`/videos/${v.id}`} className="video__name">
-                    <strong>{v.filename}</strong>
+                    <strong>{nameOf(v)}</strong>
                   </Link>
                 ) : (
-                  <strong>{v.filename}</strong>
+                  <strong>{nameOf(v)}</strong>
                 )}
                 <span className="muted">
-                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
+                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)} · {v.filename}
                 </span>
                 <span className={`badge badge--${v.status}`} data-testid="video-status">
                   {v.status === 'processing' && v.processingProgress !== null
@@ -149,15 +186,28 @@ export function SessionPage() {
                   </span>
                 )}
               </div>
-              <button
-                type="button"
-                className="button--quiet"
-                onClick={() => {
-                  remove(v);
-                }}
-              >
-                {t.delete}
-              </button>
+              {confirming === v.id ? (
+                <ConfirmInline
+                  question={t.confirmDelete(nameOf(v))}
+                  onConfirm={() => {
+                    remove(v);
+                  }}
+                  onCancel={() => {
+                    setConfirming(null);
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="button--quiet"
+                  onClick={() => {
+                    setConfirmingSession(false);
+                    setConfirming(v.id);
+                  }}
+                >
+                  {t.delete}
+                </button>
+              )}
             </li>
           );
         })}
@@ -236,6 +286,33 @@ export function SessionPage() {
         {uploads.queue.some((f) => f.state === 'pending' || retryable(f)) && !uploads.active && (
           <button type="button" onClick={uploads.start}>
             {t.start}
+          </button>
+        )}
+      </section>
+
+      <section className="card danger-zone" aria-labelledby={`${inputId}-delete-h`}>
+        <h2 id={`${inputId}-delete-h`}>{t.deleteSession}</h2>
+        <p className="muted">{t.deleteSessionHint}</p>
+        {deleteFailed && <p role="alert">{t.deleteSessionFailed}</p>}
+        {confirmingSession ? (
+          <ConfirmInline
+            question={t.confirmDeleteSession(session.title, t.videos(session.videos.length))}
+            onConfirm={removeSession}
+            onCancel={() => {
+              setConfirmingSession(false);
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            className="button--danger"
+            disabled={deletingSession}
+            onClick={() => {
+              setConfirming(null);
+              setConfirmingSession(true);
+            }}
+          >
+            {t.deleteSession}
           </button>
         )}
       </section>

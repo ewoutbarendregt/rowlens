@@ -5,7 +5,7 @@ import type { Database, Tx } from './client.ts';
 /** Who is acting, in which club (ADR-0005). Roles are added with the permission model (#40). */
 export interface TenantContext {
   clubId: string;
-  /** `null` while the pilot access code (#84) stands in for login: no individual user yet. */
+  /** Authenticated user; `null` only for the legacy pilot-code rollback path. */
   userId: string | null;
 }
 

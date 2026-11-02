@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type DetailedError, Upload } from 'tus-js-client';
+import { csrfToken } from '../api.ts';
 import { appUrl } from '../env.ts';
 import type { Perspective, UploadError } from './strings.ts';
 
@@ -73,6 +74,7 @@ export function useUploads(sessionId: string, onFinished: () => void) {
       update(next.id, { state: 'uploading', error: undefined });
       const upload = new Upload(next.file, {
         endpoint: appUrl('/api/uploads'),
+        headers: { 'x-csrf-token': csrfToken() ?? '' },
         chunkSize: CHUNK_BYTES,
         retryDelays: [0, 3_000, 10_000, 30_000, 60_000],
         removeFingerprintOnSuccess: true,

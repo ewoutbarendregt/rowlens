@@ -7,7 +7,7 @@ import { issueToken, type TokenKeys, verifyToken } from './token.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
-    /** Set by the pilot guard (later: by login) on routes that act within a club. */
+    /** Set by the active access guard on routes that act within a club. */
     tenant: TenantContext | null;
   }
 }

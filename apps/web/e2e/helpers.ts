@@ -1,11 +1,13 @@
 import { expect, type Page } from '@playwright/test';
-import { pilotCode } from './env.ts';
+import { authCode, authEmail } from './env.ts';
 
-/** Through the gate like a user (#84). */
+/** Through email OTP authentication like a club member (#28). */
 export async function signIn(page: Page): Promise<void> {
   await page.goto('./');
-  await page.getByLabel(/^(Access code|Toegangscode)$/).fill(pilotCode);
-  await page.getByRole('button', { name: /^(Continue|Verder)$/ }).click();
+  await page.getByLabel(/^(Email address|E-mailadres)$/).fill(authEmail);
+  await page.getByRole('button', { name: /^(Send code|Stuur code)$/ }).click();
+  await page.getByLabel(/^(Login code|Inlogcode)$/).fill(authCode);
+  await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click();
   await expect(page.getByTestId('club-name')).toBeVisible();
 }
 
@@ -27,7 +29,8 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
   await expect(video.getByTestId('video-status')).toHaveText(/^(Ready|Klaar)$/, {
     timeout: 60_000,
   });
-  await video.getByRole('link', { name: 'stroke.webm', exact: true }).click();
+  // The display name: [session]-[#]-[start]-[length]; the E2E clip has no recording time.
+  await video.getByRole('link', { name: `${title}-1-??:??-0:04`, exact: true }).click();
   await expect(page.getByTestId('player-frame')).toHaveText('0');
   // Steps need the frame count from the metadata; before that they clamp to frame 0.
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);

@@ -1,5 +1,6 @@
 import {
   type CSSProperties,
+  type ReactNode,
   type Ref,
   useEffect,
   useImperativeHandle,
@@ -25,6 +26,10 @@ export interface PlayerProps {
   markers?: readonly PlayerMarker[];
   /** Lets the page seek and pause, e.g. when a note in a list is chosen. */
   handle?: Ref<PlayerHandle>;
+  /** Extra controls from the page (e.g. the quality switch), laid out with the player's own. */
+  toolbar?: ReactNode;
+  /** Drawn over the picture inside the stage, so it goes into full screen too (#60). */
+  overlay?: ReactNode;
 }
 
 export interface PlayerMarker {
@@ -55,6 +60,8 @@ export function Player({
   onMeasure,
   markers,
   handle,
+  toolbar,
+  overlay,
 }: PlayerProps) {
   const t = useMemo(() => playerStrings(), []);
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -201,6 +208,7 @@ export function Player({
           className="player__video"
           onClick={p.togglePlay}
         />
+        {overlay}
       </div>
 
       <div className="player__readout" aria-live="off">
@@ -331,6 +339,7 @@ export function Player({
           </button>
         </div>
       </div>
+      {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
     </div>
   );
 }

@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "web-dev",
+      "name": "rowlens",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@rowlens/web", "dev:client", "--port", "5173", "--strictPort"],
-      "port": 5173
+      "runtimeArgs": ["dev"],
+      "port": 5174
     }
   ]
 }

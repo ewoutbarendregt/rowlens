@@ -111,6 +111,17 @@ body {
   font-weight: 600;
 }
 
+.gate button.button--quiet,
+.club button.button--quiet {
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.club {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .gate button:disabled {
   opacity: 0.5;
 }
@@ -218,6 +229,26 @@ body {
 .page button.button--quiet {
   background: transparent;
   color: var(--color-accent);
+}
+
+.danger-zone {
+  border-color: color-mix(in srgb, #b3261e 55%, transparent);
+}
+
+.danger-zone h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.danger-zone p {
+  margin: 0;
+}
+
+.page button.button--danger {
+  justify-self: start;
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
 }
 
 .page button:disabled {
@@ -457,9 +488,35 @@ a.list__item {
     top: 12px;
   }
 
-  /* Header ~90px, readout + markers + slider + one row of controls + quality ~200px. */
+  /* Header ~90px; readout, markers, slider, a row of controls and the quality row ~230px. */
   .video-layout .player__stage {
-    --stage-cap: max(240px, calc(100dvh - 300px));
+    --stage-cap: max(240px, calc(100dvh - 320px));
+  }
+
+  /* Portrait video (phones filmed upright): video on the left as tall as the screen allows, its
+     controls in a column beside it, notes on the right. Not in full screen. */
+  .video-layout--portrait .player:not(.player--fullscreen) {
+    grid-template-columns: auto minmax(260px, 1fr);
+    grid-template-rows: repeat(5, auto) 1fr;
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+
+  .video-layout--portrait .player:not(.player--fullscreen) > .player__stage {
+    --stage-cap: max(320px, calc(100dvh - 130px));
+    /* No percentage here: the column is sized by this box, so 100% would be circular (→ 0). */
+    width: calc(var(--stage-cap) * var(--aspect));
+    grid-column: 1;
+    grid-row: 1 / -1;
+    justify-self: start;
+  }
+
+  .video-layout--portrait .player:not(.player--fullscreen) > :not(.player__stage) {
+    grid-column: 2;
+  }
+
+  .video-layout--portrait .player__controls {
+    justify-content: flex-start;
   }
 
   .video-layout__side {
@@ -471,6 +528,285 @@ a.list__item {
   .video-layout__side .notes {
     margin: 0;
   }
+}
+
+.player__toolbar .quality {
+  margin-block: 0.25rem 0;
+}
+
+/* ---------------------------------------------------------------- in-page confirmation */
+
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  background: color-mix(in srgb, #b3261e 8%, var(--color-bg));
+  cursor: default;
+}
+
+.confirm__question {
+  flex: 1 1 14rem;
+  font-weight: 600;
+}
+
+.confirm__actions {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.page .confirm button {
+  min-height: 34px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.875rem;
+}
+
+.page .confirm button.confirm__yes {
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
+}
+
+/* Inside a drawing chip: one line, small. */
+.confirm--compact {
+  flex-wrap: nowrap;
+  padding: 0 0.125rem 0 0.25rem;
+  border: 0;
+  background: transparent;
+  font-size: 0.8rem;
+}
+
+.confirm--compact .confirm__question {
+  flex: 0 1 auto;
+}
+
+.page .confirm--compact button {
+  min-height: 24px;
+  padding: 0 0.5rem;
+  font-size: 0.8rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .confirm {
+    border-color: #ffb4ab;
+  }
+}
+
+/* ---------------------------------------------------------------- drawings (#60) */
+
+.draw {
+  display: grid;
+  gap: 0.25rem;
+  margin-block: 0.25rem;
+}
+
+.draw__title {
+  font-weight: 600;
+}
+
+.draw__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.page .draw__tools button[aria-pressed='true'] {
+  background: #ffd400;
+  border-color: #b38f00;
+  color: #10212b;
+}
+
+.draw__hint {
+  min-height: 1.25em;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.moment__drawings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0.25rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0 0.125rem 0 0.5rem;
+  border: 1px solid #b38f00;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffd400 25%, var(--color-bg));
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* Small to look at, but still a decent tap target. */
+.page .chip__remove {
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-fg);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.list__item.moment {
+  cursor: pointer;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
+}
+
+.list__item.moment:hover:not(.moment--selected) {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+/* The section of the frame on screen. */
+.list__item.moment--selected {
+  border-color: #e07b00;
+  box-shadow:
+    inset 4px 0 0 #e07b00,
+    0 0 0 1px #e07b00;
+  background: color-mix(in srgb, #e07b00 6%, var(--color-bg));
+  cursor: default;
+}
+
+.moment__selected {
+  color: #b35f00;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .moment__selected {
+    color: #ffb15c;
+  }
+}
+
+.explanation {
+  margin-top: 0.25rem;
+}
+
+.explanation textarea {
+  min-height: 3rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-muted);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font: inherit;
+  resize: vertical;
+}
+
+.moment__footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.375rem;
+}
+
+.page button.moment__delete {
+  min-height: 32px;
+  padding: 0.125rem 0.625rem;
+  border-color: #b3261e;
+  color: #b3261e;
+  font-size: 0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page button.moment__delete {
+    border-color: #ffb4ab;
+    color: #ffb4ab;
+  }
+}
+
+.moment__others {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.moment__note {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.25rem;
+}
+
+.moment__note + .moment__note {
+  border-top: 1px solid color-mix(in srgb, var(--color-muted) 25%, transparent);
+}
+
+.page .moment__explain {
+  justify-self: start;
+  min-height: 36px;
+  padding-block: 0.25rem;
+}
+
+.note__drawing {
+  color: var(--color-fg);
+}
+
+/* Same box as the video; the SVG scales its picture-sized viewBox like object-fit: contain. */
+.drawing-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.drawing-layer--active {
+  pointer-events: auto;
+  cursor: crosshair;
+  /* Taps draw instead of scrolling or zooming the page. */
+  touch-action: none;
+}
+
+.drawing__line {
+  fill: none;
+  stroke: #ffd400;
+  stroke-linecap: round;
+}
+
+.drawing__halo {
+  stroke: rgb(0 0 0 / 0.55);
+  stroke-linecap: round;
+}
+
+.drawing__head {
+  fill: #ffd400;
+  stroke: rgb(0 0 0 / 0.55);
+  stroke-width: 1;
+}
+
+.drawing__point {
+  fill: #ffd400;
+  stroke: rgb(0 0 0 / 0.6);
+}
+
+.drawing__label {
+  fill: #ffd400;
+  stroke: rgb(0 0 0 / 0.75);
+  paint-order: stroke;
+  font-family: var(--font-sans);
+  font-weight: 700;
+}
+
+.drawing--preview .drawing__line {
+  stroke-dasharray: 6 6;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2 !important;
 }
 
 /* ---------------------------------------------------------------- player (ADR-0007) */
@@ -646,9 +982,11 @@ a.list__item {
 }
 
 .player__controls button:focus-visible,
+/* Keyboard focus stays visible, but as a soft ring rather than a heavy frame. */
 .player__scrub input:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  outline-offset: 3px;
+  border-radius: 6px;
 }
 
 .player__play {
@@ -690,6 +1028,16 @@ a.list__item {
   background: rgb(255 255 255 / 0.12);
   color: #fff;
   border-color: rgb(255 255 255 / 0.2);
+}
+
+/* Page buttons in the player's toolbar (draw tools, quality) stay readable on black. */
+.page .player--fullscreen .player__toolbar button.button--quiet {
+  border-color: #93a4ae;
+  color: #e6eef2;
+}
+
+.page .player--fullscreen .player__toolbar button[aria-pressed='true'] {
+  color: #10212b;
 }
 
 /* ---------------------------------------------------------------- player demo (#51, dev only) */

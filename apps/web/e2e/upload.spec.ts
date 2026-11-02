@@ -19,6 +19,7 @@ test('create a session, upload a video and a fake one, delete the video', async 
   await page.getByLabel(/^(Title|Titel)$/).fill(title);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
+  await expect(page.getByText(/Created at \d{2}:\d{2}|Aangemaakt om \d{2}:\d{2}/)).toBeVisible();
 
   await page.getByLabel(/^(Choose videos|Video’s kiezen)$/).setInputFiles([
     { name: 'stroke.webm', mimeType: 'video/webm', buffer: readFileSync(FIXTURE) },
@@ -45,8 +46,11 @@ test('create a session, upload a video and a fake one, delete the video', async 
     await expect(stroke.getByTestId('video-facts')).toHaveText(/^30 fps · 640×360 · 0:04$/);
 
     // The worker's H.264 rendition in the frame-accurate player (#49): poster, then exact steps.
-    await stroke.getByRole('link', { name: 'stroke.webm', exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1, name: 'stroke.webm' })).toBeVisible();
+    // Named [session]-[#]-[start]-[length]: first in its session, no recording time in the clip.
+    const name = `${title}-1-??:??-0:04`;
+    await stroke.getByRole('link', { name, exact: true }).click();
+    await expect(page.getByRole('heading', { level: 1, name, exact: true })).toBeVisible();
+    await expect(page.getByText('stroke.webm')).toBeVisible(); // the original file name, as a detail
     const frame = page.getByTestId('player-frame');
     await expect(frame).toHaveText('0');
     await expect(page.locator('video')).toHaveAttribute('poster', /\/media\/poster$/);
@@ -64,16 +68,30 @@ test('create a session, upload a video and a fake one, delete the video', async 
     /Not a video|Geen video/,
   );
 
-  page.once('dialog', (d) => void d.accept());
   await stroke.getByRole('button', { name: /^(Delete|Verwijderen)$/ }).click();
+  await stroke.getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }).click();
   await expect(videos).toHaveCount(1);
 
   await page.getByRole('link', { name: /All sessions|Alle trainingen/ }).click();
   await expect(page.getByTestId('session-list')).toContainText(title);
+  await expect(page.getByTestId('session-list')).toContainText(
+    /Created at \d{2}:\d{2}|Aangemaakt om \d{2}:\d{2}/,
+  );
+
+  // A whole session can be removed in one action, including its remaining videos and annotations.
+  await page.getByRole('link', { name: new RegExp(title) }).click();
+  await page.getByRole('button', { name: /^(Delete session|Training verwijderen)$/ }).click();
+  const confirm = page.getByTestId('confirm');
+  await expect(confirm).toContainText(title);
+  await expect(confirm).toContainText(/video/);
+  await expect(confirm).toContainText(/annotation|annotatie/i);
+  await confirm.getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }).click();
+  await expect(page).toHaveURL(/\/sessions$/);
+  await expect(page.getByRole('link', { name: new RegExp(title) })).toHaveCount(0);
 });
 
 test('club pages send you to the gate without access', async ({ page }) => {
   await page.goto('./sessions');
   await expect(page).toHaveURL(/\/projects\/rowlens\/$/);
-  await expect(page.getByLabel(/^(Access code|Toegangscode)$/)).toBeVisible();
+  await expect(page.getByLabel(/^(Email address|E-mailadres)$/)).toBeVisible();
 });

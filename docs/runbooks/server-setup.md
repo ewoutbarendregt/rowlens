@@ -13,34 +13,47 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ✅ set from `~/.ssh/rowlens_deploy` | Ewout, 2026-11-01 |
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
-| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD` (64 hex chars, generated on the server, never printed) | Claude, 2026-11-01 |
+| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; key names only rechecked, values not read | Claude; read-only recheck by Codex, 2026-11-01 |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
-| `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; identical to the repo (sha256 checked) | Claude, 2026-11-01, approved (#25) |
-| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-94af6b0`, player demo on) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; both healthy. Previous release: `sha-1acc1a2` | deploy runs 41305371056 (first, #26) and 41309728753 (player demo), triggered by Claude on Ewout's request, 2026-11-01 |
+| `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script predates #98 and must be reinstalled at the next approved deploy | Claude; read-only sha256 recheck by Codex, 2026-11-01 |
+| RowLens containers (project `rowlens`) | ✅ `web` (`rowlens-web:sha-c15cb47`) on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only, worker running; web and DB healthy. Previous release: `sha-4e03e66` | read-only recheck by Codex, 2026-11-01 |
 
 Nothing under `/opt/trustable` has been changed.
 
 ## Needed before the next deploy (each step shown to Ewout and approved first)
 
-From #31 (database roles), not done yet:
-1. Add `ROWLENS_APP_DB_PASSWORD` to `/opt/rowlens/.env`, generated on the server and never printed:
-   `ssh trustable-prod 'f=/opt/rowlens/.env; grep -q ^ROWLENS_APP_DB_PASSWORD= $f || echo "ROWLENS_APP_DB_PASSWORD=$(openssl rand -hex 32)" >> $f; cut -d= -f1 $f'`
-2. Reinstall the compose file, which now has the `migrate` service: `infra/deploy/install.sh`.
+From #31 (database roles): `ROWLENS_APP_DB_PASSWORD` is already present and the production compose is
+current. Reinstall with `infra/deploy/install.sh` once at the next approved deploy to update only the
+deploy script with #98; the installer verifies the CI key and should report it as already restricted.
 
-From #84 (pilot access code):
-3. Add `SESSION_SECRET` the same way (`openssl rand -hex 32`, never printed).
-4. Ewout creates the access code, so only he sees it. After the deploy, on the server:
-   `cd /opt/rowlens && docker compose run --rm --no-deps web node dist/server/pilot/code-cli.js`
-   prints `code: …` (give it to the club) and a `PILOT_ACCESS_CODE_HASH=scrypt.…` line to append to
-   `/opt/rowlens/.env`; then `rowlens-deploy deploy <same tag>` restarts `web` with it. Until then the
-   gate says "not open yet". A new code later = the same steps; it signs everyone out.
+From #28–#30 (e-mail authentication), not done yet:
+3. Ewout supplies the comma-separated first-club member addresses and a dedicated Resend API key.
+   Confirm in Resend that `trustable.nl` is verified before any real address is added.
+4. After showing the exact edit and receiving approval, add only these RowLens variables to
+   `/opt/rowlens/.env` (SMTP values follow [Resend's official settings](https://resend.com/docs/send-with-smtp)):
+
+   ```dotenv
+   AUTH_ALLOWED_EMAILS=first@example.com,second@example.com
+   OTP_PEPPER=<64 hex characters generated with openssl rand -hex 32>
+   SMTP_HOST=smtp.resend.com
+   SMTP_PORT=465
+   SMTP_USER=resend
+   SMTP_PASSWORD=<dedicated Resend API key>
+   MAIL_FROM=RowLens <rowlens@trustable.nl>
+   ```
+
+   Production refuses to start with an allowlist but incomplete SMTP settings. The API key must not
+   be passed on a command line or printed. Keep the old pilot variables for rollback until OTP mail is
+   verified; when auth is enabled, its routes and tenant guard take precedence.
+5. Migration 0006 provisions an allowlisted address on its first request. Test a real NL and EN login,
+   logout and "log out other devices" before archiving `/opt/rowlens/pilot-code.txt`.
 
 From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned by `deploy`
 (uid 1000, the image's `node` user; checked read-only 2026-11-01), and step 2's compose file mounts
 it into `web`. Disk then: 150 GB, 47 % used; uploads pause at 85 %.
 
-Without step 1, the deploy stops at `compose pull` ("ROWLENS_APP_DB_PASSWORD is required") and nothing
-changes. The first deploy afterwards creates `rowlens_app`, applies `0000_init` and switches `web` to it.
+The app database password is already configured. The first deploy containing the pending migrations
+creates or updates the `rowlens_app` role, applies migrations through 0006 and starts `web` with that role.
 
 ## Verified restrictions of the CI key (2026-11-01)
 

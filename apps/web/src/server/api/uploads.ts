@@ -66,7 +66,8 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (!looksLikeVideo(meta.data.filename, meta.data.filetype)) {
       return reply.code(415).send({ error: 'not_a_video' });
     }
-    const limit = creations.hit(req.ip);
+    // Signed-in accounts get their own bucket; the pilot fallback has no user id and stays per IP.
+    const limit = creations.hit(tenant.userId === null ? `ip:${req.ip}` : `user:${tenant.userId}`);
     if (!limit.allowed) {
       return reply
         .code(429)
@@ -85,6 +86,11 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
         .from(rowingSession)
         .where(eq(rowingSession.id, meta.data.sessionId));
       if (session === undefined) return 'no_session' as const;
+      // Next number in the session; creations are serialised by the lock above, so no two get one.
+      const [last] = await tx
+        .select({ seq: sql<number>`coalesce(max(${video.seq}), 0)::int` })
+        .from(video)
+        .where(eq(video.sessionId, session.id));
       const [row] = await tx
         .insert(video)
         .values({
@@ -94,6 +100,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
           contentType: meta.data.filetype || 'application/octet-stream',
           perspective: meta.data.perspective,
           sizeBytes: length,
+          seq: (last?.seq ?? 0) + 1,
         })
         .returning({ id: video.id });
       return row;
