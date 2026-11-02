@@ -204,6 +204,12 @@ export function createAuthGate(opts: {
         readCookie(req, sessionCookie) ?? '',
         readCookie(req, csrfCookie) ?? '',
       );
+      // Whether the account is linked to a roster entry (#40): a rower sees nothing until it is.
+      const linked = await withTenant(opts.db, session, (tx) =>
+        tx.execute<{ n: number }>(
+          sql`select count(*)::int as n from rower where user_id = ${session.userId}`,
+        ),
+      );
       return {
         enabled: true,
         access: true,
@@ -212,6 +218,7 @@ export function createAuthGate(opts: {
           displayName: session.displayName,
           locale: session.locale,
           role: session.role,
+          linked: (linked.rows[0]?.n ?? 0) > 0,
         },
       };
     });
@@ -367,7 +374,7 @@ export function createAuthGate(opts: {
       return reply;
     }
     if (!validCsrf(req, session)) return reply.code(403).send({ error: 'invalid_csrf' });
-    req.tenant = { clubId: session.clubId, userId: session.userId };
+    req.tenant = { clubId: session.clubId, userId: session.userId, role: session.role };
     req.role = session.role;
     setSessionCookies(
       reply,

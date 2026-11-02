@@ -179,6 +179,21 @@ scripts/github/      backlog/labels/milestones bootstrap
   name remembered in localStorage), list in frame order (tap → frame, notes on this frame
   highlighted), markers above the scrub bar (`Player` props `markers`, `handle`).
 
+## What a rower sees, and sharing notes (#40, #112, ADR-0013)
+
+- `withTenant` sets `app.role`; restrictive RLS policies (migration 0011) limit rowers to sessions they
+  rowed in or created (or where a note is assigned/shared to them) and to notes assigned, shared or
+  written by them. Coaches, admins, the worker and the pilot path see the club. Helper functions:
+  `rowlens_sees_all`, `rowlens_my_rowers`, `rowlens_can_see_session/video/moment/moment_id`.
+- `annotation.author_user_id`, `rowing_session.created_by_user_id`; rowers edit only their own
+  annotations (`present()` in `api/annotations.ts` returns `mine`/`canEdit`).
+- `moment_share` (scope `rower` or `crew`) and `PUT /api/videos/:id/frames/:frame/shares {rowerIds,
+  crew}`; a rower takes back only their own shares (403 `not_yours`), changes go to
+  `moment_rower_log` (`shared`/`unshared`).
+- Login links a roster entry with exactly the account's e-mail (`rowlens_auth_ensure_user`);
+  `/api/auth/status` says `user.linked`, and an unlinked rower sees a hint on Sessions.
+- `server/auth/can.ts`: the API's own permission rules, unit-tested for every role × action.
+
 ## Admin: who may log in (#42)
 
 - Roles on `membership`: `rower | coach | admin`. Login (`auth/gate.ts` `roleFor`) decides access and

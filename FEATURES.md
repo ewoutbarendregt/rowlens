@@ -14,7 +14,7 @@ growth features. Suggested order:
 | Session lineup: who sat in which seat (coastal boats first) | coach | must | done locally, PR open | #103 |
 | Assign a note to one or more rowers | coach | must | done locally, PR open | #105 |
 | Show notes in the video, on/off toggle | coach, rower | must | planned | #106 |
-| Note visibility: share with a teammate or the whole crew | rower | must | planned, settle with #40 | #112 |
+| Note visibility: share with a teammate or the whole crew | rower | must | done locally with #40 (role visibility), PR open | #112 |
 | First login: claim notes made under my name | rower | must | decision needed (name matching) | #110 |
 | My sessions: every session I rowed in | rower | must | planned | #108 |
 | My notes: feedback for me from every coach, with the video moment | rower | must | planned | #109 |

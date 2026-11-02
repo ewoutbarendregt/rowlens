@@ -18,6 +18,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -34,6 +35,28 @@ export const currentClubId: SQL = sql`nullif(current_setting('app.club_id', true
  * Every tenant table gets this policy: rows of the current club only, for reads and writes. A schema
  * test fails if a table with a `club_id` column has no RLS or no policy.
  */
+/**
+ * On top of the club policy, what a rower may see or change (ADR-0013). Restrictive policies must
+ * all pass; coaches, admins, the worker and the pilot path pass through `rowlens_sees_all()`.
+ * The SQL helpers are defined in migration 0011.
+ */
+export function rolePolicy(
+  name: string,
+  command: 'all' | 'select' | 'insert' | 'update' | 'delete',
+  rule: SQL,
+) {
+  return pgPolicy(name, {
+    as: 'restrictive',
+    for: command,
+    to: appRole,
+    ...(command === 'insert' ? {} : { using: rule }),
+    ...(command === 'select' || command === 'delete' ? {} : { withCheck: rule }),
+  });
+}
+
+const me = sql`rowlens_user_id()`;
+const seesAll = sql`rowlens_sees_all()`;
+
 export function tenantPolicy(name: string, clubId: SQLWrapper) {
   return pgPolicy(name, {
     for: 'all',
@@ -183,6 +206,8 @@ export const rowingSession = pgTable(
     sessionDate: date('session_date').notNull(),
     /** Boat class of the lineup (#103), one of shared/boats.ts; null until a lineup is set. */
     boatType: text('boat_type'),
+    /** Who made it: a rower sees the sessions they created, even before a lineup (#40). */
+    createdByUserId: uuid('created_by_user_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -194,6 +219,11 @@ export const rowingSession = pgTable(
     unique('rowing_session_club_id_id_unique').on(t.clubId, t.id),
     index('rowing_session_club_date_idx').on(t.clubId, t.sessionDate),
     tenantPolicy('rowing_session_tenant', t.clubId),
+    rolePolicy(
+      'rowing_session_role',
+      'all',
+      sql`${seesAll} or ${t.createdByUserId} = ${me} or rowlens_session_reachable(${t.id})`,
+    ),
   ],
 ).enableRLS();
 
@@ -226,6 +256,7 @@ export const lineupSeat = pgTable(
     index('lineup_seat_rower_idx').on(t.rowerId),
     check('lineup_seat_seat_check', sql`${t.seat} between 0 and 8`),
     tenantPolicy('lineup_seat_tenant', t.clubId),
+    rolePolicy('lineup_seat_role', 'all', sql`rowlens_can_see_session(${t.sessionId})`),
   ],
 ).enableRLS();
 
@@ -295,6 +326,7 @@ export const video = pgTable(
     unique('video_club_id_id_unique').on(t.clubId, t.id),
     unique('video_session_seq_unique').on(t.sessionId, t.seq),
     tenantPolicy('video_tenant', t.clubId),
+    rolePolicy('video_role', 'all', sql`rowlens_can_see_session(${t.sessionId})`),
   ],
 ).enableRLS();
 
@@ -347,6 +379,8 @@ export const annotation = pgTable(
     /** Drawings only: points normalised to 0–1 of the picture (#60). */
     shape: jsonb('shape'),
     authorName: text('author_name').notNull(),
+    /** The account that wrote it (#40): rowers change only their own. Older notes have none. */
+    authorUserId: uuid('author_user_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -361,6 +395,18 @@ export const annotation = pgTable(
     check('annotation_body_check', sql`char_length(${t.body}) <= 2000`),
     check('annotation_author_check', sql`char_length(${t.authorName}) between 1 and 60`),
     tenantPolicy('annotation_tenant', t.clubId),
+    rolePolicy(
+      'annotation_role_read',
+      'select',
+      sql`rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me}`,
+    ),
+    rolePolicy(
+      'annotation_role_add',
+      'insert',
+      sql`${seesAll} or (${t.authorUserId} = ${me} and rowlens_can_see_video(${t.videoId}))`,
+    ),
+    rolePolicy('annotation_role_edit', 'update', sql`${seesAll} or ${t.authorUserId} = ${me}`),
+    rolePolicy('annotation_role_delete', 'delete', sql`${seesAll} or ${t.authorUserId} = ${me}`),
   ],
 ).enableRLS();
 
@@ -389,6 +435,7 @@ export const moment = pgTable(
     }).onDelete('cascade'),
     check('moment_frame_check', sql`${t.frame} >= 0`),
     tenantPolicy('moment_tenant', t.clubId),
+    rolePolicy('moment_role', 'all', sql`rowlens_can_see_moment(${t.videoId}, ${t.frame})`),
   ],
 ).enableRLS();
 
@@ -417,10 +464,57 @@ export const momentRower = pgTable(
     }).onDelete('restrict'),
     index('moment_rower_rower_idx').on(t.rowerId),
     tenantPolicy('moment_rower_tenant', t.clubId),
+    rolePolicy('moment_rower_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
   ],
 ).enableRLS();
 
-export const momentRowerAction = pgEnum('moment_rower_action', ['assigned', 'unassigned']);
+export const momentShareScope = pgEnum('moment_share_scope', ['rower', 'crew']);
+
+/**
+ * Who a note is shared with (#112): one rower, or the whole crew of the session (its lineup).
+ * Whoever shared it can take it back; so can a coach.
+ */
+export const momentShare = pgTable(
+  'moment_share',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    momentId: uuid('moment_id').notNull(),
+    scope: momentShareScope('scope').notNull(),
+    /** Only for scope 'rower'. */
+    rowerId: uuid('rower_id'),
+    sharedByUserId: uuid('shared_by_user_id'),
+    sharedAt: timestamp('shared_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'moment_share_moment_fk',
+      columns: [t.clubId, t.momentId],
+      foreignColumns: [moment.clubId, moment.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'moment_share_rower_fk',
+      columns: [t.clubId, t.rowerId],
+      foreignColumns: [rower.clubId, rower.id],
+    }).onDelete('restrict'),
+    unique('moment_share_rower_unique').on(t.momentId, t.rowerId),
+    // One "whole crew" share per note (rower_id is null there, and nulls never collide).
+    uniqueIndex('moment_share_crew_unique')
+      .on(t.momentId)
+      .where(sql`${t.scope} = 'crew'`),
+    check('moment_share_scope_check', sql`(${t.scope} = 'rower') = (${t.rowerId} is not null)`),
+    index('moment_share_rower_idx').on(t.rowerId),
+    tenantPolicy('moment_share_tenant', t.clubId),
+    rolePolicy('moment_share_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
+  ],
+).enableRLS();
+
+export const momentRowerAction = pgEnum('moment_rower_action', [
+  'assigned',
+  'unassigned',
+  'shared',
+  'unshared',
+]);
 
 /** Append-only: who added or removed whom on a note, and when (#105 traceability). */
 export const momentRowerLog = pgTable(
@@ -429,7 +523,8 @@ export const momentRowerLog = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     clubId: uuid('club_id').notNull(),
     momentId: uuid('moment_id').notNull(),
-    rowerId: uuid('rower_id').notNull(),
+    /** null for a share with the whole crew (#112). */
+    rowerId: uuid('rower_id'),
     action: momentRowerAction('action').notNull(),
     byUserId: uuid('by_user_id'),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
@@ -442,6 +537,7 @@ export const momentRowerLog = pgTable(
     }).onDelete('cascade'),
     index('moment_rower_log_moment_idx').on(t.momentId, t.at),
     tenantPolicy('moment_rower_log_tenant', t.clubId),
+    rolePolicy('moment_rower_log_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
   ],
 ).enableRLS();
 

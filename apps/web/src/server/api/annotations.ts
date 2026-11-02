@@ -3,7 +3,9 @@ import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { annotation, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
-import { dropEmptyMoments, momentRowersOf } from './moments.ts';
+import { can } from '../auth/can.ts';
+import type { TenantContext } from '../db/tenant.ts';
+import { dropEmptyMoments, momentRowersOf, momentSharesOf } from './moments.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
 const idParam = z.object({ id: z.uuid() });
@@ -32,6 +34,17 @@ const newAnnotation = z.discriminatedUnion('kind', [
 ]);
 const editNote = z.object({ body: text });
 
+/** What the client may do with it (#40), instead of the author's account id. */
+function present<T extends { authorUserId: string | null }>(row: T, tenant: TenantContext) {
+  const { authorUserId, ...rest } = row;
+  const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+  return {
+    ...rest,
+    mine: tenant.userId !== null && authorUserId === tenant.userId,
+    canEdit: can(viewer, { kind: 'edit_annotation', authorUserId }),
+  };
+}
+
 const columns = {
   id: annotation.id,
   frame: annotation.frame,
@@ -39,6 +52,7 @@ const columns = {
   body: annotation.body,
   shape: annotation.shape,
   authorName: annotation.authorName,
+  authorUserId: annotation.authorUserId,
   createdAt: annotation.createdAt,
   updatedAt: annotation.updatedAt,
 };
@@ -67,7 +81,11 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
         .from(annotation)
         .where(eq(annotation.videoId, v.id))
         .orderBy(asc(annotation.frame), asc(annotation.createdAt));
-      return { annotations, moments: await momentRowersOf(tx, v.id) };
+      return {
+        annotations: annotations.map((a) => present(a, tenant)),
+        moments: await momentRowersOf(tx, v.id),
+        shares: await momentSharesOf(tx, v.id, tenant),
+      };
     });
     return rows ?? notFound(reply);
   });
@@ -101,6 +119,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
           body: body.data.body,
           shape: body.data.kind === 'note' ? null : { points: body.data.points },
           authorName: body.data.authorName,
+          authorUserId: tenant.userId,
         })
         .returning(columns);
       return row;
@@ -108,7 +127,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
     if (result === 'not_found' || result === undefined) return notFound(reply);
     if (result === 'not_ready') return reply.code(409).send({ error: 'video_not_ready' });
     if (result === 'bad_frame') return reply.code(400).send({ error: 'frame_out_of_range' });
-    return reply.code(201).send(result);
+    return reply.code(201).send(present(result, tenant));
   });
 
   app.patch('/api/annotations/:id', { preHandler: guard }, async (req, reply) => {
@@ -124,7 +143,8 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
         .where(and(eq(annotation.id, params.data.id), eq(annotation.kind, 'note')))
         .returning(columns),
     );
-    return row ?? notFound(reply);
+    // A rower's update of someone else's note matches no row (RLS): the same 404 as unknown.
+    return row === undefined ? notFound(reply) : present(row, tenant);
   });
 
   // A whole moment (Ewout: one note per frame): every drawing and remark at that frame, in one

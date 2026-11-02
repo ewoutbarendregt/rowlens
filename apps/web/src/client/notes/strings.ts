@@ -45,6 +45,13 @@ const en = {
   everyone: 'Everyone',
   noneFor: (name: string) => `No notes for ${name} on this video.`,
   archived: 'archived',
+  sharedWith: 'Shared with',
+  sharePicker: (frame: number) => `Share the note at frame ${String(frame)} with a rower`,
+  shareWithCrew: 'Share with the whole crew',
+  unshare: (name: string) => `Stop sharing with ${name}`,
+  unshareCrew: 'Stop sharing with the whole crew',
+  by: (name: string) => `by ${name}`,
+  notYours: 'Only the person who shared it, or a coach, can take a share back.',
 };
 
 const nl: typeof en = {
@@ -93,6 +100,13 @@ const nl: typeof en = {
   everyone: 'Iedereen',
   noneFor: (name: string) => `Geen notities voor ${name} bij deze video.`,
   archived: 'gearchiveerd',
+  sharedWith: 'Gedeeld met',
+  sharePicker: (frame: number) => `Notitie bij frame ${String(frame)} delen met een roeier`,
+  shareWithCrew: 'Met de hele ploeg delen',
+  unshare: (name: string) => `Niet meer delen met ${name}`,
+  unshareCrew: 'Niet meer delen met de hele ploeg',
+  by: (name: string) => `door ${name}`,
+  notYours: 'Alleen wie deelde, of een coach, kan het delen intrekken.',
 };
 
 export type NotesStrings = typeof en;

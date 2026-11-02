@@ -1,6 +1,7 @@
 import { type SubmitEvent, useEffect, useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { api } from '../api.ts';
+import { useAuth } from '../auth/useAuth.ts';
 import { rowerStrings } from '../rowers/strings.ts';
 import { formatCreatedTime, formatDate, sessionStrings } from './strings.ts';
 
@@ -17,6 +18,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export function SessionsPage() {
   const t = sessionStrings();
+  const { state } = useAuth();
+  const unlinkedRower = state.kind === 'open' && state.user.role === 'rower' && !state.user.linked;
   const navigate = useNavigate();
   const formId = useId();
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
@@ -62,6 +65,11 @@ export function SessionsPage() {
       </nav>
       <h1>{t.sessions}</h1>
       {failed && <p role="alert">{t.loadFailed}</p>}
+      {unlinkedRower && (
+        <p className="callout" role="status" data-testid="unlinked">
+          {t.unlinked}
+        </p>
+      )}
 
       <form className="card form" onSubmit={create} aria-labelledby={`${formId}-h`}>
         <h2 id={`${formId}-h`}>{t.newSession}</h2>

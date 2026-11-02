@@ -60,6 +60,8 @@ const en = {
   backToSession: (title: string) => `Back to ${title}`,
   notReady: 'This video is not ready to watch yet.',
   loadFailed: 'Could not load this page. Check your connection and reload.',
+  unlinked:
+    'You only see the sessions you rowed in, but your account isn’t linked to your name in the roster yet. Ask your coach to add your e-mail address to your name on the Rowers page.',
 };
 
 const nl: typeof en = {
@@ -125,6 +127,8 @@ const nl: typeof en = {
   backToSession: (title: string) => `Terug naar ${title}`,
   notReady: 'Deze video is nog niet klaar om te bekijken.',
   loadFailed: 'Deze pagina kon niet laden. Controleer je verbinding en herlaad.',
+  unlinked:
+    'Je ziet alleen de trainingen waarin je roeide, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag je coach je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
 };
 
 export type SessionStrings = typeof en;

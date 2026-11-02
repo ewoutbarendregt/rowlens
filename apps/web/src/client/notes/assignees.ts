@@ -6,6 +6,19 @@ export interface MomentRowers {
   rowers: { id: string; displayName: string; archived: boolean }[];
 }
 
+/** Who a note is shared with (#112), as the API returns it per frame. */
+export interface MomentShares {
+  frame: number;
+  crew: { sharedBy: string | null; canUnshare: boolean } | null;
+  rowers: {
+    id: string;
+    displayName: string;
+    archived: boolean;
+    sharedBy: string | null;
+    canUnshare: boolean;
+  }[];
+}
+
 export interface LineupSeatLike {
   seat: number;
   rower: { id: string; displayName: string; archived: boolean };

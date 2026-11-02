@@ -6,6 +6,8 @@ interface AuthUser {
   displayName: string;
   locale: 'nl' | 'en';
   role: 'rower' | 'coach' | 'admin';
+  /** Linked to a roster entry; a rower sees nothing until a coach adds their e-mail there. */
+  linked: boolean;
 }
 
 export type AuthState =
