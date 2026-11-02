@@ -50,18 +50,25 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
 
   await page.goto(videoUrl);
   await expect(page.getByTestId('player-frame')).toHaveText('0');
-  await page.locator('h1').click();
   await page.getByLabel(/^(Your name|Je naam)$/).fill('E2E coach');
-  for (const [steps, text] of [
-    [5, 'For the crew: hands away earlier'],
-    [5, 'Coach only: check rigging'],
+  // Steps need the metadata, and the keys must reach the player, not the name field.
+  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  await page.locator('h1').click();
+  const moments = page.getByTestId('moment');
+  for (const [count, frame, text] of [
+    [1, 5, 'For the crew: hands away earlier'],
+    [2, 10, 'Coach only: check rigging'],
   ] as const) {
-    for (let n = 0; n < steps; n++) await page.keyboard.press('.');
-    await page.getByLabel(/^(Note at frame|Notitie bij frame) \d+ \(/).fill(text);
+    for (let n = 0; n < 5; n++) await page.keyboard.press('.');
+    await expect(page.getByTestId('player-frame')).toHaveText(String(frame));
+    await page
+      .getByLabel(new RegExp(`^(Note at frame|Notitie bij frame) ${String(frame)} \\(`))
+      .fill(text);
     await page.getByRole('button', { name: /^(Save note|Notitie opslaan)$/ }).click();
+    // Wait for the saved note's section before stepping on (CI is slower than a laptop).
+    await expect(moments).toHaveCount(count);
     await page.locator('h1').click();
   }
-  const moments = page.getByTestId('moment');
   await expect(moments).toHaveCount(2);
   await moments
     .first()
