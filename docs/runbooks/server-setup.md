@@ -23,11 +23,12 @@ Nothing under `/opt/trustable` has been changed.
 
 ## Still to do on the server
 
-From #28–#30 (e-mail authentication): Login is enabled since `sha-5ee4d69`, so the pilot code no longer
-opens the app. Ewout tests a real NL and EN login, logout and "log out other devices"; after that
+From #28–#30 (e-mail authentication): login is enabled since `sha-5ee4d69` and the first real login
+worked on 2026-11-02 (`sha-6fbd5a6`, port 587); the pilot code no longer opens the app. Still to check:
+the EN mail, logout and "log out other devices"; after that
 `/opt/rowlens/pilot-code.txt` and `PILOT_ACCESS_CODE_HASH` can be archived. Rolling back to `sha-c15cb47`
 brings the pilot code back (the variable is still there). The Resend key is shared with AudioScribe:
-revoking it stops mail for both.
+revoking it stops mail for both. `trustable.nl` has no DMARC record yet (a DNS change: Ewout's call).
 
 From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned by `deploy`
 (uid 1000, the image's `node` user; checked read-only 2026-11-01), and step 2's compose file mounts
