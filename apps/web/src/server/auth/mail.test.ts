@@ -1,5 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { loginMessage } from './mail.ts';
+import { loginMessage, smtpTransportOptions } from './mail.ts';
+
+const smtp = {
+  host: 'smtp.resend.com',
+  user: 'resend',
+  password: 're_test',
+  from: 'RowLens <rowlens@trustable.nl>',
+};
+
+describe('smtpTransportOptions', () => {
+  it('requires STARTTLS on 587 so the key never goes over plain text', () => {
+    const options = smtpTransportOptions({ ...smtp, port: 587 });
+    expect([options.secure, options.requireTLS]).toEqual([false, true]);
+  });
+
+  it('uses implicit TLS on 465', () => {
+    const options = smtpTransportOptions({ ...smtp, port: 465 });
+    expect([options.secure, options.requireTLS]).toEqual([true, false]);
+  });
+
+  it('gives up on an unreachable server within seconds', () => {
+    const options = smtpTransportOptions({ ...smtp, port: 587 });
+    expect(options.connectionTimeout).toBeLessThanOrEqual(10_000);
+    expect(options.greetingTimeout).toBeLessThanOrEqual(10_000);
+  });
+});
 
 describe('loginMessage', () => {
   it.each([
