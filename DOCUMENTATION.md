@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Backlog: coach & rower focus
+
+**Session**: claude/docs/102-coach-rower-backlog
+**Changed**: FEATURES.md, PLAN.md, DOCUMENTATION.md; GitHub issues #102–#112, labels `coach` and `rower`
+**Summary**: Ewout's coach and rower ideas are now epic #102 with ten stories (roster without accounts, lineups, note assignment, notes in the video, voice notes, my sessions, my notes, first-login claim, reassign, sharing). Three of them are marked decision-needed: where transcription runs (privacy), name matching on first login, and whether rowers can reassign freely. FEATURES.md statuses were brought up to date with what is merged. Done-but-open issues were listed for Ewout and left open.
+**Prompts used**: "Evalueer de backlog, we focussen eerste op coaches en roeiers. Voeg deze ideeën toe aan de backlog: …" (coach: positions per session, dictated notes with transcription, notes in the video on/off, assign notes to a rower, add rowers without an account, select known rowers; rower: my sessions, my notes with the video fragment, claim notes on first login, reassign notes, share notes individually or with the crew).
+
 ## 2026-11-01 — Handoff from Codex back to Claude
 
 **Session**: codex/feat/28-30-email-auth
