@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — Deploy sha-4237498: roster and lineups
+
+**Session**: claude/docs/deploy-sha-4237498
+**Changed**: docs/runbooks/server-setup.md, FEATURES.md, DOCUMENTATION.md
+**Summary**: Deployed `sha-4237498` (#115 roster, #116 lineup; run 41458500184, pre-deploy DB backup taken). Migrations 0007–0008 applied (9 in total), RLS on `rower` and `lineup_seat`; RowLens ready and reporting `sha-4237498`; `/rowers` serves the app shell, its API is a 404 without login; trustable.nl, api.trustable.nl and AudioScribe answer 200; no error log lines; disk 48 %.
+**Prompts used**: "Merge beide"; "Deploy".
+
 ## 2026-11-02 — Session lineup: who sat in which seat (#103)
 
 **Session**: claude/feat/103-session-lineup (stacked on claude/feat/104-rower-roster-2)
