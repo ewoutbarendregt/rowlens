@@ -13,7 +13,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | GitHub secret `ROWLENS_SSH_PRIVATE_KEY` | ✅ set from `~/.ssh/rowlens_deploy` | Ewout, 2026-11-01 |
 | `/opt/rowlens` (`deploy:deploy`, 750) | ✅ created with `su` (root password), since `deploy` has no sudo | Ewout, 2026-11-01 |
 | `/opt/rowlens/media/`, `/opt/rowlens/.docker/` (750) | ✅ created | Claude, 2026-11-01 |
-| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=465`, `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
+| `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=465` (**wrong**: trustable-prod blocks outbound 465, BUG-010; to become `587` after #114), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
 | RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-5ee4d69` (deployed 2026-11-02 07:16 UTC, migrations 0000–0006 applied), `web` on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; web and DB healthy. Previous release: `sha-c15cb47` | Claude, 2026-11-02, approved |
@@ -23,7 +23,7 @@ Nothing under `/opt/trustable` has been changed.
 
 ## Still to do on the server
 
-From #28–#30 (e-mail authentication): login is enabled since `sha-5ee4d69`, so the pilot code no longer
+From #28–#30 (e-mail authentication): set `SMTP_PORT=587` and deploy #114 (STARTTLS required); outbound 465 is blocked, so no login mail has been delivered yet. Login is enabled since `sha-5ee4d69`, so the pilot code no longer
 opens the app. Ewout tests a real NL and EN login, logout and "log out other devices"; after that
 `/opt/rowlens/pilot-code.txt` and `PILOT_ACCESS_CODE_HASH` can be archived. Rolling back to `sha-c15cb47`
 brings the pilot code back (the variable is still there). The Resend key is shared with AudioScribe:

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-02 — No login mail: outbound port 465 blocked (BUG-010)
+
+**Session**: claude/fix/30-smtp-starttls (code, PR #114); claude/docs/102-coach-rower-backlog (this log, runbook)
+**Changed**: apps/web/src/server/auth/mail.ts, apps/web/src/server/auth/mail.test.ts, BUGS.md, docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Ewout's first production login sent no mail: the code was stored, but smtp.resend.com:465 times out from trustable-prod while 587 connects (AudioScribe uses 587). #114 makes STARTTLS mandatory on every port except 465 and adds 10 s timeouts; checked against the real Resend 587 with an invalid key (STARTTLS ok, 535 after 984 ms). Ewout chose the fix before switching the server to 587.
+**Prompts used**: "Geen mail ontvangen"; "Eerst de TLS-fix".
+
 ## 2026-11-02 — Deploy sha-5ee4d69 with e-mail login
 
 **Session**: claude/docs/102-coach-rower-backlog
