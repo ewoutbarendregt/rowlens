@@ -298,6 +298,23 @@ scripts/github/      backlog/labels/milestones bootstrap
   the coach marked a half slide on that drive (ADR-0016 addendum). Low laptop
   screens (≤ 640 px high) get a 48 px play button so the player column still fits.
 
+## Angles per phase (ADR-0017)
+
+- Tables `angle_measure` (`rower_id`, `joint` knee | hip | elbow | trunk, `points` jsonb, one per
+  video × frame × rower × joint) and `video_boat_line` (2 points, bow side first), migration 0014,
+  RLS like `stroke_mark`. `rowlens_merge_angle_measures(from, into)` (definer, current club only) is
+  called by `mergeRowers`.
+- API `api/angles.ts`: `GET /api/videos/:id/angles` → measures + boat line; `PUT …/angles`
+  (only on a frame with a stroke mark, else 409 `no_stroke_mark`; active roster rower, else 400);
+  `DELETE /api/angles/:id`; `PUT` / `DELETE /api/videos/:id/boat-line`; `can(measure_angles)`.
+- `shared/geometry.ts` (moved from the client: `toPixels`, `angleDegrees`); `shared/angles.ts`:
+  `measureValue` (inner angle, or upper-body lean against the boat line, forward positive),
+  `phaseOf`, `angleTables` (per joint, rower × phase: mean, n, min–max, frames; crew range).
+- UI: third side tab Angles (`angles/AnglesPanel.tsx`): boat line, measuring on a marked frame
+  (rower chip + joint, then taps through `DrawingLayer` with `angle` or `line`), measurements on this
+  frame, a table per joint. On the picture: measurements of the frame on screen with their label,
+  and the boat line dashed while the tab is open. `Drawing` got `label` and `variant`.
+
 ## Interface language (ADR-0015)
 
 - `client/i18n/language.ts`: `lang()` (saved choice per device, else Dutch), `locale()` for `Intl`,

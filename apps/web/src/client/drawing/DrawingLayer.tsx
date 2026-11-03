@@ -14,6 +14,10 @@ export interface Drawing {
   id: string;
   kind: DrawingKind;
   points: readonly Point[];
+  /** Shown with the shape, e.g. the rower of an angle measurement (ADR-0017). */
+  label?: string;
+  /** `measure`: an angle measurement; `boat`: the boat line, dashed. */
+  variant?: 'measure' | 'boat';
 }
 
 interface DrawingLayerProps {
@@ -141,7 +145,13 @@ function Shape({
   const pts = drawing.points.map((p) => toPixels(p, size));
   const [a, b, c] = pts;
   if (a === undefined) return null;
-  const stroke = { strokeWidth: unit * 2.5 };
+  const stroke = {
+    strokeWidth: unit * 2.5,
+    // The boat line is a reference, not a drawing: dashed, in picture units like the rest.
+    ...(drawing.variant === 'boat'
+      ? { strokeDasharray: `${String(unit * 8)} ${String(unit * 6)}` }
+      : {}),
+  };
   const halo = { strokeWidth: unit * 5 };
   if (b === undefined)
     return <circle cx={a[0]} cy={a[1]} r={unit * 2} className="drawing__point" />;
@@ -168,8 +178,25 @@ function Shape({
     </>
   );
 
+  const variant = drawing.variant === undefined ? undefined : `drawing--${drawing.variant}`;
+  const text = { fontSize: unit * 12, strokeWidth: unit * 2 };
   if (drawing.kind !== 'angle' || c === undefined) {
-    return <g data-kind={drawing.kind}>{segment(a, b, drawing.kind === 'arrow')}</g>;
+    return (
+      <g data-kind={drawing.kind} className={variant}>
+        {segment(a, b, drawing.kind === 'arrow')}
+        {drawing.label !== undefined && (
+          <text
+            x={(a[0] + b[0]) / 2 + unit * 4}
+            y={(a[1] + b[1]) / 2 - unit * 4}
+            className="drawing__label"
+            style={text}
+            data-testid="measure-label"
+          >
+            {drawing.label}
+          </text>
+        )}
+      </g>
+    );
   }
   const [pa, pv, pc] = drawing.points as [Point, Point, Point];
   const degrees = angleDegrees(pa, pv, pc, size);
@@ -180,7 +207,7 @@ function Shape({
       unit * 25,
     ) * 0.6;
   return (
-    <g data-kind="angle">
+    <g data-kind="angle" className={variant}>
       {segment(b, a, false)}
       {segment(b, c, false)}
       <path
@@ -192,10 +219,10 @@ function Shape({
         x={b[0] + unit * 4}
         y={b[1] - unit * 4}
         className="drawing__label"
-        style={{ fontSize: unit * 12, strokeWidth: unit * 2 }}
-        data-testid="angle-label"
+        style={text}
+        data-testid={drawing.label === undefined ? 'angle-label' : 'measure-label'}
       >
-        {Math.round(degrees)}°
+        {Math.round(degrees)}°{drawing.label !== undefined && ` · ${drawing.label}`}
       </text>
     </g>
   );

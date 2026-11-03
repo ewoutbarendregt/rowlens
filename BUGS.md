@@ -2,6 +2,20 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-015] With classic (always visible) scrollbars the video tools row wraps at 1000 px — low
+**Location**: apps/web/src/client/styles.css (`.player__toolbar`)
+**Status**: open
+**Found**: 2026-11-03, layout check on claude/feat/angle-measures
+**Description**: The tools row above the picture needs 621 px. At a 1000 px window with overlay scrollbars (the macOS default) the player column is 628 px wide and it fits; with a 15 px scrollbar it is 613 px, the row wraps and the player column at 1000×540 is 546 px instead of 512, so its bottom row needs a little scroll. The video keeps its size.
+**Fix**: —
+
+### [BUG-014] Merging roster entries can fail when one sat in a session the merger can't see — medium
+**Location**: apps/web/src/server/api/lineups.ts (`mergeLineupSeats`), apps/web/src/server/api/moments.ts (`mergeMomentRowers`)
+**Status**: open
+**Found**: 2026-11-03, while adding angle measurements to the merge
+**Description**: Since #108 coaches see only their own sessions. A merge runs with the merging member's role policies, so lineup seats or note assignments in sessions they can't see are skipped, and deleting the merged rower then hits the restricting foreign key (an error instead of a merge). Angle measurements avoid this through a definer function limited to the club (ADR-0017).
+**Fix**: — (same approach as `rowlens_merge_angle_measures`, or let only the admin merge).
+
 ### [BUG-013] Sessions-list E2E hung on the hidden filter toggle — medium
 **Location**: apps/web/e2e/sessions.spec.ts:33
 **Status**: fixed (claude/fix/sessions-e2e-race)

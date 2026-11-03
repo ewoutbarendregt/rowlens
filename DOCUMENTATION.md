@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Angles per rower and phase, with the boat line (ADR-0017)
+
+**Session**: claude/feat/angle-measures
+**Changed**: apps/web/src/shared/{geometry.ts,angles.ts,angles.test.ts}, apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0014_angle_measures.sql (+ meta), apps/web/src/server/api/{angles.ts,angles.db.test.ts,rowers.ts,visibility.db.test.ts}, apps/web/src/server/auth/{can.ts,can.test.ts}, apps/web/src/server/app.ts, apps/web/src/client/angles/{AnglesPanel.tsx,strings.ts}, apps/web/src/client/drawing/{DrawingLayer.tsx,geometry.ts}, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/angles.spec.ts, docs/adr/{0017-angles-per-phase.md,README.md}, docs/analysis/perspective-rules.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md
+**Summary**: Coaches measure knee, hip, elbow and the upper body per rower on frames with a stroke mark (a third side tab, Angles), the upper body against a boat line drawn once per video; a table per joint shows each rower's mean per phase with n, spread and evidence frames, and the difference in the crew. Merging roster entries moves measurements through a club-limited definer function. Found on the way: BUG-014 (merge across sessions the merger can't see) and BUG-015 (tools row wraps with classic scrollbars). Also deployed earlier today: `sha-4966d8a` (arrows, calculated drive middle #133), deploy run 41653530432. Not merged or deployed.
+**Prompts used**: "kunnen we verder met de volgende stap in spoor 1"; answers: all four angles; upper body against a boat line per video; coaches and admin measure; only on marked moments.
+
 ## 2026-11-03 — Arrows for catch and finish; the middle of the drive, calculated (optional)
 
 **Session**: claude/feat/stroke-arrows-drive-middle
