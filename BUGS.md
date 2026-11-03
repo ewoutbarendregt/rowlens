@@ -2,11 +2,18 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-017] Boat-line taps in the angles E2E don't register on emulated iPhone WebKit — low
+**Location**: apps/web/e2e/angles.spec.ts:61, apps/web/src/client/drawing/DrawingLayer.tsx (suspected)
+**Status**: open
+**Found**: 2026-11-03, edge E2E on Playwright's iPhone 13 WebKit with touch (scratch config)
+**Description**: After "Draw boat line" the two `touchscreen.tap`s place no point, so the test times out with the prompt still open. The same run on `main` fails the same way, so it predates the zoom change; drawing a line with a finger on a zoomed picture in the same setup works. Unknown whether a real iPhone is affected (the coaches drew boat lines on one after #135).
+**Fix**: —
+
 ### [BUG-016] A rower added in the lineup is sometimes missing after saving — medium
 **Location**: apps/web/src/client/lineup/LineupCard.tsx, apps/web/src/client/rowers/RowerPicker.tsx (suspected)
 **Status**: open
 **Found**: 2026-11-03, local edge E2E while the Mac was under load (load average 6–17)
-**Description**: In four edge runs the last rower picked or added inline into a lineup was missing from the saved lineup (lineup.spec: the stroke seat empty after a reload although it showed the name before Save; angles.spec and sessions.spec failing because of the missing rower). Not seen in CI and not tied to the change being tested. Cause not found yet; candidates are the inline add finishing after Save, or a page reload of the session overwriting the seats.
+**Description**: In four edge runs the last rower picked or added inline into a lineup was missing from the saved lineup (lineup.spec: the stroke seat empty after a reload although it showed the name before Save; angles.spec and sessions.spec failing because of the missing rower). Not seen in CI and not tied to the change being tested. Cause not found yet; candidates are the inline add finishing after Save, or a page reload of the session overwriting the seats. Update 2026-11-03: one cause of lineup.spec failures on a local edge database kept between runs: the test searched the picker with `desktopchrom`, which matches every earlier run's Anna, and the picker shows 8 matches, so the new one was missing. The test now searches by its whole tag. The original symptom (a picked rower missing after Save) is not explained by this.
 **Fix**: —
 
 ### [BUG-015] With classic (always visible) scrollbars the video tools row wraps at 1000 px — low

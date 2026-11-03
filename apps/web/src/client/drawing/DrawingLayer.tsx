@@ -1,4 +1,5 @@
-import { type PointerEvent, useEffect, useId, useRef, useState } from 'react';
+import { type PointerEvent, useContext, useEffect, useId, useRef, useState } from 'react';
+import { ViewContext, viewBoxOf } from '../player/zoom.ts';
 import { notesStrings } from '../notes/strings.ts';
 import {
   angleArc,
@@ -44,7 +45,8 @@ type Press =
  * Lines, arrows and angles over the picture (#60), and the points of angle measurements and boat
  * lines (ADR-0017). The SVG's viewBox is the picture's own pixel size and it scales like the video
  * (`meet` = `object-fit: contain`), so drawings sit exactly on the picture at any size, with black
- * bars, and in full screen.
+ * bars, and in full screen. When the player is zoomed in, the viewBox is the part in view
+ * (`ViewContext`), so drawings zoom with the video and lines and handles keep their size on screen.
  *
  * Made for fingers (Ewout's coaches on an iPhone, 2026-11-03): a point is placed only by a short,
  * still tap (a swipe, a second finger or a long press places nothing); once placed, every point can
@@ -52,6 +54,7 @@ type Press =
  * nothing is saved until Save (or Enter). Backspace takes the last point back, Esc cancels.
  */
 export function DrawingLayer({ size, drawings, tool, onComplete, onCancel }: DrawingLayerProps) {
+  const view = useContext(ViewContext);
   const t = notesStrings();
   const svg = useRef<SVGSVGElement>(null);
   const arrowId = useId();
@@ -197,8 +200,8 @@ export function DrawingLayer({ size, drawings, tool, onComplete, onCancel }: Dra
   };
 
   // Stroke widths and text in picture pixels, scaled to the picture so they read the same on a
-  // phone clip and a 4K one.
-  const unit = Math.max(size.width, size.height) / 400;
+  // phone clip and a 4K one; divided by the zoom so they keep their size on screen.
+  const unit = Math.max(size.width, size.height) / 400 / view.scale;
   const preview =
     tool === null
       ? null
@@ -213,7 +216,7 @@ export function DrawingLayer({ size, drawings, tool, onComplete, onCancel }: Dra
       <svg
         ref={svg}
         className={`drawing-layer${tool === null ? '' : ' drawing-layer--active'}`}
-        viewBox={`0 0 ${String(size.width)} ${String(size.height)}`}
+        viewBox={viewBoxOf(view, size)}
         preserveAspectRatio="xMidYMid meet"
         data-testid="drawing-layer"
         onPointerDown={onPointerDown}

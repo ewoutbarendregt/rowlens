@@ -24,7 +24,9 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
 
   // Bow: an existing rower, found by part of the name.
   const bow = lineup.getByRole('combobox', { name: /^(Bow|Boeg) \(1\)$/ });
-  await bow.fill(tag.slice(0, 12));
+  // The whole tag (a word of the name), not a part all runs share: the picker shows 8 matches, and
+  // a database kept between runs holds every earlier run's Anna (BUG-016).
+  await bow.fill(tag);
   await page.getByRole('option', { name: `Anna ${tag}` }).click();
   await expect(bow).toHaveValue(`Anna ${tag}`);
 

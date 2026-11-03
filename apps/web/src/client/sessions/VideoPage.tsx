@@ -563,6 +563,8 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
+              // While drawing or measuring, one finger places points; two fingers still zoom.
+              panLocked={layerTool !== null}
               keyHints={[
                 nt.notesKey,
                 ...(canMark ? [strokeStrings().keyHintMark] : []),

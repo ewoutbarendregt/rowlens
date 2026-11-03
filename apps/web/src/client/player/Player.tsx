@@ -1,13 +1,26 @@
 import {
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type Ref,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import { Icon } from '../ui/icons.tsx';
 import { formatFrameTime } from './frames.ts';
+import {
+  MAX_ZOOM,
+  NO_ZOOM,
+  panBy,
+  pictureAt as zoomPictureAt,
+  type View,
+  ViewContext,
+  ZOOM_STEP,
+  zoomAt,
+} from './zoom.ts';
 import { playerStrings } from './strings.ts';
 import { SPEEDS, type PlayerMeasurement, type Speed, usePlayer } from './usePlayer.ts';
 import { useHoldRepeat } from './useHoldRepeat.ts';
@@ -32,6 +45,8 @@ export interface PlayerProps {
   overlay?: ReactNode;
   /** The page's own shortcuts, added to the line of keys (e.g. "N notes on/off"). */
   keyHints?: readonly string[];
+  /** While the page draws on the picture, a one-finger or mouse drag is the drawing's, not a pan. */
+  panLocked?: boolean;
   /** Stroke marks (#85) on a strip under the note markers: the catch an arrow down, the finish an
    * arrow up (Ewout, 2026-11-03), the half slide a tick; clicking one jumps there. */
   strokeMarks?: readonly PlayerStrokeMark[];
@@ -79,6 +94,7 @@ export function Player({
   overlay,
   keyHints = [],
   strokeMarks,
+  panLocked = false,
 }: PlayerProps) {
   const t = playerStrings();
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -113,6 +129,181 @@ export function Player({
   useEffect(() => {
     frameCallback.current?.(p.frame);
   }, [p.frame]);
+
+  // Zooming into the picture (2026-11-03): pinch, ⌘/Ctrl + wheel, + − 0, the corner buttons; a drag
+  // pans while zoomed. Only the video is transformed; the drawing layer follows through ViewContext,
+  // and the stage, its corner controls and everything below keep their place.
+  const [view, setView] = useState<View>(NO_ZOOM);
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ width: number; height: number } | null>(null);
+  /** The displayed picture inside the stage (object-fit: contain), in screen pixels. */
+  const pictureBox = useCallback(() => {
+    const el = stageRef.current;
+    if (el === null) return null;
+    const r = el.getBoundingClientRect();
+    const aspect = p.aspect ?? r.width / Math.max(1, r.height);
+    let width = r.width;
+    let height = width / aspect;
+    if (height > r.height) {
+      height = r.height;
+      width = height * aspect;
+    }
+    return {
+      left: r.left + (r.width - width) / 2,
+      top: r.top + (r.height - height) / 2,
+      width,
+      height,
+    };
+  }, [p.aspect]);
+  useEffect(() => {
+    const el = stageRef.current;
+    if (el === null) return;
+    const measure = () => {
+      const b = pictureBox();
+      if (b !== null) setBox({ width: b.width, height: b.height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+    };
+  }, [pictureBox]);
+  /** The picture point (fractions) under a screen point. */
+  const pointAt = useCallback(
+    (clientX: number, clientY: number) => {
+      const b = pictureBox();
+      if (b === null) return { x: 0.5, y: 0.5 };
+      return zoomPictureAt(
+        viewRef.current,
+        (clientX - b.left) / b.width,
+        (clientY - b.top) / b.height,
+      );
+    },
+    [pictureBox],
+  );
+  const zoomBy = useCallback((factor: number) => {
+    setView((v) => zoomAt(v, factor, { x: v.cx, y: v.cy }));
+  }, []);
+
+  /** Fingers (or the mouse) down on the stage. */
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  // ⌘/Ctrl + wheel and a trackpad pinch (which arrives as a wheel with ctrlKey) zoom at the cursor.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (el === null) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const factor = Math.min(ZOOM_STEP, Math.max(1 / ZOOM_STEP, Math.exp(-e.deltaY * 0.01)));
+      const at = pointAt(e.clientX, e.clientY);
+      setView((v) => zoomAt(v, factor, at));
+    };
+    // Safari sends its own gesture events for a pinch. Never let them zoom the page. On a Mac
+    // trackpad they are the only pinch Safari reports, so they zoom the picture; on an iPhone the
+    // fingers' pointer events already do (pointers on the stage), so they're ignored there.
+    let gestureFrom: { view: View; at: { x: number; y: number } } | null = null;
+    const onGesture = (e: Event) => {
+      e.preventDefault();
+      const g = e as Event & { scale?: number; clientX?: number; clientY?: number };
+      if (pointers.current.size > 0 || typeof g.scale !== 'number') return;
+      if (e.type === 'gesturestart') {
+        gestureFrom = { view: viewRef.current, at: pointAt(g.clientX ?? 0, g.clientY ?? 0) };
+      } else if (gestureFrom !== null) {
+        setView(zoomAt(gestureFrom.view, g.scale, gestureFrom.at));
+      }
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('gesturestart', onGesture);
+    el.addEventListener('gesturechange', onGesture);
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('gesturestart', onGesture);
+      el.removeEventListener('gesturechange', onGesture);
+    };
+  }, [pointAt]);
+
+  // Fingers and mouse on the stage: two fingers pinch (zoom and move), one drag pans when zoomed.
+  const gesture = useRef<
+    | { kind: 'pan'; x: number; y: number; from: View; moved: boolean }
+    | {
+        kind: 'pinch';
+        distance: number;
+        mid: { x: number; y: number };
+        from: View;
+        at: { x: number; y: number };
+      }
+    | null
+  >(null);
+  /** A drag that panned shouldn't also play or pause on release. */
+  const swallowClick = useRef(false);
+  const distanceOf = () => {
+    const [a, b] = [...pointers.current.values()];
+    return a === undefined || b === undefined ? 0 : Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  const midOf = () => {
+    const list = [...pointers.current.values()];
+    return {
+      x: list.reduce((sum, q) => sum + q.x, 0) / Math.max(1, list.length),
+      y: list.reduce((sum, q) => sum + q.y, 0) / Math.max(1, list.length),
+    };
+  };
+  const onStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.size === 2) {
+      const mid = midOf();
+      gesture.current = {
+        kind: 'pinch',
+        distance: distanceOf(),
+        mid,
+        from: viewRef.current,
+        at: pointAt(mid.x, mid.y),
+      };
+    } else if (pointers.current.size === 1 && viewRef.current.scale > 1 && !panLocked) {
+      gesture.current = {
+        kind: 'pan',
+        x: e.clientX,
+        y: e.clientY,
+        from: viewRef.current,
+        moved: false,
+      };
+    }
+  };
+  const onStagePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!pointers.current.has(e.pointerId)) return;
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const g = gesture.current;
+    const b = pictureBox();
+    if (g === null || b === null) return;
+    if (g.kind === 'pinch' && pointers.current.size === 2) {
+      const mid = midOf();
+      const zoomed = zoomAt(g.from, distanceOf() / Math.max(1, g.distance), g.at);
+      setView(panBy(zoomed, (mid.x - g.mid.x) / b.width, (mid.y - g.mid.y) / b.height));
+      swallowClick.current = true;
+    } else if (g.kind === 'pan') {
+      const dx = e.clientX - g.x;
+      const dy = e.clientY - g.y;
+      if (!g.moved && Math.hypot(dx, dy) < 5) return;
+      if (!g.moved) stageRef.current?.setPointerCapture(e.pointerId);
+      g.moved = true;
+      swallowClick.current = true;
+      setView(panBy(g.from, dx / b.width, dy / b.height));
+    }
+  };
+  const onStagePointerEnd = (e: ReactPointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(e.pointerId);
+    if (pointers.current.size === 0) gesture.current = null;
+    else if (gesture.current?.kind === 'pinch') gesture.current = null;
+  };
+  // The video's transform for the view: scaled about the stage's centre, the view's centre moved
+  // there. Same mapping as the drawing layer's viewBox, so drawings stay on the picture.
+  const videoTransform =
+    view.scale === 1 || box === null
+      ? undefined
+      : `translate(${String(view.scale * (0.5 - view.cx) * box.width)}px, ${String(view.scale * (0.5 - view.cy) * box.height)}px) scale(${String(view.scale)})`;
 
   // Keyboard shortcuts (ADR-0007). Buttons keep their own Space/Enter; the scrub slider keeps arrows.
   // Subscribed once; reads the latest player state through a ref (it changes every frame).
@@ -167,6 +358,16 @@ export function Player({
         case 'f':
           p.toggleFullscreen();
           break;
+        case '+':
+        case '=':
+          zoomBy(ZOOM_STEP);
+          break;
+        case '-':
+          zoomBy(1 / ZOOM_STEP);
+          break;
+        case '0':
+          setView(NO_ZOOM);
+          break;
         default: {
           const speed = SPEED_KEYS[e.key];
           if (speed === undefined) handled = false;
@@ -216,9 +417,14 @@ export function Player({
     >
       {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
       <div
-        className="player__stage"
+        ref={stageRef}
+        className={`player__stage${view.scale > 1 ? ' player__stage--zoomed' : ''}`}
         // The stage takes the picture's shape, so portrait video isn't a narrow strip (BUG-005).
         style={p.aspect === null ? undefined : ({ '--aspect': String(p.aspect) } as CSSProperties)}
+        onPointerDown={onStagePointerDown}
+        onPointerMove={onStagePointerMove}
+        onPointerUp={onStagePointerEnd}
+        onPointerCancel={onStagePointerEnd}
       >
         <video
           ref={p.videoRef}
@@ -228,9 +434,51 @@ export function Player({
           muted
           preload="auto"
           className="player__video"
-          onClick={p.togglePlay}
+          style={videoTransform === undefined ? undefined : { transform: videoTransform }}
+          onClick={() => {
+            if (swallowClick.current) {
+              swallowClick.current = false;
+              return;
+            }
+            p.togglePlay();
+          }}
         />
-        {overlay}
+        <ViewContext.Provider value={view}>{overlay}</ViewContext.Provider>
+        <div className="player__zoom" role="group" aria-label={t.zoom} data-testid="zoom">
+          <button
+            type="button"
+            aria-label={t.zoomOut}
+            disabled={view.scale <= 1}
+            onClick={() => {
+              zoomBy(1 / ZOOM_STEP);
+            }}
+          >
+            −
+          </button>
+          {view.scale > 1 && (
+            <button
+              type="button"
+              aria-label={t.zoomReset}
+              title={t.zoomReset}
+              data-testid="zoom-level"
+              onClick={() => {
+                setView(NO_ZOOM);
+              }}
+            >
+              {Math.round(view.scale * 100)}%
+            </button>
+          )}
+          <button
+            type="button"
+            aria-label={t.zoomIn}
+            disabled={view.scale >= MAX_ZOOM}
+            onClick={() => {
+              zoomBy(ZOOM_STEP);
+            }}
+          >
+            +
+          </button>
+        </div>
       </div>
 
       {/* Mockup 1e: the moments above the track, the track, then where you are. */}

@@ -26,6 +26,7 @@ growth features. Suggested order:
 | Mark strokes: catch, half slide, finish; rate, drive, recovery, ratio per stroke | coach | must | deployed (ADR-0016) | #85 |
 | Angles per rower and phase: knee, hip, elbow, upper body vs boat (boat line per moment); finger-friendly drawing | coach | must | deployed (ADR-0017) | #127 |
 | Names in the account menu; default boat; rename a session; who made it and when; videos first on the session page | everyone | must | done locally, PR open | — |
+| Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan); controls stay usable, drawings zoom along | coach, rower | must | done locally, PR open | — |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
 configured on production (#28–#30), notifications (#62/#63), annotation status (#61), and the privacy

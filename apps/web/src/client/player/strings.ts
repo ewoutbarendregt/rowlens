@@ -22,7 +22,11 @@ const en = {
   approximate: 'Approximate: this browser cannot report exact frames',
   controls: 'Player controls',
   speedShort: 'Speed',
-  keys: 'Space play · , . one frame · ← → 0.1 s (⇧ 1 s) · 1 2 3 speed · [ ] loop · L loop on/off · F full screen',
+  keys: 'Space play · , . one frame · ← → 0.1 s (⇧ 1 s) · 1 2 3 speed · [ ] loop · L loop on/off · F full screen · + − 0 zoom',
+  zoom: 'Zoom into the picture',
+  zoomIn: 'Zoom in',
+  zoomOut: 'Zoom out',
+  zoomReset: 'Whole picture',
 };
 
 const nl: typeof en = {
@@ -46,7 +50,11 @@ const nl: typeof en = {
   approximate: 'Bij benadering: deze browser meldt geen exacte frames',
   controls: 'Bediening van de speler',
   speedShort: 'Snelheid',
-  keys: 'Spatie afspelen · , . één frame · ← → 0,1 s (⇧ 1 s) · 1 2 3 snelheid · [ ] lus · L lus aan/uit · F volledig scherm',
+  keys: 'Spatie afspelen · , . één frame · ← → 0,1 s (⇧ 1 s) · 1 2 3 snelheid · [ ] lus · L lus aan/uit · F volledig scherm · + − 0 zoom',
+  zoom: 'Inzoomen op het beeld',
+  zoomIn: 'Inzoomen',
+  zoomOut: 'Uitzoomen',
+  zoomReset: 'Heel beeld',
 };
 
 export type PlayerStrings = typeof en;
