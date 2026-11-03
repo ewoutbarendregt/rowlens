@@ -52,3 +52,17 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
   await page.locator('h1').click();
 }
+
+/** The box of an element once the page has stopped scrolling it into view (a phone scrolls the
+ * picture into view when a drawing tool is chosen). */
+export async function settledBox(page: Page, testId: string) {
+  let last = '';
+  for (let i = 0; i < 20; i++) {
+    const box = await page.getByTestId(testId).boundingBox();
+    const key = JSON.stringify(box);
+    if (box !== null && key === last) return box;
+    last = key;
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`${testId} kept moving`);
+}

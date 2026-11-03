@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
-import { openProcessedClip } from './helpers.ts';
+import { openProcessedClip, settledBox } from './helpers.ts';
 
 // Drawings at a frame (#60) on a video the real worker processed (edge stack only).
 const FIXTURE = fileURLToPath(new URL('../public/demo-media/e2e-30fps.webm', import.meta.url));
@@ -10,9 +10,23 @@ test.skip(edgeUrl === undefined, 'needs the worker: pnpm edge:up && pnpm e2e:edg
 
 /** Clicks at a fraction of the picture (the drawing layer covers exactly the picture here). */
 async function at(page: Page, fx: number, fy: number) {
+  const box = await settledBox(page, 'drawing-layer');
+  // A finger where the device has one: the touch path is what coaches use (2026-11-03).
+  if (test.info().project.use.hasTouch === true) {
+    await page.touchscreen.tap(box.x + fx * box.width, box.y + fy * box.height);
+  } else {
+    await page.mouse.click(box.x + fx * box.width, box.y + fy * box.height);
+  }
+}
+
+/** Drags with the mouse from one fraction of the picture to another. */
+async function drag(page: Page, from: [number, number], to: [number, number]) {
   const box = await page.getByTestId('drawing-layer').boundingBox();
   if (box === null) throw new Error('drawing layer not visible');
-  await page.mouse.click(box.x + fx * box.width, box.y + fy * box.height);
+  await page.mouse.move(box.x + from[0] * box.width, box.y + from[1] * box.height);
+  await page.mouse.down();
+  await page.mouse.move(box.x + to[0] * box.width, box.y + to[1] * box.height, { steps: 8 });
+  await page.mouse.up();
 }
 
 test('draw an angle and an arrow at a frame; they remain visible for the note hold', async ({
@@ -35,11 +49,28 @@ test('draw an angle and an arrow at a frame; they remain visible for the note ho
   await at(page, 0.75, 0.5);
   await at(page, 0.5, 0.5);
   await at(page, 0.5, 0.15);
-  await expect(page.getByTestId('angle-label')).toHaveText('90°');
+  const label = page.getByTestId('angle-label');
+  await expect(label).toHaveText('90°');
+  // Nothing is saved until Save (touch drawing, 2026-11-03): the points can still be dragged.
+  const save = page.getByTestId('drawing-save');
+  await expect(save).toBeEnabled();
+  const box = await page.getByTestId('drawing-layer').boundingBox();
+  const wide = (box?.width ?? 1) / (box?.height ?? 1); // the picture's aspect ratio
+  const tip45: [number, number] = [0.5 + 0.35 / wide, 0.15];
+  await drag(page, [0.5, 0.15], tip45);
+  await expect(label).toHaveText('45°');
+  await drag(page, tip45, [0.5, 0.15]);
+  await expect(label).toHaveText('90°');
+  await save.click();
+  await expect(save).toHaveCount(0);
 
   await page.getByRole('button', { name: /^(Arrow|Pijl)$/ }).click();
+  // A swipe across the picture places nothing; only taps do.
+  await drag(page, [0.1, 0.9], [0.3, 0.7]);
+  await expect(save).toHaveCount(0);
   await at(page, 0.2, 0.8);
   await at(page, 0.4, 0.6);
+  await save.click();
 
   const shapes = page.locator('[data-testid=drawing-layer] g[data-kind]');
   await expect(shapes).toHaveCount(2);

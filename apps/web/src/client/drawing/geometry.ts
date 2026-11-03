@@ -30,3 +30,25 @@ export function angleArc(a: Point, vertex: Point, c: Point, size: Size, radius: 
 
 const round = (n: number) => Math.round(n * 10_000) / 10_000;
 const fmt = (n: number) => String(Math.round(n * 10) / 10);
+
+/**
+ * Moves a point by a pointer's movement (in picture pixels), scaled down by `factor` for fine
+ * control with a finger, and kept on the picture (touch drawing, Ewout 2026-11-03).
+ */
+export function dragPoint(start: Point, dx: number, dy: number, size: Size, factor: number): Point {
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
+  return [
+    round(clamp(start[0] + (dx * factor) / size.width)),
+    round(clamp(start[1] + (dy * factor) / size.height)),
+  ];
+}
+
+/** A tap, not a swipe, scroll or long press: little movement (screen pixels) and quickly up. */
+export function isTap(moved: number, millis: number): boolean {
+  return moved <= TAP_SLOP && millis <= TAP_TIME;
+}
+
+export const TAP_SLOP = 10;
+export const TAP_TIME = 700;
+/** How close (screen pixels) a press must be to a point to pick it up: a fingertip. */
+export const HANDLE_REACH = 28;

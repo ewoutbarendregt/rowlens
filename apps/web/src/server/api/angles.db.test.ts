@@ -112,10 +112,10 @@ describe('angle measurements (ADR-0017)', () => {
 
     const listed = await get(v);
     expect(listed.headers['cache-control']).toBe('private, no-store');
-    const body = listed.json<{ measures: { points: number[][] }[]; boatLine: unknown }>();
+    const body = listed.json<{ measures: { points: number[][] }[]; boatLines: unknown[] }>();
     expect(body.measures).toHaveLength(1);
     expect(body.measures[0]?.points[2]).toEqual([0.6, 0.5]);
-    expect(body.boatLine).toBeNull();
+    expect(body.boatLines).toEqual([]);
 
     const id = first.json<{ id: string }>().id;
     expect((await send('DELETE', `/api/angles/${id}`)).statusCode).toBe(204);
@@ -163,31 +163,35 @@ describe('angle measurements (ADR-0017)', () => {
     }
   });
 
-  it('sets, replaces and removes the boat line', async () => {
-    const v = await videoIn(pilot);
-    const line = {
+  it('keeps a boat line per frame: set, replace, list in order and remove', async () => {
+    const v = await videoIn(pilot, 'ready', 240);
+    const line = (frame: number, y = 0.5) => ({
+      frame,
       points: [
-        [0.1, 0.5],
-        [0.9, 0.55],
-      ],
-    };
-    const set = await send('PUT', `/api/videos/${v}/boat-line`, line);
-    expect(set.json()).toEqual({ boatLine: line.points });
-    await send('PUT', `/api/videos/${v}/boat-line`, {
-      points: [
-        [0.9, 0.5],
-        [0.1, 0.5],
+        [0.1, y],
+        [0.9, y],
       ],
     });
-    expect((await get(v)).json<{ boatLine: unknown }>().boatLine).toEqual([
-      [0.9, 0.5],
-      [0.1, 0.5],
-    ]);
+    const set = await send('PUT', `/api/videos/${v}/boat-line`, line(50));
+    expect(set.json()).toEqual(line(50));
+    await send('PUT', `/api/videos/${v}/boat-line`, line(0));
+    // The same frame again replaces that line.
+    await send('PUT', `/api/videos/${v}/boat-line`, line(50, 0.6));
+    const lines = (await get(v)).json<{ boatLines: { frame: number; points: number[][] }[] }>()
+      .boatLines;
+    expect(lines.map((l) => l.frame)).toEqual([0, 50]);
+    expect(lines[1]?.points[0]).toEqual([0.1, 0.6]);
+
     expect(
       (await send('PUT', `/api/videos/${v}/boat-line`, { points: [[0.1, 0.5]] })).statusCode,
     ).toBe(400);
-    expect((await send('DELETE', `/api/videos/${v}/boat-line`)).statusCode).toBe(204);
-    expect((await get(v)).json<{ boatLine: unknown }>().boatLine).toBeNull();
+    const past = await send('PUT', `/api/videos/${v}/boat-line`, line(240));
+    expect([past.statusCode, past.json()]).toEqual([400, { error: 'frame_out_of_range' }]);
+    expect((await send('DELETE', `/api/videos/${v}/boat-line/50`)).statusCode).toBe(204);
+    expect((await send('DELETE', `/api/videos/${v}/boat-line/50`)).statusCode).toBe(404);
+    expect(
+      (await get(v)).json<{ boatLines: { frame: number }[] }>().boatLines.map((l) => l.frame),
+    ).toEqual([0]);
   });
 
   it("another club's video is a 404, and measurements go with their video", async () => {
@@ -199,6 +203,7 @@ describe('angle measurements (ADR-0017)', () => {
     expect(
       (
         await send('PUT', `/api/videos/${theirs}/boat-line`, {
+          frame: 0,
           points: [
             [0, 0],
             [1, 1],
@@ -212,6 +217,7 @@ describe('angle measurements (ADR-0017)', () => {
     await markAt(pilot, v, 3);
     await send('PUT', `/api/videos/${v}/angles`, knee(3, anna));
     await send('PUT', `/api/videos/${v}/boat-line`, {
+      frame: 0,
       points: [
         [0, 0.5],
         [1, 0.5],

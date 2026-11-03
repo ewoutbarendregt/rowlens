@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { angleArc, angleDegrees, toFraction, toPixels } from './geometry.ts';
+import { angleArc, angleDegrees, toFraction, toPixels, dragPoint, isTap } from './geometry.ts';
 
 const HD = { width: 1920, height: 1080 };
 const SQUARE = { width: 1000, height: 1000 };
@@ -44,5 +44,20 @@ describe('angleArc', () => {
     expect(angleArc([0.5, 0], [0.5, 0.5], [1, 0.5], SQUARE, 100)).toBe(
       'M 500 400 A 100 100 0 0 1 600 500',
     );
+  });
+});
+
+describe('touch drawing helpers', () => {
+  const size = { width: 1000, height: 500 };
+  it('moves a point by the pointer, slower with a finger, and keeps it on the picture', () => {
+    expect(dragPoint([0.5, 0.5], 100, -50, size, 1)).toEqual([0.6, 0.4]);
+    expect(dragPoint([0.5, 0.5], 100, -50, size, 0.5)).toEqual([0.55, 0.45]);
+    expect(dragPoint([0.95, 0.02], 200, -100, size, 1)).toEqual([1, 0]);
+  });
+
+  it('counts a short, still press as a tap, not a swipe or a long press', () => {
+    expect(isTap(3, 150)).toBe(true);
+    expect(isTap(25, 150)).toBe(false);
+    expect(isTap(2, 1500)).toBe(false);
   });
 });

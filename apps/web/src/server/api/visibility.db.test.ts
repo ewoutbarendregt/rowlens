@@ -355,6 +355,7 @@ describe('what a rower sees (#40)', () => {
     const measured = await send('PUT', `${at}/angles`, as.coach, knee);
     expect(measured.statusCode).toBe(200);
     const line = {
+      frame: 0,
       points: [
         [0.1, 0.5],
         [0.9, 0.5],
@@ -364,10 +365,10 @@ describe('what a rower sees (#40)', () => {
     // A rower in the lineup reads them but doesn't measure, remove or draw the boat line.
     const read = (await send('GET', `${at}/angles`, as.a)).json<{
       measures: unknown[];
-      boatLine: unknown;
+      boatLines: { frame: number; points: unknown }[];
     }>();
     expect(read.measures).toHaveLength(1);
-    expect(read.boatLine).toEqual(line.points);
+    expect(read.boatLines).toEqual([{ frame: 0, points: line.points }]);
     expect((await send('PUT', `${at}/angles`, as.a, knee)).statusCode).toBe(403);
     expect((await send('PUT', `${at}/boat-line`, as.a, line)).statusCode).toBe(403);
     const id = measured.json<{ id: string }>().id;
@@ -384,7 +385,7 @@ describe('what a rower sees (#40)', () => {
     // Another coach doesn't see this session, so not its angles either.
     expect((await send('GET', `${at}/angles`, as.coach2)).statusCode).toBe(404);
     expect((await send('DELETE', `/api/angles/${id}`, as.coach)).statusCode).toBe(204);
-    await send('DELETE', `${at}/boat-line`, as.coach);
+    await send('DELETE', `${at}/boat-line/0`, as.coach);
     await send('DELETE', `${at}/strokes/15`, as.coach);
   });
 

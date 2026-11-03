@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { type AngleMeasure, angleTables, type BoatLine, measureValue, phaseOf } from './angles.ts';
+import {
+  type AngleMeasure,
+  angleTables,
+  type BoatLine,
+  boatLineAt,
+  measureValue,
+  phaseOf,
+} from './angles.ts';
 import type { Point } from './geometry.ts';
 import { type StrokeMark, strokesFrom } from './strokes.ts';
 
@@ -111,10 +118,7 @@ describe('angleTables', () => {
       knee('3', 0, 'bram', 180),
       knee('4', 20, 'bram', 180),
     ];
-    const { tables, loose, refused } = angleTables(measures, summary, square, null, [
-      'bram',
-      'anna',
-    ]);
+    const { tables, loose, refused } = angleTables(measures, summary, square, [], ['bram', 'anna']);
     expect(loose).toEqual([]);
     expect(refused).toEqual([]);
     const [table] = tables;
@@ -144,9 +148,51 @@ describe('angleTables', () => {
         ],
       },
     ];
-    const result = angleTables(measures, summary, square, null, []);
+    const result = angleTables(measures, summary, square, [], []);
     expect(result.tables).toEqual([]);
     expect(result.loose.map((m) => m.id)).toEqual(['1']);
     expect(result.refused).toEqual([{ measure: measures[1], reason: 'no_boat_line' }]);
+  });
+});
+
+describe('boatLineAt', () => {
+  const line = (frame: number) => ({ frame, points: leftToRight });
+  it('takes the last line at or before the frame, else the first one', () => {
+    const lines = [line(100), line(0), line(250)];
+    expect(boatLineAt(0, lines)?.frame).toBe(0);
+    expect(boatLineAt(99, lines)?.frame).toBe(0);
+    expect(boatLineAt(100, lines)?.frame).toBe(100);
+    expect(boatLineAt(400, lines)?.frame).toBe(250);
+    expect(boatLineAt(5, [line(50)])?.frame).toBe(50); // before the first: the nearest one
+    expect(boatLineAt(5, [])).toBeNull();
+  });
+
+  it('measures each upper body against the line that applies at its frame', () => {
+    const trunk = (id: string, frame: number): AngleMeasure => ({
+      id,
+      frame,
+      rowerId: 'anna',
+      joint: 'trunk',
+      points: [
+        [0.5, 0.6],
+        [0.55, 0.4],
+      ],
+    });
+    const turned: BoatLine = [leftToRight[1], leftToRight[0]];
+    const marks = strokesFrom([c(0), f(20), c(60), f(80)], 30);
+    const { tables } = angleTables(
+      [trunk('1', 0), trunk('2', 60)],
+      marks,
+      square,
+      [
+        { frame: 0, points: leftToRight },
+        { frame: 50, points: turned },
+      ],
+      ['anna'],
+    );
+    // The same body leans forward against the first line and back against the turned one: the
+    // mean of +14 and -14 is 0.
+    expect(tables[0]?.rows[0]?.cells.catch?.mean).toBeCloseTo(0, 6);
+    expect(tables[0]?.rows[0]?.cells.catch?.min).toBeCloseTo(-14.04, 2);
   });
 });

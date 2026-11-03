@@ -1030,6 +1030,64 @@ a.list__item {
   touch-action: none;
 }
 
+/* Placed points while drawing: a ring a fingertip can find, the exact point inside. */
+.drawing__handle-ring {
+  fill: color-mix(in srgb, var(--rl-draw) 22%, transparent);
+  stroke: var(--rl-draw-edge);
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Save / start over / cancel while drawing, over the bottom of the picture (also in full screen). */
+.drawing-confirm {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 8px;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  background: rgb(20 20 20 / 0.82);
+  color: #f2efe9;
+  font-size: 0.8125rem;
+  transform: translateX(-50%);
+}
+
+.drawing-confirm__hint {
+  flex-basis: 100%;
+  text-align: center;
+}
+
+.drawing-confirm button {
+  min-width: 44px;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #f2efe9;
+  font: inherit;
+  cursor: pointer;
+}
+
+.drawing-confirm button.drawing-confirm__save {
+  border-color: var(--rl-draw);
+  background: var(--rl-draw);
+  color: var(--rl-on-draw);
+  font-weight: var(--weight-bold);
+}
+
+.drawing-confirm button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .drawing__line {
   fill: none;
   stroke: var(--rl-draw);
@@ -2755,6 +2813,27 @@ a.list__item {
   gap: var(--space-1);
 }
 
+.angles__lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  flex-basis: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-small);
+}
+
+.angles__lines li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.page .angles__lines button.angles__value[aria-current='true'] {
+  text-decoration-thickness: 2px;
+}
+
 .angles__prompt {
   display: flex;
   flex-wrap: wrap;
@@ -2839,7 +2918,7 @@ a.list__item {
   font-variant-numeric: tabular-nums;
 }
 
-.page .angles__table button.angles__value {
+.page .angles button.angles__value {
   min-height: 28px;
   padding: 0 0.25rem;
   border: 0;

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Boat lines per moment; drawing made for fingers
+
+**Session**: claude/feat/boat-lines-touch-drawing
+**Changed**: apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0015_boat_lines_per_frame.sql (+ meta), apps/web/src/server/api/{angles.ts,angles.db.test.ts,visibility.db.test.ts}, apps/web/src/shared/{angles.ts,angles.test.ts}, apps/web/src/client/drawing/{DrawingLayer.tsx,geometry.ts,geometry.test.ts}, apps/web/src/client/angles/{AnglesPanel.tsx,strings.ts}, apps/web/src/client/notes/strings.ts, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/{helpers.ts,drawing.spec.ts,angles.spec.ts}, docs/adr/0017-angles-per-phase.md, BUILD.md, TEST.md, BUGS.md, DOCUMENTATION.md
+**Summary**: A video can hold several boat lines, each from its frame on, because the camera turns; upper-body angles use the line that applies at their frame. Drawing on the picture (drawings, angle measurements, boat lines) is made for fingers after the head coach's iPhone feedback: points only on a short still tap, draggable at half speed until Save, with Save / Start over / Cancel over the picture. Checked with real finger taps in iPhone WebKit. Found on the way: BUG-016 (a lineup rower sometimes lost under load). Also deployed earlier today: `sha-22e875b` (angles per phase #134), deploy run 41661584397. Not merged or deployed.
+**Prompts used**: "de bootlijn moet verschillende keren in een video gezet kunnen worden. door de veranderende hoek waarin gefilmd wordt, verandert die baseline vrij snel. verder nog de volgende ervaringen met gebruik van de iphone: … Lijn door bootlengte is lastig, te gevoelig. Hoeken moeten met lijnen aangeduid worden en het scherm is dan heel gevoelig … Bij de minste aanraking heb je een lijn."
+
 ## 2026-11-03 — Angles per rower and phase, with the boat line (ADR-0017)
 
 **Session**: claude/feat/angle-measures

@@ -50,3 +50,18 @@ estimation (ADR-0009) is later work and needs hand-measured references to be eva
 - Measuring a crew at three phases over several strokes takes the coach a while (3 taps per joint).
   The table shows how many strokes each mean is over, so a mean of one is visibly thin.
 - The wrist angle (head coach) needs hand keypoints and isn't in this set yet.
+
+## Addendum (2026-11-03): several boat lines; drawing made for fingers
+
+- **A boat line per moment.** A moving camera turns the boat in the picture quickly (Ewout), so a
+  video holds several boat lines, each from its frame on (`video_boat_line` keyed by video and frame,
+  migration 0015). An upper-body measurement uses the last line set at or before its frame; before
+  the first line, the first (`boatLineAt`). Existing lines start at frame 0.
+- **Drawing with a finger** (the head coach on an iPhone: "at the slightest touch you have a line";
+  the boat line was "too sensitive"). For drawings, measurements and boat lines alike:
+  - a point is placed only by a short, still tap; a swipe, a second finger or a long press places
+    nothing;
+  - nothing is saved until **Save** (Enter); every point stays draggable until then, at half speed
+    with a finger, so it can be placed precisely without the finger covering it;
+  - "Start over" clears the points, Backspace takes the last one back, Esc cancels.
+
