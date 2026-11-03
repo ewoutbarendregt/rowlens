@@ -292,7 +292,10 @@ scripts/github/      backlog/labels/milestones bootstrap
 - UI: side column tabs Notes | Strokes (both stay mounted). The Strokes tab has the mark buttons
   (coaches) for the frame on screen, the averages, and a table per stroke (jump, loop catch → next
   catch via the player handle's `setLoop`). Keys I / H / U mark (the same key again removes), ↑ / ↓
-  jump between catches. Ticks on a strip under the note markers (out of the tab order). Low laptop
+  jump between catches. On a strip under the note markers (out of the tab order): the catch an arrow
+  down, the finish an arrow up, a marked half slide a tick, and (when turned on in the Strokes tab,
+  per device, `strokes/preferences.ts`) the calculated middle of each drive as an open circle, unless
+  the coach marked a half slide on that drive (ADR-0016 addendum). Low laptop
   screens (≤ 640 px high) get a 48 px play button so the player column still fits.
 
 ## Interface language (ADR-0015)

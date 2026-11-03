@@ -58,6 +58,14 @@ describe('strokesFrom', () => {
     expect(plain?.halfSlideRecovery).toBeNull();
   });
 
+  it('computes the middle of the drive, halfway between catch and finish', () => {
+    const [even, odd, open] = strokesFrom([c(0), f(20), c(60), f(75), c(120)], 30).strokes;
+    expect(even?.driveMiddle).toBe(10);
+    expect(odd?.driveMiddle).toBe(68); // 67.5 rounds to the nearer later frame
+    expect(open?.driveMiddle).toBeNull(); // no finish, no middle
+    expect(strokesFrom([c(0), f(20), f(25), c(60)], 30).strokes[0]?.driveMiddle).toBeNull();
+  });
+
   it('handles fractional frame rates and leaves marks before the first catch out', () => {
     const summary = strokesFrom([f(3), c(10), f(30), c(70)], 30000 / 1001);
     expect(summary.loose).toEqual([3]);

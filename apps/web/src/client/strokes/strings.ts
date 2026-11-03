@@ -9,6 +9,10 @@ const en = {
     StrokeMarkKind,
     string
   >,
+  driveMiddle: 'Middle of the drive (calculated)',
+  driveMiddleToggle: 'Show the middle of the drive, calculated',
+  driveMiddleHint:
+    'Halfway in time between catch and finish, as an open circle on the timeline. A half slide the coach marked on the drive comes first.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' } as Record<StrokeMarkKind, string>,
   markHint: 'Step to the frame, then press the button or its key. Pressed again, it comes off.',
   keyHintMark: 'I H U catch / half slide / finish',
@@ -51,6 +55,10 @@ const nl: typeof en = {
   notes: 'Notities',
   mark: 'Markeren op dit frame',
   kinds: { catch: 'Inpik', half_slide: 'Halve bank', finish: 'Uitpik' },
+  driveMiddle: 'Midden van de haal (berekend)',
+  driveMiddleToggle: 'Midden van de haal tonen, berekend',
+  driveMiddleHint:
+    'Halverwege in tijd tussen inpik en uitpik, als open rondje op de tijdlijn. Een halve bank die de coach in de haal markeerde gaat voor.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' },
   markHint: 'Stap naar het frame en druk op de knop of de toets. Nog een keer weghalen.',
   keyHintMark: 'I H U inpik / halve bank / uitpik',

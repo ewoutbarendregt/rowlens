@@ -32,13 +32,15 @@ export interface PlayerProps {
   overlay?: ReactNode;
   /** The page's own shortcuts, added to the line of keys (e.g. "N notes on/off"). */
   keyHints?: readonly string[];
-  /** Stroke marks (#85): a thin strip of ticks under the note markers; clicking one jumps there. */
+  /** Stroke marks (#85) on a strip under the note markers: the catch an arrow down, the finish an
+   * arrow up (Ewout, 2026-11-03), the half slide a tick; clicking one jumps there. */
   strokeMarks?: readonly PlayerStrokeMark[];
 }
 
 export interface PlayerStrokeMark {
   frame: number;
-  kind: 'catch' | 'half_slide' | 'finish';
+  /** `drive_middle`: computed, not marked (halfway between catch and finish). */
+  kind: 'catch' | 'half_slide' | 'finish' | 'drive_middle';
   /** e.g. "Catch, stroke 3, frame 412". */
   label: string;
 }
@@ -262,10 +264,14 @@ export function Player({
               style={{ left: `${String((m.frame / last) * 100)}%` }}
               title={m.label}
               data-frame={m.frame}
+              data-kind={m.kind}
               onClick={() => {
                 p.seekToFrame(m.frame);
               }}
-            />
+            >
+              {m.kind === 'catch' && <Icon name="arrowDown" size={14} strokeWidth={2.75} />}
+              {m.kind === 'finish' && <Icon name="arrowUp" size={14} strokeWidth={2.75} />}
+            </button>
           ))}
         </div>
       )}

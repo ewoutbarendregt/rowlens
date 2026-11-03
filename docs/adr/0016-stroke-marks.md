@@ -34,3 +34,14 @@ doesn't have yet, and ADR-0009 needs hand-labelled catch and finish frames to ev
   ↑ / ↓ to move between catches) and why one series covers the boat.
 - Changing a mark changes every timing at once, and nothing goes stale.
 - Per-phase angles (step 2) attach to these frames; automatic marks later get compared against them.
+
+## Addendum (2026-11-03): arrows, and the middle of the drive as a calculated option
+
+- Under the video the catch shows as an **arrow down**, the finish as an **arrow up**; a marked half
+  slide stays a short tick (Ewout).
+- Ewout asked for the **middle of the drive, calculated**, as an option. It is the frame halfway in
+  time between catch and finish (`Stroke.driveMiddle` in `shared/strokes.ts`), shown as an open
+  circle on the timeline and named "calculated" in its label. It is **off by default** and remembered
+  per device. A half slide the coach marked on the drive always wins, and the calculated point is
+  never stored or used as a measured half slide: it is a guide for stepping, not evidence.
+
