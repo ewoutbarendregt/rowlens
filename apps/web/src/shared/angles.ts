@@ -41,7 +41,60 @@ export function boatLineAt(frame: number, lines: readonly FrameBoatLine[]): Fram
   return sorted.filter((l) => l.frame <= frame).at(-1) ?? sorted[0] ?? null;
 }
 
-export type AngleRefusal = 'no_boat_line' | 'bad_points';
+/**
+ * The boat line found in every frame by the worker (ADR-0018): per frame `[x0, y0, x1, y1,
+ * confidence]`, left end first, or null. `bowSide` is a coach's choice of which end is the bow.
+ */
+export type AutoFrame = readonly [number, number, number, number, number] | null;
+export interface AutoBoatLines {
+  frames: readonly AutoFrame[];
+  bowSide: 'left' | 'right' | null;
+}
+
+export type ResolvedBoatLine =
+  | { source: 'coach'; frame: number; points: BoatLine }
+  /** `points` bow side first, or null while nobody said which end is the bow. */
+  | { source: 'auto'; frame: number; points: BoatLine | null; ends: BoatLine; confidence: number };
+
+/**
+ * The boat line on a frame (ADR-0018): a coach's line on exactly this frame wins; otherwise the
+ * line found on this frame, its bow side taken from the nearest coach's line or the coach's
+ * choice; otherwise the coach's lines as before (`boatLineAt`).
+ */
+export function resolveBoatLine(
+  frame: number,
+  coach: readonly FrameBoatLine[],
+  auto: AutoBoatLines | null,
+): ResolvedBoatLine | null {
+  const exact = coach.find((l) => l.frame === frame);
+  if (exact !== undefined) return { source: 'coach', frame, points: exact.points };
+  const found = auto?.frames[frame] ?? null;
+  if (found !== null) {
+    const [x0, y0, x1, y1, confidence] = found;
+    const left: Point = [x0, y0];
+    const right: Point = [x1, y1];
+    const nearest = [...coach].sort(
+      (a, b) => Math.abs(a.frame - frame) - Math.abs(b.frame - frame),
+    )[0];
+    const bowLeft =
+      nearest !== undefined
+        ? nearest.points[0][0] < nearest.points[1][0]
+        : auto?.bowSide === null || auto === null
+          ? null
+          : auto.bowSide === 'left';
+    return {
+      source: 'auto',
+      frame,
+      points: bowLeft === null ? null : bowLeft ? [left, right] : [right, left],
+      ends: [left, right],
+      confidence,
+    };
+  }
+  const line = boatLineAt(frame, coach);
+  return line === null ? null : { source: 'coach', frame: line.frame, points: line.points };
+}
+
+export type AngleRefusal = 'no_boat_line' | 'no_bow_side' | 'bad_points';
 
 export type AngleValue = { ok: true; degrees: number } | { ok: false; reason: AngleRefusal };
 

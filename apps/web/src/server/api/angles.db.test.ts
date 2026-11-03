@@ -228,6 +228,75 @@ describe('angle measurements (ADR-0017)', () => {
     expect(await asOwner(`select 1 from video_boat_line where video_id = $1`, [v])).toEqual([]);
   });
 
+  it('changing a boat line queues one new search for the boat line in every frame (ADR-0018)', async () => {
+    const v = await videoIn(pilot);
+    const auto = () =>
+      app.inject({ url: `${BASE}/api/videos/${v}/auto-boat-line`, headers: { cookie } });
+    const queued = () =>
+      asOwner(
+        `select 1 from job where type = 'video.boat_line' and status = 'queued' and payload->>'videoId' = $1`,
+        [v],
+      );
+    expect((await auto()).json()).toEqual({ status: 'none', frames: null, bowSide: null });
+
+    const line = (frame: number) => ({
+      frame,
+      points: [
+        [0.1, 0.5],
+        [0.9, 0.55],
+      ],
+    });
+    expect((await send('PUT', `/api/videos/${v}/boat-line`, line(0))).statusCode).toBe(200);
+    expect((await auto()).json()).toMatchObject({ status: 'queued' });
+    expect(await queued()).toHaveLength(1);
+    // A second change while the first search still waits doesn't queue another.
+    await send('PUT', `/api/videos/${v}/boat-line`, line(50));
+    expect((await send('DELETE', `/api/videos/${v}/boat-line/50`)).statusCode).toBe(204);
+    expect(await queued()).toHaveLength(1);
+
+    // What the worker leaves, and the bow side a coach picks; the worker's rerun keeps that.
+    await asOwner(
+      `update video_auto_boat_line set status = 'done', frames = '[[0.1,0.5,0.9,0.55,0.9],null]' where video_id = $1`,
+      [v],
+    );
+    expect(
+      (await send('PUT', `/api/videos/${v}/auto-boat-line/bow-side`, { bowSide: 'right' })).json(),
+    ).toEqual({ bowSide: 'right' });
+    expect(
+      (await send('PUT', `/api/videos/${v}/auto-boat-line/bow-side`, { bowSide: 'up' })).statusCode,
+    ).toBe(400);
+    expect((await auto()).json()).toEqual({
+      status: 'done',
+      frames: [[0.1, 0.5, 0.9, 0.55, 0.9], null],
+      bowSide: 'right',
+    });
+    await send('PUT', `/api/videos/${v}/boat-line`, line(0));
+    expect((await auto()).json()).toMatchObject({ status: 'queued', bowSide: 'right' });
+
+    // Another club's video is a 404; the lines go with their video.
+    const [other] = await asOwner<{ id: string }>(
+      `insert into club (slug, name) values ('b-' || gen_random_uuid(), 'Other') returning id`,
+    );
+    const theirs = await videoIn(other?.id ?? '');
+    expect(
+      (
+        await app.inject({
+          url: `${BASE}/api/videos/${theirs}/auto-boat-line`,
+          headers: { cookie },
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (await send('PUT', `/api/videos/${theirs}/auto-boat-line/bow-side`, { bowSide: 'left' }))
+        .statusCode,
+    ).toBe(404);
+    await asOwner(`delete from job where payload->>'videoId' = $1`, [v]);
+    await asOwner(`delete from video where id = $1`, [v]);
+    expect(await asOwner(`select 1 from video_auto_boat_line where video_id = $1`, [v])).toEqual(
+      [],
+    );
+  });
+
   it('merging two roster entries moves the measurements; the kept one wins a clash', async () => {
     const v = await videoIn(pilot);
     const [from, into] = [await rowerIn(pilot), await rowerIn(pilot)];

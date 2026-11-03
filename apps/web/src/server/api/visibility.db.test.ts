@@ -389,6 +389,38 @@ describe('what a rower sees (#40)', () => {
     await send('DELETE', `${at}/strokes/15`, as.coach);
   });
 
+  it('the boat line found per frame: everyone who sees the video reads it, coaches set the bow (ADR-0018)', async () => {
+    const at = `/api/videos/${videoId}/auto-boat-line`;
+    await asOwner(
+      `insert into video_auto_boat_line (club_id, video_id, status, frames) values ($1, $2, 'done', '[null,[0.1,0.5,0.9,0.52,0.8]]')
+       on conflict (video_id) do update set status = 'done', frames = excluded.frames`,
+      [club, videoId],
+    );
+    expect((await send('GET', at, as.a)).json()).toMatchObject({
+      status: 'done',
+      frames: [null, [0.1, 0.5, 0.9, 0.52, 0.8]],
+    });
+    expect((await send('PUT', `${at}/bow-side`, as.a, { bowSide: 'left' })).statusCode).toBe(403);
+    expect((await send('PUT', `${at}/bow-side`, as.coach, { bowSide: 'left' })).json()).toEqual({
+      bowSide: 'left',
+    });
+    // Underneath the API, the database refuses a rower too.
+    const [a] = await asOwner<{ id: string }>(`select id from app_user where email = $1`, [A]);
+    await expect(
+      withTenant(handle.db, { clubId: club, userId: a?.id ?? null, role: 'rower' }, (tx) =>
+        tx.execute(
+          sql`update video_auto_boat_line set bow_side = 'right' where video_id = ${videoId} returning video_id`,
+        ),
+      ),
+    ).resolves.toMatchObject({ rows: [] });
+    // Another coach doesn't see this session, so not its lines either.
+    expect((await send('GET', at, as.coach2)).statusCode).toBe(404);
+    expect((await send('PUT', `${at}/bow-side`, as.coach2, { bowSide: 'right' })).statusCode).toBe(
+      404,
+    );
+    await asOwner(`delete from video_auto_boat_line where video_id = $1`, [videoId]);
+  });
+
   it('every table a rower is limited on has a restrictive role policy', async () => {
     const rows = await asOwner<{ tablename: string }>(
       `select distinct tablename from pg_policies where permissive = 'RESTRICTIVE' order by 1`,
@@ -404,6 +436,7 @@ describe('what a rower sees (#40)', () => {
       'rowing_session',
       'stroke_mark',
       'video',
+      'video_auto_boat_line',
       'video_boat_line',
     ]);
   });

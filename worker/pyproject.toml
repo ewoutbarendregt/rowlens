@@ -4,6 +4,8 @@ version = "0.0.0"
 description = "RowLens background worker: probing, transcoding and video analysis"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "numpy>=2.1",
+    "opencv-python-headless>=4.10",
     "psycopg[binary]>=3.2",
 ]
 

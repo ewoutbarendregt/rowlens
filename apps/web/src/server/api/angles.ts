@@ -1,9 +1,17 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { JOINT_POINTS, JOINTS } from '../../shared/angles.ts';
 import { can } from '../auth/can.ts';
-import { angleMeasure, rower, strokeMark, video, videoBoatLine } from '../db/schema.ts';
+import {
+  angleMeasure,
+  rower,
+  strokeMark,
+  video,
+  videoAutoBoatLine,
+  videoBoatLine,
+} from '../db/schema.ts';
+import type { Tx } from '../db/client.ts';
 import { withTenant } from '../db/tenant.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
@@ -20,6 +28,28 @@ const measureBody = z
   .refine((m) => m.points.length === JOINT_POINTS[m.joint], { path: ['points'] });
 const boatLineBody = z.object({ frame: z.int().min(0), points: z.tuple([point, point]) });
 const frameParams = z.object({ id: z.uuid(), frame: z.coerce.number().int().min(0) });
+const bowSideBody = z.object({ bowSide: z.enum(['left', 'right']) });
+
+/**
+ * Finds the boat line in every frame again (ADR-0018), now that a coach changed one: the worker
+ * restarts its following from the coach's lines. One queued run per video is enough.
+ */
+async function requeueAutoBoatLine(tx: Tx, clubId: string, videoId: string) {
+  await tx
+    .insert(videoAutoBoatLine)
+    .values({ clubId, videoId, status: 'queued' })
+    .onConflictDoUpdate({
+      target: videoAutoBoatLine.videoId,
+      set: { status: 'queued', updatedAt: new Date() },
+    });
+  await tx.execute(sql`
+    insert into job (club_id, type, payload)
+    select ${clubId}, 'video.boat_line', jsonb_build_object('videoId', ${videoId}::text)
+    where not exists (
+      select 1 from job
+      where type = 'video.boat_line' and status = 'queued' and payload->>'videoId' = ${videoId}
+    )`);
+}
 
 const columns = {
   id: angleMeasure.id,
@@ -169,7 +199,9 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
           set: { points: body.data.points, updatedAt: new Date() },
         })
         .returning({ frame: videoBoatLine.frame, points: videoBoatLine.points });
-      return row ?? ('not_found' as const);
+      if (row === undefined) return 'not_found' as const;
+      await requeueAutoBoatLine(tx, tenant.clubId, v.id);
+      return row;
     });
     if (result === 'not_found') return notFound(reply);
     if (result === 'bad_frame') return reply.code(400).send({ error: 'frame_out_of_range' });
@@ -180,8 +212,9 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     const params = frameParams.safeParse(req.params);
     if (!params.success) return notFound(reply);
     if (!allowed(req)) return reply.code(403).send({ error: 'forbidden' });
-    const gone = await withTenant(db, tenantOf(req), (tx) =>
-      tx
+    const tenant = tenantOf(req);
+    const gone = await withTenant(db, tenant, async (tx) => {
+      const rows = await tx
         .delete(videoBoatLine)
         .where(
           and(
@@ -189,9 +222,55 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
             eq(videoBoatLine.frame, params.data.frame),
           ),
         )
-        .returning({ frame: videoBoatLine.frame }),
-    );
+        .returning({ frame: videoBoatLine.frame });
+      if (rows.length > 0) await requeueAutoBoatLine(tx, tenant.clubId, params.data.id);
+      return rows;
+    });
     return gone.length === 0 ? notFound(reply) : reply.code(204).send();
+  });
+
+  // The boat line found in every frame (ADR-0018), for everyone who sees the video. Its own
+  // request: one entry per frame is too much to send with every angles load.
+  app.get('/api/videos/:id/auto-boat-line', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!params.success) return notFound(reply);
+    const result = await withTenant(db, tenantOf(req), async (tx) => {
+      const [v] = await tx.select({ id: video.id }).from(video).where(eq(video.id, params.data.id));
+      if (v === undefined) return null;
+      const [row] = await tx
+        .select({
+          status: videoAutoBoatLine.status,
+          frames: videoAutoBoatLine.frames,
+          bowSide: videoAutoBoatLine.bowSide,
+        })
+        .from(videoAutoBoatLine)
+        .where(eq(videoAutoBoatLine.videoId, v.id));
+      return row ?? { status: 'none', frames: null, bowSide: null };
+    });
+    return result ?? notFound(reply);
+  });
+
+  // Which end of the found line is the bow, when no coach's line says so (ADR-0018).
+  app.put('/api/videos/:id/auto-boat-line/bow-side', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!params.success) return notFound(reply);
+    const body = bowSideBody.safeParse(req.body);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_bow_side' });
+    if (!allowed(req)) return reply.code(403).send({ error: 'forbidden' });
+    const tenant = tenantOf(req);
+    const result = await withTenant(db, tenant, async (tx) => {
+      const [v] = await tx.select({ id: video.id }).from(video).where(eq(video.id, params.data.id));
+      if (v === undefined) return null;
+      await tx
+        .insert(videoAutoBoatLine)
+        .values({ clubId: tenant.clubId, videoId: v.id, bowSide: body.data.bowSide })
+        .onConflictDoUpdate({
+          target: videoAutoBoatLine.videoId,
+          set: { bowSide: body.data.bowSide, updatedAt: new Date() },
+        });
+      return { bowSide: body.data.bowSide };
+    });
+    return result ?? notFound(reply);
   });
 
   done();
