@@ -50,6 +50,21 @@ test('mark strokes with the keys and read rate, drive, recovery and ratio', asyn
   }
   await expect(catchButton).toHaveAttribute('aria-pressed', 'true'); // a catch on the frame on screen
 
+  // Under the video: the catch an arrow down, the finish an arrow up (Ewout, 2026-11-03).
+  const strip = page.getByTestId('stroke-marks');
+  await expect(strip.locator('[data-kind="catch"] svg')).toHaveCount(4);
+  await expect(strip.locator('[data-kind="finish"] svg')).toHaveCount(3);
+  // The middle of the drive, calculated, only when turned on: halfway catch → finish.
+  const middles = strip.locator('[data-kind="drive_middle"]');
+  await expect(middles).toHaveCount(0);
+  await panel.getByRole('checkbox').check();
+  await expect(middles).toHaveCount(3);
+  await expect(middles.first()).toHaveAttribute('data-frame', '20');
+  await expect(middles.nth(1)).toHaveAttribute('data-frame', '58');
+  await panel.getByRole('checkbox').uncheck();
+  await expect(middles).toHaveCount(0);
+  await page.locator('h1').click();
+
   const rows = page.getByTestId('stroke-row');
   await expect(rows).toHaveCount(4);
   // Stroke 1: 40 frames → 45.0 spm, drive 20 frames = 0.67 s, recovery 20 frames, 1 : 1.0.

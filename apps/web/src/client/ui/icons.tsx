@@ -32,6 +32,18 @@ const paths = {
       <path d="m21 21-4.3-4.3" />
     </>
   ),
+  arrowDown: (
+    <>
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
+    </>
+  ),
+  arrowUp: (
+    <>
+      <path d="m5 12 7-7 7 7" />
+      <path d="M12 19V5" />
+    </>
+  ),
   arrowLeft: (
     <>
       <path d="m12 19-7-7 7-7" />
@@ -89,10 +101,13 @@ export function Icon({
   name,
   size = 16,
   label,
+  strokeWidth = 1.6,
 }: {
   name: IconName;
   size?: number;
   label?: string;
+  /** Heavier for small marks, e.g. the arrows on the timeline. */
+  strokeWidth?: number;
 }) {
   return (
     <svg
@@ -102,7 +117,7 @@ export function Icon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.6}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden={label === undefined ? true : undefined}

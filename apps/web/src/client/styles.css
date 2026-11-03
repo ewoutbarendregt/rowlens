@@ -1292,8 +1292,9 @@ a.list__item {
   outline-offset: 1px;
 }
 
-/* Stroke marks (#85): ticks on a thin strip under the note diamonds. Catch: a full gold tick;
-   finish: an open one; half slide: a short one. The hit area is wider than the tick. */
+/* Stroke marks (#85) on a thin strip under the note diamonds (Ewout, 2026-11-03): the catch an
+   arrow down, the finish an arrow up, the marked half slide a short tick, the computed middle of
+   the drive a small open circle. Hit areas are a little wider than the marks. */
 .player__strokes {
   position: relative;
   height: 14px;
@@ -1303,7 +1304,9 @@ a.list__item {
 .player button.player__stroke {
   position: absolute;
   top: 0;
-  width: 10px;
+  display: grid;
+  place-items: center;
+  width: 12px;
   height: 14px;
   min-width: 0;
   min-height: 0;
@@ -1311,30 +1314,42 @@ a.list__item {
   border: 0;
   border-radius: 0;
   background: transparent;
+  color: var(--color-text-brand);
   transform: translateX(-50%);
   cursor: pointer;
 }
 
-.player button.player__stroke::after {
+.player button.player__stroke--finish {
+  color: var(--color-accent);
+}
+
+.player button.player__stroke--half_slide::after,
+.player button.player__stroke--drive_middle::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 0;
-  width: 3px;
-  height: 12px;
-  border: 1px solid var(--color-accent);
-  border-radius: 1px;
-  background: var(--color-accent);
   transform: translateX(-50%);
 }
 
-.player button.player__stroke--finish::after {
+.player button.player__stroke--half_slide::after {
+  bottom: 1px;
+  width: 3px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--color-accent);
+}
+
+.player button.player__stroke--drive_middle::after {
+  bottom: 2px;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid var(--color-accent);
+  border-radius: 50%;
   background: var(--color-bg);
 }
 
-.player button.player__stroke--half_slide::after {
-  height: 6px;
-  background: var(--color-bg);
+.player--fullscreen button.player__stroke {
+  color: #f4c37f;
 }
 
 .player__scrub {
@@ -2690,4 +2705,27 @@ a.list__item {
     width: 48px;
     height: 48px;
   }
+}
+
+/* The computed middle of the drive: a choice with its explanation under it. */
+.strokes__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.strokes__option input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--color-accent);
+}
+
+.strokes__option-hint {
+  display: block;
+  font-size: var(--text-small);
 }

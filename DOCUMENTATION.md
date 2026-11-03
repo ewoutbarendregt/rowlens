@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Arrows for catch and finish; the middle of the drive, calculated (optional)
+
+**Session**: claude/feat/stroke-arrows-drive-middle
+**Changed**: apps/web/src/shared/{strokes.ts,strokes.test.ts}, apps/web/src/client/player/Player.tsx, apps/web/src/client/ui/icons.tsx, apps/web/src/client/strokes/{StrokesPanel.tsx,strings.ts,preferences.ts,preferences.test.ts}, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/strokes.spec.ts, docs/adr/0016-stroke-marks.md, BUILD.md, TEST.md, DOCUMENTATION.md
+**Summary**: Under the video the catch is now an arrow down and the finish an arrow up. A switch in the Strokes tab (off by default, per device) shows the middle of each drive, halfway in time between catch and finish, as an open circle; a half slide the coach marked on that drive wins. Also deployed earlier today: `sha-07f03c7` (stroke marks #132), deploy run 41645570076, migration 0013 applied (14 migrations), readiness and neighbours checked. Not merged or deployed.
+**Prompts used**: "kun je onder de video de indicaties van inpik en uitpik markeren met een pijltje omlaag (inpik) en een pijltje omhoog (uitpik) en kun je het midden van de haal optioneel automatisch laten uitrekenen"
+
 ## 2026-11-03 — Stroke marks: catch, half slide, finish; timings per stroke (#85)
 
 **Session**: claude/feat/85-stroke-marks

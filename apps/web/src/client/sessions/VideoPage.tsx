@@ -31,6 +31,7 @@ import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
+import { rememberDriveMiddle, storedDriveMiddle } from '../strokes/preferences.ts';
 import { strokeStrings } from '../strokes/strings.ts';
 import {
   neighbourCatch,
@@ -105,6 +106,7 @@ export function VideoPage() {
   const [marking, setMarking] = useState(false);
   const [markFailed, setMarkFailed] = useState(false);
   const [sideTab, setSideTab] = useState<'notes' | 'strokes'>('notes');
+  const [driveMiddle, setDriveMiddle] = useState(storedDriveMiddle);
   const canMark = auth.state.kind === 'open' && auth.state.user.role !== 'rower';
 
   const toggleNotes = useCallback(() => {
@@ -254,13 +256,27 @@ export function VideoPage() {
   const strokeSummary = useMemo(() => strokesFrom(marks, fps), [marks, fps]);
   const strokeMarks = useMemo(() => {
     const st = strokeStrings();
-    return marks.map((m) => {
+    const marked = marks.map((m) => {
       const stroke = strokeSummary.strokes.find(
         (s) => m.frame >= s.catch && (s.nextCatch === null || m.frame < s.nextCatch),
       );
       return { ...m, label: st.markLabel(st.kinds[m.kind], stroke?.number ?? null, m.frame) };
     });
-  }, [marks, strokeSummary]);
+    if (!driveMiddle) return marked;
+    // The computed middle of each drive, where the coach didn't mark a half slide on it.
+    const computed = strokeSummary.strokes.flatMap((s) =>
+      s.driveMiddle === null || s.halfSlideDrive !== null
+        ? []
+        : [
+            {
+              frame: s.driveMiddle,
+              kind: 'drive_middle' as const,
+              label: st.markLabel(st.driveMiddle, s.number, s.driveMiddle),
+            },
+          ],
+    );
+    return [...marked, ...computed].sort((a, b) => a.frame - b.frame);
+  }, [marks, strokeSummary, driveMiddle]);
   const activeMoment = useMemo(() => {
     // While drawing, the exact frame remains visible even when playback annotations are off.
     if (!notesVisible && tool === null) return null;
@@ -555,6 +571,11 @@ export function VideoPage() {
                 }}
                 onLoop={(loopIn, loopOut) => {
                   player.current?.setLoop(loopIn, loopOut);
+                }}
+                driveMiddle={driveMiddle}
+                onDriveMiddleChange={(on) => {
+                  setDriveMiddle(on);
+                  rememberDriveMiddle(on);
                 }}
               />
             </div>

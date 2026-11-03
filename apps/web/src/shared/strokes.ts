@@ -31,6 +31,12 @@ export interface Stroke {
   /** Half slide on the drive and on the recovery: only when the coach marked it. */
   halfSlideDrive: number | null;
   halfSlideRecovery: number | null;
+  /**
+   * The middle of the drive in time, halfway between catch and finish: a computed stand-in for the
+   * half slide on the drive, shown only when the viewer turns it on (Ewout, 2026-11-03). Null
+   * without a single finish. A marked half slide always wins.
+   */
+  driveMiddle: number | null;
   /** Strokes per minute, catch to catch. */
   rate: Measured;
   /** Seconds. */
@@ -114,6 +120,7 @@ export function strokesFrom(marks: readonly StrokeMark[], fps: number): StrokeSu
       finish,
       halfSlideDrive,
       halfSlideRecovery,
+      driveMiddle: finish === null ? null : Math.round((at + finish) / 2),
       rate,
       drive,
       recovery,

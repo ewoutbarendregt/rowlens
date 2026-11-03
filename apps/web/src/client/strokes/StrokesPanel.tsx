@@ -24,6 +24,9 @@ interface StrokesPanelProps {
   onMark: (kind: StrokeMarkKind) => void;
   onJump: (frame: number) => void;
   onLoop: (loopIn: number, loopOut: number) => void;
+  /** The computed middle of the drive on the timeline (per device, off by default). */
+  driveMiddle: boolean;
+  onDriveMiddleChange: (on: boolean) => void;
 }
 
 /**
@@ -79,6 +82,20 @@ export function StrokesPanel(props: StrokesPanelProps) {
           {t.failed}
         </p>
       )}
+
+      <label className="strokes__option">
+        <input
+          type="checkbox"
+          checked={props.driveMiddle}
+          onChange={(e) => {
+            props.onDriveMiddleChange(e.target.checked);
+          }}
+        />
+        <span>
+          {t.driveMiddleToggle}
+          <span className="muted strokes__option-hint">{t.driveMiddleHint}</span>
+        </span>
+      </label>
 
       {summary.strokes.length === 0 ? (
         <p className="muted">{props.canMark ? t.noneCanMark : t.none}</p>
