@@ -18,8 +18,8 @@ growth features. Suggested order:
 | First login: claim notes made under my name | rower | must | decision needed (name matching) | #110 |
 | Sessions list as start page: filter and sort; admin sees all, others their own | everyone | must | done locally, PR open | #108 |
 | Look of the mockups (Classical): login, header, sessions table per month | everyone | must | done locally, PR open | ADR-0014 |
-| Video page from the mockups; author = your account | coach, rower | must | author + notes in video done (#125); layout 1e done locally, PR open; "For" chips per seat planned | ADR-0014 |
-| Technique analysis: what coaches look at first (blade, angles per phase, crew uniformity, wrist) | coach | must | backlog, after stroke marks (#85) | #127 |
+| Video page from the mockups; author = your account | coach, rower | must | author + notes in video (#125) and layout 1e (#128) deployed; "For" chips per seat done locally, PR open | ADR-0014 |
+| Technique analysis: what coaches look at first (blade, angles per phase, crew uniformity, wrist; the head coach's full list: upper body, hand and blade height, slip, rolls, boat speed) | coach | must | backlog, after stroke marks (#85); boat speed needs a decision (video vs. imported sensor data) | #127 |
 | My notes: feedback for me from every coach, with the video moment | rower | must | planned | #109 |
 | Reassign a note to someone else | rower | should | decision needed (free or coach-approved) | #111 |
 | Dictate a note and transcribe it | coach | should | decision needed (where transcription runs, ADR-0010) | #107 |
