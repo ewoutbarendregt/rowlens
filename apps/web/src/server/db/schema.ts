@@ -526,19 +526,24 @@ export const angleMeasure = pgTable(
 
 /**
  * The boat's line in a video (ADR-0017): two points, bow side first, that the upper-body angle is
- * measured against, so a tilted camera doesn't skew it and "forward" is known. One per video.
+ * measured against, so a tilted camera doesn't skew it and "forward" is known. Several per video,
+ * each from its frame on, because a moving camera turns the boat in the picture (Ewout,
+ * 2026-11-03); see `boatLineAt` in `shared/angles.ts`.
  */
 export const videoBoatLine = pgTable(
   'video_boat_line',
   {
     clubId: uuid('club_id').notNull(),
-    videoId: uuid('video_id').primaryKey(),
+    videoId: uuid('video_id').notNull(),
+    frame: integer('frame').notNull().default(0),
     points: jsonb('points').notNull(),
     createdByUserId: uuid('created_by_user_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    primaryKey({ name: 'video_boat_line_pk', columns: [t.videoId, t.frame] }),
+    check('video_boat_line_frame_check', sql`${t.frame} >= 0`),
     foreignKey({
       name: 'video_boat_line_video_fk',
       columns: [t.clubId, t.videoId],

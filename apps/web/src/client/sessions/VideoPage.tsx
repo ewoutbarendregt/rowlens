@@ -36,7 +36,8 @@ import { angleStrings, leanText } from '../angles/strings.ts';
 import {
   type AngleMeasure,
   angleTables,
-  type BoatLine,
+  boatLineAt,
+  type FrameBoatLine,
   measureValue,
   phaseOf,
 } from '../../shared/angles.ts';
@@ -117,7 +118,7 @@ export function VideoPage() {
   const [sideTab, setSideTab] = useState<'notes' | 'strokes' | 'angles'>('notes');
   // Angle measurements per phase (ADR-0017) and the boat line the upper body is measured against.
   const [measures, setMeasures] = useState<AngleMeasure[]>([]);
-  const [boatLine, setBoatLine] = useState<BoatLine | null>(null);
+  const [boatLines, setBoatLines] = useState<FrameBoatLine[]>([]);
   const [measuring, setMeasuring] = useState<Measuring | null>(null);
   const [angleBusy, setAngleBusy] = useState(false);
   const [angleFailed, setAngleFailed] = useState(false);
@@ -192,13 +193,13 @@ export function VideoPage() {
     api(`/api/videos/${id}/angles`)
       .then((res) =>
         res.ok
-          ? (res.json() as Promise<{ measures: AngleMeasure[]; boatLine: BoatLine | null }>)
+          ? (res.json() as Promise<{ measures: AngleMeasure[]; boatLines: FrameBoatLine[] }>)
           : null,
       )
       .then((body) => {
         if (body === null) return;
         setMeasures(body.measures);
-        setBoatLine(body.boatLine);
+        setBoatLines(body.boatLines);
       })
       .catch(() => {
         // The player still works; the angles tab shows what it has.
@@ -347,10 +348,10 @@ export function VideoPage() {
         measures,
         strokeSummary,
         size,
-        boatLine,
+        boatLines,
         angleRowers.map((r) => r.id),
       ),
-    [measures, strokeSummary, size, boatLine, angleRowers],
+    [measures, strokeSummary, size, boatLines, angleRowers],
   );
   const phaseHere = useMemo(() => {
     const phase = phaseOf(current, strokeSummary);
@@ -449,7 +450,7 @@ export function VideoPage() {
       }
       setMeasuring(null);
       if (measuring.kind === 'boat_line') {
-        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', { points });
+        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', { frame: frame.current, points });
       } else {
         angleRequest(`/api/videos/${id}/angles`, 'PUT', {
           frame: frame.current,
@@ -465,13 +466,15 @@ export function VideoPage() {
   // On the picture: the note's drawings, the angles measured on exactly this frame, and the boat
   // line while the Angles tab is open or it is being drawn.
   const pictureDrawings = useMemo(() => {
+    // The boat line that applies on this frame (a moving camera turns the boat).
+    const lineHere = boatLineAt(current, boatLines);
     const at = angleStrings();
     const nameOf = (rowerId: string) =>
       (angleRowers.find((r) => r.id === rowerId)?.name ?? '').trim().split(/\s+/)[0] ?? '';
     const measured = measures
       .filter((m) => m.frame === current)
       .map((m): Drawing => {
-        const value = measureValue(m, size, boatLine);
+        const value = measureValue(m, size, boatLineAt(m.frame, boatLines)?.points ?? null);
         const label =
           m.joint === 'trunk' && value.ok
             ? `${nameOf(m.rowerId)} · ${leanText(value.degrees, at)}`
@@ -485,11 +488,11 @@ export function VideoPage() {
         };
       });
     const line: Drawing[] =
-      boatLine !== null && (sideTab === 'angles' || measuring?.kind === 'boat_line')
-        ? [{ id: 'boat-line', kind: 'line', points: boatLine, variant: 'boat' }]
+      lineHere !== null && (sideTab === 'angles' || measuring?.kind === 'boat_line')
+        ? [{ id: 'boat-line', kind: 'line', points: lineHere.points, variant: 'boat' }]
         : [];
     return [...drawingsHere, ...measured, ...line];
-  }, [drawingsHere, measures, current, size, boatLine, angleRowers, sideTab, measuring]);
+  }, [drawingsHere, measures, current, size, boatLines, angleRowers, sideTab, measuring]);
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -750,7 +753,8 @@ export function VideoPage() {
               <AnglesPanel
                 tables={anglesNow}
                 measures={measures}
-                boatLine={boatLine}
+                boatLines={boatLines}
+                fps={fps}
                 size={size}
                 rowers={angleRowers}
                 here={phaseHere}
@@ -764,8 +768,8 @@ export function VideoPage() {
                 onDelete={(measureId) => {
                   angleRequest(`/api/angles/${measureId}`, 'DELETE');
                 }}
-                onRemoveBoatLine={() => {
-                  angleRequest(`/api/videos/${id}/boat-line`, 'DELETE');
+                onRemoveBoatLine={(lineFrame) => {
+                  angleRequest(`/api/videos/${id}/boat-line/${String(lineFrame)}`, 'DELETE');
                 }}
                 onJump={(f) => {
                   player.current?.seekToFrame(f);

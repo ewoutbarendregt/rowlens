@@ -3,6 +3,11 @@ import { lang } from '../i18n/language.ts';
 const en = {
   notes: 'Notes and drawings',
   draw: 'Draw',
+  drawSave: 'Save',
+  drawRedo: 'Start over',
+  drawAdjust: 'Drag a point to place it precisely, then save.',
+  drawPoints: (placed: number, needed: number) =>
+    `Point ${String(placed)} of ${String(needed)}: tap the next one.`,
   tools: { line: 'Line', arrow: 'Arrow', angle: 'Angle' },
   hints: {
     line: 'Tap the start and the end on the picture.',
@@ -65,6 +70,11 @@ const en = {
 const nl: typeof en = {
   notes: 'Notities en tekeningen',
   draw: 'Tekenen',
+  drawSave: 'Opslaan',
+  drawRedo: 'Opnieuw',
+  drawAdjust: 'Sleep een punt om het precies te zetten, en sla dan op.',
+  drawPoints: (placed: number, needed: number) =>
+    `Punt ${String(placed)} van ${String(needed)}: tik het volgende aan.`,
   tools: { line: 'Lijn', arrow: 'Pijl', angle: 'Hoek' },
   hints: {
     line: 'Tik op het begin en het eind op het beeld.',

@@ -310,6 +310,12 @@ scripts/github/      backlog/labels/milestones bootstrap
 - `shared/geometry.ts` (moved from the client: `toPixels`, `angleDegrees`); `shared/angles.ts`:
   `measureValue` (inner angle, or upper-body lean against the boat line, forward positive),
   `phaseOf`, `angleTables` (per joint, rower × phase: mean, n, min–max, frames; crew range).
+- Boat lines per moment (migration 0015): `video_boat_line` keyed by (video, frame); `boatLineAt`
+  picks the line for a frame; `PUT /api/videos/:id/boat-line {frame, points}`,
+  `DELETE /api/videos/:id/boat-line/:frame`.
+- Touch drawing (`drawing/DrawingLayer.tsx`): points on a short still tap (`isTap`), draggable
+  handles within a fingertip (`HANDLE_REACH`, `dragPoint`, half speed for touch), and a confirm bar
+  (Save / Start over / Cancel) over the picture; Enter / Backspace / Esc.
 - UI: third side tab Angles (`angles/AnglesPanel.tsx`): boat line, measuring on a marked frame
   (rower chip + joint, then taps through `DrawingLayer` with `angle` or `line`), measurements on this
   frame, a table per joint. On the picture: measurements of the frame on screen with their label,

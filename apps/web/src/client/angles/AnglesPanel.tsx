@@ -8,9 +8,11 @@ import {
   measureValue,
   type Phase,
   PHASES,
-  type BoatLine,
+  boatLineAt,
+  type FrameBoatLine,
 } from '../../shared/angles.ts';
 import type { Size } from '../../shared/geometry.ts';
+import { formatFrameTime } from '../player/frames.ts';
 import { angleStrings, leanText } from './strings.ts';
 
 /** What the picture is waiting for: the boat line, or a rower's joint. */
@@ -19,7 +21,9 @@ export type Measuring = { kind: 'boat_line' } | { kind: 'joint'; rowerId: string
 interface AnglesPanelProps {
   tables: AngleTables;
   measures: readonly AngleMeasure[];
-  boatLine: BoatLine | null;
+  /** Several per video, each from its frame on (a moving camera turns the boat). */
+  boatLines: readonly FrameBoatLine[];
+  fps: number;
   size: Size;
   /** The lineup first (seat · name), in boat order. */
   rowers: readonly { id: string; label: string; name: string }[];
@@ -34,7 +38,7 @@ interface AnglesPanelProps {
   failed: boolean;
   onMeasure: (m: Measuring | null) => void;
   onDelete: (id: string) => void;
-  onRemoveBoatLine: () => void;
+  onRemoveBoatLine: (frame: number) => void;
   onJump: (frame: number) => void;
 }
 
@@ -57,6 +61,8 @@ export function AnglesPanel(props: AnglesPanelProps) {
         ? t.boatSteps
         : t.steps[props.measuring.joint];
   const chosen = props.rowers.some((r) => r.id === rowerId) ? rowerId : null;
+  // The boat line that applies on the frame on screen.
+  const here = boatLineAt(props.frame, props.boatLines);
 
   return (
     <section className="card angles" data-testid="angles">
@@ -66,8 +72,10 @@ export function AnglesPanel(props: AnglesPanelProps) {
       <div className="angles__boat">
         <span>
           <strong>{t.boatLine}</strong>{' '}
-          <span className="muted">
-            {props.boatLine === null ? t.boatLineMissing : t.boatLineSet}
+          <span className="muted" data-testid="boat-line-here">
+            {here === null
+              ? t.boatLineMissing
+              : t.boatLineFrom(here.frame, formatFrameTime(here.frame, props.fps))}
           </span>
         </span>
         {props.canMeasure && (
@@ -83,19 +91,47 @@ export function AnglesPanel(props: AnglesPanelProps) {
                 );
               }}
             >
-              {props.boatLine === null ? t.drawBoatLine : t.redrawBoatLine}
+              {here === null
+                ? t.drawBoatLine
+                : here.frame === props.frame
+                  ? t.redrawBoatLine
+                  : t.newBoatLine}
             </button>
-            {props.boatLine !== null && (
-              <button
-                type="button"
-                className="button--quiet"
-                disabled={props.busy}
-                onClick={props.onRemoveBoatLine}
-              >
-                {t.removeBoatLine}
-              </button>
-            )}
           </span>
+        )}
+        {props.boatLines.length > 0 && (
+          <ul className="angles__lines" aria-label={t.boatLines}>
+            {props.boatLines.map((line) => {
+              const at = formatFrameTime(line.frame, props.fps);
+              return (
+                <li key={line.frame} data-testid="boat-line">
+                  <button
+                    type="button"
+                    className="angles__value"
+                    aria-current={line.frame === here?.frame ? 'true' : undefined}
+                    onClick={() => {
+                      props.onJump(line.frame);
+                    }}
+                  >
+                    {t.fromFrame(line.frame, at)}
+                  </button>
+                  {props.canMeasure && (
+                    <button
+                      type="button"
+                      className="chip__remove"
+                      aria-label={t.removeBoatLineAt(line.frame)}
+                      disabled={props.busy}
+                      onClick={() => {
+                        props.onRemoveBoatLine(line.frame);
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </div>
 
@@ -182,7 +218,11 @@ export function AnglesPanel(props: AnglesPanelProps) {
           <h3>{t.onThisFrame}</h3>
           <ul>
             {onThisFrame.map((m) => {
-              const value = measureValue(m, props.size, props.boatLine);
+              const value = measureValue(
+                m,
+                props.size,
+                boatLineAt(m.frame, props.boatLines)?.points ?? null,
+              );
               const what = `${nameOf(m.rowerId)} · ${t.joints[m.joint]}`;
               return (
                 <li key={m.id} data-testid="angle-here">

@@ -18,7 +18,8 @@ const measureBody = z
     points: z.array(point).min(2).max(3),
   })
   .refine((m) => m.points.length === JOINT_POINTS[m.joint], { path: ['points'] });
-const boatLineBody = z.object({ points: z.tuple([point, point]) });
+const boatLineBody = z.object({ frame: z.int().min(0), points: z.tuple([point, point]) });
+const frameParams = z.object({ id: z.uuid(), frame: z.coerce.number().int().min(0) });
 
 const columns = {
   id: angleMeasure.id,
@@ -56,11 +57,13 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         .from(angleMeasure)
         .where(eq(angleMeasure.videoId, v.id))
         .orderBy(asc(angleMeasure.frame), asc(angleMeasure.createdAt));
-      const [line] = await tx
-        .select({ points: videoBoatLine.points })
+      // Several per video, each from its frame on (ADR-0017 addendum).
+      const boatLines = await tx
+        .select({ frame: videoBoatLine.frame, points: videoBoatLine.points })
         .from(videoBoatLine)
-        .where(eq(videoBoatLine.videoId, v.id));
-      return { measures, boatLine: line?.points ?? null };
+        .where(eq(videoBoatLine.videoId, v.id))
+        .orderBy(asc(videoBoatLine.frame));
+      return { measures, boatLines };
     });
     return result ?? notFound(reply);
   });
@@ -137,6 +140,7 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     return gone.length === 0 ? notFound(reply) : reply.code(204).send();
   });
 
+  // Sets the boat line from a frame on, or replaces the one at that frame.
   app.put('/api/videos/:id/boat-line', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
@@ -145,35 +149,47 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     if (!allowed(req)) return reply.code(403).send({ error: 'forbidden' });
     const tenant = tenantOf(req);
     const result = await withTenant(db, tenant, async (tx) => {
-      const [v] = await tx.select({ id: video.id }).from(video).where(eq(video.id, params.data.id));
-      if (v === undefined) return null;
+      const [v] = await tx
+        .select({ id: video.id, frameCount: video.frameCount })
+        .from(video)
+        .where(eq(video.id, params.data.id));
+      if (v === undefined) return 'not_found' as const;
+      if (v.frameCount !== null && body.data.frame >= v.frameCount) return 'bad_frame' as const;
       const [row] = await tx
         .insert(videoBoatLine)
         .values({
           clubId: tenant.clubId,
           videoId: v.id,
+          frame: body.data.frame,
           points: body.data.points,
           createdByUserId: tenant.userId,
         })
         .onConflictDoUpdate({
-          target: videoBoatLine.videoId,
+          target: [videoBoatLine.videoId, videoBoatLine.frame],
           set: { points: body.data.points, updatedAt: new Date() },
         })
-        .returning({ points: videoBoatLine.points });
-      return row ?? null;
+        .returning({ frame: videoBoatLine.frame, points: videoBoatLine.points });
+      return row ?? ('not_found' as const);
     });
-    return result === null ? notFound(reply) : { boatLine: result.points };
+    if (result === 'not_found') return notFound(reply);
+    if (result === 'bad_frame') return reply.code(400).send({ error: 'frame_out_of_range' });
+    return result;
   });
 
-  app.delete('/api/videos/:id/boat-line', { preHandler: guard }, async (req, reply) => {
-    const params = idParam.safeParse(req.params);
+  app.delete('/api/videos/:id/boat-line/:frame', { preHandler: guard }, async (req, reply) => {
+    const params = frameParams.safeParse(req.params);
     if (!params.success) return notFound(reply);
     if (!allowed(req)) return reply.code(403).send({ error: 'forbidden' });
     const gone = await withTenant(db, tenantOf(req), (tx) =>
       tx
         .delete(videoBoatLine)
-        .where(eq(videoBoatLine.videoId, params.data.id))
-        .returning({ videoId: videoBoatLine.videoId }),
+        .where(
+          and(
+            eq(videoBoatLine.videoId, params.data.id),
+            eq(videoBoatLine.frame, params.data.frame),
+          ),
+        )
+        .returning({ frame: videoBoatLine.frame }),
     );
     return gone.length === 0 ? notFound(reply) : reply.code(204).send();
   });

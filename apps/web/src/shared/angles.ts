@@ -26,6 +26,21 @@ export interface AngleMeasure {
 /** Bow side first, then stern side: the boat's direction, so "forward" is known. */
 export type BoatLine = readonly [Point, Point];
 
+/** A boat line from its frame on, until the next one (a moving camera turns the boat). */
+export interface FrameBoatLine {
+  frame: number;
+  points: BoatLine;
+}
+
+/**
+ * The boat line for a frame: the last one set at or before it; before the first one, the first
+ * (nearest in time). Null when the video has none.
+ */
+export function boatLineAt(frame: number, lines: readonly FrameBoatLine[]): FrameBoatLine | null {
+  const sorted = [...lines].sort((a, b) => a.frame - b.frame);
+  return sorted.filter((l) => l.frame <= frame).at(-1) ?? sorted[0] ?? null;
+}
+
 export type AngleRefusal = 'no_boat_line' | 'bad_points';
 
 export type AngleValue = { ok: true; degrees: number } | { ok: false; reason: AngleRefusal };
@@ -107,7 +122,7 @@ export function angleTables(
   measures: readonly AngleMeasure[],
   summary: StrokeSummary,
   size: Size,
-  boatLine: BoatLine | null,
+  boatLines: readonly FrameBoatLine[],
   rowerOrder: readonly string[],
 ): AngleTables {
   const loose: AngleMeasure[] = [];
@@ -119,7 +134,7 @@ export function angleTables(
       loose.push(m);
       continue;
     }
-    const value = measureValue(m, size, boatLine);
+    const value = measureValue(m, size, boatLineAt(m.frame, boatLines)?.points ?? null);
     if (!value.ok) {
       refused.push({ measure: m, reason: value.reason });
       continue;

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
-import { openProcessedClip } from './helpers.ts';
+import { openProcessedClip, settledBox } from './helpers.ts';
 
 // Angles per rower and phase (ADR-0017) on a video the real worker processed (edge stack only):
 // a coach marks a catch, draws the boat line, measures two rowers' knees and an upper body, and
@@ -12,10 +12,15 @@ test.skip(edgeUrl === undefined, 'needs the worker: pnpm edge:up && pnpm e2e:edg
 
 /** Taps the picture at fractions of its width and height. */
 async function tap(page: Page, points: [number, number][]) {
-  const box = await page.locator('.player__stage').boundingBox();
-  if (box === null) throw new Error('no stage');
-  for (const [x, y] of points)
-    await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
+  const box = await settledBox(page, 'drawing-layer');
+  // A finger where the device has one: the touch path is what coaches use (2026-11-03).
+  const finger = test.info().project.use.hasTouch === true;
+  for (const [x, y] of points) {
+    if (finger) await page.touchscreen.tap(box.x + x * box.width, box.y + y * box.height);
+    else await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
+  }
+  // Points stay adjustable until saved (touch drawing, 2026-11-03).
+  await page.getByTestId('drawing-save').click();
 }
 
 test('measure knees and the upper body at the catch, per rower, with the crew difference', async ({
@@ -57,7 +62,8 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
     [0.1, 0.6],
     [0.9, 0.6],
   ]);
-  await expect(panel).toContainText(/Set:|Gezet:/);
+  await expect(page.getByTestId('boat-line')).toHaveCount(1);
+  await expect(page.getByTestId('boat-line-here')).toContainText(/frame 0/);
 
   const measure = async (rower: RegExp, joint: RegExp, points: [number, number][]) => {
     await panel.getByRole('button', { name: rower }).click();
@@ -107,4 +113,21 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
   await expect(page.getByTestId('player-frame')).toHaveText('1');
   await expect(panel).toContainText(/Step to a catch|Stap naar een inpik/);
   await expect(panel.getByRole('button', { name: /^(Measure|Meten) \(/ })).toHaveCount(0);
+
+  // A second boat line from here on (a moving camera turns the boat); frame 0 keeps the first.
+  await panel
+    .getByRole('button', {
+      name: /^(New boat line from this frame|Nieuwe bootlijn vanaf dit frame)$/,
+    })
+    .click();
+  await tap(page, [
+    [0.1, 0.55],
+    [0.9, 0.65],
+  ]);
+  await expect(page.getByTestId('boat-line')).toHaveCount(2);
+  await expect(page.getByTestId('boat-line-here')).toContainText(/frame 1\b/);
+  await page.locator('h1').click();
+  await page.keyboard.press(',');
+  await expect(page.getByTestId('player-frame')).toHaveText('0');
+  await expect(page.getByTestId('boat-line-here')).toContainText(/frame 0\b/);
 });
