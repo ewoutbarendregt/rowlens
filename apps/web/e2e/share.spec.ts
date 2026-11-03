@@ -34,7 +34,7 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
   await expect(page.getByTestId('rower-list')).toContainText(`Rita ${tag}`);
 
   await page.goto(videoUrl);
-  await page.getByRole('link', { name: /^← (Back to|Terug naar) / }).click();
+  await page.getByRole('link', { name: /^(Back to|Terug naar) / }).click();
   const lineup = page.getByTestId('lineup');
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C1x');
   await lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ }).fill(`Rita ${tag}`);

@@ -207,7 +207,9 @@ export function SessionPage() {
                   <strong>{nameOf(v)}</strong>
                 )}
                 <span className="muted">
-                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)} · {v.filename}
+                  {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
+                  {/* The file's own name only helps while it is on its way or refused. */}
+                  {v.status !== 'ready' && <> · {v.filename}</>}
                 </span>
                 <span className={`badge badge--${v.status}`} data-testid="video-status">
                   {v.status === 'processing' && v.processingProgress !== null

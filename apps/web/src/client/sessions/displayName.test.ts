@@ -27,15 +27,15 @@ describe('videoDisplayName', () => {
     ).toBe('Avond-1-19:05-0:05');
   });
 
-  it('marks what is not known yet', () => {
+  it('leaves out what is not known, without question marks', () => {
     expect(
       videoDisplayName({ sessionTitle: 'S', seq: 3, recordedAt: null, durationMs: null }, AMS),
-    ).toBe('S-3-??:??-?:??');
+    ).toBe('S-3');
     expect(
       videoDisplayName(
         { sessionTitle: 'S', seq: null, recordedAt: 'nonsense', durationMs: 60_000 },
         AMS,
       ),
-    ).toBe('S-?-??:??-1:00');
+    ).toBe('S-1:00');
   });
 });

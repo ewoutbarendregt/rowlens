@@ -232,7 +232,10 @@ export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardP
   );
 }
 
-/** One line for pages that only show the lineup (the video page): "C4x+ · Boeg Jan · 2 Piet · …". */
+/**
+ * The lineup in the video page's header (mockup 1e): one column per seat, the seat above the name,
+ * bow to stroke and the cox last, after the boat.
+ */
 export function LineupSummary({
   boatType,
   lineup,
@@ -242,15 +245,20 @@ export function LineupSummary({
 }) {
   const t = lineupStrings();
   if (boatType === null || lineup.length === 0) return null;
+  // Seat 0 is the cox: after the rowers.
+  const seats = [...lineup].sort((a, b) => (a.seat || 99) - (b.seat || 99));
   return (
-    <p className="muted lineup-summary" data-testid="lineup-summary">
-      <span className="visually-hidden">{t.lineup}: </span>
-      {[
-        boatType,
-        ...lineup.map(
-          (s) => `${t.seat(seatRole(boatType, s.seat), s.seat)} ${s.rower.displayName}`,
-        ),
-      ].join(' · ')}
-    </p>
+    <dl className="lineup-cols" data-testid="lineup-summary" aria-label={t.lineup}>
+      <div>
+        <dt>{t.boat}</dt>
+        <dd>{boatType}</dd>
+      </div>
+      {seats.map((s) => (
+        <div key={s.seat}>
+          <dt>{t.seat(seatRole(boatType, s.seat), s.seat)}</dt>
+          <dd>{s.rower.displayName}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

@@ -39,12 +39,14 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
     .getByLabel(/^(Choose videos|Video’s kiezen)$/)
     .setInputFiles([{ name: 'stroke.webm', mimeType: 'video/webm', buffer: clip }]);
   await page.getByRole('button', { name: /^(Upload|Uploaden)$/ }).click();
-  const video = page.getByTestId('video').filter({ hasText: 'stroke.webm' });
+  // The only video in this new session; a ready video no longer shows its file name.
+  const video = page.getByTestId('video');
   await expect(video.getByTestId('video-status')).toHaveText(/^(Ready|Klaar)$/, {
     timeout: 60_000,
   });
-  // The display name: [session]-[#]-[start]-[length]; the E2E clip has no recording time.
-  await video.getByRole('link', { name: `${title}-1-??:??-0:04`, exact: true }).click();
+  // The display name: [session]-[#]-[start]-[length]; the E2E clip has no recording time, so
+  // that part is left out.
+  await video.getByRole('link', { name: `${title}-1-0:04`, exact: true }).click();
   await expect(page.getByTestId('player-frame')).toHaveText('0');
   // Steps need the frame count from the metadata; before that they clamp to frame 0.
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);

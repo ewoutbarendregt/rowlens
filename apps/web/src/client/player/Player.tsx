@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react';
+import { Icon } from '../ui/icons.tsx';
 import { formatFrameTime } from './frames.ts';
 import { playerStrings } from './strings.ts';
 import { SPEEDS, type PlayerMeasurement, type Speed, usePlayer } from './usePlayer.ts';
@@ -25,10 +26,12 @@ export interface PlayerProps {
   markers?: readonly PlayerMarker[];
   /** Lets the page seek and pause, e.g. when a note in a list is chosen. */
   handle?: Ref<PlayerHandle>;
-  /** Extra controls from the page (e.g. the quality switch), laid out with the player's own. */
+  /** The page's tools for the picture (draw, notes on video, quality): a row above it (mockup 1e). */
   toolbar?: ReactNode;
   /** Drawn over the picture inside the stage, so it goes into full screen too (#60). */
   overlay?: ReactNode;
+  /** The page's own shortcuts, added to the line of keys (e.g. "N notes on/off"). */
+  keyHints?: readonly string[];
 }
 
 export interface PlayerMarker {
@@ -61,6 +64,7 @@ export function Player({
   handle,
   toolbar,
   overlay,
+  keyHints = [],
 }: PlayerProps) {
   const t = playerStrings();
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -192,6 +196,7 @@ export function Player({
       ref={p.containerRef}
       className={`player${p.immersive ? ' player--immersive' : ''}${p.fullscreen ? ' player--fullscreen' : ''}`}
     >
+      {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
       <div
         className="player__stage"
         // The stage takes the picture's shape, so portrait video isn't a narrow strip (BUG-005).
@@ -210,20 +215,7 @@ export function Player({
         {overlay}
       </div>
 
-      <div className="player__readout" aria-live="off">
-        <span>
-          {t.frame} <strong data-testid="player-frame">{p.frame}</strong> / {p.count - 1}
-        </span>
-        <span>
-          {formatFrameTime(p.frame, fps)} · {p.rate}×
-        </span>
-        {!p.exact && (
-          <span className="player__approx" title={t.approximate}>
-            ≈
-          </span>
-        )}
-      </div>
-
+      {/* Mockup 1e: the moments above the track, the track, then where you are. */}
       {markers !== undefined && markers.length > 0 && (
         <div className="player__markers" data-testid="player-markers">
           {markers.map((m) => (
@@ -261,8 +253,42 @@ export function Player({
         />
       </div>
 
+      <div className="player__readout" aria-live="off">
+        <span>
+          {t.frame} <strong data-testid="player-frame">{p.frame}</strong> / {p.count - 1}
+        </span>
+        <span>
+          {formatFrameTime(p.frame, fps)} · {p.rate}×
+          {!p.exact && (
+            <span className="player__approx" title={t.approximate}>
+              {' '}
+              ≈
+            </span>
+          )}
+        </span>
+      </div>
+
+      {/* Speed | steps around a round play button | loop and full screen. */}
       <div className="player__controls" role="toolbar" aria-label={t.controls}>
-        <div className="player__group">
+        <div className="player__group player__speed" role="group" aria-label={t.speed}>
+          <span className="player__label" aria-hidden="true">
+            {t.speedShort}
+          </span>
+          {SPEEDS.map((speed) => (
+            <button
+              key={speed}
+              type="button"
+              aria-pressed={p.rate === speed}
+              onClick={() => {
+                p.setRate(speed);
+              }}
+            >
+              {speed}×
+            </button>
+          ))}
+        </div>
+
+        <div className="player__group player__steps">
           <button type="button" aria-label={t.secondBack} {...back1s}>
             −1s
           </button>
@@ -278,7 +304,7 @@ export function Player({
             aria-label={p.playing ? t.pause : t.play}
             onClick={p.togglePlay}
           >
-            {p.playing ? '❚❚' : '▶'}
+            <Icon name={p.playing ? 'pause' : 'play'} size={22} />
           </button>
           <button type="button" aria-label={t.frameForward} {...fwd1f}>
             +1f
@@ -291,22 +317,7 @@ export function Player({
           </button>
         </div>
 
-        <div className="player__group" role="group" aria-label={t.speed}>
-          {SPEEDS.map((speed) => (
-            <button
-              key={speed}
-              type="button"
-              aria-pressed={p.rate === speed}
-              onClick={() => {
-                p.setRate(speed);
-              }}
-            >
-              {speed}×
-            </button>
-          ))}
-        </div>
-
-        <div className="player__group">
+        <div className="player__group player__loop">
           <button type="button" aria-label={t.loopIn} onClick={p.setLoopIn}>
             [
           </button>
@@ -316,7 +327,7 @@ export function Player({
             disabled={p.loop === null}
             onClick={p.toggleLoop}
           >
-            {t.loop}
+            <Icon name="repeat" /> {t.loop}
           </button>
           <button type="button" aria-label={t.loopOut} onClick={p.setLoopOut}>
             ]
@@ -334,11 +345,11 @@ export function Player({
             aria-label={p.fullscreen ? t.exitFullscreen : t.fullscreen}
             onClick={p.toggleFullscreen}
           >
-            ⛶
+            <Icon name={p.fullscreen ? 'minimize' : 'maximize'} />
           </button>
         </div>
       </div>
-      {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
+      <p className="player__keys">{[t.keys, ...keyHints].join(' · ')}</p>
     </div>
   );
 }

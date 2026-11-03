@@ -1,4 +1,5 @@
 import { notesStrings } from '../notes/strings.ts';
+import { Icon } from '../ui/icons.tsx';
 import type { DrawingKind } from './geometry.ts';
 
 const TOOLS: DrawingKind[] = ['line', 'arrow', 'angle'];
@@ -8,13 +9,15 @@ interface DrawToolsProps {
   onTool: (tool: DrawingKind | null) => void;
 }
 
-/** Line, arrow, angle (#60): in the player's toolbar, right under the picture they draw on. */
+/** Line, arrow, angle (#60): in the row of tools right above the picture they draw on. */
 export function DrawTools({ tool, onTool }: DrawToolsProps) {
   const t = notesStrings();
   return (
     <div className="draw" role="group" aria-label={t.draw}>
       <div className="draw__tools">
-        <span className="draw__title">{t.draw}</span>
+        <span className="draw__title">
+          <Icon name="pencil" size={14} /> {t.draw}
+        </span>
         {TOOLS.map((kind) => (
           <button
             key={kind}

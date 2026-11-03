@@ -120,11 +120,19 @@ scripts/github/      backlog/labels/milestones bootstrap
 - Stage: `--aspect` (video width/height, set inline from metadata) and `--stage-cap`; width =
   min(column, cap × aspect), `aspect-ratio: var(--aspect)`, video absolutely positioned inside with
   `object-fit: contain`. Phones: cap 60dvh. Full screen: the stage takes the free grid row.
-- ≥ 1000 px: two columns, the player (sticky) left and the notes (own scroll) right; compact header.
-  Landscape video: controls under the video (cap = 100dvh − 320px). Portrait video (`aspect < 0.9`,
-  from the worker's display size): three zones, the video at cap = 100dvh − 130px with an absolute
-  width, its controls in a column beside it, notes right. Phones: stacked.
-- The quality switch is part of the player (`toolbar` prop); its explanation is a tooltip.
+- ≥ 1000 px: two columns, the player (sticky) left and the notes (own scroll) right. Landscape video:
+  cap = 100dvh − 330px (the control row on two rows), − 280px from 1360 px (one row); the player
+  column then fits the screen once scrolled to the top. Portrait video (`aspect < 0.9`, from the
+  worker's display size): three zones, the video at cap = 100dvh − 130px with an absolute width, its
+  tools and controls in a column beside it, notes right. Phones: stacked.
+- Mockup 1e (2026-11-03): header with back link, title and facts left, the lineup as columns right
+  (`LineupSummary`, a `dl`); the page's tools (`toolbar` prop: draw, notes on video, hold, quality)
+  in one row **above** the picture on a laptop and below the controls on a phone; markers as
+  diamonds above the track, then the readout; the control row speed | steps around a round play
+  button | loop and full screen (container query on the player: one row from 880 px, three rows
+  under 520 px); a line of keyboard shortcuts on laptops (`keyHints` adds the page's own, e.g. N),
+  hidden on touch screens and below 640 px high. The "Notes for" filter sits in the notes column
+  header and drives both the list and the video. Full screen is a flex column.
 - Checked: Chrome at 1000×540, 1440×860 and 1920×1000 (landscape and portrait: video, controls and
   note field in one view; portrait video 231×410 / 411×730 / 489×870); iPhone 13 in WebKit.
 
@@ -137,8 +145,9 @@ scripts/github/      backlog/labels/milestones bootstrap
 ## Video names (Ewout, 2026-11-01)
 
 - Shown as `[session]-[#]-[start]-[length]`, e.g. `Zaterdag CX4+-2-09:48-1:27`
-  (`client/sessions/displayName.ts`); unknown parts `??:??` / `?:??`. The original file name stays
-  as a detail.
+  (`client/sessions/displayName.ts`); unknown parts are left out (Ewout, 2026-11-03: no question
+  marks), e.g. `Zaterdag CX4+-2-1:27` for a phone export without a start time. The
+  original file name shows only while a video uploads or when it is refused (2026-11-03).
 - `video.seq`: 1, 2, 3… per session in upload order, given at upload creation (under the creation
   lock) and never renumbered; unique per session. Migration 0005 numbers existing videos.
 - `video.recorded_at`: the worker reads Apple's `com.apple.quicktime.creationdate` first (filming

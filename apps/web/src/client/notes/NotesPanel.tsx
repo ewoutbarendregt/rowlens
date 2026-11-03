@@ -63,6 +63,8 @@ interface NotesPanelProps {
   /** Shared with the player overlay: both surfaces always show the same rower's notes. */
   forRower: string | null;
   onForRowerChange: (rowerId: string | null) => void;
+  /** The viewer's own roster entry, offered as "My notes". */
+  myRowerId?: string | undefined;
 }
 
 /**
@@ -123,7 +125,37 @@ export function NotesPanel(props: NotesPanelProps) {
 
   return (
     <section className="card notes" aria-labelledby={`${id}-h`}>
-      <h2 id={`${id}-h`}>{t.notes}</h2>
+      {/* Mockup 1e: the title with its count, and whose notes, in one row. */}
+      <div className="notes__head">
+        <h2 id={`${id}-h`}>
+          {t.notes} <span className="notes__count">· {everything.length}</span>
+        </h2>
+        {(withNotes.length > 0 || props.myRowerId !== undefined) && (
+          <div className="notes__filter">
+            {/* Labelled by `for`, not by wrapping: its name stays "Notes for", without the choice. */}
+            <label htmlFor={`${id}-for`}>{t.notesFor}</label>
+            <select
+              id={`${id}-for`}
+              value={filter ?? ''}
+              onChange={(e) => {
+                props.onForRowerChange(e.target.value === '' ? null : e.target.value);
+              }}
+            >
+              <option value="">{t.everyone}</option>
+              {props.myRowerId !== undefined && (
+                <option value={props.myRowerId}>{t.myNotes}</option>
+              )}
+              {withNotes
+                .filter((r) => r.id !== props.myRowerId)
+                .map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.displayName}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {props.authorName !== undefined && (
         <p className="notes__author">{t.writingAs(props.authorName)}</p>
@@ -147,26 +179,6 @@ export function NotesPanel(props: NotesPanelProps) {
         <p role="alert" className="error">
           {t.failed}
         </p>
-      )}
-
-      {withNotes.length > 0 && (
-        <div className="form notes__filter">
-          <label htmlFor={`${id}-for`}>{t.notesFor}</label>
-          <select
-            id={`${id}-for`}
-            value={filter ?? ''}
-            onChange={(e) => {
-              props.onForRowerChange(e.target.value === '' ? null : e.target.value);
-            }}
-          >
-            <option value="">{t.everyone}</option>
-            {withNotes.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.displayName}
-              </option>
-            ))}
-          </select>
-        </div>
       )}
 
       {everything.length === 0 && <p className="muted">{t.none}</p>}

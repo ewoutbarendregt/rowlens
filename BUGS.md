@@ -2,11 +2,18 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-013] Sessions-list E2E timed out twice in full local runs — low
+**Location**: apps/web/e2e/sessions.spec.ts:5
+**Status**: open
+**Found**: 2026-11-03, local E2E (desktop Chromium) on claude/feat/video-page-layout
+**Description**: Timed out after 30 s in two of seven runs (the full suite, and a rerun right after it); it then passed four times alone and in the next full run (38/38). The failure left no error details. The branch doesn't change the sessions page, so the cause is likely test state or timing; watch for it in CI.
+**Fix**: —
+
 ### [BUG-012] Player "quick presses" E2E flaked once on iPhone WebKit — low
 **Location**: apps/web/e2e/player.spec.ts:42
 **Status**: open
 **Found**: 2026-11-02, local E2E on iPhone 13 WebKit (scratch config; not in CI)
-**Description**: The frame counter didn't reach the expected frame after rapid key presses in one of four runs; three reruns passed. Chromium (CI) has never shown it. Likely timing in WebKit's seek events under load.
+**Description**: The frame counter didn't reach the expected frame after rapid key presses in one of four runs; three reruns passed. Chromium (CI) has never shown it. Likely timing in WebKit's seek events under load. 2026-11-03 (claude/feat/video-page-layout): again once in a full WebKit run; the player spec alone passed 3 × 7. Seen only in full runs, so load after other specs is the likely trigger.
 **Fix**: —
 
 ### [BUG-011] A long word in a session title widened the page on a phone — low

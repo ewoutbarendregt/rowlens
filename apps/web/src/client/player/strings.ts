@@ -21,6 +21,8 @@ const en = {
   frame: 'Frame',
   approximate: 'Approximate: this browser cannot report exact frames',
   controls: 'Player controls',
+  speedShort: 'Speed',
+  keys: 'Space play · , . one frame · ← → 0.1 s (⇧ 1 s) · 1 2 3 speed · [ ] loop · L loop on/off · F full screen',
 };
 
 const nl: typeof en = {
@@ -43,6 +45,8 @@ const nl: typeof en = {
   frame: 'Frame',
   approximate: 'Bij benadering: deze browser meldt geen exacte frames',
   controls: 'Bediening van de speler',
+  speedShort: 'Snelheid',
+  keys: 'Spatie afspelen · , . één frame · ← → 0,1 s (⇧ 1 s) · 1 2 3 snelheid · [ ] lus · L lus aan/uit · F volledig scherm',
 };
 
 export type PlayerStrings = typeof en;
