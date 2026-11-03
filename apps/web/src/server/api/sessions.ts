@@ -1,6 +1,7 @@
 import { and, count, desc, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
+import { BOAT_CLASS_NAMES } from '../../shared/boats.ts';
 import { can } from '../auth/can.ts';
 import type { Tx } from '../db/client.ts';
 import { rower, rowingSession, video } from '../db/schema.ts';
@@ -9,19 +10,40 @@ import { videoKey } from '../media/store.ts';
 import { lineupOf, lineupsOf } from './lineups.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
 
+const title = z.string().trim().min(1).max(120);
 const newSession = z.object({
-  title: z.string().trim().min(1).max(120),
+  title,
   date: z.iso.date(),
+  /** The boat to start the lineup with: the member's default boat (2026-11-03). */
+  boatType: z.enum(BOAT_CLASS_NAMES).nullable().optional(),
 });
 const idParam = z.object({ id: z.uuid() });
 const creatorBody = z.object({ userId: z.uuid().nullable() });
+const renameBody = z.object({ title });
+
+// A type, not an interface: `execute` wants a record type for its rows.
+type Member = {
+  user_id: string;
+  email: string;
+  role: string;
+  first_name: string | null;
+  last_name: string | null;
+};
 
 /** This club's members by user id (rowlens_club_members only sees the current club). */
 async function members(tx: Tx) {
-  const result = await tx.execute<{ user_id: string; email: string; role: string }>(
-    sql`select user_id, email, role from rowlens_club_members()`,
+  const result = await tx.execute<Member>(
+    sql`select user_id, email, role, first_name, last_name from rowlens_club_members()`,
   );
   return new Map(result.rows.map((m) => [m.user_id, m]));
+}
+
+/** How a member is named on a session: their name, else their e-mail address (2026-11-03). */
+function nameOf(member: Member | undefined): string | null {
+  if (member === undefined) return null;
+  return member.first_name !== null && member.last_name !== null
+    ? `${member.first_name} ${member.last_name}`
+    : member.email;
 }
 
 /**
@@ -69,6 +91,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           date: rowingSession.sessionDate,
           createdAt: rowingSession.createdAt,
           boatType: rowingSession.boatType,
+          createdByUserId: rowingSession.createdByUserId,
           videoCount: count(video.id),
         })
         .from(rowingSession)
@@ -86,10 +109,12 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         rows.map((r) => r.id),
       );
       const forMe = await notesForMe(tx, mine);
-      return rows.map((r) => {
+      const club = await members(tx);
+      return rows.map(({ createdByUserId, ...r }) => {
         const lineup = lineups.get(r.id) ?? [];
         return {
           ...r,
+          creatorName: createdByUserId === null ? null : nameOf(club.get(createdByUserId)),
           lineup: lineup.map((s) => ({
             seat: s.seat,
             rowerId: s.rower.id,
@@ -141,6 +166,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           clubId: tenantOf(req).clubId,
           title: body.data.title,
           sessionDate: body.data.date,
+          boatType: body.data.boatType ?? null,
           createdByUserId: tenantOf(req).userId,
         })
         .returning({ id: rowingSession.id }),
@@ -189,6 +215,8 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         .where(eq(video.sessionId, session.id))
         .orderBy(video.createdAt);
       const { createdByUserId, ...rest } = session;
+      const club = await members(tx);
+      const viewer = { role: tenant.role ?? null, userId: tenant.userId };
       // Only the admin sees and sets who made it (and the coaches to choose from).
       const admin = can(
         { role: tenant.role ?? null, userId: tenant.userId },
@@ -197,15 +225,51 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
       const creator = admin
         ? {
             creatorUserId: createdByUserId,
-            coaches: [...(await members(tx)).values()]
+            coaches: [...club.values()]
               .filter((m) => m.role !== 'rower')
               .map((m) => ({ userId: m.user_id, email: m.email }))
               .sort((a, b) => a.email.localeCompare(b.email)),
           }
         : {};
-      return { ...rest, ...creator, lineup, videos };
+      return {
+        ...rest,
+        ...creator,
+        creatorName: createdByUserId === null ? null : nameOf(club.get(createdByUserId)),
+        canRename: can(viewer, { kind: 'rename_session', createdByUserId }),
+        lineup,
+        videos,
+      };
     });
     return result ?? notFound(reply);
+  });
+
+  /** Renames a session: its coaches, the admin and whoever made it (2026-11-03). */
+  app.patch('/api/sessions/:id', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!params.success) return notFound(reply);
+    const body = renameBody.safeParse(req.body);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_title' });
+    const tenant = tenantOf(req);
+    const result = await withTenant(db, tenant, async (tx) => {
+      const [session] = await tx
+        .select({ createdByUserId: rowingSession.createdByUserId })
+        .from(rowingSession)
+        .where(eq(rowingSession.id, params.data.id));
+      if (session === undefined) return 'not_found' as const;
+      const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+      if (!can(viewer, { kind: 'rename_session', createdByUserId: session.createdByUserId })) {
+        return 'forbidden' as const;
+      }
+      const [row] = await tx
+        .update(rowingSession)
+        .set({ title: body.data.title })
+        .where(eq(rowingSession.id, params.data.id))
+        .returning({ id: rowingSession.id, title: rowingSession.title });
+      return row ?? ('not_found' as const);
+    });
+    if (result === 'not_found') return notFound(reply);
+    if (result === 'forbidden') return reply.code(403).send({ error: 'forbidden' });
+    return result;
   });
 
   /**

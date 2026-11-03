@@ -95,14 +95,8 @@
           "name": "angle_measure_video_fk",
           "tableFrom": "angle_measure",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -110,14 +104,8 @@
           "name": "angle_measure_rower_fk",
           "tableFrom": "angle_measure",
           "tableTo": "rower",
-          "columnsFrom": [
-            "club_id",
-            "rower_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "rower_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -127,12 +115,7 @@
         "angle_measure_unique": {
           "name": "angle_measure_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "video_id",
-            "frame",
-            "rower_id",
-            "joint"
-          ]
+          "columns": ["video_id", "frame", "rower_id", "joint"]
         }
       },
       "policies": {
@@ -140,9 +123,7 @@
           "name": "angle_measure_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"angle_measure\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"angle_measure\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -150,27 +131,21 @@
           "name": "angle_measure_role_read",
           "as": "RESTRICTIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_video(\"angle_measure\".\"video_id\")"
         },
         "angle_measure_role_add": {
           "name": "angle_measure_role_add",
           "as": "RESTRICTIVE",
           "for": "INSERT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
         },
         "angle_measure_role_edit": {
           "name": "angle_measure_role_edit",
           "as": "RESTRICTIVE",
           "for": "UPDATE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")",
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
         },
@@ -178,9 +153,7 @@
           "name": "angle_measure_role_delete",
           "as": "RESTRICTIVE",
           "for": "DELETE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
         }
       },
@@ -297,14 +270,8 @@
           "name": "annotation_video_fk",
           "tableFrom": "annotation",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -316,9 +283,7 @@
           "name": "annotation_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -326,27 +291,21 @@
           "name": "annotation_role_read",
           "as": "RESTRICTIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_moment(\"annotation\".\"video_id\", \"annotation\".\"frame\") or \"annotation\".\"author_user_id\" = rowlens_user_id()"
         },
         "annotation_role_add": {
           "name": "annotation_role_add",
           "as": "RESTRICTIVE",
           "for": "INSERT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "withCheck": "rowlens_sees_all() or (\"annotation\".\"author_user_id\" = rowlens_user_id() and rowlens_can_see_video(\"annotation\".\"video_id\"))"
         },
         "annotation_role_edit": {
           "name": "annotation_role_edit",
           "as": "RESTRICTIVE",
           "for": "UPDATE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\")",
           "withCheck": "rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\")"
         },
@@ -354,9 +313,7 @@
           "name": "annotation_role_delete",
           "as": "RESTRICTIVE",
           "for": "DELETE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\")"
         }
       },
@@ -421,9 +378,7 @@
         "app_user_email_unique": {
           "name": "app_user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -468,9 +423,7 @@
         "club_slug_unique": {
           "name": "club_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {
@@ -478,9 +431,7 @@
           "name": "club_read_own",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"club\".\"id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
       },
@@ -543,12 +494,8 @@
           "name": "club_access_club_id_club_id_fk",
           "tableFrom": "club_access",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -558,10 +505,7 @@
         "club_access_club_email_unique": {
           "name": "club_access_club_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "email"
-          ]
+          "columns": ["club_id", "email"]
         }
       },
       "policies": {
@@ -569,9 +513,7 @@
           "name": "club_access_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"club_access\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"club_access\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -666,12 +608,8 @@
           "name": "club_access_log_club_id_club_id_fk",
           "tableFrom": "club_access_log",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -683,9 +621,7 @@
           "name": "club_access_log_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"club_access_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"club_access_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -818,12 +754,8 @@
           "name": "job_club_id_club_id_fk",
           "tableFrom": "job",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -833,9 +765,7 @@
         "job_idempotency_key_unique": {
           "name": "job_idempotency_key_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "idempotency_key"
-          ]
+          "columns": ["idempotency_key"]
         }
       },
       "policies": {
@@ -843,9 +773,7 @@
           "name": "job_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -904,14 +832,8 @@
           "name": "lineup_seat_session_fk",
           "tableFrom": "lineup_seat",
           "tableTo": "rowing_session",
-          "columnsFrom": [
-            "club_id",
-            "session_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "session_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -919,14 +841,8 @@
           "name": "lineup_seat_rower_fk",
           "tableFrom": "lineup_seat",
           "tableTo": "rower",
-          "columnsFrom": [
-            "club_id",
-            "rower_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "rower_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -934,20 +850,14 @@
       "compositePrimaryKeys": {
         "lineup_seat_pk": {
           "name": "lineup_seat_pk",
-          "columns": [
-            "session_id",
-            "seat"
-          ]
+          "columns": ["session_id", "seat"]
         }
       },
       "uniqueConstraints": {
         "lineup_seat_session_rower_unique": {
           "name": "lineup_seat_session_rower_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_id",
-            "rower_id"
-          ]
+          "columns": ["session_id", "rower_id"]
         }
       },
       "policies": {
@@ -955,9 +865,7 @@
           "name": "lineup_seat_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"lineup_seat\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"lineup_seat\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -965,9 +873,7 @@
           "name": "lineup_seat_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_session(\"lineup_seat\".\"session_id\")",
           "withCheck": "rowlens_can_see_session(\"lineup_seat\".\"session_id\")"
         }
@@ -1070,14 +976,8 @@
           "name": "login_code_membership_fk",
           "tableFrom": "login_code",
           "tableTo": "membership",
-          "columnsFrom": [
-            "club_id",
-            "user_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "user_id"
-          ],
+          "columnsFrom": ["club_id", "user_id"],
+          "columnsTo": ["club_id", "user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1089,9 +989,7 @@
           "name": "login_code_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"login_code\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"login_code\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -1152,12 +1050,8 @@
           "name": "membership_club_id_club_id_fk",
           "tableFrom": "membership",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1165,12 +1059,8 @@
           "name": "membership_user_id_app_user_id_fk",
           "tableFrom": "membership",
           "tableTo": "app_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1180,10 +1070,7 @@
         "membership_club_user_unique": {
           "name": "membership_club_user_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "user_id"
-          ]
+          "columns": ["club_id", "user_id"]
         }
       },
       "policies": {
@@ -1191,9 +1078,7 @@
           "name": "membership_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"membership\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"membership\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -1249,14 +1134,8 @@
           "name": "moment_video_fk",
           "tableFrom": "moment",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1266,18 +1145,12 @@
         "moment_video_frame_unique": {
           "name": "moment_video_frame_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "video_id",
-            "frame"
-          ]
+          "columns": ["video_id", "frame"]
         },
         "moment_club_id_id_unique": {
           "name": "moment_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         }
       },
       "policies": {
@@ -1285,9 +1158,7 @@
           "name": "moment_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"moment\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"moment\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -1295,9 +1166,7 @@
           "name": "moment_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")",
           "withCheck": "rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")"
         }
@@ -1368,14 +1237,8 @@
           "name": "moment_rower_moment_fk",
           "tableFrom": "moment_rower",
           "tableTo": "moment",
-          "columnsFrom": [
-            "club_id",
-            "moment_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "moment_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1383,14 +1246,8 @@
           "name": "moment_rower_rower_fk",
           "tableFrom": "moment_rower",
           "tableTo": "rower",
-          "columnsFrom": [
-            "club_id",
-            "rower_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "rower_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1398,10 +1255,7 @@
       "compositePrimaryKeys": {
         "moment_rower_pk": {
           "name": "moment_rower_pk",
-          "columns": [
-            "moment_id",
-            "rower_id"
-          ]
+          "columns": ["moment_id", "rower_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1410,9 +1264,7 @@
           "name": "moment_rower_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"moment_rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"moment_rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -1420,9 +1272,7 @@
           "name": "moment_rower_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")",
           "withCheck": "rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")"
         }
@@ -1508,14 +1358,8 @@
           "name": "moment_rower_log_moment_fk",
           "tableFrom": "moment_rower_log",
           "tableTo": "moment",
-          "columnsFrom": [
-            "club_id",
-            "moment_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "moment_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1527,9 +1371,7 @@
           "name": "moment_rower_log_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"moment_rower_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"moment_rower_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -1537,9 +1379,7 @@
           "name": "moment_rower_log_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")",
           "withCheck": "rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")"
         }
@@ -1635,14 +1475,8 @@
           "name": "moment_share_moment_fk",
           "tableFrom": "moment_share",
           "tableTo": "moment",
-          "columnsFrom": [
-            "club_id",
-            "moment_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "moment_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1650,14 +1484,8 @@
           "name": "moment_share_rower_fk",
           "tableFrom": "moment_share",
           "tableTo": "rower",
-          "columnsFrom": [
-            "club_id",
-            "rower_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "rower_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1667,10 +1495,7 @@
         "moment_share_rower_unique": {
           "name": "moment_share_rower_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "moment_id",
-            "rower_id"
-          ]
+          "columns": ["moment_id", "rower_id"]
         }
       },
       "policies": {
@@ -1678,9 +1503,7 @@
           "name": "moment_share_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"moment_share\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"moment_share\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -1688,9 +1511,7 @@
           "name": "moment_share_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")",
           "withCheck": "rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")"
         }
@@ -1765,12 +1586,8 @@
           "name": "rower_club_id_club_id_fk",
           "tableFrom": "rower",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1778,12 +1595,8 @@
           "name": "rower_user_id_app_user_id_fk",
           "tableFrom": "rower",
           "tableTo": "app_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1793,26 +1606,17 @@
         "rower_club_id_id_unique": {
           "name": "rower_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         },
         "rower_club_email_unique": {
           "name": "rower_club_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "email"
-          ]
+          "columns": ["club_id", "email"]
         },
         "rower_club_user_unique": {
           "name": "rower_club_user_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "user_id"
-          ]
+          "columns": ["club_id", "user_id"]
         }
       },
       "policies": {
@@ -1820,9 +1624,7 @@
           "name": "rower_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -1916,12 +1718,8 @@
           "name": "rowing_session_club_id_club_id_fk",
           "tableFrom": "rowing_session",
           "tableTo": "club",
-          "columnsFrom": [
-            "club_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["club_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1931,10 +1729,7 @@
         "rowing_session_club_id_id_unique": {
           "name": "rowing_session_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         }
       },
       "policies": {
@@ -1942,9 +1737,7 @@
           "name": "rowing_session_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -1952,9 +1745,7 @@
           "name": "rowing_session_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or \"rowing_session\".\"created_by_user_id\" = rowlens_user_id() or rowlens_session_reachable(\"rowing_session\".\"id\")",
           "withCheck": "rowlens_sees_all() or \"rowing_session\".\"created_by_user_id\" = rowlens_user_id() or rowlens_session_reachable(\"rowing_session\".\"id\")"
         }
@@ -2030,14 +1821,8 @@
           "name": "stroke_mark_video_fk",
           "tableFrom": "stroke_mark",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2047,10 +1832,7 @@
         "stroke_mark_video_frame_unique": {
           "name": "stroke_mark_video_frame_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "video_id",
-            "frame"
-          ]
+          "columns": ["video_id", "frame"]
         }
       },
       "policies": {
@@ -2058,9 +1840,7 @@
           "name": "stroke_mark_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"stroke_mark\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"stroke_mark\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -2068,27 +1848,21 @@
           "name": "stroke_mark_role_read",
           "as": "RESTRICTIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_video(\"stroke_mark\".\"video_id\")"
         },
         "stroke_mark_role_add": {
           "name": "stroke_mark_role_add",
           "as": "RESTRICTIVE",
           "for": "INSERT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
         },
         "stroke_mark_role_edit": {
           "name": "stroke_mark_role_edit",
           "as": "RESTRICTIVE",
           "for": "UPDATE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")",
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
         },
@@ -2096,9 +1870,7 @@
           "name": "stroke_mark_role_delete",
           "as": "RESTRICTIVE",
           "for": "DELETE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
         }
       },
@@ -2194,14 +1966,8 @@
           "name": "user_session_membership_fk",
           "tableFrom": "user_session",
           "tableTo": "membership",
-          "columnsFrom": [
-            "club_id",
-            "user_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "user_id"
-          ],
+          "columnsFrom": ["club_id", "user_id"],
+          "columnsTo": ["club_id", "user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2211,9 +1977,7 @@
         "user_session_token_hash_unique": {
           "name": "user_session_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {
@@ -2221,9 +1985,7 @@
           "name": "user_session_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"user_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"user_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         }
@@ -2422,14 +2184,8 @@
           "name": "video_session_fk",
           "tableFrom": "video",
           "tableTo": "rowing_session",
-          "columnsFrom": [
-            "club_id",
-            "session_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "session_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2439,18 +2195,12 @@
         "video_club_id_id_unique": {
           "name": "video_club_id_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "club_id",
-            "id"
-          ]
+          "columns": ["club_id", "id"]
         },
         "video_session_seq_unique": {
           "name": "video_session_seq_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "session_id",
-            "seq"
-          ]
+          "columns": ["session_id", "seq"]
         }
       },
       "policies": {
@@ -2458,9 +2208,7 @@
           "name": "video_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -2468,9 +2216,7 @@
           "name": "video_role",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_session(\"video\".\"session_id\")",
           "withCheck": "rowlens_can_see_session(\"video\".\"session_id\")"
         }
@@ -2534,14 +2280,8 @@
           "name": "video_boat_line_video_fk",
           "tableFrom": "video_boat_line",
           "tableTo": "video",
-          "columnsFrom": [
-            "club_id",
-            "video_id"
-          ],
-          "columnsTo": [
-            "club_id",
-            "id"
-          ],
+          "columnsFrom": ["club_id", "video_id"],
+          "columnsTo": ["club_id", "id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -2549,10 +2289,7 @@
       "compositePrimaryKeys": {
         "video_boat_line_pk": {
           "name": "video_boat_line_pk",
-          "columns": [
-            "video_id",
-            "frame"
-          ]
+          "columns": ["video_id", "frame"]
         }
       },
       "uniqueConstraints": {},
@@ -2561,9 +2298,7 @@
           "name": "video_boat_line_tenant",
           "as": "PERMISSIVE",
           "for": "ALL",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "\"video_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
           "withCheck": "\"video_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
         },
@@ -2571,27 +2306,21 @@
           "name": "video_boat_line_role_read",
           "as": "RESTRICTIVE",
           "for": "SELECT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_can_see_video(\"video_boat_line\".\"video_id\")"
         },
         "video_boat_line_role_add": {
           "name": "video_boat_line_role_add",
           "as": "RESTRICTIVE",
           "for": "INSERT",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
         },
         "video_boat_line_role_edit": {
           "name": "video_boat_line_role_edit",
           "as": "RESTRICTIVE",
           "for": "UPDATE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")",
           "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
         },
@@ -2599,9 +2328,7 @@
           "name": "video_boat_line_role_delete",
           "as": "RESTRICTIVE",
           "for": "DELETE",
-          "to": [
-            "rowlens_app"
-          ],
+          "to": ["rowlens_app"],
           "using": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
         }
       },
@@ -2618,89 +2345,47 @@
     "public.angle_joint": {
       "name": "angle_joint",
       "schema": "public",
-      "values": [
-        "knee",
-        "hip",
-        "elbow",
-        "trunk"
-      ]
+      "values": ["knee", "hip", "elbow", "trunk"]
     },
     "public.annotation_kind": {
       "name": "annotation_kind",
       "schema": "public",
-      "values": [
-        "note",
-        "line",
-        "arrow",
-        "angle"
-      ]
+      "values": ["note", "line", "arrow", "angle"]
     },
     "public.club_access_action": {
       "name": "club_access_action",
       "schema": "public",
-      "values": [
-        "added",
-        "role_changed",
-        "removed"
-      ]
+      "values": ["added", "role_changed", "removed"]
     },
     "public.job_status": {
       "name": "job_status",
       "schema": "public",
-      "values": [
-        "queued",
-        "running",
-        "succeeded",
-        "dead"
-      ]
+      "values": ["queued", "running", "succeeded", "dead"]
     },
     "public.moment_rower_action": {
       "name": "moment_rower_action",
       "schema": "public",
-      "values": [
-        "assigned",
-        "unassigned",
-        "shared",
-        "unshared"
-      ]
+      "values": ["assigned", "unassigned", "shared", "unshared"]
     },
     "public.moment_share_scope": {
       "name": "moment_share_scope",
       "schema": "public",
-      "values": [
-        "rower",
-        "crew"
-      ]
+      "values": ["rower", "crew"]
     },
     "public.video_perspective": {
       "name": "video_perspective",
       "schema": "public",
-      "values": [
-        "boat",
-        "bank",
-        "drone"
-      ]
+      "values": ["boat", "bank", "drone"]
     },
     "public.stroke_mark_kind": {
       "name": "stroke_mark_kind",
       "schema": "public",
-      "values": [
-        "catch",
-        "half_slide",
-        "finish"
-      ]
+      "values": ["catch", "half_slide", "finish"]
     },
     "public.video_status": {
       "name": "video_status",
       "schema": "public",
-      "values": [
-        "uploading",
-        "uploaded",
-        "processing",
-        "ready",
-        "failed",
-        "rejected"
-      ]
+      "values": ["uploading", "uploaded", "processing", "ready", "failed", "rejected"]
     }
   },
   "schemas": {},

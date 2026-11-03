@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { adminEmail, edgeUrl } from './env.ts';
-import { openProcessedClip, signIn, signOut } from './helpers.ts';
+import { openLineup, openProcessedClip, signIn, signOut } from './helpers.ts';
 
 // A rower sees only their sessions and the notes meant for them (#40); sharing with the crew (#112).
 const FIXTURE = fileURLToPath(new URL('../public/demo-media/e2e-30fps.webm', import.meta.url));
@@ -35,7 +35,7 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
 
   await page.goto(videoUrl);
   await page.getByRole('link', { name: /^(Back to|Terug naar) / }).click();
-  const lineup = page.getByTestId('lineup');
+  const lineup = await openLineup(page);
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C1x');
   await lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ }).fill(`Rita ${tag}`);
   await page.getByRole('option', { name: new RegExp(`Rita ${tag}`) }).click();

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
-import { openProcessedClip } from './helpers.ts';
+import { openLineup, openProcessedClip } from './helpers.ts';
 
 // Who a note is for (#105) on a video the real worker processed (edge stack only).
 const FIXTURE = fileURLToPath(new URL('../public/demo-media/e2e-30fps.webm', import.meta.url));
@@ -18,7 +18,7 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
 
   // A lineup for the session: two rowers added on the spot.
   await page.getByRole('link', { name: /^(Back to|Terug naar) / }).click();
-  const lineup = page.getByTestId('lineup');
+  const lineup = await openLineup(page);
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C2x');
   for (const [seat, name] of [
     [/^(Bow|Boeg) \(1\)$/, `Anna ${tag}`],

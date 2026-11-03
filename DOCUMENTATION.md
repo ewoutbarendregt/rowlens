@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Names, default boat, renaming, and videos first on the session page
+
+**Session**: claude/feat/profile-session-page
+**Changed**: apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0016_user_profile.sql (+ meta), apps/web/src/server/api/{profile.ts,sessions.ts,visibility.db.test.ts}, apps/web/src/server/auth/{gate.ts,can.ts,can.test.ts}, apps/web/src/server/app.ts, apps/web/src/client/ui/{ProfileForm.tsx,AppHeader.tsx}, apps/web/src/client/auth/{useAuth.ts,strings.ts}, apps/web/src/client/sessions/{RequireAuth.tsx,SessionsPage.tsx,SessionPage.tsx,strings.ts,strings.test.ts}, apps/web/src/client/styles.css, apps/web/e2e/{helpers.ts,profile.spec.ts,lineup.spec.ts,assign.spec.ts,angles.spec.ts,share.spec.ts,sessions.spec.ts,upload.spec.ts}, docs/adr/0011-auth-otp-and-email.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md
+**Summary**: Every member gives a first and last name (a welcome card until they do, then the account menu, which also holds the default boat for a new session, C4x+ unless chosen). The sessions list and page show who made a session and when it was made; a session can be renamed by its coaches, the admin and its maker. The session page shows the videos first with a compact "Add videos" button and the upload queue in the same card; the lineup is folded below with a summary. Also deployed earlier today: `sha-26bdd35` (boat lines per moment, finger drawing #135), deploy run 41694284305, migration 0015 (production's 2 boat lines now from frame 0). Not merged or deployed.
+**Prompts used**: "voeg aan het trainingsoverzicht de naam toe van degene die te training heeft aangemaakt. iedere gebruiker moet zijn voornaam en achternaam invullen in de settings dropdown (rechtsboven). de naam van een training moet ik kunnen aanpassen. default boot bij nieuwe training is C4X+ (default instelbaar per gebruiker settings). Bij \"aangemaakt om\" , datum aanmaken toevoegen … op de pagina van een training, wil ik bovenaan de video's zien. de opstelling mag naar onder, dat hele formulier wordt een dropdown. De sectie 'video's' bevat de geuploade video's en ook een eenvoudige button om nog een video toe te voegen … de upload knop is niet zo breed als nu"; answers: name first; rename by coaches, admin and maker.
+
 ## 2026-11-03 — Boat lines per moment; drawing made for fingers
 
 **Session**: claude/feat/boat-lines-touch-drawing

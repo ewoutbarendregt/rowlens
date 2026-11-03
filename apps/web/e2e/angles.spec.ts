@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { expect, type Page, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
-import { openProcessedClip, settledBox } from './helpers.ts';
+import { openLineup, openProcessedClip, settledBox } from './helpers.ts';
 
 // Angles per rower and phase (ADR-0017) on a video the real worker processed (edge stack only):
 // a coach marks a catch, draws the boat line, measures two rowers' knees and an upper body, and
@@ -33,7 +33,7 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
 
   // A lineup: Anna at bow, Bram at stroke.
   await page.getByRole('link', { name: /^(Back to|Terug naar) / }).click();
-  const lineup = page.getByTestId('lineup');
+  const lineup = await openLineup(page);
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C2x');
   for (const [seat, name] of [
     [/^(Bow|Boeg) \(1\)$/, `Anna ${tag}`],

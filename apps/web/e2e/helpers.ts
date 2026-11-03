@@ -10,6 +10,15 @@ export async function signIn(page: Page, email: string = authEmail): Promise<voi
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click();
   // The club name is hidden on a phone; the account menu is always there.
   await expect(page.getByTestId('account-menu')).toBeVisible();
+  // A first sign-in asks for the name first (2026-11-03); later ones go straight to the page.
+  const welcome = page.getByTestId('welcome');
+  await expect(welcome.or(page.getByRole('heading', { level: 1 })).first()).toBeVisible();
+  if (await welcome.isVisible()) {
+    await welcome.getByLabel(/^(First name|Voornaam)$/).fill('E2E');
+    await welcome.getByLabel(/^(Last name|Achternaam)$/).fill(email.split('@')[0] ?? 'Tester');
+    await welcome.getByRole('button', { name: /^(Save|Opslaan)$/ }).click();
+    await expect(welcome).toHaveCount(0);
+  }
 }
 
 /** Opens the account menu in the header and signs out (#108). */
@@ -36,7 +45,7 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
   await page
-    .getByLabel(/^(Choose videos|Video’s kiezen)$/)
+    .getByLabel(/^(Add videos|Video’s toevoegen)$/)
     .setInputFiles([{ name: 'stroke.webm', mimeType: 'video/webm', buffer: clip }]);
   await page.getByRole('button', { name: /^(Upload|Uploaden)$/ }).click();
   // The only video in this new session; a ready video no longer shows its file name.
@@ -65,4 +74,12 @@ export async function settledBox(page: Page, testId: string) {
     await page.waitForTimeout(100);
   }
   throw new Error(`${testId} kept moving`);
+}
+
+/** The lineup is folded below the videos (2026-11-03): opens it, and returns the lineup card. */
+export async function openLineup(page: Page) {
+  const fold = page.getByTestId('lineup-fold');
+  await expect(fold).toBeVisible();
+  if ((await fold.getAttribute('open')) === null) await fold.locator('summary').click();
+  return page.getByTestId('lineup');
 }

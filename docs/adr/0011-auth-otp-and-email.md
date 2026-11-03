@@ -43,3 +43,12 @@ the operator editing `AUTH_ALLOWED_EMAILS`. The first admins come from the serve
 personal e-mail address has to live in the repository. `AUTH_ALLOWED_EMAILS` keeps working (as coach).
 Removing someone deletes their membership, which ends their sessions. Invitation token links remain
 later work.
+
+## Addendum (2026-11-03): the member's own profile
+
+`app_user` holds the member's first and last name and default boat (migration 0016). The app role
+still can't read or write `app_user`: `rowlens_my_profile()` and `rowlens_set_my_profile()` reach only
+the row of `rowlens_user_id()`, the signed-in user, and setting the name also sets `display_name`, so
+notes and "writing as" use it. `rowlens_club_members()` now returns names too, so a session shows who
+made it. Until both names are set, the app asks for them before anything else.
+
