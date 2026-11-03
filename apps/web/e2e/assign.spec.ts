@@ -45,14 +45,19 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   await expect(page.getByRole('option', { name: /Anna .* · (Bow|Boeg) \(1\)/ })).toBeVisible();
   await page.keyboard.press('Escape');
 
-  await moment.getByRole('button', { name: /^(Whole crew|Hele ploeg)$/ }).click();
+  // "For": a chip per seat (mockup 1e) and "whole crew", each a switch.
+  const crew = moment.getByRole('button', { name: /^(Whole crew|Hele ploeg)$/ });
+  await crew.click();
+  await expect(crew).toHaveAttribute('aria-pressed', 'true');
   const assignees = moment.getByTestId('assignee');
   await expect(assignees).toHaveCount(2);
-  await moment
-    .getByRole('button', { name: new RegExp(`^(Remove Anna ${tag}|Anna ${tag} weghalen)`) })
-    .click();
+  const anna = moment.getByRole('button', { name: new RegExp(`· Anna ${tag}$`) });
+  await expect(anna).toHaveAttribute('aria-pressed', 'true');
+  await anna.click();
+  await expect(anna).toHaveAttribute('aria-pressed', 'false');
+  await expect(crew).toHaveAttribute('aria-pressed', 'false');
   await expect(assignees).toHaveCount(1);
-  await expect(assignees).toContainText(`Bram ${tag}`);
+  await expect(assignees).toContainText(`Bram`);
 
   await page.reload();
   await expect(page.getByTestId('assignee')).toHaveCount(1);
