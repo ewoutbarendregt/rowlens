@@ -5,14 +5,16 @@ handoff that used to be in this file; `DOCUMENTATION.md` remains the detailed ne
 
 ## Current repository state
 
-- `main` / `origin/main`: **`ee73740`**, notes and drawings inside the video (#125) on top of the
-  Dutch-by-default interface and language switch (#124).
+- `main` / `origin/main`: **`e90e40d`**, the video page in the mockup 1e layout with names without
+  question marks (#128) and the sessions-list E2E fix (#129), on top of notes in the video (#125)
+  and the Dutch-by-default interface (#124).
 - Current worktree: **`codex/docs/deploy-ee73740`**, used only to record the completed deployment.
 - Local stack: Postgres on 5434, worker and the Vite/API development processes are running. The edge
   stack was stopped after its tests.
-- Production: **`sha-ee73740`**, deployed 2026-11-02 at 20:51 UTC. The public readiness endpoint
-  reports that version with its database check healthy; the trustable.nl, API and AudioScribe
-  neighbour checks all returned 200. Do not deploy again without Ewout's explicit approval.
+- Production: **`sha-e90e40d`**, deployed 2026-11-03 (deploy run 41596334550). The public readiness endpoint
+  reports that version with its database check healthy; the RowLens page and trustable.nl returned
+  200, and the AudioScribe container stayed healthy and untouched. Do not deploy again without
+  Ewout's explicit approval.
 
 ## Product PR state
 

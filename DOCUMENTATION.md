@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Deploy sha-e90e40d (video page 1e, names without question marks)
+
+**Session**: claude/docs/deploy-e90e40d
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: #128 and the E2E fix #129 were merged; CI on `main` (run 41595503864) built `sha-e90e40d` and deploy run 41596334550 put it on production. Readiness reports `sha-e90e40d` with a healthy database; RowLens, trustable.nl and the RowLens page answer 200; web and worker run the new images, AudioScribe was untouched (up 10 days, healthy). No shared server component changed. `sha-2a9dfb8` (#128 alone) was never built or deployed because of BUG-013.
+**Prompts used**: "Merge en deploy"; "Doe allemaal maar"
+
 ## 2026-11-03 — Fix the sessions-list E2E race that blocked the release (BUG-013)
 
 **Session**: claude/fix/sessions-e2e-race
