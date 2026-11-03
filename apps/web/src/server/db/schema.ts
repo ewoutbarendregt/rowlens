@@ -467,6 +467,103 @@ export const strokeMark = pgTable(
   ],
 ).enableRLS();
 
+export const angleJoint = pgEnum('angle_joint', ['knee', 'hip', 'elbow', 'trunk']);
+
+/**
+ * A coach's angle measurement on a marked frame (ADR-0017): which rower, which joint, and the points
+ * tapped (fractions of the picture: 3 for a joint, hip and shoulder for the upper body). The value
+ * and the phase are computed from these and the stroke marks (`shared/angles.ts`). One per rower,
+ * joint and frame: measuring again replaces it. Visible like the video; coaches change them.
+ */
+export const angleMeasure = pgTable(
+  'angle_measure',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').notNull(),
+    frame: integer('frame').notNull(),
+    rowerId: uuid('rower_id').notNull(),
+    joint: angleJoint('joint').notNull(),
+    points: jsonb('points').notNull(),
+    createdByUserId: uuid('created_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'angle_measure_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    // Rowers are archived, never deleted (a merge moves these first), so the key restricts.
+    foreignKey({
+      name: 'angle_measure_rower_fk',
+      columns: [t.clubId, t.rowerId],
+      foreignColumns: [rower.clubId, rower.id],
+    }).onDelete('restrict'),
+    unique('angle_measure_unique').on(t.videoId, t.frame, t.rowerId, t.joint),
+    index('angle_measure_rower_idx').on(t.rowerId),
+    check('angle_measure_frame_check', sql`${t.frame} >= 0`),
+    tenantPolicy('angle_measure_tenant', t.clubId),
+    rolePolicy('angle_measure_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
+    rolePolicy(
+      'angle_measure_role_add',
+      'insert',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'angle_measure_role_edit',
+      'update',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'angle_measure_role_delete',
+      'delete',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();
+
+/**
+ * The boat's line in a video (ADR-0017): two points, bow side first, that the upper-body angle is
+ * measured against, so a tilted camera doesn't skew it and "forward" is known. One per video.
+ */
+export const videoBoatLine = pgTable(
+  'video_boat_line',
+  {
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').primaryKey(),
+    points: jsonb('points').notNull(),
+    createdByUserId: uuid('created_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'video_boat_line_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    tenantPolicy('video_boat_line_tenant', t.clubId),
+    rolePolicy('video_boat_line_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
+    rolePolicy(
+      'video_boat_line_role_add',
+      'insert',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'video_boat_line_role_edit',
+      'update',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'video_boat_line_role_delete',
+      'delete',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();
+
 /**
  * A note as one thing (#105): the drawings and explanation at one frame of a video. Annotations stay
  * keyed by (video, frame); this row exists once something is attached to the note as a whole (its

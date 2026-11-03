@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { similarNames } from '../../shared/names.ts';
@@ -51,12 +51,16 @@ function emailTaken(error: unknown): 'email_taken' {
 }
 
 /**
- * Moves everything that points at `from` to `into`, then removes `from`: lineups (#103) and note
- * assignments (#105); whatever points at a rower later adds its step here, so a merge loses nothing.
+ * Moves everything that points at `from` to `into`, then removes `from`: lineups (#103), note
+ * assignments (#105) and angle measurements (ADR-0017); whatever points at a rower later adds its
+ * step here, so a merge loses nothing.
  */
 async function mergeRowers(tx: Tx, clubId: string, from: string, into: string): Promise<void> {
   await mergeLineupSeats(tx, from, into);
   await mergeMomentRowers(tx, from, into);
+  // Angle measurements (ADR-0017) move through a definer function: also those in sessions the
+  // merging member can't see, which the rower's key would otherwise leave blocking the merge.
+  await tx.execute(sql`select rowlens_merge_angle_measures(${from}, ${into})`);
   const [source] = await tx
     .select({ email: rower.email, userId: rower.userId })
     .from(rower)

@@ -24,5 +24,10 @@ allowed from every perspective, with no pose confidence involved: the coach saw 
 finish. The same minimum of 3 complete strokes applies to averages. Per stroke, a value is refused
 with its reason when its marks are missing (last stroke, finish missing, two finishes).
 
+**Angles measured by the coach (ADR-0017)**: knee, hip, elbow and upper body, on frames with a stroke
+mark. Like the pose rows above they are only reliable from the side (bank, coach boat). On a video
+uploaded as filmed from the boat or a drone the page warns instead of refusing, because the coach
+chose the frame and saw the joints. The upper body needs the video's boat line, or it is refused.
+
 Open items (to validate with coaches and the reference set in M2): the 30° camera-angle tolerance,
 confidence thresholds, and whether onboard footage can support sync for seats facing the camera.

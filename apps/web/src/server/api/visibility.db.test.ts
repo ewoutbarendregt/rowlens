@@ -339,11 +339,61 @@ describe('what a rower sees (#40)', () => {
     expect((await send('DELETE', `${at}/12`, as.coach)).statusCode).toBe(204);
   });
 
+  it('angles: the coach measures, a rower reads them, others see nothing (ADR-0017)', async () => {
+    const at = `/api/videos/${videoId}`;
+    await send('PUT', `${at}/strokes/15`, as.coach, { kind: 'catch' });
+    const knee = {
+      frame: 15,
+      rowerId: roster.a,
+      joint: 'knee',
+      points: [
+        [0.2, 0.2],
+        [0.2, 0.5],
+        [0.5, 0.5],
+      ],
+    };
+    const measured = await send('PUT', `${at}/angles`, as.coach, knee);
+    expect(measured.statusCode).toBe(200);
+    const line = {
+      points: [
+        [0.1, 0.5],
+        [0.9, 0.5],
+      ],
+    };
+    expect((await send('PUT', `${at}/boat-line`, as.coach, line)).statusCode).toBe(200);
+    // A rower in the lineup reads them but doesn't measure, remove or draw the boat line.
+    const read = (await send('GET', `${at}/angles`, as.a)).json<{
+      measures: unknown[];
+      boatLine: unknown;
+    }>();
+    expect(read.measures).toHaveLength(1);
+    expect(read.boatLine).toEqual(line.points);
+    expect((await send('PUT', `${at}/angles`, as.a, knee)).statusCode).toBe(403);
+    expect((await send('PUT', `${at}/boat-line`, as.a, line)).statusCode).toBe(403);
+    const id = measured.json<{ id: string }>().id;
+    expect((await send('DELETE', `/api/angles/${id}`, as.a)).statusCode).toBe(403);
+    // Underneath the API, the database refuses a rower too.
+    const [a] = await asOwner<{ id: string }>(`select id from app_user where email = $1`, [A]);
+    await expect(
+      withTenant(handle.db, { clubId: club, userId: a?.id ?? null, role: 'rower' }, (tx) =>
+        tx.execute(
+          sql`update angle_measure set points = '[[0,0],[0,0],[0,0]]' where id = ${id} returning id`,
+        ),
+      ),
+    ).resolves.toMatchObject({ rows: [] });
+    // Another coach doesn't see this session, so not its angles either.
+    expect((await send('GET', `${at}/angles`, as.coach2)).statusCode).toBe(404);
+    expect((await send('DELETE', `/api/angles/${id}`, as.coach)).statusCode).toBe(204);
+    await send('DELETE', `${at}/boat-line`, as.coach);
+    await send('DELETE', `${at}/strokes/15`, as.coach);
+  });
+
   it('every table a rower is limited on has a restrictive role policy', async () => {
     const rows = await asOwner<{ tablename: string }>(
       `select distinct tablename from pg_policies where permissive = 'RESTRICTIVE' order by 1`,
     );
     expect(rows.map((r) => r.tablename)).toEqual([
+      'angle_measure',
       'annotation',
       'lineup_seat',
       'moment',
@@ -353,6 +403,7 @@ describe('what a rower sees (#40)', () => {
       'rowing_session',
       'stroke_mark',
       'video',
+      'video_boat_line',
     ]);
   });
 });

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { appUrl } from '../env.ts';
-import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
+import { type Drawing, DrawingLayer } from '../drawing/DrawingLayer.tsx';
 import { DrawTools } from '../drawing/DrawTools.tsx';
 import { LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
@@ -31,6 +31,15 @@ import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
+import { AnglesPanel, type Measuring } from '../angles/AnglesPanel.tsx';
+import { angleStrings, leanText } from '../angles/strings.ts';
+import {
+  type AngleMeasure,
+  angleTables,
+  type BoatLine,
+  measureValue,
+  phaseOf,
+} from '../../shared/angles.ts';
 import { rememberDriveMiddle, storedDriveMiddle } from '../strokes/preferences.ts';
 import { strokeStrings } from '../strokes/strings.ts';
 import {
@@ -105,7 +114,13 @@ export function VideoPage() {
   marksRef.current = marks;
   const [marking, setMarking] = useState(false);
   const [markFailed, setMarkFailed] = useState(false);
-  const [sideTab, setSideTab] = useState<'notes' | 'strokes'>('notes');
+  const [sideTab, setSideTab] = useState<'notes' | 'strokes' | 'angles'>('notes');
+  // Angle measurements per phase (ADR-0017) and the boat line the upper body is measured against.
+  const [measures, setMeasures] = useState<AngleMeasure[]>([]);
+  const [boatLine, setBoatLine] = useState<BoatLine | null>(null);
+  const [measuring, setMeasuring] = useState<Measuring | null>(null);
+  const [angleBusy, setAngleBusy] = useState(false);
+  const [angleFailed, setAngleFailed] = useState(false);
   const [driveMiddle, setDriveMiddle] = useState(storedDriveMiddle);
   const canMark = auth.state.kind === 'open' && auth.state.user.role !== 'rower';
 
@@ -172,6 +187,44 @@ export function VideoPage() {
       });
   }, [id]);
   useEffect(loadMarks, [loadMarks]);
+
+  const loadAngles = useCallback(() => {
+    api(`/api/videos/${id}/angles`)
+      .then((res) =>
+        res.ok
+          ? (res.json() as Promise<{ measures: AngleMeasure[]; boatLine: BoatLine | null }>)
+          : null,
+      )
+      .then((body) => {
+        if (body === null) return;
+        setMeasures(body.measures);
+        setBoatLine(body.boatLine);
+      })
+      .catch(() => {
+        // The player still works; the angles tab shows what it has.
+      });
+  }, [id]);
+  useEffect(loadAngles, [loadAngles]);
+
+  /** Saves, changes or removes an angle measurement or the boat line, then reloads them. */
+  const angleRequest = useCallback(
+    (path: string, method: 'PUT' | 'DELETE', body?: unknown) => {
+      setAngleBusy(true);
+      setAngleFailed(false);
+      void api(path, { method, ...(body === undefined ? {} : { body }) })
+        .then((res) => {
+          if (!res.ok) throw new Error(String(res.status));
+          loadAngles();
+        })
+        .catch(() => {
+          setAngleFailed(true);
+        })
+        .finally(() => {
+          setAngleBusy(false);
+        });
+    },
+    [loadAngles],
+  );
 
   /** Marks the frame on screen; the same kind there again takes the mark off. */
   const markAt = useCallback(
@@ -277,6 +330,36 @@ export function VideoPage() {
     );
     return [...marked, ...computed].sort((a, b) => a.frame - b.frame);
   }, [marks, strokeSummary, driveMiddle]);
+  const angleRowers = useMemo(() => {
+    const crew =
+      video === null
+        ? []
+        : lineupSuggestions(video.boatType, video.lineup, lineupStrings().seatLabel);
+    // Anyone measured who isn't in this lineup (e.g. after a change) still gets a name.
+    const others = (roster.rowers ?? [])
+      .filter((r) => !crew.some((c) => c.id === r.id) && measures.some((m) => m.rowerId === r.id))
+      .map((r) => ({ id: r.id, label: '–', name: r.displayName }));
+    return [...crew, ...others];
+  }, [video, roster.rowers, measures]);
+  const anglesNow = useMemo(
+    () =>
+      angleTables(
+        measures,
+        strokeSummary,
+        size,
+        boatLine,
+        angleRowers.map((r) => r.id),
+      ),
+    [measures, strokeSummary, size, boatLine, angleRowers],
+  );
+  const phaseHere = useMemo(() => {
+    const phase = phaseOf(current, strokeSummary);
+    if (phase === null) return null;
+    const stroke = strokeSummary.strokes.find(
+      (s) => current >= s.catch && (s.nextCatch === null || current < s.nextCatch),
+    );
+    return { phase, stroke: stroke?.number ?? null };
+  }, [current, strokeSummary]);
   const activeMoment = useMemo(() => {
     // While drawing, the exact frame remains visible even when playback annotations are off.
     if (!notesVisible && tool === null) return null;
@@ -317,10 +400,29 @@ export function VideoPage() {
       }
     }
     setTool(next);
+    if (next !== null) setMeasuring(null);
   }, []);
   const cancelTool = useCallback(() => {
     setTool(null);
+    setMeasuring(null);
   }, []);
+
+  /** Starts tapping the boat line or a rower's joint on the picture (ADR-0017). */
+  const startMeasuring = useCallback(
+    (next: Measuring | null) => {
+      chooseTool(null);
+      if (next !== null) {
+        player.current?.pause();
+        const stage = document.querySelector('.player__stage');
+        const box = stage?.getBoundingClientRect();
+        if (box !== undefined && (box.top < 0 || box.bottom > window.innerHeight)) {
+          stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+      setMeasuring(next);
+    },
+    [chooseTool],
+  );
 
   const saveDrawing = useCallback(
     (kind: DrawingKind, points: Point[]) => {
@@ -331,6 +433,63 @@ export function VideoPage() {
     },
     [id, loadNotes],
   );
+
+  // The picture serves both: a drawing, or the points of a measurement or the boat line.
+  const layerTool: DrawingKind | null =
+    measuring === null
+      ? tool
+      : measuring.kind === 'boat_line' || measuring.joint === 'trunk'
+        ? 'line'
+        : 'angle';
+  const completeLayer = useCallback(
+    (kind: DrawingKind, points: Point[]) => {
+      if (measuring === null) {
+        saveDrawing(kind, points);
+        return;
+      }
+      setMeasuring(null);
+      if (measuring.kind === 'boat_line') {
+        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', { points });
+      } else {
+        angleRequest(`/api/videos/${id}/angles`, 'PUT', {
+          frame: frame.current,
+          rowerId: measuring.rowerId,
+          joint: measuring.joint,
+          points,
+        });
+      }
+    },
+    [measuring, saveDrawing, angleRequest, id],
+  );
+
+  // On the picture: the note's drawings, the angles measured on exactly this frame, and the boat
+  // line while the Angles tab is open or it is being drawn.
+  const pictureDrawings = useMemo(() => {
+    const at = angleStrings();
+    const nameOf = (rowerId: string) =>
+      (angleRowers.find((r) => r.id === rowerId)?.name ?? '').trim().split(/\s+/)[0] ?? '';
+    const measured = measures
+      .filter((m) => m.frame === current)
+      .map((m): Drawing => {
+        const value = measureValue(m, size, boatLine);
+        const label =
+          m.joint === 'trunk' && value.ok
+            ? `${nameOf(m.rowerId)} · ${leanText(value.degrees, at)}`
+            : `${nameOf(m.rowerId)} · ${at.joints[m.joint]}`;
+        return {
+          id: `measure-${m.id}`,
+          kind: m.joint === 'trunk' ? 'line' : 'angle',
+          points: m.points,
+          label,
+          variant: 'measure',
+        };
+      });
+    const line: Drawing[] =
+      boatLine !== null && (sideTab === 'angles' || measuring?.kind === 'boat_line')
+        ? [{ id: 'boat-line', kind: 'line', points: boatLine, variant: 'boat' }]
+        : [];
+    return [...drawingsHere, ...measured, ...line];
+  }, [drawingsHere, measures, current, size, boatLine, angleRowers, sideTab, measuring]);
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -411,12 +570,12 @@ export function VideoPage() {
                 <>
                   <DrawingLayer
                     size={size}
-                    drawings={drawingsHere}
-                    tool={tool}
-                    onComplete={saveDrawing}
+                    drawings={pictureDrawings}
+                    tool={layerTool}
+                    onComplete={completeLayer}
                     onCancel={cancelTool}
                   />
-                  {notesVisible && tool === null && activeMoment !== null && (
+                  {notesVisible && layerTool === null && activeMoment !== null && (
                     <VideoNotesOverlay moment={activeMoment} />
                   )}
                 </>
@@ -489,7 +648,7 @@ export function VideoPage() {
           <aside className="video-layout__side">
             {/* Notes | Strokes (#85). Both stay mounted, so a note being typed survives a switch. */}
             <div className="tabs side-tabs" role="tablist" aria-label={strokeStrings().strokes}>
-              {(['notes', 'strokes'] as const).map((name) => (
+              {(['notes', 'strokes', 'angles'] as const).map((name) => (
                 <button
                   key={name}
                   type="button"
@@ -502,9 +661,12 @@ export function VideoPage() {
                     setSideTab(name);
                   }}
                 >
-                  {strokeStrings()[name]}
+                  {name === 'angles' ? angleStrings().angles : strokeStrings()[name]}
                   {name === 'strokes' && strokeSummary.strokes.length > 0 && (
                     <span className="side-tabs__count"> · {strokeSummary.strokes.length}</span>
+                  )}
+                  {name === 'angles' && measures.length > 0 && (
+                    <span className="side-tabs__count"> · {measures.length}</span>
                   )}
                 </button>
               ))}
@@ -576,6 +738,37 @@ export function VideoPage() {
                 onDriveMiddleChange={(on) => {
                   setDriveMiddle(on);
                   rememberDriveMiddle(on);
+                }}
+              />
+            </div>
+            <div
+              role="tabpanel"
+              id="side-panel-angles"
+              aria-labelledby="side-tab-angles"
+              hidden={sideTab !== 'angles'}
+            >
+              <AnglesPanel
+                tables={anglesNow}
+                measures={measures}
+                boatLine={boatLine}
+                size={size}
+                rowers={angleRowers}
+                here={phaseHere}
+                frame={current}
+                canMeasure={canMark}
+                notFromTheSide={video.perspective === 'boat' || video.perspective === 'drone'}
+                measuring={measuring}
+                busy={angleBusy}
+                failed={angleFailed}
+                onMeasure={startMeasuring}
+                onDelete={(measureId) => {
+                  angleRequest(`/api/angles/${measureId}`, 'DELETE');
+                }}
+                onRemoveBoatLine={() => {
+                  angleRequest(`/api/videos/${id}/boat-line`, 'DELETE');
+                }}
+                onJump={(f) => {
+                  player.current?.seekToFrame(f);
                 }}
               />
             </div>
