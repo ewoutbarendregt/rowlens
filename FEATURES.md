@@ -23,7 +23,7 @@ growth features. Suggested order:
 | My notes: feedback for me from every coach, with the video moment | rower | must | planned | #109 |
 | Reassign a note to someone else | rower | should | decision needed (free or coach-approved) | #111 |
 | Dictate a note and transcribe it | coach | should | decision needed (where transcription runs, ADR-0010) | #107 |
-| Mark strokes: stroke rate, drive:recovery | coach | must | planned | #85 |
+| Mark strokes: catch, half slide, finish; rate, drive, recovery, ratio per stroke | coach | must | done locally, PR open (ADR-0016) | #85 |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
 configured on production (#28–#30), notifications (#62/#63), annotation status (#61), and the privacy

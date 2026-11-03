@@ -317,6 +317,28 @@ describe('what a rower sees (#40)', () => {
     expect(all.rows[0]?.n).toBe(2);
   });
 
+  it('stroke marks: the coach sets them, a rower reads them, others see nothing (#85)', async () => {
+    const at = `/api/videos/${videoId}/strokes`;
+    expect((await send('PUT', `${at}/12`, as.coach, { kind: 'catch' })).statusCode).toBe(200);
+    expect((await send('GET', at, as.a)).json()).toEqual({ marks: [{ frame: 12, kind: 'catch' }] });
+    // A rower in the lineup reads the marks but doesn't set or remove them.
+    expect((await send('PUT', `${at}/40`, as.a, { kind: 'finish' })).statusCode).toBe(403);
+    expect((await send('DELETE', `${at}/12`, as.a)).statusCode).toBe(403);
+    // Underneath the API, the database refuses a rower too.
+    const [a] = await asOwner<{ id: string }>(`select id from app_user where email = $1`, [A]);
+    await expect(
+      withTenant(handle.db, { clubId: club, userId: a?.id ?? null, role: 'rower' }, (tx) =>
+        tx.execute(
+          sql`insert into stroke_mark (club_id, video_id, frame, kind) values (${club}, ${videoId}, 41, 'finish')`,
+        ),
+      ),
+    ).rejects.toThrow();
+    // Another coach doesn't see this session, so not its video or marks either.
+    expect((await send('GET', at, as.coach2)).statusCode).toBe(404);
+    expect((await send('PUT', `${at}/50`, as.coach2, { kind: 'catch' })).statusCode).toBe(404);
+    expect((await send('DELETE', `${at}/12`, as.coach)).statusCode).toBe(204);
+  });
+
   it('every table a rower is limited on has a restrictive role policy', async () => {
     const rows = await asOwner<{ tablename: string }>(
       `select distinct tablename from pg_policies where permissive = 'RESTRICTIVE' order by 1`,
@@ -329,6 +351,7 @@ describe('what a rower sees (#40)', () => {
       'moment_rower_log',
       'moment_share',
       'rowing_session',
+      'stroke_mark',
       'video',
     ]);
   });

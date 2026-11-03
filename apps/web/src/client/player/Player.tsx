@@ -32,6 +32,15 @@ export interface PlayerProps {
   overlay?: ReactNode;
   /** The page's own shortcuts, added to the line of keys (e.g. "N notes on/off"). */
   keyHints?: readonly string[];
+  /** Stroke marks (#85): a thin strip of ticks under the note markers; clicking one jumps there. */
+  strokeMarks?: readonly PlayerStrokeMark[];
+}
+
+export interface PlayerStrokeMark {
+  frame: number;
+  kind: 'catch' | 'half_slide' | 'finish';
+  /** e.g. "Catch, stroke 3, frame 412". */
+  label: string;
 }
 
 export interface PlayerMarker {
@@ -44,6 +53,8 @@ export interface PlayerMarker {
 export interface PlayerHandle {
   seekToFrame: (frame: number) => void;
   pause: () => void;
+  /** Loops `in`…`out` (inclusive) and goes to `in`, e.g. one stroke. */
+  setLoop: (loopIn: number, loopOut: number) => void;
 }
 
 const SPEED_KEYS: Record<string, Speed> = { '1': 0.25, '2': 0.5, '3': 1 };
@@ -65,6 +76,7 @@ export function Player({
   toolbar,
   overlay,
   keyHints = [],
+  strokeMarks,
 }: PlayerProps) {
   const t = playerStrings();
   const p = usePlayer(onMeasure === undefined ? { src, fps } : { src, fps, onMeasure });
@@ -85,6 +97,10 @@ export function Player({
       },
       pause: () => {
         if (p.playing) p.togglePlay();
+      },
+      setLoop: (loopIn: number, loopOut: number) => {
+        p.setLoop({ in: loopIn, out: loopOut });
+        p.seekToFrame(loopIn);
       },
     }),
     [p],
@@ -226,6 +242,26 @@ export function Player({
               style={{ left: `${String((m.frame / last) * 100)}%` }}
               aria-label={m.label}
               title={m.label}
+              onClick={() => {
+                p.seekToFrame(m.frame);
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {strokeMarks !== undefined && strokeMarks.length > 0 && (
+        // Out of the tab order and the accessibility tree: a video holds hundreds of these. The
+        // strokes table and ↑ / ↓ reach them from the keyboard.
+        <div className="player__strokes" data-testid="stroke-marks" aria-hidden="true">
+          {strokeMarks.map((m) => (
+            <button
+              key={m.frame}
+              type="button"
+              tabIndex={-1}
+              className={`player__stroke player__stroke--${m.kind}`}
+              style={{ left: `${String((m.frame / last) * 100)}%` }}
+              title={m.label}
+              data-frame={m.frame}
               onClick={() => {
                 p.seekToFrame(m.frame);
               }}

@@ -277,6 +277,24 @@ scripts/github/      backlog/labels/milestones bootstrap
   date, otherwise one table) and `crewText` ("Anna, Tom · cox Lieke"). The whole row opens the session;
   the title is the link for keyboards. Below 760 px each row is a stacked block.
 
+## Stroke marks (#85, ADR-0016)
+
+- Table `stroke_mark` (`club_id` + RLS; migration 0013): `video_id`, `frame` (CFR), `kind`
+  (`catch` | `half_slide` | `finish`), one per frame (`unique(video_id, frame)`), cascade with the
+  video. Read: `rowlens_can_see_video`; write: `rowlens_sees_all() or rowlens_coaches_video`.
+- API `api/strokes.ts`: `GET /api/videos/:id/strokes`, `PUT /api/videos/:id/strokes/:frame {kind}`
+  (sets or changes; 409 not ready, 400 outside the video), `DELETE …/:frame`; `can(mark_strokes)`
+  (admin, coach, pilot path) or 403.
+- `shared/strokes.ts`: `strokesFrom(marks, fps)` → strokes (catch → next catch) with rate, drive,
+  recovery, ratio as `Measured` (value + evidence frames, or a refusal), half slide on drive and
+  recovery as marked, averages from 3 complete strokes, marks before the first catch as `loose`;
+  `neighbourCatch` for ↑ / ↓.
+- UI: side column tabs Notes | Strokes (both stay mounted). The Strokes tab has the mark buttons
+  (coaches) for the frame on screen, the averages, and a table per stroke (jump, loop catch → next
+  catch via the player handle's `setLoop`). Keys I / H / U mark (the same key again removes), ↑ / ↓
+  jump between catches. Ticks on a strip under the note markers (out of the tab order). Low laptop
+  screens (≤ 640 px high) get a 48 px play button so the player column still fits.
+
 ## Interface language (ADR-0015)
 
 - `client/i18n/language.ts`: `lang()` (saved choice per device, else Dutch), `locale()` for `Intl`,

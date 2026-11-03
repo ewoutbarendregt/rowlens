@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Stroke marks: catch, half slide, finish; timings per stroke (#85)
+
+**Session**: claude/feat/85-stroke-marks
+**Changed**: apps/web/src/shared/{strokes.ts,strokes.test.ts}, apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0013_stroke_marks.sql (+ meta), apps/web/src/server/api/{strokes.ts,strokes.db.test.ts,visibility.db.test.ts}, apps/web/src/server/auth/{can.ts,can.test.ts}, apps/web/src/server/app.ts, apps/web/src/client/strokes/{StrokesPanel.tsx,strings.ts}, apps/web/src/client/player/{Player.tsx,usePlayer.ts}, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/strokes.spec.ts, docs/adr/{0016-stroke-marks.md,README.md}, docs/analysis/perspective-rules.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md
+**Summary**: Coaches mark catch, finish and optionally the half slide for the whole boat (keys I / H / U, buttons in a new Strokes tab); everyone who sees the video sees ticks on the timeline and a table per stroke with rate, drive, recovery and ratio, each from its frames or with the reason it's missing, plus averages from 3 complete strokes and a loop per stroke. New tenant table with RLS; coaches and the admin write. Also deployed earlier today: `sha-6740ce0` (For chips #131, deploy log #130), deploy run 41604449245, readiness and neighbours checked. Two edge runs during this work timed out in unrelated specs while the Mac had a load average of 17; the run after the load dropped passed 22/22. Not merged or deployed.
+**Prompts used**: "Ik wil nu vooral focussen op analyse hulpmiddelen voor de coach. Wat zijn dan de volgende stappen?"; "Graag" (plan step 1); answers: marks for the whole boat; coaches and admin mark; the coach marks the half slide.
+
 ## 2026-11-03 — "For" as a chip per seat; head coach's analysis wishes in the backlog
 
 **Session**: claude/feat/notes-for-chips
