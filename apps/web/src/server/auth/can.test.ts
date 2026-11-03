@@ -15,6 +15,11 @@ const viewers: Record<string, Viewer> = {
 const table: [string, Action, Record<keyof typeof viewers, boolean>][] = [
   ['access', { kind: 'manage_access' }, { admin: true, coach: false, rower: false, pilot: false }],
   [
+    'stroke marks',
+    { kind: 'mark_strokes' },
+    { admin: true, coach: true, rower: false, pilot: true },
+  ],
+  [
     'session creator',
     { kind: 'assign_session_creator' },
     { admin: true, coach: false, rower: false, pilot: false },

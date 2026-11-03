@@ -419,6 +419,54 @@ export const annotation = pgTable(
   ],
 ).enableRLS();
 
+export const strokeMarkKind = pgEnum('stroke_mark_kind', ['catch', 'half_slide', 'finish']);
+
+/**
+ * A coach's mark of a moment in the stroke (#85, ADR-0016): catch, finish and optionally the half
+ * slide, for the whole boat, one per frame. Strokes and their timings are computed from these
+ * (`shared/strokes.ts`); they are also the hand-labelled reference for automatic analysis later.
+ * Whoever sees the video sees them; only coaches of the session (and the admin) change them.
+ */
+export const strokeMark = pgTable(
+  'stroke_mark',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').notNull(),
+    frame: integer('frame').notNull(),
+    kind: strokeMarkKind('kind').notNull(),
+    createdByUserId: uuid('created_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'stroke_mark_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    unique('stroke_mark_video_frame_unique').on(t.videoId, t.frame),
+    check('stroke_mark_frame_check', sql`${t.frame} >= 0`),
+    tenantPolicy('stroke_mark_tenant', t.clubId),
+    rolePolicy('stroke_mark_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
+    rolePolicy(
+      'stroke_mark_role_add',
+      'insert',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'stroke_mark_role_edit',
+      'update',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'stroke_mark_role_delete',
+      'delete',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();
+
 /**
  * A note as one thing (#105): the drawings and explanation at one frame of a video. Annotations stay
  * keyed by (video, frame); this row exists once something is attached to the note as a whole (its

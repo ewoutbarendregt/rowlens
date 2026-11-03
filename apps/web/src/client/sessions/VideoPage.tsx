@@ -30,6 +30,14 @@ import { notesStrings } from '../notes/strings.ts';
 import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { Icon } from '../ui/icons.tsx';
+import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
+import { strokeStrings } from '../strokes/strings.ts';
+import {
+  neighbourCatch,
+  type StrokeMark,
+  type StrokeMarkKind,
+  strokesFrom,
+} from '../../shared/strokes.ts';
 import { videoDisplayName } from './displayName.ts';
 import type { BoatClass } from '../../shared/boats.ts';
 import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } from './strings.ts';
@@ -90,6 +98,14 @@ export function VideoPage() {
   const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
   const [noteHoldSeconds, setNoteHoldSeconds] = useState(storedNoteHoldSeconds);
   const [forRower, setForRower] = useState<string | null>(null);
+  // Stroke marks (#85): loaded with the page, changed by coaches of the session and the admin.
+  const [marks, setMarks] = useState<StrokeMark[]>([]);
+  const marksRef = useRef(marks);
+  marksRef.current = marks;
+  const [marking, setMarking] = useState(false);
+  const [markFailed, setMarkFailed] = useState(false);
+  const [sideTab, setSideTab] = useState<'notes' | 'strokes'>('notes');
+  const canMark = auth.state.kind === 'open' && auth.state.user.role !== 'rower';
 
   const toggleNotes = useCallback(() => {
     setNotesVisible((visible) => {
@@ -143,6 +159,76 @@ export function VideoPage() {
   }, [id]);
   useEffect(loadNotes, [loadNotes]);
 
+  const loadMarks = useCallback(() => {
+    api(`/api/videos/${id}/strokes`)
+      .then((res) => (res.ok ? (res.json() as Promise<{ marks: StrokeMark[] }>) : null))
+      .then((body) => {
+        if (body !== null) setMarks(body.marks);
+      })
+      .catch(() => {
+        // The player still works; the strokes tab shows what it has.
+      });
+  }, [id]);
+  useEffect(loadMarks, [loadMarks]);
+
+  /** Marks the frame on screen; the same kind there again takes the mark off. */
+  const markAt = useCallback(
+    (kind: StrokeMarkKind) => {
+      const at = frame.current;
+      const same = marksRef.current.some((m) => m.frame === at && m.kind === kind);
+      setMarking(true);
+      setMarkFailed(false);
+      void api(`/api/videos/${id}/strokes/${String(at)}`, {
+        method: same ? 'DELETE' : 'PUT',
+        ...(same ? {} : { body: { kind } }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error(String(res.status));
+          loadMarks();
+        })
+        .catch(() => {
+          setMarkFailed(true);
+        })
+        .finally(() => {
+          setMarking(false);
+        });
+    },
+    [id, loadMarks],
+  );
+
+  // I / H / U mark (coaches), ↑ / ↓ go to the previous / next catch (everyone). Like the player's own
+  // keys, they also work while the scrub bar has focus; its arrows stay its own.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const onSlider = event.target instanceof HTMLInputElement && event.target.type === 'range';
+      if (isTyping(event.target) && !onSlider) return;
+      const key = event.key.toLowerCase();
+      const kind: StrokeMarkKind | null =
+        key === 'i' ? 'catch' : key === 'h' ? 'half_slide' : key === 'u' ? 'finish' : null;
+      if (kind !== null) {
+        if (!canMark) return;
+        event.preventDefault();
+        markAt(kind);
+        return;
+      }
+      if ((event.key === 'ArrowUp' || event.key === 'ArrowDown') && !onSlider) {
+        const to = neighbourCatch(
+          marksRef.current,
+          frame.current,
+          event.key === 'ArrowUp' ? -1 : 1,
+        );
+        if (to === null) return;
+        event.preventDefault();
+        player.current?.seekToFrame(to);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [canMark, markAt]);
+
   // The picture's display size (after rotation): the drawings' coordinate system.
   const size = useMemo(
     () =>
@@ -165,6 +251,16 @@ export function VideoPage() {
     video?.fpsNum != null && video.fpsDen != null && video.fpsDen > 0
       ? video.fpsNum / video.fpsDen
       : 30;
+  const strokeSummary = useMemo(() => strokesFrom(marks, fps), [marks, fps]);
+  const strokeMarks = useMemo(() => {
+    const st = strokeStrings();
+    return marks.map((m) => {
+      const stroke = strokeSummary.strokes.find(
+        (s) => m.frame >= s.catch && (s.nextCatch === null || m.frame < s.nextCatch),
+      );
+      return { ...m, label: st.markLabel(st.kinds[m.kind], stroke?.number ?? null, m.frame) };
+    });
+  }, [marks, strokeSummary]);
   const activeMoment = useMemo(() => {
     // While drawing, the exact frame remains visible even when playback annotations are off.
     if (!notesVisible && tool === null) return null;
@@ -289,7 +385,12 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
-              keyHints={[nt.notesKey]}
+              keyHints={[
+                nt.notesKey,
+                ...(canMark ? [strokeStrings().keyHintMark] : []),
+                strokeStrings().keyHintJump,
+              ]}
+              strokeMarks={strokeMarks}
               overlay={
                 <>
                   <DrawingLayer
@@ -370,41 +471,93 @@ export function VideoPage() {
             />
           </div>
           <aside className="video-layout__side">
-            <NotesPanel
-              videoId={video.id}
-              fps={video.fpsNum / video.fpsDen}
-              frame={current}
-              size={size}
-              annotations={notes}
-              authorName={auth.state.kind === 'open' ? auth.state.user.authorName : undefined}
-              onChanged={loadNotes}
-              momentRowers={momentRowers}
-              momentShares={momentShares}
-              roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
-              suggestions={lineupSuggestions(
-                video.boatType,
-                video.lineup,
-                lineupStrings().seatLabel,
-              )}
-              forRower={forRower}
-              myRowerId={myRower?.id}
-              onForRowerChange={setForRower}
-              onRosterChanged={() => void roster.reload()}
-              onJump={(f, reveal) => {
-                player.current?.seekToFrame(f);
-                const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
-                if (
-                  reveal &&
-                  stage !== undefined &&
-                  (stage.top < 0 || stage.bottom > window.innerHeight)
-                ) {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
-              }}
-              onWriting={() => {
-                player.current?.pause();
-              }}
-            />
+            {/* Notes | Strokes (#85). Both stay mounted, so a note being typed survives a switch. */}
+            <div className="tabs side-tabs" role="tablist" aria-label={strokeStrings().strokes}>
+              {(['notes', 'strokes'] as const).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  role="tab"
+                  id={`side-tab-${name}`}
+                  aria-selected={sideTab === name}
+                  aria-controls={`side-panel-${name}`}
+                  className="tabs__tab"
+                  onClick={() => {
+                    setSideTab(name);
+                  }}
+                >
+                  {strokeStrings()[name]}
+                  {name === 'strokes' && strokeSummary.strokes.length > 0 && (
+                    <span className="side-tabs__count"> · {strokeSummary.strokes.length}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div
+              role="tabpanel"
+              id="side-panel-notes"
+              aria-labelledby="side-tab-notes"
+              hidden={sideTab !== 'notes'}
+            >
+              <NotesPanel
+                videoId={video.id}
+                fps={video.fpsNum / video.fpsDen}
+                frame={current}
+                size={size}
+                annotations={notes}
+                authorName={auth.state.kind === 'open' ? auth.state.user.authorName : undefined}
+                onChanged={loadNotes}
+                momentRowers={momentRowers}
+                momentShares={momentShares}
+                roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
+                suggestions={lineupSuggestions(
+                  video.boatType,
+                  video.lineup,
+                  lineupStrings().seatLabel,
+                )}
+                forRower={forRower}
+                myRowerId={myRower?.id}
+                onForRowerChange={setForRower}
+                onRosterChanged={() => void roster.reload()}
+                onJump={(f, reveal) => {
+                  player.current?.seekToFrame(f);
+                  const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
+                  if (
+                    reveal &&
+                    stage !== undefined &&
+                    (stage.top < 0 || stage.bottom > window.innerHeight)
+                  ) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                onWriting={() => {
+                  player.current?.pause();
+                }}
+              />
+            </div>
+            <div
+              role="tabpanel"
+              id="side-panel-strokes"
+              aria-labelledby="side-tab-strokes"
+              hidden={sideTab !== 'strokes'}
+            >
+              <StrokesPanel
+                summary={strokeSummary}
+                marks={marks}
+                fps={fps}
+                frame={current}
+                canMark={canMark}
+                busy={marking}
+                failed={markFailed}
+                onMark={markAt}
+                onJump={(f) => {
+                  player.current?.seekToFrame(f);
+                }}
+                onLoop={(loopIn, loopOut) => {
+                  player.current?.setLoop(loopIn, loopOut);
+                }}
+              />
+            </div>
           </aside>
         </div>
       )}

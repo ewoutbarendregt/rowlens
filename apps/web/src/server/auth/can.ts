@@ -20,7 +20,8 @@ export type Action =
   | { kind: 'assign' }
   | { kind: 'manage_roster' }
   | { kind: 'manage_lineup' }
-  | { kind: 'upload' };
+  | { kind: 'upload' }
+  | { kind: 'mark_strokes' };
 
 /** The whole club: the admin (and the pilot path). */
 export const seesAll = (viewer: Viewer) => viewer.role === 'admin' || viewer.role === null;
@@ -37,6 +38,9 @@ export function can(viewer: Viewer, action: Action): boolean {
       return (
         runsSessions(viewer) || (viewer.userId !== null && action.authorUserId === viewer.userId)
       );
+    // Stroke marks are the basis of every timing; the coaches of a session set them (#85).
+    case 'mark_strokes':
+      return runsSessions(viewer);
     case 'unshare':
       return (
         runsSessions(viewer) || (viewer.userId !== null && action.sharedByUserId === viewer.userId)

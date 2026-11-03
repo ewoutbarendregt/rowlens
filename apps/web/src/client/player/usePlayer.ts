@@ -259,6 +259,13 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
     setLoopOn(true);
   }, []);
 
+  /** A loop over a known range, e.g. one stroke from catch to next catch (#85). */
+  const setLoop = useCallback((range: LoopRange) => {
+    const loop = normalizeLoop(range, countRef.current);
+    setLoopRange(loop);
+    setLoopOn(loop !== null);
+  }, []);
+
   const toggleLoop = useCallback(() => {
     setLoopOn((on) => !on);
   }, []);
@@ -310,6 +317,7 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
     setLoopOut: () => {
       setLoopEdge('out');
     },
+    setLoop,
     toggleLoop,
     clearLoop,
     toggleFullscreen,

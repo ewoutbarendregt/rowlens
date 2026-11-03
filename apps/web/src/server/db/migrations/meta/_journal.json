@@ -92,6 +92,13 @@
       "when": 1793642987692,
       "tag": "0012_coach_own_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793710274883,
+      "tag": "0013_stroke_marks",
+      "breakpoints": true
     }
   ]
 }

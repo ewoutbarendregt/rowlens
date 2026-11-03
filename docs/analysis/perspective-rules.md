@@ -19,5 +19,10 @@ reason shown to the user — never estimated.
 
 Legend: ✅ allowed · ⚠️ allowed with extra checks · ❌ refused.
 
+**From the coach's own stroke marks (#85, ADR-0016)**, rate, drive, recovery and their ratio are
+allowed from every perspective, with no pose confidence involved: the coach saw the catch and the
+finish. The same minimum of 3 complete strokes applies to averages. Per stroke, a value is refused
+with its reason when its marks are missing (last stroke, finish missing, two finishes).
+
 Open items (to validate with coaches and the reference set in M2): the 30° camera-angle tolerance,
 confidence thresholds, and whether onboard footage can support sync for seats facing the camera.
