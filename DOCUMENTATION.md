@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — "For" as a chip per seat; head coach's analysis wishes in the backlog
+
+**Session**: claude/feat/notes-for-chips
+**Changed**: apps/web/src/client/notes/{NotesPanel.tsx,assignees.ts,assignees.test.ts}, apps/web/src/client/styles.css, apps/web/e2e/assign.spec.ts, BUILD.md, FEATURES.md, DOCUMENTATION.md
+**Summary**: A note's "For" row shows a chip per seat of the session's lineup ("Boeg (1) · Ivo") that turns that rower on or off in one tap, and "Hele ploeg" as a switch; rowers outside the lineup keep a chip with × and the picker. The head coach's longer list of analysis wishes was added to issue #127, grouped by what the analysis has to see (body from the side, crew, oar and blade, stern view, boat), with "bovenlichaam" instead of "romp" for the rower's upper body. Not merged or deployed.
+**Prompts used**: "ja. en ik heb ook nog een hele serie wensen van de head coach: …" (the coach's chat list; recorded in #127 without names)
+
 ## 2026-11-03 — Fix the sessions-list E2E race that blocked the release (BUG-013)
 
 **Session**: claude/fix/sessions-e2e-race

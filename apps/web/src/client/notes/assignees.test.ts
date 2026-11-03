@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { framesFor, lineupSuggestions, rowersWithNotes } from './assignees.ts';
+import {
+  framesFor,
+  lineupSuggestions,
+  rowersWithNotes,
+  toggleCrew,
+  toggleRower,
+} from './assignees.ts';
 
 const r = (id: string, archived = false) => ({ id, displayName: id.toUpperCase(), archived });
 
@@ -18,9 +24,9 @@ describe('lineupSuggestions', () => {
         names,
       ),
     ).toEqual([
-      { id: 'a', label: 'bow1' },
-      { id: 'd', label: 'stroke4' },
-      { id: 'cox', label: 'cox0' },
+      { id: 'a', label: 'bow1', name: 'A' },
+      { id: 'd', label: 'stroke4', name: 'D' },
+      { id: 'cox', label: 'cox0', name: 'COX' },
     ]);
     expect(lineupSuggestions(null, [{ seat: 1, rower: r('a') }], names)).toEqual([]);
   });
@@ -44,5 +50,18 @@ describe('framesFor and rowersWithNotes', () => {
       { id: 'a', displayName: 'A' },
       { id: 'b', displayName: 'B' },
     ]);
+  });
+});
+
+describe('the For chips', () => {
+  it('turns one rower on and off', () => {
+    expect(toggleRower(['a'], 'b')).toEqual(['a', 'b']);
+    expect(toggleRower(['a', 'b'], 'a')).toEqual(['b']);
+  });
+
+  it('adds the missing crew, or takes the whole crew off and keeps the others', () => {
+    expect(toggleCrew(['x', 'a'], ['a', 'b'])).toEqual(['x', 'a', 'b']);
+    expect(toggleCrew(['x', 'a', 'b'], ['a', 'b'])).toEqual(['x']);
+    expect(toggleCrew(['x'], [])).toEqual(['x']);
   });
 });

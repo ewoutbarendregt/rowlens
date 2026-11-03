@@ -1893,6 +1893,31 @@ a.list__item {
   color: var(--color-text-primary);
 }
 
+/* "For": a chip per seat that turns the rower on or off (mockup 1e). Off is a hairline, on the
+   accent; 36 px high, still a fair tap target in a list of them. */
+.page .assignees button.chip--toggle {
+  min-height: 36px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.page .assignees button.chip--toggle:hover {
+  border-color: var(--color-border-control);
+}
+
+.page .assignees button.chip--toggle[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+  color: var(--color-text-brand);
+}
+
 .assignees__add {
   display: flex;
   flex: 1 1 100%;
@@ -1903,10 +1928,6 @@ a.list__item {
 
 .assignees__add .picker {
   flex: 1 1 12rem;
-}
-
-.notes__filter {
-  margin-block: var(--space-3);
 }
 
 /* ---------------------------------------------------------------- admin: access (#42) */

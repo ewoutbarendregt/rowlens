@@ -254,8 +254,11 @@ scripts/github/      backlog/labels/milestones bootstrap
 - API `api/moments.ts`: `PUT /api/videos/:id/frames/:frame/rowers {rowerIds}` replaces the set (409
   without anything at the frame; unknown or other-club rower 400; archived only if already assigned).
   `GET /api/videos/:id/annotations` includes `moments: [{frame, rowers}]`. Merging rowers moves them.
-- UI: in each note section "For:" chips, a `RowerPicker` with the session lineup first (seat names,
-  `suggested`) and "Whole crew"; a "Notes for" filter above the list (`notes/assignees.ts`).
+- UI: in each note section "For:" a chip per lineup seat ("Boeg (1) · Anna") that turns that rower
+  on or off with one tap, "Whole crew" as a switch (adds the missing crew; when the whole crew is on,
+  takes it off and keeps others), anyone outside the lineup as a chip with ×, and a `RowerPicker`
+  to add them (mockup 1e, 2026-11-03; `toggleRower` / `toggleCrew` in `notes/assignees.ts`).
+  The "Notes for" filter sits in the notes column header.
 
 ## UI style and colour modes (ADR-0014)
 

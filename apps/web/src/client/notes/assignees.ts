@@ -29,11 +29,31 @@ export function lineupSuggestions(
   boatType: BoatClass | null,
   lineup: readonly LineupSeatLike[],
   seatName: (role: SeatRole, seat: number) => string,
-): { id: string; label: string }[] {
+): { id: string; label: string; name: string }[] {
   if (boatType === null) return [];
   return lineup
     .filter((s) => !s.rower.archived)
-    .map((s) => ({ id: s.rower.id, label: seatName(seatRole(boatType, s.seat), s.seat) }));
+    .map((s) => ({
+      id: s.rower.id,
+      label: seatName(seatRole(boatType, s.seat), s.seat),
+      name: s.rower.displayName,
+    }));
+}
+
+/** One rower on or off a note's "For" list (a chip per seat, mockup 1e). */
+export function toggleRower(ids: readonly string[], id: string): string[] {
+  return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
+}
+
+/**
+ * "Whole crew" as a switch: on adds every crew member still missing; when the whole crew is already
+ * on, it takes the crew off again and keeps anyone from outside the lineup.
+ */
+export function toggleCrew(ids: readonly string[], crew: readonly string[]): string[] {
+  if (crew.length > 0 && crew.every((id) => ids.includes(id))) {
+    return ids.filter((id) => !crew.includes(id));
+  }
+  return [...ids, ...crew.filter((id) => !ids.includes(id))];
 }
 
 /** The frames whose note is for `rowerId`; every frame when no rower is chosen. */

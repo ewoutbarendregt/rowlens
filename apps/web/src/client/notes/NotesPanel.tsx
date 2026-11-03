@@ -5,7 +5,14 @@ import { formatFrameTime } from '../player/frames.ts';
 import { RowerPicker } from '../rowers/RowerPicker.tsx';
 import type { Rower } from '../rowers/useRoster.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
-import { framesFor, type MomentRowers, type MomentShares, rowersWithNotes } from './assignees.ts';
+import {
+  framesFor,
+  type MomentRowers,
+  type MomentShares,
+  rowersWithNotes,
+  toggleCrew,
+  toggleRower,
+} from './assignees.ts';
 import { moments } from './moments.ts';
 import { notesStrings } from './strings.ts';
 
@@ -58,7 +65,7 @@ interface NotesPanelProps {
   /** The active club roster, to pick rowers from. */
   roster: Rower[];
   /** The session lineup with seats, offered first. */
-  suggestions: readonly { id: string; label: string }[];
+  suggestions: readonly { id: string; label: string; name?: string }[];
   onRosterChanged: () => void;
   /** Shared with the player overlay: both surfaces always show the same rower's notes. */
   forRower: string | null;
@@ -352,15 +359,16 @@ export function NotesPanel(props: NotesPanelProps) {
 }
 
 /**
- * Who this note is for (#105): a chip per rower, a picker with the lineup first, and "whole crew".
- * Every change is saved straight away, like deleting a drawing.
+ * Who this note is for (#105), as in mockup 1e: a chip per seat of the session's lineup that turns
+ * that rower on or off with one tap, "whole crew" as a switch, and for anyone outside the lineup a
+ * chip with × and the picker. Every change is saved straight away, like deleting a drawing.
  */
 function Assignees(props: {
   videoId: string;
   frame: number;
   assigned: MomentRowers['rowers'];
   roster: Rower[];
-  suggestions: readonly { id: string; label: string }[];
+  suggestions: readonly { id: string; label: string; name?: string }[];
   onChanged: () => void;
   onRosterChanged: () => void;
 }) {
@@ -368,7 +376,9 @@ function Assignees(props: {
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const ids = props.assigned.map((r) => r.id);
-  const missingCrew = props.suggestions.filter((s) => !ids.includes(s.id)).map((s) => s.id);
+  const crew = props.suggestions.map((s) => s.id);
+  const others = props.assigned.filter((r) => !crew.includes(r.id));
+  const wholeCrewOn = crew.length > 0 && crew.every((id) => ids.includes(id));
 
   const save = (rowerIds: string[]) => {
     setBusy(true);
@@ -392,29 +402,62 @@ function Assignees(props: {
   return (
     <div className="assignees" data-testid="assignees">
       <span className="assignees__label">{t.assignedTo}:</span>
-      {props.assigned.length > 0 && (
-        <ul className="assignees__list">
-          {props.assigned.map((r) => (
-            <li key={r.id} className="chip chip--rower" data-testid="assignee">
-              <span>
-                {r.displayName}
-                {r.archived && <span className="muted"> · {t.archived}</span>}
-              </span>
+      <ul className="assignees__list" aria-label={t.assignedTo}>
+        {props.suggestions.map((seat) => {
+          const on = ids.includes(seat.id);
+          const name = seat.name ?? '';
+          return (
+            <li key={seat.id} data-testid={on ? 'assignee' : undefined}>
               <button
                 type="button"
-                className="chip__remove"
-                aria-label={t.unassign(r.displayName)}
+                className="chip chip--toggle"
+                aria-pressed={on}
+                aria-label={`${seat.label} · ${name}`}
                 disabled={busy}
                 onClick={() => {
-                  save(ids.filter((id) => id !== r.id));
+                  save(toggleRower(ids, seat.id));
                 }}
               >
-                ×
+                {seat.label} · {firstName(name)}
               </button>
             </li>
-          ))}
-        </ul>
-      )}
+          );
+        })}
+        {crew.length > 1 && (
+          <li>
+            <button
+              type="button"
+              className="chip chip--toggle"
+              aria-pressed={wholeCrewOn}
+              disabled={busy}
+              onClick={() => {
+                save(toggleCrew(ids, crew));
+              }}
+            >
+              {t.wholeCrew}
+            </button>
+          </li>
+        )}
+        {others.map((r) => (
+          <li key={r.id} className="chip chip--rower" data-testid="assignee">
+            <span>
+              {r.displayName}
+              {r.archived && <span className="muted"> · {t.archived}</span>}
+            </span>
+            <button
+              type="button"
+              className="chip__remove"
+              aria-label={t.unassign(r.displayName)}
+              disabled={busy}
+              onClick={() => {
+                save(ids.filter((id) => id !== r.id));
+              }}
+            >
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
       <div className="assignees__add">
         <RowerPicker
           label={t.assignPicker(props.frame)}
@@ -427,18 +470,6 @@ function Assignees(props: {
           }}
           onAdded={props.onRosterChanged}
         />
-        {missingCrew.length > 0 && (
-          <button
-            type="button"
-            className="button--quiet assignees__crew"
-            disabled={busy}
-            onClick={() => {
-              save([...ids, ...missingCrew]);
-            }}
-          >
-            {t.wholeCrew}
-          </button>
-        )}
       </div>
       {failed && (
         <p role="alert" className="error">
@@ -448,6 +479,9 @@ function Assignees(props: {
     </div>
   );
 }
+
+/** "Anna" from "Anna de Vries": the seat already tells crew members apart. */
+const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
 /**
  * Who this note is shared with (#112): rowers and/or the whole crew of the session. Anyone who can
