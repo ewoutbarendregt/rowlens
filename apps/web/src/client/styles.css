@@ -613,31 +613,120 @@ a.list__item {
 
 /* ---------------------------------------------------------------- video page layout */
 
+/* Mockup 1e: back link, title and facts on the left; the lineup in columns on the right; a hairline
+   below. Tighter than body text: every pixel here comes off the video on a low laptop screen. */
 .video-head {
-  /* Tighter than body text: every pixel here comes off the video on a low laptop screen. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-divider);
   line-height: var(--leading-snug);
 }
 
-.video-head .video-facts,
-.video-head .lineup-summary {
-  font-size: var(--text-body);
+.video-head__main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
-.video-head h1 {
-  margin-block: 0.25rem 0;
-  font-size: clamp(1.25rem, 4vw, 1.75rem);
+.video-head__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  justify-self: start;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+
+.video-head__back:hover {
+  text-decoration: underline;
+}
+
+.page .video-head h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 4vw, 2.125rem);
+  font-weight: 400;
 }
 
 .video-head .video-facts {
-  margin-block: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
-.video-layout__side .notes {
-  margin-block: 1.25rem 0;
+/* One column per seat: the seat above, the name below. */
+.lineup-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.375rem;
+  margin: 0;
+  font-size: 0.8125rem;
 }
 
-.notes > h2 {
+.lineup-cols dt {
+  color: var(--color-text-brand);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lineup-cols dd {
+  margin: 0;
+}
+
+.notes > h2,
+.notes__head h2 {
   margin-top: 0;
+}
+
+.notes__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.notes__head h2 {
+  margin: 0;
+  font-size: 1.375rem;
+}
+
+.notes__count {
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.notes__filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
+}
+
+.notes__filter select {
+  max-width: 12rem;
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  /* iOS zooms in on focus below 16 px. */
+  font-size: max(16px, 0.8125rem);
 }
 
 .notes__author {
@@ -647,22 +736,11 @@ a.list__item {
 }
 
 /* Laptop and up: everything needed while analysing fits in one view. The player column stays
-   put; the notes column scrolls on its own; the video gets what height the controls leave. */
+   put; the notes column scrolls on its own; the video gets what height the rows around it leave
+   once the page has scrolled the player to the top (tools, markers, track, readout, controls, keys). */
 @media (min-width: 1000px) {
   .video-page {
     width: min(100%, 96rem);
-  }
-
-  .video-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    column-gap: 1rem;
-  }
-
-  .video-head .page__nav {
-    flex-basis: 100%;
-    padding-block: 0.25rem;
   }
 
   .video-layout {
@@ -678,16 +756,16 @@ a.list__item {
     top: 12px;
   }
 
-  /* Header ~90px; readout, markers, slider, a row of controls and the quality row ~230px. */
+  /* The control row takes two rows until the player is wide enough for one (880 px). */
   .video-layout .player__stage {
-    --stage-cap: max(240px, calc(100dvh - 320px));
+    --stage-cap: max(240px, calc(100dvh - 330px));
   }
 
   /* Portrait video (phones filmed upright): video on the left as tall as the screen allows, its
-     controls in a column beside it, notes on the right. Not in full screen. */
+     tools and controls in a column beside it, notes on the right. Not in full screen. */
   .video-layout--portrait .player:not(.player--fullscreen) {
     grid-template-columns: auto minmax(260px, 1fr);
-    grid-template-rows: repeat(5, auto) 1fr;
+    grid-template-rows: repeat(6, auto) 1fr;
     column-gap: 1.25rem;
     align-items: start;
   }
@@ -705,10 +783,6 @@ a.list__item {
     grid-column: 2;
   }
 
-  .video-layout--portrait .player__controls {
-    justify-content: flex-start;
-  }
-
   .video-layout__side {
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
@@ -720,8 +794,14 @@ a.list__item {
   }
 }
 
+@media (min-width: 1360px) {
+  .video-layout .player__stage {
+    --stage-cap: max(240px, calc(100dvh - 280px));
+  }
+}
+
 .player__toolbar .quality {
-  margin-block: 0.25rem 0;
+  margin: 0;
 }
 
 /* ---------------------------------------------------------------- in-page confirmation */
@@ -785,13 +865,16 @@ a.list__item {
 /* ---------------------------------------------------------------- drawings (#60) */
 
 .draw {
-  display: grid;
-  gap: 0.25rem;
-  margin-block: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  margin: 0;
 }
 
 .draw__title {
-  font-weight: var(--weight-bold);
+  color: var(--color-text-secondary);
+  font-size: var(--text-small);
 }
 
 .draw__tools {
@@ -808,9 +891,9 @@ a.list__item {
 }
 
 .draw__hint {
-  min-height: 1.25em;
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--text-small);
+  font-style: italic;
 }
 
 .moment__drawings {
@@ -1042,8 +1125,7 @@ a.list__item {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1rem;
-  margin-block: 0.25rem;
+  gap: 0.5rem;
 }
 
 .page .video-note-controls__toggle {
@@ -1110,6 +1192,8 @@ a.list__item {
   width: 100%;
   max-width: 1100px;
   margin-inline: auto;
+  /* The control row lays itself out by the player's own width (the column, not the window). */
+  container: player / inline-size;
 }
 
 .player__stage {
@@ -1123,7 +1207,7 @@ a.list__item {
   width: min(100%, calc(var(--stage-cap) * var(--aspect)));
   aspect-ratio: var(--aspect);
   background: var(--player-bg);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -1143,9 +1227,10 @@ a.list__item {
   flex-wrap: wrap;
   gap: 0.25rem 1rem;
   justify-content: space-between;
-  font-family: var(--font-mono);
+  margin-top: -0.25rem;
+  font-size: var(--text-small);
   font-variant-numeric: tabular-nums;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .player__readout strong {
@@ -1157,11 +1242,12 @@ a.list__item {
   font-weight: var(--weight-bold);
 }
 
-/* Notes on the timeline (#59): a strip above the slider, so markers never steal its drag. */
+/* Notes on the timeline (#59): a strip above the slider, so markers never steal its drag. Inset by
+   half the range thumb, so a diamond sits right above its frame. */
 .player__markers {
   position: relative;
   height: 22px;
-  margin-inline: 10px;
+  margin: 0.25rem 8px -0.5rem;
 }
 
 /* Two classes + element: page and player button styles must not apply to markers. */
@@ -1180,18 +1266,25 @@ a.list__item {
   cursor: pointer;
 }
 
+/* Mockup 1e: a small diamond outlined in the accent; filled on the frame on screen. */
 .player button.player__marker::after {
   content: '';
   position: absolute;
   left: 50%;
-  bottom: 2px;
-  border: 6px solid transparent;
-  border-top: 10px solid var(--color-fill-brand);
-  transform: translateX(-50%);
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--color-accent);
+  background: var(--color-bg);
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.player button.player__marker:hover::after {
+  background: color-mix(in srgb, var(--color-accent) 35%, var(--color-bg));
 }
 
 .player button.player__marker--here::after {
-  border-top-color: var(--rl-here);
+  background: var(--color-accent);
 }
 
 .player button.player__marker:focus-visible {
@@ -1203,7 +1296,7 @@ a.list__item {
   position: relative;
   display: grid;
   align-items: center;
-  min-height: 44px;
+  min-height: 36px;
 }
 
 .player__scrub input {
@@ -1228,26 +1321,133 @@ a.list__item {
   outline-style: solid;
 }
 
+/* Speed | steps with the round play button | loop and full screen (mockup 1e). A narrow player
+   (phone, small laptop column) puts the steps on their own row first. */
 .player__controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'steps steps'
+    'speed loop';
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--color-divider);
 }
 
 .player__group {
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.player__steps {
+  grid-area: steps;
   justify-content: center;
 }
 
+.player__speed {
+  grid-area: speed;
+}
+
+.player__loop {
+  grid-area: loop;
+  justify-content: flex-end;
+}
+
+.player__label {
+  margin-right: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
+
+/* A phone: the seven steps on one row (44 px each, the play button 56), then speed, then loop. */
+@container player (max-width: 519px) {
+  .player__controls {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'steps'
+      'speed'
+      'loop';
+  }
+
+  .player__steps {
+    flex-wrap: nowrap;
+    gap: 3px;
+  }
+
+  .player__controls .player__steps button {
+    padding-inline: 0;
+  }
+
+  .player__controls button.player__play {
+    margin-inline: 0;
+  }
+
+  .player__speed,
+  .player__loop {
+    justify-content: center;
+  }
+}
+
+@container player (min-width: 880px) {
+  .player__controls {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas: 'speed steps loop';
+    gap: 1rem;
+  }
+}
+
+/* Keyboard shortcuts, for laptops; a phone has no keyboard. */
+.player__keys {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* No keyboard on a phone; on a low laptop screen the room goes to the video. */
+@media (hover: none), (max-width: 759px), (max-height: 640px) {
+  .player__keys {
+    display: none;
+  }
+}
+
+/* The page's tools for the picture: one row above it on a laptop (mockup 1e); on a phone below the
+   controls, so the picture and its steps stay on the first screen (BUG-005). */
+@media (max-width: 999px) {
+  .player__toolbar {
+    order: 1;
+  }
+}
+
+.player__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+
+.player__toolbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .player__controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
   min-width: 44px;
   min-height: 44px;
   padding: 0 0.6rem;
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-primary);
   font: inherit;
@@ -1280,19 +1480,31 @@ a.list__item {
   border-radius: var(--radius-md);
 }
 
-.player__play {
-  min-width: 64px !important;
-  font-size: 1.1rem;
+/* The one round, accent-outlined button: play and pause. */
+.player__controls button.player__play {
+  width: 56px;
+  height: 56px;
+  margin-inline: 0.375rem;
+  padding: 0;
+  border-color: var(--color-accent);
+  border-radius: 50%;
+  color: var(--color-text-brand);
 }
 
-/* Native fullscreen and the iPhone fallback both fill the screen with video + controls. */
+.player__controls button.player__play:hover {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+
+/* Native fullscreen and the iPhone fallback both fill the screen with video + controls: a column
+   in which the picture takes what the rows around it leave. */
 .player--fullscreen {
+  display: flex;
+  flex-direction: column;
   max-width: none;
   background: var(--player-bg);
   color: #e6eef2;
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-  grid-template-rows: 1fr auto auto auto;
   height: 100%;
 }
 
@@ -1304,10 +1516,20 @@ a.list__item {
 }
 
 .player--fullscreen .player__stage {
+  flex: 1 1 auto;
   width: 100%;
   aspect-ratio: auto;
   border-radius: 0;
   min-height: 0;
+}
+
+.player--fullscreen .player__controls {
+  border-top-color: rgb(255 255 255 / 0.2);
+}
+
+.player--fullscreen .player__keys,
+.player--fullscreen .player__label {
+  color: #b9c4ca;
 }
 
 .player--fullscreen .player__readout,
@@ -1590,11 +1812,6 @@ a.list__item {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.lineup-summary {
-  margin: 0;
-  overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------------- colour mode (ADR-0012) */

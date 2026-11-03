@@ -35,7 +35,8 @@ test('create a session, upload a video and a fake one, delete the video', async 
 
   const videos = page.getByTestId('video');
   await expect(videos).toHaveCount(2);
-  const stroke = videos.filter({ hasText: 'stroke.webm' });
+  // Found by what it isn't: a ready video shows its display name, not the file's.
+  const stroke = videos.filter({ hasNotText: 'fake.mov' });
   if (edgeUrl === undefined) {
     // No worker next to the local E2E server: the upload waits for processing.
     await expect(stroke.getByTestId('video-status')).toHaveText(/Uploaded|Geüpload/);
@@ -47,11 +48,12 @@ test('create a session, upload a video and a fake one, delete the video', async 
     await expect(stroke.getByTestId('video-facts')).toHaveText(/^30 fps · 640×360 · 0:04$/);
 
     // The worker's H.264 rendition in the frame-accurate player (#49): poster, then exact steps.
-    // Named [session]-[#]-[start]-[length]: first in its session, no recording time in the clip.
-    const name = `${title}-1-??:??-0:04`;
+    // Named [session]-[#]-[start]-[length]: first in its session; the clip has no recording time,
+    // so that part is left out rather than shown as question marks.
+    const name = `${title}-1-0:04`;
     await stroke.getByRole('link', { name, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name, exact: true })).toBeVisible();
-    await expect(page.getByText('stroke.webm')).toBeVisible(); // the original file name, as a detail
+    await expect(page.getByText('stroke.webm')).toHaveCount(0); // no file name on the video page
     const frame = page.getByTestId('player-frame');
     await expect(frame).toHaveText('0');
     await expect(page.locator('video')).toHaveAttribute('poster', /\/media\/poster$/);
@@ -62,7 +64,7 @@ test('create a session, upload a video and a fake one, delete the video', async 
     }
     const time = await page.locator('video').evaluate((v: HTMLVideoElement) => v.currentTime);
     expect(Math.floor(time * 30 + 1e-4)).toBe(10);
-    await page.getByRole('link', { name: /^← (Back to|Terug naar) E2E/ }).click();
+    await page.getByRole('link', { name: /^(Back to|Terug naar) E2E/ }).click();
   }
   await expect(stroke).toContainText(/From the bank|Vanaf de kant/);
   await expect(videos.filter({ hasText: 'fake.mov' }).getByTestId('video-status')).toHaveText(

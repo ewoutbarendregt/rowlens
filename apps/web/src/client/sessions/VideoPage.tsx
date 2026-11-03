@@ -13,7 +13,6 @@ import {
   lineupSuggestions,
   type MomentRowers,
   type MomentShares,
-  rowersWithNotes,
 } from '../notes/assignees.ts';
 import { type Annotation, describeDrawing, NotesPanel } from '../notes/NotesPanel.tsx';
 import {
@@ -153,7 +152,6 @@ export function VideoPage() {
     [video?.width, video?.height],
   );
 
-  const rowersInNotes = useMemo(() => rowersWithNotes(momentRowers), [momentRowers]);
   const accountEmail = auth.state.kind === 'open' ? auth.state.user.email.toLowerCase() : null;
   const myRower =
     accountEmail === null
@@ -256,15 +254,18 @@ export function VideoPage() {
 
   return (
     <main className="page page--wide video-page">
+      {/* Mockup 1e: back, title and facts on the left; the lineup as columns on the right. */}
       <header className="video-head">
-        <nav className="page__nav">
-          <Link to={`/sessions/${video.sessionId}`}>← {t.backToSession(video.sessionTitle)}</Link>
-        </nav>
-        <h1 className="video-title">{videoDisplayName(video)}</h1>
-        <p className="muted video-facts">
-          {t.perspectives[video.perspective]}
-          {video.status === 'ready' && <> · {formatVideoFacts(video)}</>} · {video.filename}
-        </p>
+        <div className="video-head__main">
+          <Link className="video-head__back" to={`/sessions/${video.sessionId}`}>
+            <Icon name="arrowLeft" size={14} /> {t.backToSession(video.sessionTitle)}
+          </Link>
+          <h1 className="video-title">{videoDisplayName(video)}</h1>
+          <p className="muted video-facts">
+            {t.perspectives[video.perspective]}
+            {video.status === 'ready' && <> · {formatVideoFacts(video)}</>}
+          </p>
+        </div>
         <LineupSummary boatType={video.boatType} lineup={video.lineup} />
       </header>
 
@@ -288,6 +289,7 @@ export function VideoPage() {
               }}
               markers={markers}
               handle={player}
+              keyHints={[nt.notesKey]}
               overlay={
                 <>
                   <DrawingLayer
@@ -304,88 +306,65 @@ export function VideoPage() {
               }
               toolbar={
                 <>
-                  <div className="video-note-controls" role="group" aria-label={nt.videoNotes}>
-                    <button
-                      type="button"
-                      className="button--quiet video-note-controls__toggle"
-                      aria-pressed={notesVisible}
-                      onClick={toggleNotes}
-                    >
-                      <Icon name="eye" />
-                      {notesVisible ? nt.hideVideoNotes : nt.showVideoNotes}
-                      <kbd>N</kbd>
-                    </button>
-                    <label className="video-note-controls__filter">
-                      <span>{nt.hold}</span>
-                      <select
-                        value={noteHoldSeconds}
-                        aria-label={nt.holdTime}
-                        onChange={(event) => {
-                          const value = Number(event.target.value) as NoteHoldSeconds;
-                          setNoteHoldSeconds(value);
-                          rememberNoteHoldSeconds(value);
-                        }}
+                  <DrawTools tool={tool} onTool={chooseTool} />
+                  <div className="player__toolbar-end">
+                    <div className="video-note-controls" role="group" aria-label={nt.videoNotes}>
+                      <button
+                        type="button"
+                        className="button--quiet video-note-controls__toggle"
+                        aria-pressed={notesVisible}
+                        onClick={toggleNotes}
                       >
-                        {NOTE_HOLD_OPTIONS.map((seconds) => (
-                          <option key={seconds} value={seconds}>
-                            {nt.seconds(seconds)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {(rowersInNotes.length > 0 || myRower !== undefined) && (
+                        <Icon name="eye" />
+                        {notesVisible ? nt.hideVideoNotes : nt.showVideoNotes}
+                      </button>
                       <label className="video-note-controls__filter">
-                        <span>{nt.notesFor}</span>
+                        <span>{nt.hold}</span>
                         <select
-                          value={forRower ?? ''}
-                          aria-label={nt.noteFilter}
+                          value={noteHoldSeconds}
+                          aria-label={nt.holdTime}
                           onChange={(event) => {
-                            setForRower(event.target.value === '' ? null : event.target.value);
+                            const value = Number(event.target.value) as NoteHoldSeconds;
+                            setNoteHoldSeconds(value);
+                            rememberNoteHoldSeconds(value);
                           }}
                         >
-                          <option value="">{nt.everyone}</option>
-                          {myRower !== undefined && (
-                            <option value={myRower.id}>{nt.myNotes}</option>
-                          )}
-                          {rowersInNotes
-                            .filter((rower) => rower.id !== myRower?.id)
-                            .map((rower) => (
-                              <option key={rower.id} value={rower.id}>
-                                {rower.displayName}
-                              </option>
-                            ))}
+                          {NOTE_HOLD_OPTIONS.map((seconds) => (
+                            <option key={seconds} value={seconds}>
+                              {nt.seconds(seconds)}
+                            </option>
+                          ))}
                         </select>
                       </label>
+                    </div>
+                    {video.renditions.length > 1 && (
+                      <div
+                        className="quality"
+                        role="group"
+                        aria-label={t.quality}
+                        title={t.qualityHint}
+                      >
+                        <span>{t.quality}</span>
+                        {video.renditions
+                          .map((r) => r.name)
+                          .sort()
+                          .reverse()
+                          .map((name) => (
+                            <button
+                              key={name}
+                              type="button"
+                              className="button--quiet"
+                              aria-pressed={rendition === name}
+                              onClick={() => {
+                                setRendition(name);
+                              }}
+                            >
+                              {name.replace('play-', '')}p
+                            </button>
+                          ))}
+                      </div>
                     )}
                   </div>
-                  <DrawTools tool={tool} onTool={chooseTool} />
-                  {video.renditions.length > 1 && (
-                    <div
-                      className="quality"
-                      role="group"
-                      aria-label={t.quality}
-                      title={t.qualityHint}
-                    >
-                      <span>{t.quality}</span>
-                      {video.renditions
-                        .map((r) => r.name)
-                        .sort()
-                        .reverse()
-                        .map((name) => (
-                          <button
-                            key={name}
-                            type="button"
-                            className="button--quiet"
-                            aria-pressed={rendition === name}
-                            onClick={() => {
-                              setRendition(name);
-                            }}
-                          >
-                            {name.replace('play-', '')}p
-                          </button>
-                        ))}
-                    </div>
-                  )}
                 </>
               }
             />
@@ -408,6 +387,7 @@ export function VideoPage() {
                 lineupStrings().seatLabel,
               )}
               forRower={forRower}
+              myRowerId={myRower?.id}
               onForRowerChange={setForRower}
               onRosterChanged={() => void roster.reload()}
               onJump={(f, reveal) => {

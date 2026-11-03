@@ -17,7 +17,7 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   const videoUrl = page.url();
 
   // A lineup for the session: two rowers added on the spot.
-  await page.getByRole('link', { name: /^← (Back to|Terug naar) / }).click();
+  await page.getByRole('link', { name: /^(Back to|Terug naar) / }).click();
   const lineup = page.getByTestId('lineup');
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C2x');
   for (const [seat, name] of [
@@ -59,11 +59,8 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   const filter = page.getByLabel(/^(Notes for|Notities voor)$/);
   await expect(filter.locator('option')).toHaveText([/Everyone|Iedereen/, `Bram ${tag}`]);
   const bram = await filter.locator('option', { hasText: `Bram ${tag}` }).getAttribute('value');
-  const videoFilter = page.getByLabel(
-    /^(Filter notes in the video|Notities in de video filteren)$/,
-  );
-  await expect(videoFilter.locator('option')).toHaveText([/Everyone|Iedereen/, `Bram ${tag}`]);
-  await videoFilter.selectOption(bram ?? '');
-  await expect(filter).toHaveValue(bram ?? '');
+  // One filter, in the notes column's header, for both the list and the video (mockup 1e).
+  await filter.selectOption(bram ?? '');
   await expect(page.getByTestId('moment')).toHaveCount(1);
+  await expect(page.getByTestId('player-markers').getByRole('button')).toHaveCount(1);
 });

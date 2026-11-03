@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Video page in the 1e layout; names without question marks; technique backlog
+
+**Session**: claude/feat/video-page-layout
+**Changed**: apps/web/src/client/player/{Player.tsx,strings.ts}, apps/web/src/client/sessions/{VideoPage.tsx,SessionPage.tsx,displayName.ts,displayName.test.ts}, apps/web/src/client/lineup/LineupCard.tsx, apps/web/src/client/notes/{NotesPanel.tsx,strings.ts}, apps/web/src/client/drawing/DrawTools.tsx, apps/web/src/client/ui/icons.tsx, apps/web/src/client/styles.css, apps/web/e2e/{helpers.ts,assign.spec.ts,share.spec.ts,upload.spec.ts}, BUILD.md, FEATURES.md, TEST.md, BUGS.md
+**Summary**: The video page follows mockup 1e: header with the lineup as columns, the tools above the picture on a laptop, diamonds on the timeline, one control row with a round play button, a line of shortcuts, and the "Notes for" filter in the notes column header (one filter for list and video). Video sizes are unchanged at every measured size; at 1000×540 the player column now fits the screen. Video names leave out unknown parts instead of "??:??", and the file name is gone from the video page and from ready videos in the session. Coach input on what analysis should show first is in issue #127. Not merged or deployed. "For" chips per seat remain for a next PR.
+**Prompts used**: "check the state of the repo and lets continue with the next task"; "Belangrijk zijn: blad in het water, knie- (arm) en heup- hoeken bij inpik, halve bank en uitpik. Verder inpik niet vanuit heup of knie. Dat de hoeken van alle roeiers gelijk zijn en dat bewegingen de snelheid van de boot verbeteren. Verder pols hoek... UI: verder hoef ik de lange (code) naam van de video file niet te zien, en er verschijnen steeds vraagtekens in de displaynaam."
+
 ## 2026-11-02 — Merge and deploy notes-in-video release
 
 **Session**: codex/docs/deploy-ee73740
