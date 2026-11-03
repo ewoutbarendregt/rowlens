@@ -31,9 +31,13 @@ test('lands on the sessions list, filters by rower, sorts by title, keeps it on 
 
   await page.goto('./sessions');
   const filters = page.getByTestId('filters');
-  // Open on a laptop, folded on a phone.
+  // A row without a toggle on a laptop, a fold on a phone. Wait for the block itself: the laptop
+  // opens it just after rendering, so "is the search field visible yet?" raced that (BUG-013) and
+  // clicked the toggle that a laptop hides.
+  await expect(filters).toBeVisible();
+  const toggle = filters.locator('summary');
+  if (await toggle.isVisible()) await toggle.click();
   const search = filters.getByLabel(/^(Search|Zoeken)$/);
-  if (!(await search.isVisible())) await filters.locator('summary').click();
   await search.fill(tag);
   await expect(page).toHaveURL(/q=/);
   await filters.getByLabel(/^(Sort by|Sorteren op)/).selectOption('title');

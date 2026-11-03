@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Fix the sessions-list E2E race that blocked the release (BUG-013)
+
+**Session**: claude/fix/sessions-e2e-race
+**Changed**: apps/web/e2e/sessions.spec.ts, BUGS.md, DOCUMENTATION.md
+**Summary**: After #128 was merged, CI on `main` failed (twice, with retry) in the sessions-list E2E, so no images were built for `sha-2a9dfb8` and nothing was deployed. The CI trace showed the test clicking the filter toggle that laptops hide: it checked the search field's visibility before the filters had opened. The test now waits for the filter block and opens the fold only on a phone; 5 × 2 runs and the full local suite passed.
+**Prompts used**: "Merge en deploy"
+
 ## 2026-11-03 — Video page in the 1e layout; names without question marks; technique backlog
 
 **Session**: claude/feat/video-page-layout
