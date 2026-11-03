@@ -459,3 +459,105 @@ describe('coaches see their own sessions; the admin sees and assigns all (#108)'
     expect(mine?.notesForMe).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('names, default boat and renaming (2026-11-03)', () => {
+  // A session of its own: earlier tests hand the shared one to another coach.
+  let own = '';
+  beforeAll(async () => {
+    own = (
+      await send('POST', '/api/sessions', as.coach, { title: `Names ${tag}`, date: '2026-11-03' })
+    ).json<{ id: string }>().id;
+    await send('PUT', `/api/sessions/${own}/lineup`, as.coach, {
+      boatType: 'C1x',
+      seats: [{ seat: 1, rowerId: roster.a }],
+    });
+  });
+
+  it('a member sets their own name and default boat; notes and the session list use it', async () => {
+    const status = async (who: keyof typeof as) =>
+      (await send('GET', '/api/auth/status', as[who])).json<{
+        user: {
+          firstName: string | null;
+          lastName: string | null;
+          defaultBoatType: string | null;
+          authorName: string;
+        };
+      }>().user;
+    expect(await status('coach')).toMatchObject({ firstName: null, lastName: null });
+    for (const bad of [
+      { firstName: '', lastName: 'Coach', defaultBoatType: null },
+      { firstName: 'Cora', lastName: 'x'.repeat(61), defaultBoatType: null },
+      { firstName: 'Cora', lastName: 'Coach', defaultBoatType: 'C9x' },
+    ]) {
+      expect((await send('PUT', '/api/me/profile', as.coach, bad)).statusCode).toBe(400);
+    }
+    const set = await send('PUT', '/api/me/profile', as.coach, {
+      firstName: ' Cora ',
+      lastName: 'Coach',
+      defaultBoatType: 'C2x',
+    });
+    expect(set.statusCode).toBe(200);
+    // The coach isn't on the roster, so notes are by the account's own name now.
+    expect(await status('coach')).toMatchObject({
+      firstName: 'Cora',
+      lastName: 'Coach',
+      defaultBoatType: 'C2x',
+      authorName: 'Cora Coach',
+    });
+    // Only their own row: the rower's profile is untouched.
+    expect(await status('a')).toMatchObject({ firstName: null, defaultBoatType: null });
+
+    // The sessions list names who made each session.
+    const listed = (await send('GET', '/api/sessions', as.coach)).json<{
+      sessions: { id: string; creatorName: string | null }[];
+    }>().sessions;
+    expect(listed.find((s) => s.id === own)?.creatorName).toBe('Cora Coach');
+  });
+
+  it("renames: the maker and the admin may; a rower in it may not; another coach doesn't see it", async () => {
+    const rename = (who: keyof typeof as, title: string) =>
+      send('PATCH', `/api/sessions/${own}`, as[who], { title });
+    expect((await rename('a', 'By a rower')).statusCode).toBe(403);
+    expect((await rename('coach2', 'By another coach')).statusCode).toBe(404);
+    expect((await rename('coach', '')).statusCode).toBe(400);
+    expect((await rename('coach', ' Saturday, renamed ')).json()).toMatchObject({
+      title: 'Saturday, renamed',
+    });
+    expect((await rename('admin', `Names ${tag}`)).statusCode).toBe(200);
+    const detail = (await send('GET', `/api/sessions/${own}`, as.a)).json<{
+      title: string;
+      canRename: boolean;
+      creatorName: string;
+    }>();
+    expect(detail).toMatchObject({ title: `Names ${tag}`, canRename: false });
+    expect(
+      (await send('GET', `/api/sessions/${own}`, as.coach)).json<{ canRename: boolean }>()
+        .canRename,
+    ).toBe(true);
+  });
+
+  it('a new session starts with the boat given, or none', async () => {
+    const make = async (boatType?: string) =>
+      (
+        await send('POST', '/api/sessions', as.coach, {
+          title: `Boat ${tag}`,
+          date: '2026-11-03',
+          ...(boatType === undefined ? {} : { boatType }),
+        })
+      ).json<{ id: string }>().id;
+    const boatOf = async (id: string) =>
+      (await send('GET', `/api/sessions/${id}`, as.coach)).json<{ boatType: string | null }>()
+        .boatType;
+    expect(await boatOf(await make('C4x+'))).toBe('C4x+');
+    expect(await boatOf(await make())).toBeNull();
+    expect(
+      (
+        await send('POST', '/api/sessions', as.coach, {
+          title: 'x',
+          date: '2026-11-03',
+          boatType: 'C9x',
+        })
+      ).statusCode,
+    ).toBe(400);
+  });
+});

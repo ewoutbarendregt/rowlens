@@ -13,6 +13,7 @@ import { lineupRoutes } from './api/lineups.ts';
 import { momentRoutes } from './api/moments.ts';
 import { strokeRoutes } from './api/strokes.ts';
 import { angleRoutes } from './api/angles.ts';
+import { profileRoutes } from './api/profile.ts';
 import { rowerRoutes } from './api/rowers.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
@@ -176,6 +177,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
     await app.register(annotationRoutes, { prefix: base, ...clubOpts });
     await app.register(strokeRoutes, { prefix: base, ...clubOpts });
     await app.register(angleRoutes, { prefix: base, ...clubOpts });
+    await app.register(profileRoutes, { prefix: base, ...clubOpts });
     await app.register(rowerRoutes, { prefix: base, ...clubOpts });
     await app.register(lineupRoutes, { prefix: base, ...clubOpts });
     await app.register(momentRoutes, { prefix: base, ...clubOpts });

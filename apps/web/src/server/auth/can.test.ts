@@ -20,6 +20,16 @@ const table: [string, Action, Record<keyof typeof viewers, boolean>][] = [
     { admin: true, coach: true, rower: false, pilot: true },
   ],
   [
+    'rename a session they made',
+    { kind: 'rename_session', createdByUserId: ME },
+    { admin: true, coach: true, rower: true, pilot: true },
+  ],
+  [
+    "rename someone else's session",
+    { kind: 'rename_session', createdByUserId: OTHER },
+    { admin: true, coach: true, rower: false, pilot: true },
+  ],
+  [
     'angle measurements',
     { kind: 'measure_angles' },
     { admin: true, coach: true, rower: false, pilot: true },

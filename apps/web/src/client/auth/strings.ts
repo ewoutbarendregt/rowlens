@@ -31,6 +31,16 @@ const en = {
   othersDone: 'Other devices have been signed out.',
   logout: 'Sign out',
   account: 'Account and sign out',
+  welcome: 'Welcome to RowLens',
+  welcomeText:
+    'First fill in your name. It shows on the sessions you make and the notes you write.',
+  profile: 'Your name and settings',
+  firstName: 'First name',
+  lastName: 'Last name',
+  defaultBoat: 'Boat for a new session',
+  saveProfile: 'Save',
+  profileSaved: 'Saved.',
+  profileFailed: 'Could not save. Check your connection and try again.',
 };
 
 const nl: typeof en = {
@@ -66,6 +76,16 @@ const nl: typeof en = {
   othersDone: 'De andere apparaten zijn afgemeld.',
   logout: 'Afmelden',
   account: 'Account en afmelden',
+  welcome: 'Welkom bij RowLens',
+  welcomeText:
+    'Vul eerst je naam in. Die staat bij de trainingen die je aanmaakt en de notities die je schrijft.',
+  profile: 'Je naam en instellingen',
+  firstName: 'Voornaam',
+  lastName: 'Achternaam',
+  defaultBoat: 'Boot bij een nieuwe training',
+  saveProfile: 'Opslaan',
+  profileSaved: 'Opgeslagen.',
+  profileFailed: 'Opslaan lukte niet. Controleer je verbinding en probeer het opnieuw.',
 };
 
 export type AuthStrings = typeof en;

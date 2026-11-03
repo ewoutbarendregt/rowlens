@@ -22,7 +22,8 @@ export type Action =
   | { kind: 'manage_lineup' }
   | { kind: 'upload' }
   | { kind: 'mark_strokes' }
-  | { kind: 'measure_angles' };
+  | { kind: 'measure_angles' }
+  | { kind: 'rename_session'; createdByUserId: string | null };
 
 /** The whole club: the admin (and the pilot path). */
 export const seesAll = (viewer: Viewer) => viewer.role === 'admin' || viewer.role === null;
@@ -44,6 +45,11 @@ export function can(viewer: Viewer, action: Action): boolean {
     case 'mark_strokes':
     case 'measure_angles':
       return runsSessions(viewer);
+    // Its coaches and the admin, and whoever made it (2026-11-03).
+    case 'rename_session':
+      return (
+        runsSessions(viewer) || (viewer.userId !== null && action.createdByUserId === viewer.userId)
+      );
     case 'unshare':
       return (
         runsSessions(viewer) || (viewer.userId !== null && action.sharedByUserId === viewer.userId)

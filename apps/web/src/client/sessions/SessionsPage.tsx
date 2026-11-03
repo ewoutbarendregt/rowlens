@@ -18,11 +18,20 @@ import {
   SORTS,
   writeFilters,
 } from './filter.ts';
-import { formatCreatedTime, formatDayParts, formatMonth, sessionStrings } from './strings.ts';
+import {
+  formatCreatedDay,
+  formatCreatedTime,
+  formatDayParts,
+  formatMonth,
+  sessionStrings,
+} from './strings.ts';
+import { DEFAULT_BOAT } from '../ui/ProfileForm.tsx';
 
 interface SessionSummary extends SessionRow {
   id: string;
   boatType: BoatClass | null;
+  /** Who made it (their name, else their e-mail address); null when nobody is set. */
+  creatorName: string | null;
   mySeat: number | null;
   lineup: { seat: number; rowerId: string; displayName: string }[];
 }
@@ -55,6 +64,10 @@ export function SessionsPage() {
   const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(today);
+  // A new session starts with the member's own default boat, else C4x+ (Ewout, 2026-11-03).
+  const ownBoat = state.kind === 'open' ? state.user.defaultBoatType : null;
+  const [boat, setBoat] = useState<BoatClass | null>(null);
+  const chosenBoat = boat ?? ownBoat ?? DEFAULT_BOAT;
   const [busy, setBusy] = useState(false);
   // Open on a laptop or when filters are set, folded on a phone; after that the user decides. Not a
   // controlled `open`: re-renders would fight the user's own toggle.
@@ -82,7 +95,7 @@ export function SessionsPage() {
   const create = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setBusy(true);
-    void api('/api/sessions', { method: 'POST', body: { title, date } })
+    void api('/api/sessions', { method: 'POST', body: { title, date, boatType: chosenBoat } })
       .then(async (res) => {
         if (!res.ok) throw new Error();
         const { id } = (await res.json()) as { id: string };
@@ -168,6 +181,20 @@ export function SessionsPage() {
             }}
             required
           />
+          <label htmlFor={`${formId}-boat`}>{t.boat}</label>
+          <select
+            id={`${formId}-boat`}
+            value={chosenBoat}
+            onChange={(e) => {
+              setBoat(e.target.value as BoatClass);
+            }}
+          >
+            {BOAT_CLASS_NAMES.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
           <span className="form__actions">
             <button type="submit" disabled={busy || title.trim() === ''}>
               {t.create}
@@ -342,7 +369,11 @@ export function SessionsPage() {
                             {s.title}
                           </Link>
                           <span className="muted">
-                            {t.createdAt(formatCreatedTime(s.createdAt))}
+                            {s.creatorName !== null && <>{s.creatorName} · </>}
+                            {t.createdOn(
+                              formatCreatedDay(s.createdAt),
+                              formatCreatedTime(s.createdAt),
+                            )}
                           </span>
                         </td>
                         <td className="sessions-table__boat">{s.boatType ?? '—'}</td>

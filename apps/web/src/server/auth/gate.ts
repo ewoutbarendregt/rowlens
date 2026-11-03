@@ -216,6 +216,15 @@ export function createAuthGate(opts: {
           sql`select count(*)::int as n from rower where user_id = ${session.userId}`,
         ),
       );
+      // Their own name and default boat (2026-11-03): until the name is set, the app asks for it.
+      const profile = await withTenant(opts.db, session, (tx) =>
+        tx.execute<{
+          first_name: string | null;
+          last_name: string | null;
+          default_boat_type: string | null;
+        }>(sql`select * from rowlens_my_profile()`),
+      );
+      const own = profile.rows[0];
       // The name notes get when this person writes them ("as Anna de Vries").
       const authorName = await withTenant(opts.db, session, (tx) =>
         accountAuthor(tx, session.userId, session.displayName),
@@ -230,6 +239,9 @@ export function createAuthGate(opts: {
           role: session.role,
           linked: (linked.rows[0]?.n ?? 0) > 0,
           authorName,
+          firstName: own?.first_name ?? null,
+          lastName: own?.last_name ?? null,
+          defaultBoatType: own?.default_boat_type ?? null,
         },
       };
     });

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openNewSession, signIn } from './helpers.ts';
+import { openLineup, openNewSession, signIn } from './helpers.ts';
 
 // The sessions list is the start page; filters and sort live in the URL (#108).
 test('lands on the sessions list, filters by rower, sorts by title, keeps it on reload', async ({
@@ -18,7 +18,7 @@ test('lands on the sessions list, filters by rower, sorts by title, keeps it on 
     await openNewSession(page);
     await page.getByLabel(/^(Title|Titel)$/).fill(title);
     await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
-    const lineup = page.getByTestId('lineup');
+    const lineup = await openLineup(page);
     await expect(lineup).toBeVisible();
     if (withMia) {
       await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C1x');

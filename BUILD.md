@@ -321,6 +321,19 @@ scripts/github/      backlog/labels/milestones bootstrap
   frame, a table per joint. On the picture: measurements of the frame on screen with their label,
   and the boat line dashed while the tab is open. `Drawing` got `label` and `variant`.
 
+## Names, default boat and the session page (2026-11-03)
+
+- `app_user.first_name`, `last_name`, `default_boat_type` (migration 0016), through
+  `rowlens_my_profile()` / `rowlens_set_my_profile()` (own row only; also sets `display_name`).
+  `GET /api/auth/status` returns them; `PUT /api/me/profile` (`api/profile.ts`) sets them.
+- `RequireAuth` shows a welcome card with the name form until both names are set; the account menu
+  holds the same form (`ui/ProfileForm.tsx`) with the default boat (null: C4x+, `DEFAULT_BOAT`).
+- Sessions: `creatorName` (name, else e-mail, via `rowlens_club_members()`) in the list and on the
+  page; "Created on 2 Nov at 09:12" (`formatCreatedDay`); `POST /api/sessions` takes `boatType`;
+  `PATCH /api/sessions/:id {title}` with `can(rename_session)` (its coaches, the admin, the maker).
+- Session page order: title (rename), facts, **Videos** (list + "Add videos" button, the upload queue
+  in the same card), the **lineup** folded in a `<details>` with a summary, then delete.
+
 ## Interface language (ADR-0015)
 
 - `client/i18n/language.ts`: `lang()` (saved choice per device, else Dutch), `locale()` for `Intl`,

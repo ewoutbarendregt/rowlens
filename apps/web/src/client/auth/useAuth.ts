@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { BoatClass } from '../../shared/boats.ts';
 import { api } from '../api.ts';
 
 interface AuthUser {
@@ -10,6 +11,11 @@ interface AuthUser {
   role: 'rower' | 'coach' | 'admin';
   /** Linked to a roster entry; a rower sees nothing until a coach adds their e-mail there. */
   linked: boolean;
+  /** Their own name (2026-11-03); until both are set, the app asks for them first. */
+  firstName: string | null;
+  lastName: string | null;
+  /** The boat a new session starts with; null: C4x+. */
+  defaultBoatType: BoatClass | null;
 }
 
 export type AuthState =

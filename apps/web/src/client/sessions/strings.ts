@@ -9,12 +9,21 @@ const en = {
   date: 'Date',
   create: 'Create session',
   createdAt: (time: string) => `Created at ${time}`,
+  /** When the session was made in the app, not the day it was rowed (2026-11-03). */
+  createdOn: (date: string, time: string) => `Created on ${date} at ${time}`,
+  createdBy: (name: string) => `by ${name}`,
+  rename: 'Rename',
+  renameLabel: 'Session name',
+  save: 'Save',
+  renameFailed: 'Could not rename. Check your connection and try again.',
+  boat: 'Boat',
+  videosTitle: 'Videos',
   videos: (n: number) => (n === 1 ? '1 video' : `${String(n)} videos`),
   back: 'All sessions',
   home: 'Home',
   noVideos: 'No videos in this session yet.',
   upload: 'Upload videos',
-  chooseFiles: 'Choose videos',
+  chooseFiles: 'Add videos',
   chooseHint: 'You can pick several. Keep this page open until they are done.',
   perspective: 'Camera',
   perspectives: { boat: 'In the boat', bank: 'From the bank', drone: 'Drone' },
@@ -104,12 +113,20 @@ const nl: typeof en = {
   date: 'Datum',
   create: 'Training aanmaken',
   createdAt: (time: string) => `Aangemaakt om ${time}`,
+  createdOn: (date: string, time: string) => `Aangemaakt op ${date} om ${time}`,
+  createdBy: (name: string) => `door ${name}`,
+  rename: 'Naam aanpassen',
+  renameLabel: 'Naam van de training',
+  save: 'Opslaan',
+  renameFailed: 'Hernoemen lukte niet. Controleer je verbinding en probeer het opnieuw.',
+  boat: 'Boot',
+  videosTitle: 'Video’s',
   videos: (n: number) => (n === 1 ? '1 video' : `${String(n)} video’s`),
   back: 'Alle trainingen',
   home: 'Start',
   noVideos: 'Nog geen video’s bij deze training.',
   upload: 'Video’s uploaden',
-  chooseFiles: 'Video’s kiezen',
+  chooseFiles: 'Video’s toevoegen',
   chooseHint: 'Je kunt er meerdere kiezen. Laat deze pagina open tot ze klaar zijn.',
   perspective: 'Camera',
   perspectives: { boat: 'In de boot', bank: 'Vanaf de kant', drone: 'Drone' },
@@ -250,6 +267,27 @@ export function formatCreatedTime(
     hourCycle: 'h23',
     timeZone,
   }).format(new Date(iso));
+}
+
+/**
+ * The day the session was made in the app, short ("2 nov"), with the year only when it isn't this
+ * year; in the viewer's local time like the time beside it.
+ */
+export function formatCreatedDay(
+  iso: string,
+  timeZone?: string,
+  language: Language = lang(),
+  now: Date = new Date(),
+): string {
+  const at = new Date(iso);
+  const year = (d: Date) =>
+    new Intl.DateTimeFormat('en-GB', { year: 'numeric', timeZone }).format(d);
+  return new Intl.DateTimeFormat(locale(language), {
+    day: 'numeric',
+    month: 'short',
+    year: year(at) === year(now) ? undefined : 'numeric',
+    timeZone,
+  }).format(at);
 }
 
 /** e.g. `60 fps · 1920×1080 · 2:03`; fractional rates like 59.94 keep two decimals. */

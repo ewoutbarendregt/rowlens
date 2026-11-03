@@ -8,13 +8,20 @@ import { rowerStrings } from '../rowers/strings.ts';
 import { sessionStrings } from '../sessions/strings.ts';
 import { Icon } from './icons.tsx';
 import { LanguageSwitch } from './LanguageSwitch.tsx';
+import { ProfileForm } from './ProfileForm.tsx';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
 
 /**
  * The bar on every page after login (#108): Sessions, Rowers, Admin (admins only), and an account
  * menu with display mode and signing out. Styled after the design system's top navigation.
  */
-export function AppHeader({ state }: { state: Extract<AuthState, { kind: 'open' }> }) {
+export function AppHeader({
+  state,
+  onProfileSaved,
+}: {
+  state: Extract<AuthState, { kind: 'open' }>;
+  onProfileSaved: () => void;
+}) {
   const t = authStrings();
   const navigate = useNavigate();
   const [othersDone, setOthersDone] = useState(false);
@@ -57,6 +64,14 @@ export function AppHeader({ state }: { state: Extract<AuthState, { kind: 'open' 
             <p className="muted">
               {t.signedIn} <strong>{state.user.email}</strong>.
             </p>
+            <h2 className="account__heading">{t.profile}</h2>
+            <ProfileForm
+              firstName={state.user.firstName}
+              lastName={state.user.lastName}
+              defaultBoatType={state.user.defaultBoatType}
+              withBoat
+              onSaved={onProfileSaved}
+            />
             <LanguageSwitch />
             <ThemeSwitch />
             <button className="button--quiet" type="button" onClick={logoutOthers}>

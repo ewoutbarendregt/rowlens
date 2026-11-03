@@ -2216,6 +2216,22 @@ a.list__item {
   overflow-wrap: anywhere;
 }
 
+/* The menu now holds the name and default boat too: it scrolls on its own on a low screen. */
+.account__panel {
+  max-height: calc(100dvh - 72px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.account__heading {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.account__panel .profile-form {
+  gap: var(--space-1);
+}
+
 .account__panel .theme-switch {
   margin: 0;
 }
@@ -2939,4 +2955,86 @@ a.list__item {
   border-top: 1px solid var(--color-border-control);
   color: var(--color-text-secondary);
   font-style: italic;
+}
+
+/* ---------------------------------------------------------------- names and the session page (2026-11-03) */
+
+.welcome {
+  max-width: 28rem;
+}
+
+.welcome h1 {
+  margin-top: 0;
+}
+
+.session-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.page .session-title__edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 36px;
+  font-size: var(--text-small);
+}
+
+.session-title__form {
+  margin-block: var(--space-3);
+}
+
+.session-videos h2 {
+  margin-top: 0;
+}
+
+.session-videos .list {
+  margin-block: 0 var(--space-3);
+}
+
+/* The add button keeps its own width (not a full-width bar); the card is a flex column. */
+.session-videos .file-pick {
+  align-self: flex-start;
+}
+
+.session-videos > .muted {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-small);
+}
+
+.lineup-fold {
+  margin-block: var(--space-5);
+  border-block: 1px solid var(--color-divider);
+}
+
+.lineup-fold > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem var(--space-3);
+  min-height: 44px;
+  padding-block: var(--space-2);
+  cursor: pointer;
+}
+
+.lineup-fold__title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+}
+
+.lineup-fold__summary {
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.lineup-fold > .card {
+  margin-top: 0;
+}
+
+/* The fold's own header names it; the card's heading would say "Lineup" twice. */
+.lineup-fold [data-testid='lineup'] > h2 {
+  display: none;
 }

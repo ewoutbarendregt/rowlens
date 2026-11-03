@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openNewSession, signIn } from './helpers.ts';
+import { openLineup, openNewSession, signIn } from './helpers.ts';
 
 // Session lineup (#103): choose the boat, fill seats from the roster or add a rower on the spot.
 test('fill a coastal double, adding a rower inline, and keep it after a reload', async ({
@@ -16,7 +16,7 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(`Lineup ${tag}`);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
-  const lineup = page.getByTestId('lineup');
+  const lineup = await openLineup(page);
   await expect(lineup).toBeVisible();
 
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C2x');
@@ -38,6 +38,7 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await expect(lineup.getByRole('status')).toHaveText(/Lineup saved|Opstelling opgeslagen/);
 
   await page.reload();
+  await openLineup(page);
   await expect(page.getByTestId('lineup').getByLabel(/^(Boat|Boot)$/)).toHaveValue('C2x');
   await expect(
     page.getByTestId('lineup').getByRole('combobox', { name: /^(Stroke|Slag) \(2\)$/ }),
@@ -55,6 +56,7 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(`Next ${tag} with a rather long session title`);
   await page.getByRole('button', { name: /^(Create session|Training aanmaken)$/ }).click();
+  await openLineup(page);
   const copy = page.getByTestId('lineup').getByLabel(/^(Copy from|Kopieer van)/);
   const earlier = await copy.locator('option', { hasText: `Lineup ${tag}` }).getAttribute('value');
   await copy.selectOption(earlier ?? '');

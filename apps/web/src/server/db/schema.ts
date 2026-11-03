@@ -85,13 +85,37 @@ export const club = pgTable(
 ).enableRLS();
 
 /** A person can later belong to several clubs; authentication identity is global. */
-export const appUser = pgTable('app_user', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  email: text('email').notNull().unique(),
-  displayName: text('display_name').notNull(),
-  locale: text('locale').notNull().default('nl'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-});
+export const appUser = pgTable(
+  'app_user',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    email: text('email').notNull().unique(),
+    displayName: text('display_name').notNull(),
+    locale: text('locale').notNull().default('nl'),
+    /**
+     * The member's own name and settings (2026-11-03), set in the account menu. The app role can't
+     * read or write this table: `rowlens_my_profile` / `rowlens_set_my_profile` (migration 0016)
+     * reach only the signed-in user's own row; `rowlens_club_members` shows names to the club.
+     */
+    firstName: text('first_name'),
+    lastName: text('last_name'),
+    /** The boat a new session starts with; null: C4x+. */
+    defaultBoatType: text('default_boat_type'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'app_user_name_check',
+      sql`(${t.firstName} is null or char_length(${t.firstName}) between 1 and 60) and (${t.lastName} is null or char_length(${t.lastName}) between 1 and 60)`,
+    ),
+    check(
+      'app_user_default_boat_check',
+      sql.raw(
+        `default_boat_type is null or default_boat_type in (${BOAT_CLASS_NAMES.map((b) => `'${b}'`).join(', ')})`,
+      ),
+    ),
+  ],
+);
 
 /** For the one-club pilot, allowlisted users get one membership in the pilot club. */
 export const membership = pgTable(
