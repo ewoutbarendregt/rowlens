@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-03 — Zoom into part of the video picture
+
+**Session**: claude/feat/video-zoom
+**Changed**: apps/web/src/client/player/{zoom.ts,zoom.test.ts,Player.tsx,strings.ts}, apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/styles.css, apps/web/e2e/{player.spec.ts,drawing.spec.ts,lineup.spec.ts}, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md
+**Summary**: The picture can be zoomed into (up to 6×) by pinching on a phone, ⌘/Ctrl + scroll or a trackpad pinch on a laptop, the + − 0 keys and small buttons in the corner of the picture; a drag pans while zoomed (not while drawing). Only the video is transformed, so the stage and all controls stay where they are, and drawings, angles and boat lines zoom along exactly (the drawing layer's viewBox follows the view). Also: BUG-017 logged (WebKit boat-line taps, also on main); a lineup E2E search fixed (part of BUG-016). Deployed earlier today: `sha-f52e226` (names, default boat, session page #136), deploy run 41707591758, 17 migrations. Not merged or deployed.
+**Prompts used**: "ik wil de video kunnen uitvergroten en toch de controls nog kunnen bedienen"; answer: "Inzoomen op een deel".
+
 ## 2026-11-03 — Names, default boat, renaming, and videos first on the session page
 
 **Session**: claude/feat/profile-session-page

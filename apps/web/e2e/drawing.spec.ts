@@ -135,3 +135,55 @@ test('draw an angle and an arrow at a frame; they remain visible for the note ho
   await expect(page.getByTestId('player-frame')).toBeVisible();
   await expect(moment).toHaveCount(0);
 });
+
+test('drawing on the zoomed picture lands where tapped and zooms with it', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
+  await openProcessedClip(
+    page,
+    readFileSync(FIXTURE),
+    `Zoom ${info.project.name} ${String(Date.now())}`,
+  );
+  await page.locator('h1').click();
+  await page.keyboard.press('+');
+  await page.keyboard.press('+');
+  await expect(page.getByTestId('zoom-level')).toHaveText('225%');
+
+  // A level line across the middle of the zoomed view.
+  await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
+  await at(page, 0.3, 0.5);
+  await at(page, 0.7, 0.5);
+  await page.getByTestId('drawing-save').click();
+  const line = page.locator('[data-testid=drawing-layer] g[data-kind=line] line').first();
+  const layer = await settledBox(page, 'drawing-layer');
+  /** The line's ends on screen; the box includes the round-capped stroke, as wide as it is high. */
+  const ends = async () => {
+    const b = await line.boundingBox();
+    if (b === null) throw new Error('no line');
+    return { left: b.x + b.height / 2, right: b.x + b.width - b.height / 2 };
+  };
+  // On screen it sits where it was tapped.
+  const zoomed = await ends();
+  expect(Math.abs(zoomed.left - (layer.x + 0.3 * layer.width))).toBeLessThan(4);
+  expect(Math.abs(zoomed.right - (layer.x + 0.7 * layer.width))).toBeLessThan(4);
+  // Back to the whole picture, the line shrinks with it about the same centre.
+  await page.locator('h1').click();
+  await page.keyboard.press('0');
+  await expect(page.getByTestId('zoom-level')).toHaveCount(0);
+  await expect
+    .poll(async () => {
+      const e = await ends();
+      return e.right - e.left;
+    })
+    .toBeCloseTo((0.4 / 2.25) * layer.width, -1);
+  const whole = await ends();
+  expect(Math.abs((whole.left + whole.right) / 2 - (layer.x + layer.width / 2))).toBeLessThan(4);
+  // In the picture it is the middle 0.4 / 2.25 of its width (the viewBox is whole again).
+  const picture = await line.evaluate((l) => {
+    const width = l.closest('svg')?.viewBox.baseVal.width ?? 1;
+    return [Number(l.getAttribute('x1')) / width, Number(l.getAttribute('x2')) / width];
+  });
+  expect(picture[0]).toBeCloseTo(0.5 - 0.2 / 2.25, 2);
+  expect(picture[1]).toBeCloseTo(0.5 + 0.2 / 2.25, 2);
+});

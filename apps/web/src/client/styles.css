@@ -1280,6 +1280,68 @@ a.list__item {
   display: block;
 }
 
+/* Zooming into the picture (2026-11-03): only the video is transformed, about the stage's centre;
+   the stage keeps its size and place. Pinching on it zooms the picture, not the page. */
+.player__stage {
+  touch-action: pan-y;
+}
+
+.player__stage--zoomed {
+  touch-action: none;
+  cursor: grab;
+}
+
+.player__stage--zoomed .player__video {
+  transform-origin: center;
+}
+
+/* −, the zoom level (back to the whole picture) and +, in the picture's corner, also in full
+   screen. Above the drawing layer and note cards, so it stays usable while zoomed or drawing. */
+.player__zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 4;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: rgb(20 20 20 / 0.6);
+}
+
+.player__zoom button {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0 0.4rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: #f2efe9;
+  font: inherit;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.player__zoom button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.15);
+}
+
+.player__zoom button:focus-visible {
+  outline: 2px solid #f2efe9;
+  outline-offset: -2px;
+}
+
+.player__zoom button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.player__zoom [data-testid='zoom-level'] {
+  font-size: 0.8125rem;
+}
+
 .player__readout {
   display: flex;
   flex-wrap: wrap;

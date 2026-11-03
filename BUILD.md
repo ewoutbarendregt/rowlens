@@ -437,6 +437,20 @@ pause → seek → play, fullscreen with an iPhone CSS fallback, start/step meas
   Rolldown emits for eliminated dynamic imports.
 - Demo clips: `pnpm demo:media [clip …]` (ffmpeg in Docker, `scripts/demo-media/`) writes to the
   gitignored `apps/web/public/demo-media/`; `.dockerignore` keeps local clips out of images.
+- **Zoom (2026-11-03)**: `zoom.ts` holds the pure view math (`View` = scale 1–6 and the picture point
+  at the stage's centre; `zoomAt` keeps a picture point under the cursor or fingers, `panBy`,
+  `clampView` keeps the picture filling the stage, `viewBoxOf`). `Player.tsx` transforms only the
+  `<video>` (`translate(...) scale(s)` about the centre of the stage), so the stage, the corner
+  buttons, the drawing confirm bar, note cards and every control below keep their place and size.
+  Input: two pointers pinch (zoom about the starting midpoint plus the midpoint's movement), one
+  pointer pans once zoomed (not while the page draws: `panLocked`), a pan swallows the video's
+  play/pause click; ⌘/Ctrl + wheel and a Chromium trackpad pinch arrive as `wheel` with `ctrlKey`;
+  Safari's `gesture*` events are prevented on the stage and zoom the picture only when no pointers are
+  down (a Mac trackpad). `+`/`=`, `-`, `0` in the key handler. The stage is `touch-action: pan-y`
+  (page scroll, no page zoom) and `none` while zoomed. The drawing layer reads the view from
+  `ViewContext` and sets its viewBox to the part in view (same mapping as the video's transform),
+  dividing its stroke unit by the scale so lines and handles keep their size on screen; pointer
+  mapping already goes through `getScreenCTM`, so taps land in picture coordinates.
 - **Production currently runs with the demo on** (Ewout, 2026-11-01, to try it on phones):
   `images.yml` builds with `VITE_FEATURE_PLAYER_DEMO=true`, and the Dockerfile's `demo-media` stage
   generates the synthetic clips inside the image (~70 MB). It's public (no login yet) and contains no
