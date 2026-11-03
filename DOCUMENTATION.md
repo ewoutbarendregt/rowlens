@@ -9,6 +9,13 @@ Agent work log, newest first.
 **Summary**: A note's "For" row shows a chip per seat of the session's lineup ("Boeg (1) · Ivo") that turns that rower on or off in one tap, and "Hele ploeg" as a switch; rowers outside the lineup keep a chip with × and the picker. The head coach's longer list of analysis wishes was added to issue #127, grouped by what the analysis has to see (body from the side, crew, oar and blade, stern view, boat), with "bovenlichaam" instead of "romp" for the rower's upper body. Not merged or deployed.
 **Prompts used**: "ja. en ik heb ook nog een hele serie wensen van de head coach: …" (the coach's chat list; recorded in #127 without names)
 
+## 2026-11-03 — Deploy sha-e90e40d (video page 1e, names without question marks)
+
+**Session**: claude/docs/deploy-e90e40d
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: #128 and the E2E fix #129 were merged; CI on `main` (run 41595503864) built `sha-e90e40d` and deploy run 41596334550 put it on production. Readiness reports `sha-e90e40d` with a healthy database; RowLens, trustable.nl and the RowLens page answer 200; web and worker run the new images, AudioScribe was untouched (up 10 days, healthy). No shared server component changed. `sha-2a9dfb8` (#128 alone) was never built or deployed because of BUG-013.
+**Prompts used**: "Merge en deploy"; "Doe allemaal maar"
+
 ## 2026-11-03 — Fix the sessions-list E2E race that blocked the release (BUG-013)
 
 **Session**: claude/fix/sessions-e2e-race
