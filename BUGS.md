@@ -2,12 +2,12 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
-### [BUG-013] Sessions-list E2E timed out twice in full local runs — low
-**Location**: apps/web/e2e/sessions.spec.ts:5
-**Status**: open
-**Found**: 2026-11-03, local E2E (desktop Chromium) on claude/feat/video-page-layout
-**Description**: Timed out after 30 s in two of seven runs (the full suite, and a rerun right after it); it then passed four times alone and in the next full run (38/38). The failure left no error details. The branch doesn't change the sessions page, so the cause is likely test state or timing; watch for it in CI.
-**Fix**: —
+### [BUG-013] Sessions-list E2E hung on the hidden filter toggle — medium
+**Location**: apps/web/e2e/sessions.spec.ts:33
+**Status**: fixed (claude/fix/sessions-e2e-race)
+**Found**: 2026-11-03, local E2E twice, then CI on `main` after #128 (desktop Chromium, retry too); this blocked the images for `sha-2a9dfb8`
+**Description**: The test asked right after loading whether the search field was visible and, if not, clicked the "Filters" toggle. On a laptop the filters open just after the first render, and since #123 the toggle is hidden there, so an early check led to a click that waited for a hidden element until the 30 s timeout (the CI trace ends on that click).
+**Fix**: Wait for the filter block first, then click the toggle only when it is visible (a phone). The app's behaviour was right; the test raced it.
 
 ### [BUG-012] Player "quick presses" E2E flaked once on iPhone WebKit — low
 **Location**: apps/web/e2e/player.spec.ts:42
