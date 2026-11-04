@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-04 — Jump to the previous / next stroke moment
+
+**Session**: claude/feat/jump-stroke-moments
+**Changed**: apps/web/src/client/player/{Player.tsx,usePlayer.ts,strings.ts}, apps/web/src/client/ui/icons.tsx, apps/web/src/client/styles.css, apps/web/e2e/strokes.spec.ts, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md
+**Summary**: Fast backward / fast forward buttons in the player controls jump to the previous / next stroke moment (paused, quick taps go one further each). Without marks both are off and the player says "Geef een haalmoment aan om daarheen te springen." The step bar layout changed so phones keep the steps on one row. Also deployed earlier today: `sha-09d4bf6` (boat line per frame #138), deploy run 41764905798, migration 0017; the backfill found lines in 4361 of 8292 frames of the 5 existing videos. Not merged or deployed.
+**Prompts used**: "Er moet in de video controls een knop fast forward en een knop fast backward komen die naar het volgende haalmoment springen als die aangegeven zijn. Als er geen haalmomenten zijn, zijn de knoppen disabled en verschijnt de melding 'geef een haalmoment aan om daarheen te springen'"
+
 ## 2026-11-04 — The boat line found in every frame (ADR-0018)
 
 **Session**: claude/feat/auto-boat-line
