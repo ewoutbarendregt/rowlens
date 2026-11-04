@@ -96,6 +96,23 @@ export function resolveBoatLine(
 
 export type AngleRefusal = 'no_boat_line' | 'no_bow_side' | 'bad_points';
 
+/**
+ * A measurement's value with the boat line that applies on its frame (ADR-0018): a found line
+ * whose bow side nobody gave can't say forward from back, so the upper body is refused for that.
+ */
+export function measureAt(
+  m: Pick<AngleMeasure, 'joint' | 'points' | 'frame'>,
+  size: Size,
+  coach: readonly FrameBoatLine[],
+  auto: AutoBoatLines | null,
+): AngleValue {
+  const line = resolveBoatLine(m.frame, coach, auto);
+  if (m.joint === 'trunk' && line !== null && line.points === null) {
+    return { ok: false, reason: 'no_bow_side' };
+  }
+  return measureValue(m, size, line?.points ?? null);
+}
+
 export type AngleValue = { ok: true; degrees: number } | { ok: false; reason: AngleRefusal };
 
 /**
@@ -177,6 +194,7 @@ export function angleTables(
   size: Size,
   boatLines: readonly FrameBoatLine[],
   rowerOrder: readonly string[],
+  auto: AutoBoatLines | null = null,
 ): AngleTables {
   const loose: AngleMeasure[] = [];
   const refused: AngleTables['refused'] = [];
@@ -187,7 +205,7 @@ export function angleTables(
       loose.push(m);
       continue;
     }
-    const value = measureValue(m, size, boatLineAt(m.frame, boatLines)?.points ?? null);
+    const value = measureAt(m, size, boatLines, auto);
     if (!value.ok) {
       refused.push({ measure: m, reason: value.reason });
       continue;

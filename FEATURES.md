@@ -25,6 +25,7 @@ growth features. Suggested order:
 | Dictate a note and transcribe it | coach | should | decision needed (where transcription runs, ADR-0010) | #107 |
 | Mark strokes: catch, half slide, finish; rate, drive, recovery, ratio per stroke | coach | must | deployed (ADR-0016) | #85 |
 | Angles per rower and phase: knee, hip, elbow, upper body vs boat (boat line per moment); finger-friendly drawing | coach | must | deployed (ADR-0017) | #127 |
+| Boat line found in every frame (waterline bow to stern, follows it out of the picture); coach's line wins and steers the search; bow side once per video | coach | must | done locally, PR open (ADR-0018) | #127 |
 | Names in the account menu; default boat; rename a session; who made it and when; videos first on the session page | everyone | must | done locally, PR open | — |
 | Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan); controls stay usable, drawings zoom along | coach, rower | must | done locally, PR open | — |
 

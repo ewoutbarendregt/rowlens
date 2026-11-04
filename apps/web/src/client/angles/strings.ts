@@ -32,6 +32,17 @@ const en = {
   redrawBoatLine: 'Draw again here',
   newBoatLine: 'New boat line from this frame',
   removeBoatLineAt: (frame: number) => `Remove the boat line from frame ${String(frame)}`,
+  autoHere: 'here: found automatically on this frame (dotted).',
+  autoPending: 'Being found in every frame…',
+  autoFailed: 'Finding it automatically didn’t work; draw it yourself.',
+  autoNone: 'Not found automatically in this video; draw it yourself.',
+  autoShare: (pct: number) =>
+    `Found automatically in ${String(pct)}% of the frames; your own line wins on its frame.`,
+  correctBoatLine: 'Correct it here',
+  bowSide: 'Bow',
+  bowLeft: 'left',
+  bowRight: 'right',
+  bowSideHint: 'Which end of the found line is the bow? Needed for the upper body.',
   here: (phase: string, stroke: number | null) =>
     stroke === null ? phase : `${phase} · stroke ${String(stroke)}`,
   rower: 'Rower',
@@ -59,6 +70,10 @@ const en = {
     n === 1
       ? 'One upper-body measurement waits for the boat line.'
       : `${String(n)} upper-body measurements wait for the boat line.`,
+  needBowSide: (n: number) =>
+    n === 1
+      ? 'One upper-body measurement waits for the bow side of the found line.'
+      : `${String(n)} upper-body measurements wait for the bow side of the found line.`,
   failed: 'Could not save. Check your connection and try again.',
 };
 
@@ -90,6 +105,17 @@ const nl: typeof en = {
   redrawBoatLine: 'Hier opnieuw tekenen',
   newBoatLine: 'Nieuwe bootlijn vanaf dit frame',
   removeBoatLineAt: (frame: number) => `Bootlijn vanaf frame ${String(frame)} weghalen`,
+  autoHere: 'hier: automatisch gevonden op dit frame (gestippeld).',
+  autoPending: 'Wordt in elk frame automatisch bepaald…',
+  autoFailed: 'Automatisch bepalen lukte niet; teken hem zelf.',
+  autoNone: 'In deze video niet automatisch gevonden; teken hem zelf.',
+  autoShare: (pct: number) =>
+    `Automatisch gevonden in ${String(pct)}% van de frames; je eigen lijn wint op zijn frame.`,
+  correctBoatLine: 'Hier verbeteren',
+  bowSide: 'Boeg',
+  bowLeft: 'links',
+  bowRight: 'rechts',
+  bowSideHint: 'Welke kant van de gevonden lijn is de boeg? Nodig voor het bovenlichaam.',
   here: (phase: string, stroke: number | null) =>
     stroke === null ? phase : `${phase} · haal ${String(stroke)}`,
   rower: 'Roeier',
@@ -118,6 +144,10 @@ const nl: typeof en = {
     n === 1
       ? 'Eén meting van het bovenlichaam wacht op de bootlijn.'
       : `${String(n)} metingen van het bovenlichaam wachten op de bootlijn.`,
+  needBowSide: (n: number) =>
+    n === 1
+      ? 'Eén meting van het bovenlichaam wacht op de boegkant van de gevonden lijn.'
+      : `${String(n)} metingen van het bovenlichaam wachten op de boegkant van de gevonden lijn.`,
   failed: 'Opslaan lukte niet. Controleer je verbinding en probeer het opnieuw.',
 };
 

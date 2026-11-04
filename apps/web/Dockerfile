@@ -24,7 +24,10 @@ COPY --from=demo-media /out apps/web/public/demo-media
 ARG BASE_PATH=/projects/rowlens
 # Build-time feature flag (src/client/features.ts); off by default, so the demo isn't in the bundle.
 ARG VITE_FEATURE_PLAYER_DEMO=false
-ENV BASE_PATH=${BASE_PATH} VITE_FEATURE_PLAYER_DEMO=${VITE_FEATURE_PLAYER_DEMO}
+# The boat line found per frame (ADR-0018): on; false builds without showing it.
+ARG VITE_FEATURE_AUTO_BOAT_LINE=true
+ENV BASE_PATH=${BASE_PATH} VITE_FEATURE_PLAYER_DEMO=${VITE_FEATURE_PLAYER_DEMO} \
+    VITE_FEATURE_AUTO_BOAT_LINE=${VITE_FEATURE_AUTO_BOAT_LINE}
 RUN pnpm --filter @rowlens/web build \
  && pnpm --filter @rowlens/web deploy --prod --legacy /out
 

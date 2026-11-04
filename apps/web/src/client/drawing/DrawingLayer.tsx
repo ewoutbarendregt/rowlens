@@ -21,8 +21,9 @@ export interface Drawing {
   points: readonly Point[];
   /** Shown with the shape, e.g. the rower of an angle measurement (ADR-0017). */
   label?: string;
-  /** `measure`: an angle measurement; `boat`: the boat line, dashed. */
-  variant?: 'measure' | 'boat';
+  /** `measure`: an angle measurement; `boat`: a coach's boat line, dashed; `auto`: the boat line
+   * found by the worker, dotted (ADR-0018). */
+  variant?: 'measure' | 'boat' | 'auto';
 }
 
 interface DrawingLayerProps {
@@ -310,7 +311,12 @@ function Shape({
     // The boat line is a reference, not a drawing: dashed, in picture units like the rest.
     ...(drawing.variant === 'boat'
       ? { strokeDasharray: `${String(unit * 8)} ${String(unit * 6)}` }
-      : {}),
+      : drawing.variant === 'auto'
+        ? {
+            strokeDasharray: `${String(unit * 2)} ${String(unit * 4)}`,
+            strokeLinecap: 'round' as const,
+          }
+        : {}),
   };
   const halo = { strokeWidth: unit * 5 };
   if (b === undefined)

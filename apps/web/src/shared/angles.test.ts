@@ -5,6 +5,7 @@ import {
   type BoatLine,
   boatLineAt,
   measureValue,
+  measureAt,
   phaseOf,
   resolveBoatLine,
 } from './angles.ts';
@@ -236,5 +237,40 @@ describe('resolveBoatLine (ADR-0018)', () => {
       [0.2, 0.6],
     ]);
     expect(found(resolveBoatLine(1, [], auto(null)))).toBeNull();
+  });
+});
+
+describe('measureAt (ADR-0018)', () => {
+  const trunk = {
+    frame: 1,
+    joint: 'trunk' as const,
+    points: [
+      [0.5, 0.6],
+      [0.55, 0.4],
+    ] as Point[],
+  };
+  const found = { frames: [null, [0.1, 0.5, 0.9, 0.5, 0.9]] as const, bowSide: null };
+
+  it('measures the upper body against the line found on its frame, once the bow side is known', () => {
+    expect(measureAt(trunk, square, [], found)).toEqual({ ok: false, reason: 'no_bow_side' });
+    const lean = measureAt(trunk, square, [], { ...found, bowSide: 'left' });
+    expect(lean.ok && lean.degrees).toBeCloseTo(14.04, 2);
+    // Knees and elbows don't need a boat line at all.
+    expect(
+      measureAt(
+        {
+          ...trunk,
+          joint: 'knee',
+          points: [
+            [0.2, 0.2],
+            [0.2, 0.5],
+            [0.5, 0.5],
+          ],
+        },
+        square,
+        [],
+        found,
+      ),
+    ).toEqual({ ok: true, degrees: 90 });
   });
 });

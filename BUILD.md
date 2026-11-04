@@ -320,6 +320,21 @@ scripts/github/      backlog/labels/milestones bootstrap
   (rower chip + joint, then taps through `DrawingLayer` with `angle` or `line`), measurements on this
   frame, a table per joint. On the picture: measurements of the frame on screen with their label,
   and the boat line dashed while the tab is open. `Drawing` got `label` and `variant`.
+- **Boat line found per frame (ADR-0018)**: worker job `video.boat_line` (`video/boat_line.py`)
+  decodes the smallest rendition through ffmpeg at 480 px on the long side and runs
+  `analysis/waterline.py` (OpenCV top-hat hull mask → crewed, lowest region → robust line through its
+  lowest pixels → ends walked to the tips or the picture's edge; followed frame to frame, restarted
+  from coach lines). Queued by `process_video` when a video is ready, by migration 0017 for existing
+  ones, and by the API after every boat line change (one queued run per video). Stored in
+  `video_auto_boat_line` (`frames`: `[x0, y0, x1, y1, confidence] | null` per frame, `status`,
+  `detector`, `bow_side`). API: `GET /api/videos/:id/auto-boat-line`,
+  `PUT /api/videos/:id/auto-boat-line/bow-side`. `shared/angles.ts`: `resolveBoatLine` (coach on
+  its frame → found line, bow side from the nearest coach line or `bow_side` → coach line from
+  before) and `measureAt` (upper body refused `no_bow_side` until the bow is known). Client: found
+  line dotted (`variant: 'auto'`), status and bow choice in the Angles tab, the page polls every 5 s
+  while the worker is busy. Build flag `AUTO_BOAT_LINE` (off with
+  `VITE_FEATURE_AUTO_BOAT_LINE=false`). E2E clip `e2e-boat.webm` (drawn hull) from
+  `scripts/demo-media/generate.sh`.
 
 ## Names, default boat and the session page (2026-11-03)
 
