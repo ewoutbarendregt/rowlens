@@ -28,6 +28,18 @@ test('mark strokes with the keys and read rate, drive, recovery and ratio', asyn
   await page.getByRole('tab', { name: /^(Strokes|Halen)/ }).click();
   const panel = page.getByTestId('strokes');
   await expect(panel).toContainText(/No strokes marked yet|Nog geen halen gemarkeerd/);
+  // Without marks the jumps to a stroke moment are off, and say how to get them (2026-11-04).
+  const prevMoment = page.getByRole('button', {
+    name: /^(Previous stroke moment|Vorig haalmoment)$/,
+  });
+  const nextMoment = page.getByRole('button', {
+    name: /^(Next stroke moment|Volgend haalmoment)$/,
+  });
+  await expect(prevMoment).toBeDisabled();
+  await expect(nextMoment).toBeDisabled();
+  await expect(page.getByTestId('moments-hint')).toHaveText(
+    /Mark a stroke moment to jump there|Geef een haalmoment aan om daarheen te springen/,
+  );
   await page.locator('h1').click();
 
   // Catches every 40, 35 and 30 frames, finishes 20, 15 and 15 frames after them.
@@ -49,6 +61,18 @@ test('mark strokes with the keys and read rate, drive, recovery and ratio', asyn
     ).toHaveCount(1);
   }
   await expect(catchButton).toHaveAttribute('aria-pressed', 'true'); // a catch on the frame on screen
+
+  // Back and forth over the moments; quick taps each go one further.
+  const frame = page.getByTestId('player-frame');
+  await expect(page.getByTestId('moments-hint')).toHaveCount(0);
+  await expect(nextMoment).toBeDisabled(); // 115 is the last moment
+  await prevMoment.click();
+  await expect(frame).toHaveText('100');
+  await prevMoment.click();
+  await prevMoment.click();
+  await expect(frame).toHaveText('65');
+  await nextMoment.click();
+  await expect(frame).toHaveText('85');
 
   // Under the video: the catch an arrow down, the finish an arrow up (Ewout, 2026-11-03).
   const strip = page.getByTestId('stroke-marks');

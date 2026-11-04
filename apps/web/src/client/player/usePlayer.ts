@@ -307,6 +307,8 @@ export function usePlayer({ src, fps, onMeasure }: PlayerOptions) {
     fullscreen: fullscreen || immersive,
     immersive,
     togglePlay,
+    /** The frame a step counts from: a seek's target while it is in flight. */
+    baseFrame,
     stepFrames,
     seekSeconds,
     seekToFrame,

@@ -1501,8 +1501,9 @@ a.list__item {
   outline-style: solid;
 }
 
-/* Speed | steps with the round play button | loop and full screen (mockup 1e). A narrow player
-   (phone, small laptop column) puts the steps on their own row first. */
+/* Speed | steps with the round play button, flanked by previous / next stroke moment | loop and
+   full screen (mockup 1e). A narrow player (phone, small laptop column) puts the steps on their own
+   row first. */
 .player__controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1522,8 +1523,15 @@ a.list__item {
   align-items: center;
 }
 
-.player__steps {
+.player__stepbar {
   grid-area: steps;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.player__steps {
   justify-content: center;
 }
 
@@ -1536,25 +1544,48 @@ a.list__item {
   justify-content: flex-end;
 }
 
+/* Without stroke marks the jump buttons are off; this says how to get them (Ewout, 2026-11-04). */
+.player__moments-hint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+  text-align: center;
+}
+
 .player__label {
   margin-right: 0.25rem;
   color: var(--color-text-muted);
   font-size: var(--text-small);
 }
 
-/* A phone: the seven steps on one row (44 px each, the play button 56), then speed, then loop. */
+/* A phone: the seven steps on one row (44 px each, the play button 56), then speed with the
+   previous / next stroke moment beside it, then loop. */
 @container player (max-width: 519px) {
   .player__controls {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      'steps'
-      'speed'
-      'loop';
+      'steps steps steps'
+      'speed prev next'
+      'loop loop loop';
+  }
+
+  /* The steps fill the row; the stroke-moment jumps go beside the speed. */
+  .player__stepbar {
+    display: contents;
   }
 
   .player__steps {
+    grid-area: steps;
     flex-wrap: nowrap;
     gap: 3px;
+  }
+
+  .player__prev-moment {
+    grid-area: prev;
+  }
+
+  .player__next-moment {
+    grid-area: next;
   }
 
   .player__controls .player__steps button {
@@ -1571,7 +1602,8 @@ a.list__item {
   }
 }
 
-@container player (min-width: 880px) {
+/* One row once speed, the step bar with its stroke-moment jumps, and loop all fit. */
+@container player (min-width: 1060px) {
   .player__controls {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     grid-template-areas: 'speed steps loop';

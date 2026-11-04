@@ -5,7 +5,9 @@ import {
   type Ref,
   useCallback,
   useEffect,
+  useId,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -305,6 +307,31 @@ export function Player({
       ? undefined
       : `translate(${String(view.scale * (0.5 - view.cx) * box.width)}px, ${String(view.scale * (0.5 - view.cy) * box.height)}px) scale(${String(view.scale)})`;
 
+  // Jumping to the previous and next stroke moment on the strip (Ewout, 2026-11-04): off without
+  // marks, with a hint how to get them; off in a direction with no moment left.
+  const momentsHintId = useId();
+  const moments = useMemo(() => {
+    if (strokeMarks === undefined) return null;
+    const frames = [...new Set(strokeMarks.map((m) => m.frame))].sort((a, b) => a - b);
+    return {
+      frames,
+      none: frames.length === 0,
+      prev: frames.filter((f) => f < p.frame).at(-1) ?? null,
+      next: frames.find((f) => f > p.frame) ?? null,
+    };
+  }, [strokeMarks, p.frame]);
+  /** To the moment before or after the frame on screen, or after a jump still in flight (quick
+   * taps go one moment further each), paused like a step. */
+  const jumpMoment = (direction: -1 | 1) => {
+    if (moments === null) return;
+    const base = p.baseFrame();
+    const to =
+      direction === 1
+        ? moments.frames.find((f) => f > base)
+        : moments.frames.filter((f) => f < base).at(-1);
+    if (to !== undefined) p.stepFrames(to - base);
+  };
+
   // Keyboard shortcuts (ADR-0007). Buttons keep their own Space/Enter; the scrub slider keeps arrows.
   // Subscribed once; reads the latest player state through a ref (it changes every frame).
   const latest = useRef(p);
@@ -558,7 +585,8 @@ export function Player({
         </span>
       </div>
 
-      {/* Speed | steps around a round play button | loop and full screen. */}
+      {/* Speed | previous moment, steps around a round play button, next moment | loop and full
+          screen. */}
       <div className="player__controls" role="toolbar" aria-label={t.controls}>
         <div className="player__group player__speed" role="group" aria-label={t.speed}>
           <span className="player__label" aria-hidden="true">
@@ -578,33 +606,70 @@ export function Player({
           ))}
         </div>
 
-        <div className="player__group player__steps">
-          <button type="button" aria-label={t.secondBack} {...back1s}>
-            −1s
-          </button>
-          <button type="button" aria-label={t.tenthBack} {...back01}>
-            −.1s
-          </button>
-          <button type="button" aria-label={t.frameBack} {...back1f}>
-            −1f
-          </button>
-          <button
-            type="button"
-            className="player__play"
-            aria-label={p.playing ? t.pause : t.play}
-            onClick={p.togglePlay}
-          >
-            <Icon name={p.playing ? 'pause' : 'play'} size={22} />
-          </button>
-          <button type="button" aria-label={t.frameForward} {...fwd1f}>
-            +1f
-          </button>
-          <button type="button" aria-label={t.tenthForward} {...fwd01}>
-            +.1s
-          </button>
-          <button type="button" aria-label={t.secondForward} {...fwd1s}>
-            +1s
-          </button>
+        {/* Previous moment, the steps, next moment: one block, except on a phone. */}
+        <div className="player__stepbar">
+          {moments !== null && (
+            <div className="player__group player__prev-moment">
+              <button
+                type="button"
+                aria-label={t.prevMoment}
+                title={moments.prev === null ? undefined : t.prevMoment}
+                aria-describedby={moments.none ? momentsHintId : undefined}
+                disabled={moments.prev === null}
+                data-testid="prev-moment"
+                onClick={() => {
+                  jumpMoment(-1);
+                }}
+              >
+                <Icon name="rewind" size={18} />
+              </button>
+            </div>
+          )}
+          <div className="player__group player__steps">
+            <button type="button" aria-label={t.secondBack} {...back1s}>
+              −1s
+            </button>
+            <button type="button" aria-label={t.tenthBack} {...back01}>
+              −.1s
+            </button>
+            <button type="button" aria-label={t.frameBack} {...back1f}>
+              −1f
+            </button>
+            <button
+              type="button"
+              className="player__play"
+              aria-label={p.playing ? t.pause : t.play}
+              onClick={p.togglePlay}
+            >
+              <Icon name={p.playing ? 'pause' : 'play'} size={22} />
+            </button>
+            <button type="button" aria-label={t.frameForward} {...fwd1f}>
+              +1f
+            </button>
+            <button type="button" aria-label={t.tenthForward} {...fwd01}>
+              +.1s
+            </button>
+            <button type="button" aria-label={t.secondForward} {...fwd1s}>
+              +1s
+            </button>
+          </div>
+          {moments !== null && (
+            <div className="player__group player__next-moment">
+              <button
+                type="button"
+                aria-label={t.nextMoment}
+                title={moments.next === null ? undefined : t.nextMoment}
+                aria-describedby={moments.none ? momentsHintId : undefined}
+                disabled={moments.next === null}
+                data-testid="next-moment"
+                onClick={() => {
+                  jumpMoment(1);
+                }}
+              >
+                <Icon name="fastForward" size={18} />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="player__group player__loop">
@@ -639,6 +704,11 @@ export function Player({
           </button>
         </div>
       </div>
+      {moments?.none === true && (
+        <p className="player__moments-hint" id={momentsHintId} data-testid="moments-hint">
+          {t.noMoments}
+        </p>
+      )}
       <p className="player__keys">{[t.keys, ...keyHints].join(' · ')}</p>
     </div>
   );

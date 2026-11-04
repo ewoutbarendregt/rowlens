@@ -452,6 +452,14 @@ pause → seek → play, fullscreen with an iPhone CSS fallback, start/step meas
   Rolldown emits for eliminated dynamic imports.
 - Demo clips: `pnpm demo:media [clip …]` (ffmpeg in Docker, `scripts/demo-media/`) writes to the
   gitignored `apps/web/public/demo-media/`; `.dockerignore` keeps local clips out of images.
+- **Stroke-moment jumps (2026-11-04)**: ⏪ / ⏩ in the controls go to the previous / next moment on
+  the stroke strip (`strokeMarks`, so the computed drive middle too when it is shown), paused like
+  a step and counted from `baseFrame()` (a seek's target while it is in flight) so quick taps go
+  one moment further each. Off in a direction with no moment left; without any marks both are off
+  and a hint says to mark a moment. Not shown where the page passes no `strokeMarks` (demo page).
+  Layout: the jumps flank the steps in `.player__stepbar`; on a phone (container < 520 px) the bar
+  is `display: contents` and the jumps sit beside the speed; one row from 1060 px (was 880) since
+  the wider step bar no longer fits beside speed and loop at 985 px.
 - **Zoom (2026-11-03)**: `zoom.ts` holds the pure view math (`View` = scale 1–6 and the picture point
   at the stage's centre; `zoomAt` keeps a picture point under the cursor or fingers, `panBy`,
   `clampView` keeps the picture filling the stage, `viewBoxOf`). `Player.tsx` transforms only the
