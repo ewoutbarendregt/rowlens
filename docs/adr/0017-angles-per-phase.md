@@ -51,6 +51,11 @@ estimation (ADR-0009) is later work and needs hand-measured references to be eva
   The table shows how many strokes each mean is over, so a mean of one is visibly thin.
 - The wrist angle (head coach) needs hand keypoints and isn't in this set yet.
 
+## Addendum (2026-11-04): the boat line found in every frame
+
+The worker now finds the boat line in every frame; a coach's line wins on its frame and steers the
+search (ADR-0018).
+
 ## Addendum (2026-11-03): several boat lines; drawing made for fingers
 
 - **A boat line per moment.** A moving camera turns the boat in the picture quickly (Ewout), so a

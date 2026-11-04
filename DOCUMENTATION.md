@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-04 — The boat line found in every frame (ADR-0018)
+
+**Session**: claude/feat/auto-boat-line
+**Changed**: worker/pyproject.toml, worker/uv.lock, worker/src/rowlens_worker/{__main__.py,analysis/__init__.py,analysis/waterline.py,video/boat_line.py,video/process.py}, worker/tests/test_waterline.py, apps/web/src/server/db/{schema.ts,migrations/0017_auto_boat_line.sql (+ meta)}, apps/web/src/server/api/{angles.ts,angles.db.test.ts,visibility.db.test.ts}, apps/web/src/shared/{angles.ts,angles.test.ts}, apps/web/src/client/{features.ts,angles/AnglesPanel.tsx,angles/strings.ts,drawing/DrawingLayer.tsx,sessions/VideoPage.tsx,styles.css}, apps/web/Dockerfile, apps/web/e2e/boatline.spec.ts, scripts/demo-media/generate.sh, docs/adr/{0018-boat-line-per-frame.md,0017-angles-per-phase.md,README.md}, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md
+**Summary**: The worker finds the boat's waterline (bow to stern, or to the picture's edge) in every frame with classical image processing (OpenCV, no model, nothing leaves the server), after processing and for existing videos. A coach's boat line wins on its frame and restarts the search; the bow side comes from the nearest coach line or a one-time choice. The found line is dotted on the picture and the upper body is measured against the line of its own frame. Spike first on three local club videos (scratchpad only, no media committed). Also deployed earlier: `sha-7786aa2` (video zoom #137), deploy run 41718888929. Not merged or deployed.
+**Prompts used**: "kun je de bootlijn niet automatisch laten bepalen in elk frame. vanaf waar de boeg het water raakt tot waar de spiegel het water raakt. wanneer de boot niet in zijn geheel zichtbaar is, dan steeds de waterlijn volgen"; answers: first a spike; the coach wins on his frame; after every upload; then "Build it like this".
+
 ## 2026-11-03 — Zoom into part of the video picture
 
 **Session**: claude/feat/video-zoom

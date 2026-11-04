@@ -2908,6 +2908,20 @@ a.list__item {
   gap: 0.125rem;
 }
 
+.angles__auto {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* Which end of the found line is the bow (ADR-0018). */
+.angles__bow {
+  display: flex;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
 .page .angles__lines button.angles__value[aria-current='true'] {
   text-decoration-thickness: 2px;
 }

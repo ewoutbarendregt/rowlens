@@ -594,6 +594,56 @@ export const videoBoatLine = pgTable(
 ).enableRLS();
 
 /**
+ * The boat line found in every frame by the worker (ADR-0018): `frames[i]` is `[x0, y0, x1, y1,
+ * confidence]` in fractions of the picture, left end first, or null where nothing convincing was
+ * found. Which end is the bow comes from a coach's line or `bowSide`, set by a coach. A coach's own
+ * line wins at its frame (`video_boat_line`). Written by the worker (`status`, `frames`); the coach
+ * only sets `bowSide`.
+ */
+export const videoAutoBoatLine = pgTable(
+  'video_auto_boat_line',
+  {
+    videoId: uuid('video_id').primaryKey(),
+    clubId: uuid('club_id').notNull(),
+    /** queued → running → done | failed; rerun whenever a coach changes a boat line. */
+    status: text('status').notNull().default('queued'),
+    frames: jsonb('frames'),
+    detector: text('detector'),
+    computedAt: timestamp('computed_at', { withTimezone: true }),
+    bowSide: text('bow_side'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'video_auto_boat_line_status_check',
+      sql`${t.status} in ('queued', 'running', 'done', 'failed')`,
+    ),
+    check('video_auto_boat_line_bow_side_check', sql`${t.bowSide} in ('left', 'right')`),
+    foreignKey({
+      name: 'video_auto_boat_line_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    tenantPolicy('video_auto_boat_line_tenant', t.clubId),
+    rolePolicy(
+      'video_auto_boat_line_role_read',
+      'select',
+      sql`rowlens_can_see_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'video_auto_boat_line_role_add',
+      'insert',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+    rolePolicy(
+      'video_auto_boat_line_role_edit',
+      'update',
+      sql`${seesAll} or rowlens_coaches_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();
+
+/**
  * A note as one thing (#105): the drawings and explanation at one frame of a video. Annotations stay
  * keyed by (video, frame); this row exists once something is attached to the note as a whole (its
  * rowers now, status #61 and sharing #112 later) and goes when the frame's last annotation goes.

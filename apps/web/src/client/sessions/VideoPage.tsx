@@ -31,15 +31,16 @@ import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
-import { AnglesPanel, type Measuring } from '../angles/AnglesPanel.tsx';
+import { AnglesPanel, type AutoBoatLineState, type Measuring } from '../angles/AnglesPanel.tsx';
+import { AUTO_BOAT_LINE } from '../features.ts';
 import { angleStrings, leanText } from '../angles/strings.ts';
 import {
   type AngleMeasure,
   angleTables,
-  boatLineAt,
   type FrameBoatLine,
-  measureValue,
+  measureAt,
   phaseOf,
+  resolveBoatLine,
 } from '../../shared/angles.ts';
 import { rememberDriveMiddle, storedDriveMiddle } from '../strokes/preferences.ts';
 import { strokeStrings } from '../strokes/strings.ts';
@@ -119,6 +120,8 @@ export function VideoPage() {
   // Angle measurements per phase (ADR-0017) and the boat line the upper body is measured against.
   const [measures, setMeasures] = useState<AngleMeasure[]>([]);
   const [boatLines, setBoatLines] = useState<FrameBoatLine[]>([]);
+  // The boat line found in every frame by the worker (ADR-0018).
+  const [autoLine, setAutoLine] = useState<AutoBoatLineState | null>(null);
   const [measuring, setMeasuring] = useState<Measuring | null>(null);
   const [angleBusy, setAngleBusy] = useState(false);
   const [angleFailed, setAngleFailed] = useState(false);
@@ -207,6 +210,34 @@ export function VideoPage() {
   }, [id]);
   useEffect(loadAngles, [loadAngles]);
 
+  const loadAutoLine = useCallback(() => {
+    if (!AUTO_BOAT_LINE) return;
+    api(`/api/videos/${id}/auto-boat-line`)
+      .then((res) =>
+        res.ok
+          ? (res.json() as Promise<
+              Omit<AutoBoatLineState, 'frames'> & { frames: AutoBoatLineState['frames'] | null }
+            >)
+          : null,
+      )
+      .then((body) => {
+        if (body !== null) setAutoLine({ ...body, frames: body.frames ?? [] });
+      })
+      .catch(() => {
+        // The coach's own boat lines still work.
+      });
+  }, [id]);
+  useEffect(loadAutoLine, [loadAutoLine]);
+  // While the worker is at it (after an upload or a changed boat line), look again now and then.
+  const autoPending = autoLine?.status === 'queued' || autoLine?.status === 'running';
+  useEffect(() => {
+    if (!autoPending) return;
+    const timer = window.setTimeout(loadAutoLine, 5000);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [autoPending, autoLine, loadAutoLine]);
+
   /** Saves, changes or removes an angle measurement or the boat line, then reloads them. */
   const angleRequest = useCallback(
     (path: string, method: 'PUT' | 'DELETE', body?: unknown) => {
@@ -216,6 +247,7 @@ export function VideoPage() {
         .then((res) => {
           if (!res.ok) throw new Error(String(res.status));
           loadAngles();
+          loadAutoLine();
         })
         .catch(() => {
           setAngleFailed(true);
@@ -224,7 +256,7 @@ export function VideoPage() {
           setAngleBusy(false);
         });
     },
-    [loadAngles],
+    [loadAngles, loadAutoLine],
   );
 
   /** Marks the frame on screen; the same kind there again takes the mark off. */
@@ -350,8 +382,9 @@ export function VideoPage() {
         size,
         boatLines,
         angleRowers.map((r) => r.id),
+        autoLine,
       ),
-    [measures, strokeSummary, size, boatLines, angleRowers],
+    [measures, strokeSummary, size, boatLines, angleRowers, autoLine],
   );
   const phaseHere = useMemo(() => {
     const phase = phaseOf(current, strokeSummary);
@@ -466,15 +499,15 @@ export function VideoPage() {
   // On the picture: the note's drawings, the angles measured on exactly this frame, and the boat
   // line while the Angles tab is open or it is being drawn.
   const pictureDrawings = useMemo(() => {
-    // The boat line that applies on this frame (a moving camera turns the boat).
-    const lineHere = boatLineAt(current, boatLines);
+    // The boat line that applies on this frame: a coach's, or the one found on it (ADR-0018).
+    const lineHere = resolveBoatLine(current, boatLines, autoLine);
     const at = angleStrings();
     const nameOf = (rowerId: string) =>
       (angleRowers.find((r) => r.id === rowerId)?.name ?? '').trim().split(/\s+/)[0] ?? '';
     const measured = measures
       .filter((m) => m.frame === current)
       .map((m): Drawing => {
-        const value = measureValue(m, size, boatLineAt(m.frame, boatLines)?.points ?? null);
+        const value = measureAt(m, size, boatLines, autoLine);
         const label =
           m.joint === 'trunk' && value.ok
             ? `${nameOf(m.rowerId)} · ${leanText(value.degrees, at)}`
@@ -489,10 +522,14 @@ export function VideoPage() {
       });
     const line: Drawing[] =
       lineHere !== null && (sideTab === 'angles' || measuring?.kind === 'boat_line')
-        ? [{ id: 'boat-line', kind: 'line', points: lineHere.points, variant: 'boat' }]
+        ? [
+            lineHere.source === 'coach'
+              ? { id: 'boat-line', kind: 'line', points: lineHere.points, variant: 'boat' }
+              : { id: 'boat-line', kind: 'line', points: lineHere.ends, variant: 'auto' },
+          ]
         : [];
     return [...drawingsHere, ...measured, ...line];
-  }, [drawingsHere, measures, current, size, boatLines, angleRowers, sideTab, measuring]);
+  }, [drawingsHere, measures, current, size, boatLines, autoLine, angleRowers, sideTab, measuring]);
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -756,6 +793,7 @@ export function VideoPage() {
                 tables={anglesNow}
                 measures={measures}
                 boatLines={boatLines}
+                auto={autoLine}
                 fps={fps}
                 size={size}
                 rowers={angleRowers}
@@ -772,6 +810,9 @@ export function VideoPage() {
                 }}
                 onRemoveBoatLine={(lineFrame) => {
                   angleRequest(`/api/videos/${id}/boat-line/${String(lineFrame)}`, 'DELETE');
+                }}
+                onBowSide={(bowSide) => {
+                  angleRequest(`/api/videos/${id}/auto-boat-line/bow-side`, 'PUT', { bowSide });
                 }}
                 onJump={(f) => {
                   player.current?.seekToFrame(f);

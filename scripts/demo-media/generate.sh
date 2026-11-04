@@ -3,7 +3,7 @@
 #
 #   pnpm demo:media                    # synthetic 60 and 30 fps clips, three rendition variants each
 #   pnpm demo:media my-clip.mov ...    # also your own clips, transcoded with the same settings
-#   pnpm demo:media --e2e              # only the small WebM fixture the Playwright test uses
+#   pnpm demo:media --e2e              # only the small WebM fixtures the Playwright tests use
 #
 # Every synthetic frame shows its frame number, so frame stepping can be checked by eye. Variants
 # mirror ADR-0007: H.264 MP4 at constant source frame rate with a closed GOP of 0.25 s or 0.5 s, and
@@ -102,6 +102,19 @@ e2e_fixture() {
   add_entry "e2e-30fps" "Test fixture · 30 fps · VP9" "e2e-30fps.webm" 30 8 360
 }
 
+# A drawn boat for the boat line E2E (ADR-0018): grey water under a light sky, a white hull with
+# its bottom edge (the waterline) at y = 228 of 360 from x = 120 to 520, four dark rowers on it.
+e2e_boat() {
+  echo "· e2e-boat"
+  local rowers="" x
+  for x in 170 260 350 440; do
+    rowers+="drawbox=x=${x}:y=178:w=16:h=34:color=0x202428:t=fill,"
+  done
+  ff -f lavfi -i "color=c=0x646a68:size=640x360:rate=30:duration=4" -vf \
+    "drawbox=x=0:y=0:w=iw:h=120:color=0xbababa:t=fill,drawbox=x=120:y=210:w=400:h=18:color=0xeeeeee:t=fill,${rowers}noise=alls=6:allf=t" \
+    -an -c:v libvpx-vp9 -b:v 0 -crf 30 -g 8 -deadline realtime -cpu-used 8 -pix_fmt yuv420p "$OUT/e2e-boat.webm"
+}
+
 own_clip() {
   local path="$1" base id rate fps height src_h quarter
   base="$(basename "${path%.*}")"
@@ -120,11 +133,13 @@ own_clip() {
 
 if ((E2E_ONLY)); then
   e2e_fixture
+  e2e_boat
 else
   for clip in ${CLIPS[@]+"${CLIPS[@]}"}; do own_clip "$clip"; done
   synthetic 60
   synthetic 30
   e2e_fixture
+  e2e_boat
 fi
 
 {

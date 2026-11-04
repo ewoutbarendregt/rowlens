@@ -99,6 +99,18 @@ def process_video(ctx: Context, job: Job) -> None:
             " renditions = %s, renditions_bytes = %s, updated_at = now() where id = %s",
             (json.dumps(renditions), total, video_id),
         ).rowcount
+        if updated:
+            # The boat line in every frame (ADR-0018), once the renditions are there.
+            conn.execute(
+                "insert into job (club_id, type, payload, idempotency_key) values (%s, %s, %s, %s)"
+                " on conflict (idempotency_key) do nothing",
+                (
+                    club,
+                    "video.boat_line",
+                    json.dumps({"videoId": str(video_id)}),
+                    f"video.boat_line:{video_id}",
+                ),
+            )
     if updated == 0:
         # Deleted while we worked: its row is gone, so its bytes must go too.
         ctx.media.remove(base)

@@ -5,7 +5,9 @@ import {
   type BoatLine,
   boatLineAt,
   measureValue,
+  measureAt,
   phaseOf,
+  resolveBoatLine,
 } from './angles.ts';
 import type { Point } from './geometry.ts';
 import { type StrokeMark, strokesFrom } from './strokes.ts';
@@ -194,5 +196,81 @@ describe('boatLineAt', () => {
     // mean of +14 and -14 is 0.
     expect(tables[0]?.rows[0]?.cells.catch?.mean).toBeCloseTo(0, 6);
     expect(tables[0]?.rows[0]?.cells.catch?.min).toBeCloseTo(-14.04, 2);
+  });
+});
+
+describe('resolveBoatLine (ADR-0018)', () => {
+  const coach = (frame: number, points: BoatLine = leftToRight) => ({ frame, points });
+  const auto = (bowSide: 'left' | 'right' | null) => ({
+    frames: [null, [0.2, 0.6, 0.8, 0.62, 0.9], null] as const,
+    bowSide,
+  });
+
+  it("a coach's line on the frame wins; elsewhere the found line, else the coach's from before", () => {
+    expect(resolveBoatLine(1, [coach(1)], auto(null))).toEqual({
+      source: 'coach',
+      frame: 1,
+      points: leftToRight,
+    });
+    expect(resolveBoatLine(2, [coach(0)], auto(null))).toEqual({
+      source: 'coach',
+      frame: 0,
+      points: leftToRight,
+    });
+    expect(resolveBoatLine(2, [], auto(null))).toBeNull();
+  });
+
+  it("takes the bow side from the nearest coach's line, else the coach's choice, else none", () => {
+    const found = (r: ReturnType<typeof resolveBoatLine>) =>
+      r?.source === 'auto' ? r.points : 'x';
+    const turned: BoatLine = [leftToRight[1], leftToRight[0]];
+    expect(found(resolveBoatLine(1, [coach(0)], auto('right')))).toEqual([
+      [0.2, 0.6],
+      [0.8, 0.62],
+    ]);
+    expect(found(resolveBoatLine(1, [coach(0, turned)], auto('left')))).toEqual([
+      [0.8, 0.62],
+      [0.2, 0.6],
+    ]);
+    expect(found(resolveBoatLine(1, [], auto('right')))).toEqual([
+      [0.8, 0.62],
+      [0.2, 0.6],
+    ]);
+    expect(found(resolveBoatLine(1, [], auto(null)))).toBeNull();
+  });
+});
+
+describe('measureAt (ADR-0018)', () => {
+  const trunk = {
+    frame: 1,
+    joint: 'trunk' as const,
+    points: [
+      [0.5, 0.6],
+      [0.55, 0.4],
+    ] as Point[],
+  };
+  const found = { frames: [null, [0.1, 0.5, 0.9, 0.5, 0.9]] as const, bowSide: null };
+
+  it('measures the upper body against the line found on its frame, once the bow side is known', () => {
+    expect(measureAt(trunk, square, [], found)).toEqual({ ok: false, reason: 'no_bow_side' });
+    const lean = measureAt(trunk, square, [], { ...found, bowSide: 'left' });
+    expect(lean.ok && lean.degrees).toBeCloseTo(14.04, 2);
+    // Knees and elbows don't need a boat line at all.
+    expect(
+      measureAt(
+        {
+          ...trunk,
+          joint: 'knee',
+          points: [
+            [0.2, 0.2],
+            [0.2, 0.5],
+            [0.5, 0.5],
+          ],
+        },
+        square,
+        [],
+        found,
+      ),
+    ).toEqual({ ok: true, degrees: 90 });
   });
 });

@@ -18,9 +18,22 @@ from .db import connect
 from .errors import PermanentError, StopRequestedError
 from .media import MediaStore
 from .queue import Job, claim, fail, release, succeed
+from .video import boat_line
 from .video.process import Context, mark_failed, process_video
 
-HANDLERS: dict[str, Callable[[Context, Job], None]] = {"video.process": process_video}
+HANDLERS: dict[str, Callable[[Context, Job], None]] = {
+    "video.process": process_video,
+    boat_line.JOB_TYPE: boat_line.boat_line,
+}
+
+
+def on_dead(ctx: Context, job: Job, reason: str) -> None:
+    """What a job leaves behind when it gives up for good."""
+    if job.type == "video.process":
+        mark_failed(ctx, job, reason)
+    elif job.type == boat_line.JOB_TYPE:
+        boat_line.mark_failed(ctx, job)
+
 
 log = logging.getLogger("rowlens_worker")
 
@@ -53,14 +66,13 @@ def run_job(ctx: Context, job: Job) -> None:
         return
     except PermanentError as err:
         fail(ctx.conn, job, str(err), permanent=True)
-        if job.type == "video.process":
-            mark_failed(ctx, job, err.reason)
+        on_dead(ctx, job, err.reason)
         log.warning("job failed permanently", extra={**fields, "reason": err.reason})
         return
     except Exception as err:
         dead = fail(ctx.conn, job, f"{type(err).__name__}: {err}", permanent=False)
-        if dead and job.type == "video.process":
-            mark_failed(ctx, job, "processing_failed")
+        if dead:
+            on_dead(ctx, job, "processing_failed")
         log.exception("job failed", extra={**fields, "dead": dead})
         return
     succeed(ctx.conn, job)
