@@ -11,8 +11,8 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
   without Ewout's explicit request.
 - **PR #142 open** (`opencode/feat/141-draggable-drawings`, issue #141): move a saved drawing,
   measurement or boat line by dragging its points on the picture; choose a measurement's rower and
-  joint in the picture; drawings only on their own frame. CI green except a `policy` run that
-  checked the old PR title (it re-runs on the next push). Not merged, not deployed.
+  joint in the picture; drawings only on their own frame. CI green (it also teaches the `policy`
+  job the `opencode/` branch prefix that AGENTS.md prescribes). Not merged, not deployed.
 - Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174.
   The edge stack is up (`pnpm edge:up`) from the last E2E run — `pnpm edge:down` when done.
 
