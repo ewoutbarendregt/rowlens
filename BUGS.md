@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-022] Slow playback and pause fail intermittently on a physical iPhone after drawing — high
+**Location**: apps/web/src/client/player/Player.tsx, apps/web/src/client/ui/PressButton.tsx, apps/web/src/client/drawing/DrawingLayer.tsx
+**Status**: in-progress (candidate fix on codex/fix/bug-022-playback-controls; physical iPhone confirmation pending)
+**Found**: 2026-11-05, Ewout on production `sha-5ef325b`, usually after a line or angle
+**Description**: On the physical iPhone, tapping 0.25×/0.5× leaves 1× selected and playback at normal speed; pause sometimes also ignores the tap. Exact production source built locally passes normal pointer/click tests (9/9), so the original physical gesture is not fully reproduced. Suppressing the compatibility mouse click in a focused WebKit test reproduces the ignored speed button (expected selected=true, got false), which identifies a matching activation failure mode rather than a media-rate calculation error.
+**Fix**: Speed and play/pause buttons now activate once on a valid primary-pointer release inside the button; they keep keyboard/assistive click activation, cancel on pointer cancellation/leave, and ignore the later compatibility click to avoid toggling twice. Drawing drags explicitly release pointer capture on up/cancel and clear abandoned drags on lost capture. The missing-click regression goes from failing to passing, with actual media-clock progression and pause checks. The original physical iPhone sequence still needs confirmation; do not treat this as proof of the underlying Safari cause.
+
 ### [BUG-021] The measurement bar covered drawing points on small pictures — medium
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/styles.css (`.drawing-confirm`)
 **Status**: fixed locally (codex/fix/141-unobstructed-editing; pending review)

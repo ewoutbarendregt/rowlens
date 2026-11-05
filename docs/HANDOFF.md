@@ -10,7 +10,7 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Production: **`sha-5ef325b`**, deployed 2026-11-05 14:55 UTC (run 42049743130), 18 migrations.
   Read-only readiness rechecked during this session: expected version, `db` ok. No deployment
   needed for #143; no production or shared-server changes were made.
-- Current work: **`codex/fix/141-unobstructed-editing`**, addressing BUG-021: move the drawing and
+- Open **PR #144** (`codex/fix/141-unobstructed-editing`), addressing BUG-021: move the drawing and
   measurement controls below the picture, inside the fullscreen player too, so no points are
   covered. Explicit 44 px selects/buttons, reload/fullscreen regression checks and a dedicated
   `pnpm --filter @rowlens/web e2e:editing` suite (1440×900, 1000×540, iPhone 13 WebKit).
@@ -21,6 +21,29 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
   check (the tests drag with Playwright's mouse API). BUG-012 remains open.
 - Local stack: dev Postgres :5434 + worker, `pnpm dev` web :5174. Edge was stopped after verification
   with `pnpm edge:down`; the dev stack remains available.
+
+## Playback activation fix (2026-11-05, BUG-022)
+
+- Ewout reports **production iPhone** taps ignored after a line/angle: 1× remains selected when
+  tapping 0.25/0.5×; pause sometimes also ignores taps. This is activation, not a confirmed wrong
+  media rate. Exact production source `5ef325b` passes 9 normal laptop/WebKit cases locally.
+- Current checkout: `codex/fix/bug-022-playback-controls`, based on open #144. Candidate fix:
+  `ui/PressButton.tsx` handles speed/play/pause on valid pointer release without requiring a
+  compatibility click; keyboard/assistive activation stays supported. Drawing drags explicitly
+  release pointer capture on up/cancel and clear abandoned drags on lost capture.
+- A WebKit test suppressing compatibility clicks reproduced the ignored-button symptom before the
+  fix; it passes afterwards. The initial 12 playback cases passed, including measured slow rates
+  and pause after drawing. The final editing/playback matrix passes 33/33 cases; other validation is in TEST.md. The underlying physical
+  Safari gesture is not fully reproduced; a physical iPhone check remains necessary.
+- #144 remains open/unmerged, all eight CI jobs passed (run 42066230506). The playback fix is
+  a separate change stacked on #144; merge #144 **without deleting its branch**, then retarget the
+  playback PR to main and wait for its CI. New merge/deploy instructions are required.
+- Validation: format/lint/typecheck/build, 451 web + 50 worker, 43 local E2E and 33 editing/playback
+  matrix cases passed. Full edge: 32 passed, then 1 upload-quota failure passed on its own after
+  restarting only the local edge web container. No product upload limit was changed.
+- No production changes. The exact-production image was used on the local edge stack only, via a
+  temporary override under `/tmp`; the normal current source was restored and the edge stack was
+  stopped after testing. The dev stack remains available on :5174.
 
 ## What production contains (recent)
 

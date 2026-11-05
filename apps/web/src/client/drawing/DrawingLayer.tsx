@@ -326,7 +326,14 @@ export function DrawingLayer({
     if (pending.length > 0 && !complete && e.pointerType === 'mouse') setHover(pointAt(e));
   };
 
+  const releasePointer = (pointerId: number) => {
+    if (svg.current?.hasPointerCapture(pointerId) === true) {
+      svg.current.releasePointerCapture(pointerId);
+    }
+  };
+
   const onPointerUp = (e: PointerEvent<SVGSVGElement>) => {
+    releasePointer(e.pointerId);
     fingers.current.delete(e.pointerId);
     const dragging = drag.current;
     if (dragging !== null) {
@@ -348,6 +355,7 @@ export function DrawingLayer({
   };
 
   const onPointerCancel = (e: PointerEvent<SVGSVGElement>) => {
+    releasePointer(e.pointerId);
     fingers.current.delete(e.pointerId);
     if (press.current?.pointerId === e.pointerId) press.current = null;
     if (drag.current?.pointerId === e.pointerId) {
@@ -381,6 +389,7 @@ export function DrawingLayer({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerCancel}
+        onLostPointerCapture={onPointerCancel}
         onPointerLeave={() => {
           setHover(null);
         }}

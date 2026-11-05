@@ -344,10 +344,23 @@ scripts/github/      backlog/labels/milestones bootstrap
   save APIs stay the same. Control pointer events stop before reaching the stage's pan handlers.
 - Empty strips take no space. Buttons and selects have 44 px targets; selects use an explicit
   height because native WebKit controls ignored `min-height` alone.
-- `pnpm --filter @rowlens/web e2e:editing` runs drawing, angles and boat-line E2E on the edge stack:
+- `pnpm --filter @rowlens/web e2e:editing` runs drawing, angles, boat-line and playback E2E on the edge stack:
   Chrome 1440×900, Chrome 1000×540 and iPhone 13 WebKit. Selection taps use native touch where
   supported; dragging uses the mouse API because Playwright's public touchscreen API exposes only
   taps. A physical iPhone drag check is still needed.
+
+## Playback activation after drawing (BUG-022, 2026-11-05)
+
+- `ui/PressButton.tsx` activates speed and play/pause controls on a primary-pointer release inside
+  the button. It does not require the compatibility mouse click after a touch gesture, ignores that
+  later click to avoid double activation, and preserves keyboard/assistive clicks (`detail = 0`).
+  A cancelled pointer or one leaving the control does not activate it.
+- Drawing drags explicitly release pointer capture on up/cancel; lost capture cancels an abandoned
+  drag. Save APIs and speed arithmetic are unchanged.
+- `e2e/playback.spec.ts` measures the actual H.264 media clock at 0.25×/0.5× after drawing, selection
+  and point movement, then checks pause stability. It also models a missing compatibility click
+  and checks keyboard activation. The model reproduces the reported inactive button, but the
+  original physical iPhone gesture still needs confirmation.
 
 ## Names, default boat and the session page (2026-11-03)
 
