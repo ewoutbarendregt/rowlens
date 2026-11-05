@@ -57,6 +57,28 @@ role.
 
 ## Recent deployments
 
+- **2026-11-05 14:55 UTC — `sha-5ef325b`** (#142: move a saved drawing on the picture, the rower in
+  the picture). Images run
+  [42048365629](https://github.com/ewoutbarendregt/rowlens/actions/runs/42048365629) published
+  matching web and worker images; deploy run
+  [42049743130](https://github.com/ewoutbarendregt/rowlens/actions/runs/42049743130) succeeded, no
+  migration (still 18). Verification: `/health/ready` returned `sha-5ef325b` with `db: ok`;
+  `rowlens-web` and `rowlens-worker` run that tag and are healthy; `https://trustable.nl/`,
+  `https://api.trustable.nl/api/health`, AudioScribe and RowLens returned 200; the trustable
+  containers were not restarted.
+- **2026-11-05 — `sha-b6e18a6`** (#139: jump to the previous / next stroke moment). Deploy run
+  [41799144428](https://github.com/ewoutbarendregt/rowlens/actions/runs/41799144428); 18 migrations;
+  readiness ok with `db` ok, the other apps untouched.
+- **2026-11-04 — `sha-09d4bf6`** (#138: the boat line per frame). Deploy run
+  [41764905798](https://github.com/ewoutbarendregt/rowlens/actions/runs/41764905798), migration 0017;
+  the backfill found a line in 4361 of 8292 frames of the 5 videos then in production.
+- **2026-11-03 — `sha-7786aa2`** (#137: zoom into part of the picture). Deploy run
+  [41718888929](https://github.com/ewoutbarendregt/rowlens/actions/runs/41718888929).
+- **2026-11-03 — `sha-f52e226`** (#136: names, default boat, renaming, videos first). Deploy run
+  [41707591758](https://github.com/ewoutbarendregt/rowlens/actions/runs/41707591758), 17 migrations.
+- **2026-11-03 — `sha-26bdd35`** (#135: boat lines per moment, drawing for fingers). Deploy run
+  [41694284305](https://github.com/ewoutbarendregt/rowlens/actions/runs/41694284305), migration 0015
+  (production's 2 boat lines now start at frame 0).
 - **2026-11-02 20:51 UTC — `sha-ee73740`**: PRs #124 and #125. Images run
   [41522555255](https://github.com/ewoutbarendregt/rowlens/actions/runs/41522555255) published matching
   web and worker images; deploy run
