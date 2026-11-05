@@ -246,7 +246,7 @@ describe('notes pinned to a frame', () => {
     }
   });
 
-  it('only notes can be edited; drawings are deleted and redrawn', async () => {
+  it('moves a saved drawing: its points change, the kind stays (#141)', async () => {
     const v = await videoIn(pilot);
     const line = await send('POST', `/api/videos/${v}/annotations`, {
       kind: 'line',
@@ -258,7 +258,163 @@ describe('notes pinned to a frame', () => {
       authorName: 'A',
     });
     const id = line.json<{ id: string }>().id;
-    expect((await send('PATCH', `/api/annotations/${id}`, { body: 'x' })).statusCode).toBe(404);
+    const moved = await send('PATCH', `/api/annotations/${id}`, {
+      points: [
+        [0.2, 0.3],
+        [0.4, 0.5],
+      ],
+    });
+    expect(moved.statusCode).toBe(200);
+    expect(moved.json()).toMatchObject({
+      id,
+      kind: 'line',
+      frame: 2,
+      shape: {
+        points: [
+          [0.2, 0.3],
+          [0.4, 0.5],
+        ],
+      },
+    });
+    // An angle keeps its three points (arm, vertex, arm).
+    const angle = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'angle',
+      frame: 2,
+      points: [
+        [0, 0],
+        [0.5, 0.5],
+        [1, 0],
+      ],
+      authorName: 'A',
+    });
+    const angleId = angle.json<{ id: string }>().id;
+    const turned = await send('PATCH', `/api/annotations/${angleId}`, {
+      points: [
+        [0.1, 0.1],
+        [0.5, 0.4],
+        [0.9, 0.1],
+      ],
+    });
+    expect(turned.statusCode).toBe(200);
+    expect(turned.json()).toMatchObject({
+      kind: 'angle',
+      shape: {
+        points: [
+          [0.1, 0.1],
+          [0.5, 0.4],
+          [0.9, 0.1],
+        ],
+      },
+    });
+    expect(await asOwner('select kind, shape from annotation where id = $1', [id])).toHaveLength(1);
+  });
+
+  it('refuses the wrong kind of edit: text on a drawing, points on a note, a wrong count', async () => {
+    const v = await videoIn(pilot);
+    const note = await send('POST', `/api/videos/${v}/annotations`, {
+      frame: 4,
+      body: 'keep me',
+      authorName: 'A',
+    });
+    const noteId = note.json<{ id: string }>().id;
+    const line = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'line',
+      frame: 4,
+      points: [
+        [0, 0],
+        [1, 1],
+      ],
+      authorName: 'A',
+    });
+    const lineId = line.json<{ id: string }>().id;
+    // A note has no points, a drawing no text; a line can't have three points.
+    for (const [id, body] of [
+      [
+        noteId,
+        {
+          points: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      ],
+      [lineId, { body: 'x' }],
+      [
+        lineId,
+        {
+          points: [
+            [0, 0],
+            [0.5, 0.5],
+            [1, 1],
+          ],
+        },
+      ],
+      // Outside the picture, and an empty edit, are refused before it gets that far.
+      [
+        lineId,
+        {
+          points: [
+            [0, 0],
+            [1.2, 1],
+          ],
+        },
+      ],
+      [lineId, {}],
+    ] as const) {
+      expect((await send('PATCH', `/api/annotations/${id}`, body)).statusCode).toBe(400);
+    }
+    expect(await asOwner('select body, shape from annotation where id = $1', [noteId])).toEqual([
+      { body: 'keep me', shape: null },
+    ]);
+    expect(await asOwner('select body from annotation where id = $1', [lineId])).toEqual([
+      { body: '' },
+    ]);
+  });
+
+  it("another club's drawing can't be moved", async () => {
+    const [other] = await asOwner<{ id: string }>(
+      `insert into club (slug, name) values ('n-' || gen_random_uuid(), 'Other') returning id`,
+    );
+    const v = await videoIn(other?.id ?? '');
+    const [theirs] = await asOwner<{ id: string }>(
+      `insert into annotation (club_id, video_id, frame, kind, shape, author_name)
+       values ($1, $2, 6, 'line', '{"points": [[0, 0], [1, 1]]}', 'B') returning id`,
+      [other?.id, v],
+    );
+    expect(
+      (
+        await send('PATCH', `/api/annotations/${theirs?.id ?? ''}`, {
+          points: [
+            [0.3, 0.3],
+            [0.7, 0.7],
+          ],
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect(await asOwner('select shape from annotation where id = $1', [theirs?.id])).toEqual([
+      {
+        shape: {
+          points: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      },
+    ]);
+  });
+
+  it('a drawing can still be deleted and redrawn', async () => {
+    const v = await videoIn(pilot);
+    const line = await send('POST', `/api/videos/${v}/annotations`, {
+      kind: 'line',
+      frame: 2,
+      points: [
+        [0, 0],
+        [1, 1],
+      ],
+      authorName: 'A',
+    });
+    const id = line.json<{ id: string }>().id;
     expect((await send('DELETE', `/api/annotations/${id}`)).statusCode).toBe(204);
   });
 

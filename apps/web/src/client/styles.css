@@ -1038,6 +1038,35 @@ a.list__item {
   vector-effect: non-scaling-stroke;
 }
 
+/* Picking a drawing, and moving its points, after it was saved (#141). The press area is invisible
+   and a fingertip wide (screen pixels, so a zoomed picture is as easy to hit); the events bubble on
+   to the stage, so pinch and pan keep working. */
+.drawing__hit {
+  stroke: transparent;
+  stroke-width: 48;
+  vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.drawing--pickable {
+  cursor: pointer;
+}
+
+/* The selected drawing reads as chosen: a light halo instead of the usual dark one. */
+.drawing--selected .drawing__halo {
+  stroke: rgb(255 255 255 / 0.75);
+}
+
+/* A press beside a selected drawing drops it, instead of playing the video. On top, so nothing
+   takes the press away from a ring: which point it picks up is decided in screen pixels. */
+.drawing__catcher {
+  fill: transparent;
+  pointer-events: all;
+  touch-action: none;
+}
+
 /* Save / start over / cancel while drawing, over the bottom of the picture (also in full screen). */
 .drawing-confirm {
   position: absolute;
@@ -1060,8 +1089,65 @@ a.list__item {
 }
 
 .drawing-confirm__hint {
-  flex-basis: 100%;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
   text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Choosing what a measurement is about, in the same bar as Save (#141): the picture keeps as much
+   room as it can. */
+.drawing-confirm__attrs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 8px;
+}
+
+.drawing-confirm__attrs label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.drawing-confirm__attrs select {
+  min-height: 40px;
+  max-width: 9rem;
+  padding: 0 0.4rem;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: var(--radius-md);
+  background: #f2efe9;
+  color: #141414;
+  font: inherit;
+}
+
+/* On a phone the picture is small, so the bar over it stays as thin as a fingertip allows. */
+@media (max-width: 480px) {
+  .drawing-confirm {
+    bottom: 4px;
+    gap: 4px 6px;
+    padding: 4px 6px;
+    font-size: 0.75rem;
+  }
+
+  .drawing-confirm button {
+    min-width: 40px;
+    min-height: 36px;
+    padding: 0 0.5rem;
+  }
+
+  .drawing-confirm__attrs select {
+    min-height: 36px;
+    max-width: 7rem;
+  }
+
+  /* The options say what they are; the labels would take the room the picture needs. */
+  .drawing-confirm__attr-name {
+    display: none;
+  }
 }
 
 .drawing-confirm button {

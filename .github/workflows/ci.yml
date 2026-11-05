@@ -27,11 +27,11 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
-          if [[ "$BRANCH" =~ ^((claude|codex)/)?(feat|fix|chore|docs|refactor|test|ci|perf)/[a-z0-9][a-z0-9._-]*$ ]] \
+          if [[ "$BRANCH" =~ ^((claude|codex|opencode)/)?(feat|fix|chore|docs|refactor|test|ci|perf)/[a-z0-9][a-z0-9._-]*$ ]] \
             || [[ "$BRANCH" =~ ^(dependabot|release-please)[/-] ]]; then
             echo "ok: $BRANCH"
           else
-            echo "::error::Branch '$BRANCH' must match [(claude|codex)/](feat|fix|chore|docs|refactor|test|ci|perf)/<issue>-<slug>"
+            echo "::error::Branch '$BRANCH' must match [(claude|codex|opencode)/](feat|fix|chore|docs|refactor|test|ci|perf)/<issue>-<slug>"
             exit 1
           fi
 

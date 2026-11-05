@@ -38,6 +38,8 @@ import {
   type AngleMeasure,
   angleTables,
   type FrameBoatLine,
+  JOINTS,
+  type Joint,
   measureAt,
   phaseOf,
   resolveBoatLine,
@@ -412,16 +414,21 @@ export function VideoPage() {
     });
   }, [filteredMoments, notesVisible, nt, size]);
 
-  // Drawings stay with the explanation during its playback hold (#106).
-  const drawingsHere = useMemo(
-    () =>
-      (activeMoment?.drawings ?? []).map((drawing) => ({
-        id: drawing.id,
-        kind: drawing.kind as DrawingKind,
-        points: drawing.shape?.points ?? [],
-      })),
-    [activeMoment],
-  );
+  // A note's drawings belong to its own frame (Ewout, 2026-11-05): step to that frame and they are
+  // there. The explanation keeps its playback hold (#106); the track's markers say where they are.
+  const drawingsHere = useMemo(() => {
+    // Hidden with the notes, unless a tool is in use: then the frame's drawings stay in view.
+    if (!notesVisible && tool === null) return [];
+    const moment = filteredMoments.find((m) => m.frame === current);
+    return (moment?.drawings ?? []).map((drawing) => ({
+      id: drawing.id,
+      kind: drawing.kind as DrawingKind,
+      points: drawing.shape?.points ?? [],
+      frame: moment?.frame ?? current,
+      // Rowers change only their own; coaches those of the sessions they coach (ADR-0013).
+      editable: drawing.canEdit === true,
+    }));
+  }, [filteredMoments, current, notesVisible, tool]);
 
   const chooseTool = useCallback((next: DrawingKind | null) => {
     if (next !== null) {
@@ -518,18 +525,80 @@ export function VideoPage() {
           points: m.points,
           label,
           variant: 'measure',
+          frame: m.frame,
+          editable: canMark,
         };
       });
     const line: Drawing[] =
       lineHere !== null && (sideTab === 'angles' || measuring?.kind === 'boat_line')
         ? [
             lineHere.source === 'coach'
-              ? { id: 'boat-line', kind: 'line', points: lineHere.points, variant: 'boat' }
-              : { id: 'boat-line', kind: 'line', points: lineHere.ends, variant: 'auto' },
+              ? {
+                  id: 'boat-line',
+                  kind: 'line',
+                  points: lineHere.points,
+                  variant: 'boat',
+                  frame: lineHere.frame,
+                  // Correcting the found line makes it yours from that frame on (ADR-0018).
+                  editable: canMark,
+                }
+              : {
+                  id: 'boat-line',
+                  kind: 'line',
+                  // Bow side first, like a coach's line, so moving an end keeps the bow where it was.
+                  points: lineHere.points ?? lineHere.ends,
+                  variant: 'auto',
+                  frame: lineHere.frame,
+                  // Without the bow side nobody knows which end is which: pick that first (#141).
+                  editable: canMark && lineHere.points !== null,
+                },
           ]
         : [];
     return [...drawingsHere, ...measured, ...line];
-  }, [drawingsHere, measures, current, size, boatLines, autoLine, angleRowers, sideTab, measuring]);
+  }, [
+    drawingsHere,
+    measures,
+    current,
+    size,
+    boatLines,
+    autoLine,
+    angleRowers,
+    sideTab,
+    measuring,
+    canMark,
+  ]);
+
+  /**
+   * A drawing was dragged and let go (#141): save it where it belongs. A note's drawing keeps its
+   * frame; a measurement stays the same rower, joint and frame; the line found by the worker becomes
+   * the coach's line on that frame, from which the search starts again (ADR-0018).
+   */
+  const moveDrawing = useCallback(
+    (drawing: Drawing, points: Point[]) => {
+      if (drawing.id.startsWith('measure-')) {
+        const measure = measures.find((m) => `measure-${m.id}` === drawing.id);
+        if (measure === undefined) return;
+        angleRequest(`/api/videos/${id}/angles`, 'PUT', {
+          frame: measure.frame,
+          rowerId: measure.rowerId,
+          joint: measure.joint,
+          points,
+        });
+        return;
+      }
+      if (drawing.variant === 'boat' || drawing.variant === 'auto') {
+        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', {
+          frame: drawing.frame ?? current,
+          points,
+        });
+        return;
+      }
+      void api(`/api/annotations/${drawing.id}`, { method: 'PATCH', body: { points } }).finally(
+        loadNotes,
+      );
+    },
+    [measures, angleRequest, id, current, loadNotes],
+  );
 
   useEffect(() => {
     api(`/api/videos/${id}`)
@@ -562,6 +631,50 @@ export function VideoPage() {
     video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
   const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
+  // While measuring, choosing the rower and the joint belongs beside the points you tap, not in the
+  // Angles tab below the picture (Ewout, 2026-11-05).
+  const angleText = angleStrings();
+  const measureAttributes =
+    measuring?.kind === 'joint' ? (
+      <div className="drawing-confirm__attrs">
+        <label>
+          <span className="drawing-confirm__attr-name">{angleText.rower}</span>
+          <select
+            data-testid="measure-rower"
+            aria-label={angleText.rower}
+            value={measuring.rowerId}
+            disabled={angleBusy}
+            onChange={(event) => {
+              setMeasuring({ ...measuring, rowerId: event.target.value });
+            }}
+          >
+            {angleRowers.map((rower) => (
+              <option key={rower.id} value={rower.id}>
+                {rower.label} · {rower.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="drawing-confirm__attr-name">{angleText.joint}</span>
+          <select
+            data-testid="measure-joint"
+            aria-label={angleText.joint}
+            value={measuring.joint}
+            disabled={angleBusy}
+            onChange={(event) => {
+              setMeasuring({ ...measuring, joint: event.target.value as Joint });
+            }}
+          >
+            {JOINTS.map((joint) => (
+              <option key={joint} value={joint}>
+                {angleText.joints[joint]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    ) : null;
 
   return (
     <main className="page page--wide video-page">
@@ -616,6 +729,12 @@ export function VideoPage() {
                     tool={layerTool}
                     onComplete={completeLayer}
                     onCancel={cancelTool}
+                    onMove={moveDrawing}
+                    // A drawing you select is being edited: the picture stops playing under it.
+                    onSelect={(drawing) => {
+                      if (drawing !== null) player.current?.pause();
+                    }}
+                    attributes={measureAttributes}
                   />
                   {notesVisible && layerTool === null && activeMoment !== null && (
                     <VideoNotesOverlay moment={activeMoment} />

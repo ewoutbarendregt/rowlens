@@ -9,9 +9,12 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Production: **`sha-b6e18a6`**, deployed 2026-11-05 (deploy run 41799144428): readiness ok with the
   database healthy; trustable.nl and AudioScribe untouched. 18 migrations. Don't deploy again
   without Ewout's explicit request.
+- **PR #142 open** (`opencode/feat/141-draggable-drawings`, issue #141): move a saved drawing,
+  measurement or boat line by dragging its points on the picture; choose a measurement's rower and
+  joint in the picture; drawings only on their own frame. CI green (it also teaches the `policy`
+  job the `opencode/` branch prefix that AGENTS.md prescribes). Not merged, not deployed.
 - Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174.
-  The edge stack is down.
-- GitHub Actions had a billing stop on 2026-11-04 (all jobs "not started"); Ewout fixed it.
+  The edge stack is up (`pnpm edge:up`) from the last E2E run — `pnpm edge:down` when done.
 
 ## What production contains (recent)
 
@@ -28,6 +31,9 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## Open
 
+- **PR #142** (above) waits for Ewout: try it on the local stack, then say merge (and deploy).
+  Open question in the PR: on a phone the measurement bar (rower + joint + save) needs a second row
+  (~84 px of a 201 px picture); move that row under the picture, icon-only buttons, or leave it.
 - **Waiting for Ewout's go-ahead**: the oar arc and the stern-camera perspective (plan in the
   2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
   finish, arc = sum; joint angles refused for the in-boat perspective; the worker skips the
@@ -38,13 +44,14 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Open bugs: BUG-012 and BUG-017 (WebKit-only E2E flakes), BUG-014 (merging roster entries across
   sessions the merger can't see), BUG-015 (tools row wraps at 1000 px with classic scrollbars),
   BUG-016 (a picked rower sometimes missing after saving a lineup; one test cause fixed).
-- Open PRs: old docs PRs #83, #89, #117 (conflicting, not in the product stack); Dependabot #74–#79;
-  #72/#73 (Node 26, Python 3.15 images) should be closed rather than merged.
+  BUG-018 and BUG-019 (hit areas of a small circle, WebKit click target) are fixed in #142.
+- Open PRs: #142; old docs PRs #83, #89, #117 (conflicting, not in the product stack);
+  Dependabot #74–#79; #72/#73 (Node 26, Python 3.15 images) should be closed rather than merged.
 - Not yet logged in `docs/runbooks/server-setup.md`: the deployments since `sha-ee73740`
   (they are in `DOCUMENTATION.md`).
 
 ## Suggested next work
 
-1. The oar arc and stern-camera perspective, once Ewout says go.
+1. Merge #142 once Ewout says so, then the oar arc and stern-camera perspective.
 2. "My notes" for rowers across sessions (#109), notifications.
 3. Investigate BUG-016 and BUG-014.

@@ -2,6 +2,20 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-019] A just-selected drawing was dropped again on WebKit — medium
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx (`.drawing__catcher`)
+**Status**: fixed (opencode/feat/141-draggable-drawings)
+**Found**: 2026-11-05, iPhone 13 WebKit check on the edge stack (scratch spec, touch)
+**Description**: A tap on a saved drawing selected it (rings appeared) and the same tap dropped it: the catcher that carries the presses of a selected drawing is mounted *during* that press, and WebKit sends the click to whatever is under the finger when it lifts — the catcher — so its "tap beside it drops the selection" handler ran on the very tap that selected. Chromium sends the click to the common ancestor of press and release and happened to be fine, so the desktop E2E passed while a real Safari would not.
+**Fix**: The catcher drops a selection only when the press started on it (`catcherPress` ref, reset on every press and on a drag).
+
+### [BUG-018] The invisible press area of a point skipped its own centre (Chromium) — medium
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/styles.css (`.drawing__handle-hit`)
+**Status**: fixed (opencode/feat/141-draggable-drawings)
+**Found**: 2026-11-05, edge E2E: pressing a ring of a selected boat line hit the catcher instead of the ring, so nothing could be dragged
+**Description**: The ring's press area was a transparent `<circle>` with `pointer-events: stroke`, 56 px wide through `vector-effect: non-scaling-stroke`. In Chromium the hit area of that non-scaling stroke does not cover the circle's centre: probing showed the catcher at the centre and at ±12 px, the circle only from ~20 px outwards. The painted strokes (lines, dash patterns) are unaffected, which is why only small circles showed it. Measured with a scratch page (`elementFromPoint` at offsets) before changing anything.
+**Fix**: The press is never tested by the DOM: the layer finds the nearest point of the selected drawing in screen pixels (`handleAt`, 28 px reach, the same as while drawing) on a catcher that sits on top of the drawings. The rings are what you see.
+
 ### [BUG-017] Boat-line taps in the angles E2E don't register on emulated iPhone WebKit — low
 **Location**: apps/web/e2e/angles.spec.ts:61, apps/web/src/client/drawing/DrawingLayer.tsx (suspected)
 **Status**: open

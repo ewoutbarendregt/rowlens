@@ -29,6 +29,7 @@ growth features. Suggested order:
 | Boat line found in every frame (waterline bow to stern, follows it out of the picture); coach's line wins and steers the search; bow side once per video | coach | must | done locally, PR open (ADR-0018) | #127 |
 | Names in the account menu; default boat; rename a session; who made it and when; videos first on the session page | everyone | must | done locally, PR open | — |
 | Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan); controls stay usable, drawings zoom along | coach, rower | must | done locally, PR open | — |
+| Move a saved drawing, measurement or boat line on the picture by dragging its points; choose a measurement's rower and joint in the picture; drawings only on their own frame | coach | must | done locally, PR open (ADR-0017 addendum) | #141 |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
 configured on production (#28–#30), notifications (#62/#63), annotation status (#61), and the privacy

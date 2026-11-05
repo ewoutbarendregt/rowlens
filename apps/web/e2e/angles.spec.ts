@@ -100,6 +100,22 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
     knee.getByRole('row', { name: /Difference in the crew|Verschil in de ploeg/ }),
   ).toContainText('90°');
 
+  // A corner of a measurement can be moved after saving (#141): the value follows, the table too.
+  const layer = await settledBox(page, 'drawing-layer');
+  // Anna's knee: an upright arm (x = 0.4) and a horizontal one, 90°.
+  await page.mouse.click(layer.x + 0.4 * layer.width, layer.y + 0.35 * layer.height);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(3);
+  await page.mouse.move(layer.x + 0.6 * layer.width, layer.y + 0.7 * layer.height);
+  await page.mouse.down();
+  // Straight down from the vertex: the knee becomes straight.
+  await page.mouse.move(layer.x + 0.4 * layer.width, layer.y + 0.98 * layer.height, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.getByTestId('angle-here').first()).toContainText('180°');
+  await expect(knee.getByRole('row', { name: new RegExp(`Anna ${tag}`) })).toContainText('180°');
+  await expect(
+    knee.getByRole('row', { name: /Difference in the crew|Verschil in de ploeg/ }),
+  ).toContainText('0°');
+
   // Measuring Anna's knee again replaces it: still three on this frame, now 180° for both.
   await measure(new RegExp(`· Anna ${tag}$`), /^(Knee|Knie)$/, straight);
   await expect(page.getByTestId('angle-here')).toHaveCount(3);
