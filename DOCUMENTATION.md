@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Update the deployment-log PR and prioritize editing basics
+
+**Session**: codex/docs/143-handoff-review (updates for #143)
+**Changed**: PLAN.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Updated the BUG-020 test record with the final successful CI run and aligned PR #143's description with its docs/tests scope; Ewout authorized its merge after the updated CI passes. Laptop and iPhone editing, selecting and moving lines/angles now take priority over oar arcs and stern-camera work; this docs/tests change requires no production deployment.
+**Prompts used**: "bijwerken en mergen graag, tevens deployment naar prd indien nodig. stern camera vind ik nog niet belangrijk ik wil eerst de basics goed werkend hebben. editing, verplaatsen van lijnen, hoeken op de laptop en op de iphone. dat is de basis functionaliteit"
+
 ## 2026-11-05 — Codex takeover and review of the deployment-log PR
 
 **Session**: codex/docs/143-handoff-review

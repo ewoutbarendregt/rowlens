@@ -11,8 +11,8 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
   deploy again without Ewout's explicit request.
 - **PR #143 open** (`opencode/docs/141-deploy`, checks green): logs the `sha-5ef325b` deployment in
   `DOCUMENTATION.md` and `docs/runbooks/server-setup.md` (also fills in the deployments since
-  `sha-ee73740`) and fixes BUG-020, a racy check in `e2e/strokes.spec.ts`. Docs/tests only; waits for
-  Ewout's yes. No deploy follows it.
+  `sha-ee73740`) and fixes BUG-020, a racy check in `e2e/strokes.spec.ts`. Docs/tests only; Ewout authorized updating and merging it on 2026-11-05.
+  Wait for CI on the updated head before merging; no production deployment is needed.
 - Working tree clean, nothing else in flight. Last session branch `opencode/feat/141-draggable-drawings`
   is merged and deleted (local copy may still exist).
 - Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174
@@ -25,11 +25,11 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Reviewed all six files in #143: no blocking code findings; the catch-navigation test fix agrees
   with `neighbourCatch`. Latest PR head `dcc6cb5`: all eight CI jobs succeeded in run 42058782838;
   nine stroke unit tests also passed locally. No new full E2E, WebKit or layout run during takeover.
-- Before merging #143, align its description (still says "Docs only, no code") and TEST.md's older
-  CI outcome with its actual docs/tests scope and successful final run. Merge still needs Ewout's
-  explicit instruction; no deployment follows. No oar/stern-camera implementation is authorized.
+- Ewout authorized updating and merging #143; align its description and TEST.md with its actual
+  docs/tests scope and successful final CI run, then merge once the updated head is green.
+  No production deployment is needed for this docs/tests change.
 - Local takeover log is on `codex/docs/143-handoff-review`, based on #143; committed locally only,
-  with no new PR. Main and production are unchanged.
+  with no new PR. Its commits are being included in #143; production is unchanged.
 
 ## What production contains (recent)
 
@@ -50,7 +50,8 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - **Decision for Ewout (asked in #142)**: on a phone the measurement bar (rower + joint + save) needs
   a second row there (~84 px of a 201 px picture). Leave it, move that row under the picture (not
   visible in full screen), or icon-only buttons.
-- **Waiting for Ewout's go-ahead**: the oar arc and the stern-camera perspective (plan in the
+- **Deferred by Ewout (2026-11-05)**: first make editing and moving lines and angles reliable on
+  laptop and iPhone. The oar arc and stern-camera perspective (plan in the
   2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
   finish, arc = sum; joint angles refused for the in-boat perspective; the worker skips the
   waterline search there; "time under water" in the Strokes tab. Needs a stern-camera sample video
@@ -65,9 +66,11 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## Suggested next work
 
-1. Merge #143 once Ewout says so (docs/tests only, no deploy).
-2. The oar arc and stern-camera perspective, once Ewout says go.
+1. Finish the authorized update and merge of #143 once its updated CI is green (no deploy needed).
+2. Verify and harden creating, selecting, editing and moving lines, angles and boat lines on
+   laptop and iPhone WebKit, including zoom/fullscreen and ~1000×540. This is the product priority.
 3. "My notes" for rowers across sessions (#109), notifications; investigate BUG-016 and BUG-014.
+4. Oar arc and stern-camera work only after the basics are reliable and Ewout gives a new go-ahead.
 
 ## Working agreements worth repeating
 
