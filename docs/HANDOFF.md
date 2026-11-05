@@ -22,6 +22,24 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Local stack: dev Postgres :5434 + worker, `pnpm dev` web :5174. Edge was stopped after verification
   with `pnpm edge:down`; the dev stack remains available.
 
+## Playback investigation (2026-11-05, BUG-022)
+
+- Ewout reports slow playback (0.25/0.5×) and intermittent pause failures on **production iPhone**,
+  usually after a line or angle. This is the current priority; cause not identified, not fixed.
+- Current checkout: `codex/fix/player-playback-controls`, based on the open #144 branch. Only
+  reproduction tests and investigation logs were added locally; application code is unchanged.
+  #144 remains open and unmerged; all eight CI jobs passed (run 42066230506).
+- New `e2e/playback.spec.ts` measures actual media progress and pause stability after creating,
+  selecting and moving a drawing, plus pausing before entry into the note editor. Built exact
+  production source `5ef325b` in a temporary directory and ran it on the **local edge stack only**:
+  9/9 cases passed (1440×900, 1000×540, iPhone 13 WebKit). Normal and looped speed/pause probes
+  also passed. Physical iPhone finger dragging is still unverified; do not infer a fix.
+- Pending clarification: when slow playback fails, is the picture frozen, still running at 1×,
+  or is the speed button unresponsive? The question was asked but not answered yet.
+- No new PR, merge, application change or production deployment. Local edge was stopped after
+  reproduction; dev stack stays available. A later `pnpm edge:up` rebuilds the normal current
+  source; the exact-production image was only a local test override under `/tmp`.
+
 ## What production contains (recent)
 
 - Drawings, angle measurements and the boat line can be moved after saving: a tap selects one (rings

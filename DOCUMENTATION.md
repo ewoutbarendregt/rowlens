@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Investigate iPhone playback failures after drawing (BUG-022)
+
+**Session**: codex/fix/player-playback-controls (based on #144; local commits only)
+**Changed**: apps/web/e2e/playback.spec.ts, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Investigated the reported production iPhone failure after a line/angle using measured slow playback, pause and loop probes, then a local image built from exact production source `5ef325b`. Nine targeted tests pass on both laptop sizes and iPhone WebKit; the physical-device failure is not reproduced, so BUG-022 remains in progress and no application fix, PR, merge or deployment was made.
+**Prompts used**: "Vertraagd afspelen op 0,25 en 0,5 snelheid werkt niet meer. Soms reageert de pauze knop ook niet"; clarifications: "Het gebeurt op de iphone inderdaad meestal na een lijn of een hoek"; "productie".
+
 ## 2026-11-05 — Merge #143 and harden the drawing controls for laptop and iPhone
 
 **Session**: codex/fix/141-unobstructed-editing

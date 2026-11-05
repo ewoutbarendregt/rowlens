@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-022] Slow playback and pause fail intermittently on a physical iPhone after drawing — high
+**Location**: apps/web/src/client/player/{usePlayer.ts,Player.tsx}, drawing interaction (cause not identified)
+**Status**: in-progress (codex/fix/player-playback-controls; not reproduced, no application fix)
+**Found**: 2026-11-05, Ewout on production `sha-5ef325b`, usually after a line or angle
+**Description**: Ewout reports that 0.25× and 0.5× no longer work and pause sometimes does not respond on iPhone. Local measurements on demo and worker H.264 clips, including native WebKit touch taps after drawing, give the requested actual rate and a stationary media clock after pause. A locally built copy of exact production source `5ef325b` also passes nine targeted cases at 1440×900, 1000×540 and iPhone 13 WebKit, including drawing/selection, mouse-driven point movement and rate changes while running. The physical iPhone finger-drag path is not reproduced by the public Playwright WebKit API. Need to establish whether the reported failure means frozen playback, unchanged normal speed or an unresponsive speed button; do not mark fixed based on emulator results.
+**Fix**: —. Added `apps/web/e2e/playback.spec.ts` to measure media-clock advancement at both slow rates, pause stability and entry into note editing; investigation committed locally only, no new PR or deployment.
+
 ### [BUG-021] The measurement bar covered drawing points on small pictures — medium
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/styles.css (`.drawing-confirm`)
 **Status**: fixed locally (codex/fix/141-unobstructed-editing; pending review)
