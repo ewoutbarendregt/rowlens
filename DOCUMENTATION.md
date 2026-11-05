@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Merge #143 and harden the drawing controls for laptop and iPhone
+
+**Session**: codex/fix/141-unobstructed-editing
+**Changed**: apps/web/src/client/{drawing/DrawingLayer.tsx,player/Player.tsx,sessions/VideoPage.tsx,styles.css}, apps/web/e2e/{helpers.ts,drawing.spec.ts,angles.spec.ts,boatline.spec.ts}, apps/web/{playwright.editing.config.ts,package.json,tsconfig.json}, docs/adr/0017-angles-per-phase.md, BUILD.md, FEATURES.md, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Updated and merged #143 as `76adf5b` after all eight CI jobs passed (run 42062947694); no deployment was needed, and production readiness still reports `sha-5ef325b` with `db` ok. The requested editing review reproduced BUG-021 at 1000×540: controls obscured the lower drawing points; the separate functional fix places them below the picture inside the fullscreen player, with 44 px controls and regression checks on laptop and iPhone WebKit, ready for local review before a new merge/deploy instruction.
+**Prompts used**: "bijwerken en mergen graag, tevens deployment naar prd indien nodig. stern camera vind ik nog niet belangrijk ik wil eerst de basics goed werkend hebben. editing, verplaatsen van lijnen, hoeken op de laptop en op de iphone. dat is de basis functionaliteit"
+
 ## 2026-11-05 — Update the deployment-log PR and prioritize editing basics
 
 **Session**: codex/docs/143-handoff-review (updates for #143)

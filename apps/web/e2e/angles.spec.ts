@@ -19,6 +19,15 @@ async function tap(page: Page, points: [number, number][]) {
     if (finger) await page.touchscreen.tap(box.x + x * box.width, box.y + y * box.height);
     else await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
   }
+  // The entire picture must remain tappable, including on iPhone and a low laptop window.
+  const controls = await page.locator('.drawing-confirm').boundingBox();
+  if (controls === null) throw new Error('drawing controls not visible');
+  expect(controls.y).toBeGreaterThanOrEqual(box.y + box.height - 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const targets = await page
+    .locator('.drawing-confirm button, .drawing-confirm select')
+    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
+  for (const height of targets) expect(height).toBeGreaterThanOrEqual(44);
   // Points stay adjustable until saved (touch drawing, 2026-11-03).
   await page.getByTestId('drawing-save').click();
 }
@@ -110,6 +119,9 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
   // Straight down from the vertex: the knee becomes straight.
   await page.mouse.move(layer.x + 0.4 * layer.width, layer.y + 0.98 * layer.height, { steps: 8 });
   await page.mouse.up();
+  await expect(page.getByTestId('angle-here').first()).toContainText('180°');
+  await page.reload();
+  await page.getByRole('tab', { name: /^(Angles|Hoeken)/ }).click();
   await expect(page.getByTestId('angle-here').first()).toContainText('180°');
   await expect(knee.getByRole('row', { name: new RegExp(`Anna ${tag}`) })).toContainText('180°');
   await expect(

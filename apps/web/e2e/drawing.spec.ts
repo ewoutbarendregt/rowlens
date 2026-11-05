@@ -39,7 +39,10 @@ test('draw an angle and an arrow at a frame; they stay on their own frame', asyn
     `Draw ${info.project.name} ${String(Date.now())}`,
   );
   const frame = page.getByTestId('player-frame');
-  for (let n = 1; n <= 10; n++) await page.keyboard.press('.');
+  for (let n = 1; n <= 10; n++) {
+    await page.keyboard.press('.');
+    await expect(frame).toHaveText(String(n));
+  }
   await expect(frame).toHaveText('10');
 
   const angle = page.getByRole('button', { name: /^(Angle|Hoek)$/ });
@@ -149,7 +152,10 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
   );
   const frame = page.getByTestId('player-frame');
   await page.locator('h1').click();
-  for (let n = 1; n <= 10; n++) await page.keyboard.press('.');
+  for (let n = 1; n <= 10; n++) {
+    await page.keyboard.press('.');
+    await expect(frame).toHaveText(String(n));
+  }
   await expect(frame).toHaveText('10');
 
   await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
@@ -182,16 +188,16 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
   await startAt(0.2, 0.8);
 
   // A press on the stroke selects it: a ring on each point.
-  await page.mouse.click(box.x + 0.4 * box.width, box.y + 0.5 * box.height);
+  await at(page, 0.4, 0.5);
   await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
   // A press beside it drops the rings instead of playing the video.
-  await page.mouse.click(box.x + 0.12 * box.width, box.y + 0.12 * box.height);
+  await at(page, 0.12, 0.12);
   await expect(page.getByTestId('drawing-handles')).toHaveCount(0);
   await expect(shapes).toHaveCount(1);
   await expect(frame).toHaveText('10');
 
   // Dragging a ring moves that point: exactly under the mouse, and saved on release.
-  await page.mouse.click(box.x + 0.4 * box.width, box.y + 0.5 * box.height);
+  await at(page, 0.4, 0.5);
   await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
   await page.mouse.move(box.x + 0.2 * box.width, box.y + 0.8 * box.height);
   await page.mouse.down();
@@ -257,4 +263,34 @@ test('drawing on the zoomed picture lands where tapped and zooms with it', async
   });
   expect(picture[0]).toBeCloseTo(0.5 - 0.2 / 2.25, 2);
   expect(picture[1]).toBeCloseTo(0.5 + 0.2 / 2.25, 2);
+});
+
+test('drawing controls stay outside the picture in full screen and save there', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
+  await openProcessedClip(
+    page,
+    readFileSync(FIXTURE),
+    `Fullscreen drawing ${info.project.name} ${String(Date.now())}`,
+  );
+  await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
+  await at(page, 0.2, 0.4);
+  await at(page, 0.8, 0.4);
+  await page.getByRole('button', { name: /^(Full screen|Volledig scherm)$/ }).click();
+  const player = page.locator('.player--fullscreen');
+  await expect(player).toBeVisible();
+  const save = player.getByTestId('drawing-save');
+  await expect(save).toBeEnabled();
+  const stage = await player.locator('.player__stage').boundingBox();
+  const controls = await player.locator('.drawing-confirm').boundingBox();
+  if (stage === null || controls === null) throw new Error('fullscreen editing not visible');
+  expect(controls.y).toBeGreaterThanOrEqual(stage.y + stage.height - 1);
+  expect(controls.y + controls.height).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0);
+  await save.click();
+  await expect(player.locator('[data-kind=line]')).toHaveCount(1);
+  await expect(save).toHaveCount(0);
+  await page.getByRole('button', { name: /^(Exit full screen|Volledig scherm sluiten)$/ }).click();
+  await page.reload();
+  await expect(page.locator('[data-testid=drawing-layer] [data-kind=line]')).toHaveCount(1);
 });

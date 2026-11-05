@@ -85,7 +85,11 @@ test('the found boat line is corrected by dragging its ends (#141)', async ({ pa
 
   // Press the dotted line, then drag its bow end (the right one) down the picture.
   const box = await settledBox(page, 'drawing-layer');
-  await page.mouse.click(box.x + 0.5 * box.width, box.y + (228 / 360) * box.height);
+  if (info.project.use.hasTouch === true) {
+    await page.touchscreen.tap(box.x + 0.5 * box.width, box.y + (228 / 360) * box.height);
+  } else {
+    await page.mouse.click(box.x + 0.5 * box.width, box.y + (228 / 360) * box.height);
+  }
   await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
   await page.mouse.move(box.x + (520 / 640) * box.width, box.y + (228 / 360) * box.height);
   await page.mouse.down();

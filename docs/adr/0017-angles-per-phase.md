@@ -98,3 +98,12 @@ search (ADR-0018).
 - **Drawings show on their own frame only** (Ewout): stepping one frame away hides them, so the
   explanation's playback hold (`NOTE_HOLD_SECONDS`) no longer carries them along. The track's markers
   still say where a note or drawing is, and the note toggle hides drawings with the notes.
+
+## Addendum (2026-11-05): keep the whole picture available for editing
+
+A review of the basics at 1000×540 found that the measurement bar intercepts clicks intended for
+points in the lower part of the picture (BUG-021). Drawing and measurement controls now sit in a
+strip directly below the picture, still inside the player in native fullscreen and the iPhone
+immersive fallback. This supersedes the over-picture placement above; the rower and joint remain
+beside the picture instead of requiring the off-screen Angles panel. Selects and buttons have
+explicit 44 px touch targets; saving and permissions are unchanged.

@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { ViewContext, viewBoxOf } from '../player/zoom.ts';
 import { notesStrings } from '../notes/strings.ts';
 import {
@@ -52,7 +53,9 @@ interface DrawingLayerProps {
   onMove: (drawing: Drawing, points: Point[]) => void;
   /** A drawing was selected, or nothing is selected any more: the page pauses the player. */
   onSelect?: (drawing: Drawing | null) => void;
-  /** What the drawing is about (a measurement's rower and joint), in the bar over the picture. */
+  /** Control strip inside the player, outside the picture so no point is obscured. */
+  controlsTarget: HTMLElement | null;
+  /** What the drawing is about (a measurement's rower and joint), beside its controls. */
   attributes?: ReactNode;
 }
 
@@ -102,6 +105,7 @@ export function DrawingLayer({
   onCancel,
   onMove,
   onSelect,
+  controlsTarget,
   attributes,
 }: DrawingLayerProps) {
   const view = useContext(ViewContext);
@@ -477,8 +481,17 @@ export function DrawingLayer({
         )}
       </svg>
       {tool !== null &&
-        (pending.length > 0 || (attributes !== undefined && attributes !== null)) && (
-          <div className="drawing-confirm" role="group" aria-label={t.draw}>
+        (pending.length > 0 || (attributes !== undefined && attributes !== null)) &&
+        controlsTarget !== null &&
+        createPortal(
+          <div
+            className="drawing-confirm"
+            role="group"
+            aria-label={t.draw}
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+          >
             {attributes}
             <span className="drawing-confirm__hint">
               {complete
@@ -508,7 +521,8 @@ export function DrawingLayer({
             <button type="button" onClick={onCancel}>
               {t.cancel}
             </button>
-          </div>
+          </div>,
+          controlsTarget,
         )}
     </>
   );

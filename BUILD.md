@@ -336,6 +336,19 @@ scripts/github/      backlog/labels/milestones bootstrap
   `VITE_FEATURE_AUTO_BOAT_LINE=false`). E2E clip `e2e-boat.webm` (drawn hull) from
   `scripts/demo-media/generate.sh`.
 
+## Drawing controls without covering the picture (2026-11-05)
+
+- `Player.drawingControlsRef` exposes a control-strip host directly after the stage. `VideoPage`
+  supplies it to `DrawingLayer`, which portals its existing rower/joint/Save/Redo/Cancel controls
+  there. It remains inside native fullscreen and the iPhone immersive fallback; drawing state and
+  save APIs stay the same. Control pointer events stop before reaching the stage's pan handlers.
+- Empty strips take no space. Buttons and selects have 44 px targets; selects use an explicit
+  height because native WebKit controls ignored `min-height` alone.
+- `pnpm --filter @rowlens/web e2e:editing` runs drawing, angles and boat-line E2E on the edge stack:
+  Chrome 1440×900, Chrome 1000×540 and iPhone 13 WebKit. Selection taps use native touch where
+  supported; dragging uses the mouse API because Playwright's public touchscreen API exposes only
+  taps. A physical iPhone drag check is still needed.
+
 ## Names, default boat and the session page (2026-11-03)
 
 - `app_user.first_name`, `last_name`, `default_boat_type` (migration 0016), through
