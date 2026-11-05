@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, type Locator, test } from '@playwright/test';
 import { edgeUrl } from './env.ts';
 import { openProcessedClip } from './helpers.ts';
 
@@ -12,7 +12,10 @@ test.skip(edgeUrl === undefined, 'needs the worker: pnpm edge:up && pnpm e2e:edg
 async function stepTo(page: Page, target: number) {
   const frame = page.getByTestId('player-frame');
   const now = Number(await frame.textContent());
-  for (let n = now; n < target; n++) await page.keyboard.press('.');
+  for (let n = now; n < target; n++) {
+    await page.keyboard.press('.');
+    await expect(frame).toHaveText(String(n + 1));
+  }
   await expect(frame).toHaveText(String(target));
 }
 
@@ -125,3 +128,105 @@ test('mark strokes with the keys and read rate, drive, recovery and ratio', asyn
   await page.getByRole('tab', { name: /^(Strokes|Halen)/ }).click();
   await expect(page.getByTestId('stroke-row')).toHaveCount(3);
 });
+
+for (const language of ['nl', 'en'] as const) {
+  test(`remove catch and finish marks explicitly, cancel and handle a failure (${language})`, async ({
+    page,
+  }, info) => {
+    test.skip(!existsSync(FIXTURE), 'run pnpm demo:media --e2e first');
+    await page.addInitScript((chosen) => {
+      localStorage.setItem('rowlens.lang', chosen);
+    }, language);
+    await openProcessedClip(
+      page,
+      readFileSync(FIXTURE),
+      `Remove marks ${language} ${info.project.name} ${String(Date.now())}`,
+    );
+    const activate = async (button: Locator) => {
+      if (info.project.use.hasTouch === true) await button.tap();
+      else await button.click();
+    };
+    await activate(page.getByRole('tab', { name: /^(Strokes|Halen)/ }));
+    const panel = page.getByTestId('strokes');
+    const frame = page.getByTestId('player-frame');
+    for (const [at, name] of [
+      [0, /^(Catch|Inpik) /],
+      [15, /^(Finish|Uitpik) /],
+      [30, /^(Catch|Inpik) /],
+      [45, /^(Half slide|Halve bank) /],
+    ] as const) {
+      await page.locator('input[type=range]').fill(String(at));
+      await expect(frame).toHaveText(String(at));
+      await activate(panel.getByRole('button', { name }));
+      await expect(
+        page.getByTestId('stroke-marks').locator(`[data-frame="${String(at)}"]`),
+      ).toHaveCount(1);
+    }
+    const editor = panel.getByTestId('stroke-mark-editor');
+    await activate(editor.locator('summary'));
+    const rows = editor.getByTestId('stroke-mark');
+    await expect(rows).toHaveCount(4);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    const targets = await editor
+      .locator('button')
+      .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+    for (const height of targets) expect(height).toBeGreaterThanOrEqual(44);
+    const item = (at: number) =>
+      editor.locator(`[data-testid=stroke-mark][data-frame="${String(at)}"]`);
+    const remove = (at: number) => item(at).getByRole('button', { name: /^(Delete|Verwijder)/ });
+    await activate(remove(15));
+    await expect(item(15).getByTestId('confirm')).toContainText(/Finish|Uitpik/);
+    if (language === 'nl')
+      await page.screenshot({ path: info.outputPath('stroke-delete-confirmation.png') });
+    await activate(item(15).getByRole('button', { name: /^(Cancel|Annuleren)$/ }));
+    await expect(rows).toHaveCount(4);
+    await activate(remove(15));
+    await activate(item(15).getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }));
+    await expect(item(15)).toHaveCount(0);
+    await expect(page.getByTestId('stroke-marks').locator('[data-kind=finish]')).toHaveCount(0);
+    await expect(page.getByTestId('stroke-row').first()).toContainText(
+      /finish missing|uitpik ontbreekt/,
+    );
+    await expect(frame).toHaveText('45'); // delete the chosen mark, not the frame currently on screen
+    await page.reload();
+    await activate(page.getByRole('tab', { name: /^(Strokes|Halen)/ }));
+    await activate(editor.locator('summary'));
+    await expect(item(15)).toHaveCount(0);
+    await expect(rows).toHaveCount(3);
+    const denied = '**/api/videos/*/strokes/0';
+    await page.route(denied, (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: '{"error":"test_failure"}',
+      }),
+    );
+    await activate(remove(0));
+    await activate(item(0).getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }));
+    await expect(panel.getByRole('alert')).toBeVisible();
+    await expect(rows).toHaveCount(3);
+    await page.unroute(denied);
+    for (const at of [0, 30, 45]) {
+      await activate(remove(at));
+      const confirmation = item(at).getByTestId('confirm');
+      const box = await confirmation.boundingBox();
+      if (box === null) throw new Error('confirmation not visible');
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()?.width ?? 0);
+      const heights = await confirmation
+        .getByRole('button')
+        .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+      for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
+      await activate(confirmation.getByRole('button', { name: /^(Yes, delete|Ja, verwijderen)$/ }));
+      await expect(item(at)).toHaveCount(0);
+    }
+    await expect(editor).toHaveCount(0);
+    await expect(page.getByTestId('stroke-marks')).toHaveCount(0);
+    await page.reload();
+    await activate(page.getByRole('tab', { name: /^(Strokes|Halen)/ }));
+    await expect(panel).toContainText(/No strokes marked yet|Nog geen halen gemarkeerd/);
+    await expect(editor).toHaveCount(0);
+  });
+}

@@ -298,6 +298,13 @@ scripts/github/      backlog/labels/milestones bootstrap
   the coach marked a half slide on that drive (ADR-0016 addendum). Low laptop
   screens (≤ 640 px high) get a 48 px play button so the player column still fits.
 
+- **Explicit mark removal (2026-11-05)**: coaches/admins expand "Edit or delete marks" in Strokes.
+  Each stored catch, finish and half slide has a frame/time jump and a Delete button with an inline
+  confirmation. The list renders only while expanded, including marks outside complete strokes.
+  `changeMark(frame, null)` uses the existing DELETE route for that frame, not the playback cursor;
+  failure keeps the mark and shows an error. Removing a mark updates the timeline and calculated
+  timings; angle measurements keep the existing ADR-0017 behavior when their phase mark disappears.
+
 ## Angles per phase (ADR-0017)
 
 - Tables `angle_measure` (`rower_id`, `joint` knee | hip | elbow | trunk, `points` jsonb, one per

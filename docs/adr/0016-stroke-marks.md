@@ -45,3 +45,11 @@ doesn't have yet, and ADR-0009 needs hand-labelled catch and finish frames to ev
   per device. A half slide the coach marked on the drive always wins, and the calculated point is
   never stored or used as a measured half slide: it is a guide for stepping, not evidence.
 
+
+## Addendum (2026-11-05): explicit removal of stored marks
+
+Alongside toggling a kind on its own frame, coaches/admins can expand a mark editor in Strokes.
+Every stored catch, finish and half slide has a jump and a Delete action, with an in-page
+confirmation naming its kind and frame. Deletion targets that frame regardless of the playback
+cursor, uses the existing tenant/role-protected API, and refreshes the derived timings and timeline.
+Marks outside complete strokes remain removable. No schema or permission changes are needed.

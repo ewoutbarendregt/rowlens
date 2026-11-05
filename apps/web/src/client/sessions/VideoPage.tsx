@@ -262,16 +262,14 @@ export function VideoPage() {
     [loadAngles, loadAutoLine],
   );
 
-  /** Marks the frame on screen; the same kind there again takes the mark off. */
-  const markAt = useCallback(
-    (kind: StrokeMarkKind) => {
-      const at = frame.current;
-      const same = marksRef.current.some((m) => m.frame === at && m.kind === kind);
+  /** Changes a specific frame, including a removal requested from the marks list. */
+  const changeMark = useCallback(
+    (at: number, kind: StrokeMarkKind | null) => {
       setMarking(true);
       setMarkFailed(false);
       void api(`/api/videos/${id}/strokes/${String(at)}`, {
-        method: same ? 'DELETE' : 'PUT',
-        ...(same ? {} : { body: { kind } }),
+        method: kind === null ? 'DELETE' : 'PUT',
+        ...(kind === null ? {} : { body: { kind } }),
       })
         .then((res) => {
           if (!res.ok) throw new Error(String(res.status));
@@ -285,6 +283,16 @@ export function VideoPage() {
         });
     },
     [id, loadMarks],
+  );
+
+  /** Marks the frame on screen; the same kind there again takes the mark off. */
+  const markAt = useCallback(
+    (kind: StrokeMarkKind) => {
+      const at = frame.current;
+      const same = marksRef.current.some((m) => m.frame === at && m.kind === kind);
+      changeMark(at, same ? null : kind);
+    },
+    [changeMark],
   );
 
   // I / H / U mark (coaches), ↑ / ↓ go to the previous / next catch (everyone). Like the player's own
@@ -891,6 +899,9 @@ export function VideoPage() {
                 busy={marking}
                 failed={markFailed}
                 onMark={markAt}
+                onRemove={(at) => {
+                  changeMark(at, null);
+                }}
                 onJump={(f) => {
                   player.current?.seekToFrame(f);
                 }}
