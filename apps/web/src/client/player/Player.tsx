@@ -12,6 +12,7 @@ import {
   useState,
 } from 'react';
 import { Icon } from '../ui/icons.tsx';
+import { PressButton } from '../ui/PressButton.tsx';
 import { formatFrameTime } from './frames.ts';
 import {
   MAX_ZOOM,
@@ -600,16 +601,16 @@ export function Player({
             {t.speedShort}
           </span>
           {SPEEDS.map((speed) => (
-            <button
+            <PressButton
               key={speed}
               type="button"
               aria-pressed={p.rate === speed}
-              onClick={() => {
+              onPress={() => {
                 p.setRate(speed);
               }}
             >
               {speed}×
-            </button>
+            </PressButton>
           ))}
         </div>
 
@@ -642,14 +643,14 @@ export function Player({
             <button type="button" aria-label={t.frameBack} {...back1f}>
               −1f
             </button>
-            <button
+            <PressButton
               type="button"
               className="player__play"
               aria-label={p.playing ? t.pause : t.play}
-              onClick={p.togglePlay}
+              onPress={p.togglePlay}
             >
               <Icon name={p.playing ? 'pause' : 'play'} size={22} />
-            </button>
+            </PressButton>
             <button type="button" aria-label={t.frameForward} {...fwd1f}>
               +1f
             </button>

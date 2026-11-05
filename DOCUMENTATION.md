@@ -2,9 +2,16 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Harden playback button activation after iPhone drawing (BUG-022)
+
+**Session**: codex/fix/bug-022-playback-controls (stacked on #144)
+**Changed**: apps/web/src/client/{ui/PressButton.tsx,player/Player.tsx,drawing/DrawingLayer.tsx}, apps/web/e2e/playback.spec.ts, apps/web/playwright.editing.config.ts, BUGS.md, BUILD.md, FEATURES.md, TEST.md, docs/HANDOFF.md, docs/adr/0007-upload-transcode-playback.md, DOCUMENTATION.md
+**Summary**: Ewout clarified that production iPhone taps leave 1× selected after drawing. Added a regression that suppresses compatibility clicks (it fails on the old activation path), made speed/play/pause respond once on pointer release with keyboard support, and explicitly release drawing captures; all 33 editing/playback cases pass, alongside 451 web/50 worker tests and 43 local E2E cases (edge: 32 passed plus one upload-quota case passed on isolated rerun), while the original physical iPhone sequence still needs confirmation.
+**Prompts used**: "Vertraagd afspelen op 0,25 en 0,5 snelheid werkt niet meer. Soms reageert de pauze knop ook niet"; clarifications: "Het gebeurt op de iphone inderdaad meestal na een lijn of een hoek"; "productie"; "De video blijft op normale snelheid lopen"; "Nee, 1× blijft actief".
+
 ## 2026-11-05 — Investigate iPhone playback failures after drawing (BUG-022)
 
-**Session**: codex/fix/player-playback-controls (based on #144; local commits only)
+**Session**: codex/fix/bug-022-playback-controls (based on #144; local commits only)
 **Changed**: apps/web/e2e/playback.spec.ts, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
 **Summary**: Investigated the reported production iPhone failure after a line/angle using measured slow playback, pause and loop probes, then a local image built from exact production source `5ef325b`. Nine targeted tests pass on both laptop sizes and iPhone WebKit; the physical-device failure is not reproduced, so BUG-022 remains in progress and no application fix, PR, merge or deployment was made.
 **Prompts used**: "Vertraagd afspelen op 0,25 en 0,5 snelheid werkt niet meer. Soms reageert de pauze knop ook niet"; clarifications: "Het gebeurt op de iphone inderdaad meestal na een lijn of een hoek"; "productie".

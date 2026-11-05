@@ -136,3 +136,53 @@ test('entering a note after the video pauses does not start it again', async ({ 
   await page.waitForTimeout(300);
   await expect(page.locator('video')).toHaveJSProperty('paused', true);
 });
+
+test('speed and pause respond to pointer release even without a compatibility click', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run pnpm demo:media --e2e first');
+  await openProcessedClip(
+    page,
+    readFileSync(FIXTURE),
+    `Touch controls ${info.project.name} ${String(Date.now())}`,
+  );
+  // Model the reported failure mode: native pointer events arrive but their following mouse
+  // compatibility click is suppressed after a drawing gesture. Keyboard activation is unaffected.
+  await page.evaluate(() => {
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.detail > 0 &&
+          event.target instanceof Element &&
+          event.target.closest('.player__speed button, .player__play') !== null
+        ) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        }
+      },
+      true,
+    );
+  });
+  const slow = page.getByRole('button', { name: '0.25×', exact: true });
+  await activate(slow);
+  await expect(slow).toHaveAttribute('aria-pressed', 'true');
+  await activate(page.getByRole('button', { name: /^(Play|Afspelen)$/ }));
+  await expect(page.locator('video')).toHaveJSProperty('paused', false);
+  const running = await progress(page);
+  expect(running.speed).toBeGreaterThan(0.175);
+  expect(running.speed).toBeLessThan(0.325);
+  await activate(page.getByRole('button', { name: /^(Pause|Pauzeren)$/ }));
+  await expect(page.locator('video')).toHaveJSProperty('paused', true);
+  // Keyboard/assistive clicks have detail 0; handling pointer release must not break them.
+  const half = page.getByRole('button', { name: '0.5×', exact: true });
+  await half.focus();
+  await page.keyboard.press('Enter');
+  await expect(half).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: /^(Play|Afspelen)$/ }).focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('video')).toHaveJSProperty('paused', false);
+  await page.getByRole('button', { name: /^(Pause|Pauzeren)$/ }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('video')).toHaveJSProperty('paused', true);
+});

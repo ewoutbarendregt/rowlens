@@ -126,3 +126,11 @@ A 1024×576, 29.97 fps, ~0.76 Mbit/s phone clip (8 MB) produced 27 MB of renditi
 - **HLS/DASH** — adaptive bitrate, but frame-accurate seeking is worse and complexity higher. Revisit if
   start-time targets aren't met with progressive MP4.
 - **WebCodecs frame decoder** — most precise, but large effort and uneven iOS support. Kept as fallback.
+
+### Playback buttons after touch drawing (2026-11-05, BUG-022)
+
+Speed and play/pause activation uses primary-pointer release inside the control, with pointer
+cancellation and keyboard/assistive click support. The following compatibility mouse click is not
+required and cannot activate the same control twice. Drawing drags explicitly release pointer
+capture. A regression models the ignored-button symptom by suppressing compatibility clicks;
+confirmation of the original physical iPhone sequence remains necessary.
