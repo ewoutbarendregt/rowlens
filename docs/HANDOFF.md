@@ -27,7 +27,7 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Ewout reports **production iPhone** taps ignored after a line/angle: 1× remains selected when
   tapping 0.25/0.5×; pause sometimes also ignores taps. This is activation, not a confirmed wrong
   media rate. Exact production source `5ef325b` passes 9 normal laptop/WebKit cases locally.
-- Current checkout: `codex/fix/bug-022-playback-controls`, based on open #144. Candidate fix:
+- Open #145 (`codex/fix/bug-022-playback-controls`), based on open #144. Candidate fix:
   `ui/PressButton.tsx` handles speed/play/pause on valid pointer release without requiring a
   compatibility click; keyboard/assistive activation stays supported. Drawing drags explicitly
   release pointer capture on up/cancel and clear abandoned drags on lost capture.
@@ -44,6 +44,23 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - No production changes. The exact-production image was used on the local edge stack only, via a
   temporary override under `/tmp`; the normal current source was restored and the edge stack was
   stopped after testing. The dev stack remains available on :5174.
+
+## Explicit stroke-mark removal (2026-11-05, BUG-023)
+
+- Current checkout: `codex/feat/85-remove-stroke-marks`, based on open #145
+  (`codex/fix/bug-022-playback-controls`), which is based on #144.
+- In Strokes, coaches/admins expand "Edit or delete marks". Every stored catch, finish and half
+  slide has an explicit Delete action with `ConfirmInline`; deletion targets its frame, including
+  marks outside a complete stroke. Errors keep the mark; reload persistence, timeline and timing
+  recalculation are covered by NL/EN tests on both laptop sizes and iPhone WebKit.
+- Existing current-frame toggle and keyboard shortcuts remain. No new schema, dependencies or
+  permissions; the existing DELETE and tenant/role policies are reused. Full checks are in TEST.md.
+- Validation: 451 web + 50 worker; 43 local E2E, 35 full edge E2E, 9 NL/EN strokes matrix and
+  3 final confirmation-size cases passed. Controls ≥44 px, no horizontal overflow. #145 now has
+  all eight CI jobs green (run 42090085510). Edge stopped after testing; dev remains on :5174.
+- No merge or deployment was requested for these changes. Merge order when authorized: #144,
+  then #145, then this stroke-removal change. Keep each lower branch until the next PR is retargeted
+  to main, wait for CI, then continue. The physical iPhone playback report still needs confirmation.
 
 ## What production contains (recent)
 

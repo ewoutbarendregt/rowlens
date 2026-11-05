@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-023] Catch and finish removal was hidden behind toggling the exact frame — medium
+**Location**: apps/web/src/client/strokes/StrokesPanel.tsx, apps/web/src/client/sessions/VideoPage.tsx
+**Status**: fixed locally (codex/feat/85-remove-stroke-marks; pending review)
+**Found**: 2026-11-05, Ewout: catch and finish marks could not be removed through an obvious action
+**Description**: The API already deletes stroke marks, but the UI only exposed deletion by pressing the same kind again on its exact frame. There was no explicit removal action for a listed catch, finish or half-slide mark.
+**Fix**: A coach/admin can expand "Edit or delete marks" in Strokes and delete any stored mark with an inline confirmation. The request targets the chosen mark's frame independently of the current playback frame; errors retain the mark, and reloaded data updates timeline/timings. Keyboard/current-frame toggling remains supported. No database or permission changes.
+
 ### [BUG-022] Slow playback and pause fail intermittently on a physical iPhone after drawing — high
 **Location**: apps/web/src/client/player/Player.tsx, apps/web/src/client/ui/PressButton.tsx, apps/web/src/client/drawing/DrawingLayer.tsx
 **Status**: in-progress (candidate fix on codex/fix/bug-022-playback-controls; physical iPhone confirmation pending)
@@ -77,7 +84,7 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 **Status**: open
 **Found**: 2026-11-02, local E2E on iPhone 13 WebKit (scratch config; not in CI)
 **Description**: The frame counter didn't reach the expected frame after rapid key presses in one of four runs; three reruns passed. Chromium (CI) has never shown it. Likely timing in WebKit's seek events under load. 2026-11-03 (claude/feat/video-page-layout): again once in a full WebKit run; the player spec alone passed 3 × 7. Seen only in full runs, so load after other specs is the likely trigger.
-**Fix**: —
+**Fix**: —. Reproduced 2026-11-05 in the strokes WebKit setup (10 quick steps landed on frame 8); that setup now waits for each step so deletion can be tested independently. The dedicated player quick-press regression is unchanged; the app issue remains open.
 
 ### [BUG-011] A long word in a session title widened the page on a phone — low
 **Location**: apps/web/src/client/styles.css (`.page h1`, `.lineup__boat select`)

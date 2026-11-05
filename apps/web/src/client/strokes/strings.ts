@@ -15,6 +15,12 @@ const en = {
     'Halfway in time between catch and finish, as an open circle on the timeline. A half slide the coach marked on the drive comes first.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' } as Record<StrokeMarkKind, string>,
   markHint: 'Step to the frame, then press the button or its key. Pressed again, it comes off.',
+  editMarks: (n: number) => `Edit or delete marks (${String(n)})`,
+  markAt: (kind: string, time: string, frame: number) =>
+    `${kind} · ${time} · frame ${String(frame)}`,
+  remove: 'Delete',
+  removeMark: (kind: string, frame: number) => `Delete ${kind} at frame ${String(frame)}`,
+  confirmRemove: (kind: string, frame: number) => `Delete ${kind} at frame ${String(frame)}?`,
   keyHintMark: 'I H U catch / half slide / finish',
   keyHintJump: '↑ ↓ previous / next catch',
   markLabel: (kind: string, stroke: number | null, frame: number) =>
@@ -46,7 +52,7 @@ const en = {
   jump: (n: number, time: string) => `Go to the catch of stroke ${String(n)} (${time})`,
   loop: 'Loop',
   loopStroke: (n: number) => `Loop stroke ${String(n)}`,
-  failed: 'Could not save the mark. Check your connection and try again.',
+  failed: 'Could not update the mark. Check your connection and try again.',
   readOnly: 'Coaches mark the strokes; you see them and their timings.',
 };
 
@@ -61,6 +67,12 @@ const nl: typeof en = {
     'Halverwege in tijd tussen inpik en uitpik, als open rondje op de tijdlijn. Een halve bank die de coach in de haal markeerde gaat voor.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' },
   markHint: 'Stap naar het frame en druk op de knop of de toets. Nog een keer weghalen.',
+  editMarks: (n: number) => `Markeringen bewerken of verwijderen (${String(n)})`,
+  markAt: (kind: string, time: string, frame: number) =>
+    `${kind} · ${time} · frame ${String(frame)}`,
+  remove: 'Verwijderen',
+  removeMark: (kind: string, frame: number) => `Verwijder ${kind} op frame ${String(frame)}`,
+  confirmRemove: (kind: string, frame: number) => `${kind} op frame ${String(frame)} verwijderen?`,
   keyHintMark: 'I H U inpik / halve bank / uitpik',
   keyHintJump: '↑ ↓ vorige / volgende inpik',
   markLabel: (kind: string, stroke: number | null, frame: number) =>
@@ -93,7 +105,7 @@ const nl: typeof en = {
   loop: 'Lus',
   loopStroke: (n: number) => `Haal ${String(n)} in een lus`,
   failed:
-    'De markering kon niet worden opgeslagen. Controleer je verbinding en probeer het opnieuw.',
+    'De markering kon niet worden gewijzigd. Controleer je verbinding en probeer het opnieuw.',
   readOnly: 'Coaches markeren de halen; jij ziet ze met hun tijden.',
 };
 

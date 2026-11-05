@@ -1,7 +1,8 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { locale } from '../i18n/language.ts';
 import { formatFrameTime } from '../player/frames.ts';
 import { Icon } from '../ui/icons.tsx';
+import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import {
   type Measured,
   STROKE_MARK_KINDS,
@@ -22,6 +23,7 @@ interface StrokesPanelProps {
   busy: boolean;
   failed: boolean;
   onMark: (kind: StrokeMarkKind) => void;
+  onRemove: (frame: number) => void;
   onJump: (frame: number) => void;
   onLoop: (loopIn: number, loopOut: number) => void;
   /** The computed middle of the drive on the timeline (per device, off by default). */
@@ -36,6 +38,8 @@ interface StrokesPanelProps {
 export function StrokesPanel(props: StrokesPanelProps) {
   const t = strokeStrings();
   const id = useId();
+  const [expanded, setExpanded] = useState(false);
+  const [removing, setRemoving] = useState<number | null>(null);
   const { summary } = props;
   const here = props.marks.find((m) => m.frame === props.frame)?.kind ?? null;
   const number = (digits: number) =>
@@ -81,6 +85,64 @@ export function StrokesPanel(props: StrokesPanelProps) {
         <p role="alert" className="error">
           {t.failed}
         </p>
+      )}
+
+      {props.canMark && props.marks.length > 0 && (
+        <details
+          className="strokes__marks"
+          data-testid="stroke-mark-editor"
+          open={expanded}
+          onToggle={(event) => {
+            setExpanded(event.currentTarget.open);
+          }}
+        >
+          <summary>{t.editMarks(props.marks.length)}</summary>
+          {expanded && (
+            <ul>
+              {props.marks.map((mark) => (
+                <li key={mark.frame} data-testid="stroke-mark" data-frame={mark.frame}>
+                  <button
+                    type="button"
+                    className="button--quiet strokes__mark-jump"
+                    onClick={() => {
+                      props.onJump(mark.frame);
+                    }}
+                  >
+                    {t.markAt(
+                      t.kinds[mark.kind],
+                      formatFrameTime(mark.frame, props.fps),
+                      mark.frame,
+                    )}
+                  </button>
+                  {removing === mark.frame ? (
+                    <ConfirmInline
+                      question={t.confirmRemove(t.kinds[mark.kind], mark.frame)}
+                      onConfirm={() => {
+                        setRemoving(null);
+                        props.onRemove(mark.frame);
+                      }}
+                      onCancel={() => {
+                        setRemoving(null);
+                      }}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="button--quiet"
+                      aria-label={t.removeMark(t.kinds[mark.kind], mark.frame)}
+                      disabled={props.busy}
+                      onClick={() => {
+                        setRemoving(mark.frame);
+                      }}
+                    >
+                      {t.remove}
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
       )}
 
       <label className="strokes__option">

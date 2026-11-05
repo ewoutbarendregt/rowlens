@@ -5,7 +5,13 @@ import base from './playwright.config.ts';
 // Touch taps run in WebKit; Playwright's public touchscreen API does not expose touch dragging.
 export default defineConfig({
   ...base,
-  testMatch: ['drawing.spec.ts', 'angles.spec.ts', 'boatline.spec.ts', 'playback.spec.ts'],
+  testMatch: [
+    'drawing.spec.ts',
+    'angles.spec.ts',
+    'boatline.spec.ts',
+    'playback.spec.ts',
+    'strokes.spec.ts',
+  ],
   outputDir: 'test-results/editing',
   projects: [
     {

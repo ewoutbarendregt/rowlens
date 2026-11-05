@@ -2863,6 +2863,47 @@ a.list__item {
   font-size: var(--text-small);
 }
 
+.strokes__marks {
+  margin-block: var(--space-3);
+}
+
+.strokes__marks summary {
+  min-height: 44px;
+  padding-block: var(--space-2);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.strokes__marks ul {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.strokes__marks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--color-divider);
+}
+
+.strokes__mark-jump {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.strokes__marks .confirm {
+  flex-basis: 100%;
+}
+
+.page .strokes__marks .confirm button {
+  min-height: 44px;
+}
+
 .strokes__averages {
   margin: var(--space-3) 0 var(--space-2);
   font-size: 0.8125rem;

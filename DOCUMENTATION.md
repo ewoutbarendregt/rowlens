@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Explicitly remove catch and finish marks (#85, BUG-023)
+
+**Session**: codex/feat/85-remove-stroke-marks (stacked on #145)
+**Changed**: apps/web/src/client/{strokes/StrokesPanel.tsx,strokes/strings.ts,sessions/VideoPage.tsx,styles.css}, apps/web/e2e/strokes.spec.ts, apps/web/playwright.editing.config.ts, BUGS.md, BUILD.md, FEATURES.md, TEST.md, docs/HANDOFF.md, docs/adr/0016-stroke-marks.md, DOCUMENTATION.md
+**Summary**: Added an expandable NL/EN mark editor with explicit Delete and in-page confirmation for each catch, finish or half slide; requests use the selected frame and the existing protected API, independently of the playback cursor. Validation passed: 451 web/50 worker tests, 43 local E2E, 35 edge E2E, 9 NL/EN laptop/WebKit cases and 3 final 44 px confirmation checks; the existing fast-seek flake (BUG-012) was isolated from this test setup and remains open.
+**Prompts used**: "ik wil de inpikken en uitpikken ook kunnen verwijderen, nu kan dat niet"
+
 ## 2026-11-05 — Harden playback button activation after iPhone drawing (BUG-022)
 
 **Session**: codex/fix/bug-022-playback-controls (stacked on #144)
