@@ -1,5 +1,5 @@
 import type { DrawingKind, Point } from '../drawing/geometry.ts';
-import { moments } from './moments.ts';
+import { moments, type Moment } from './moments.ts';
 
 export const NOTE_HOLD_SECONDS = 1;
 export const NOTES_VISIBLE_KEY = 'rowlens.videoNotes.visible';
@@ -62,10 +62,10 @@ export function rememberNoteHoldSeconds(
 }
 
 /** Group the annotations into video moments, optionally keeping one rower's assigned notes. */
-export function videoMoments(
-  annotations: readonly OverlayAnnotation[],
+export function videoMoments<A extends OverlayAnnotation>(
+  annotations: readonly A[],
   frames: ReadonlySet<number> | null,
-): OverlayMoment[] {
+): Moment<A>[] {
   return moments(frames === null ? annotations : annotations.filter((a) => frames.has(a.frame)));
 }
 

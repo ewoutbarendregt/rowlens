@@ -70,3 +70,31 @@ search (ADR-0018).
     with a finger, so it can be placed precisely without the finger covering it;
   - "Start over" clears the points, Backspace takes the last one back, Esc cancels.
 
+
+## Addendum (2026-11-05): a saved drawing can be moved; its rower is chosen in the picture (#141)
+
+- **Everything on the picture can be changed afterwards.** Tapping a drawing — a note's line, arrow
+  or angle, an angle measurement, the boat line — selects it: a light halo, a ring on each point.
+  Dragging a ring moves that point (exactly with the mouse, at half speed with a finger), and letting
+  go saves it: `PATCH /api/annotations/:id` with `{ points }` for an annotation, `PUT
+  /api/videos/:id/angles` for a measurement (same rower, joint and frame) and `PUT
+  /api/videos/:id/boat-line` for a line. Correcting the line the worker found makes it a coach's line
+  on that frame, which wins and restarts the search (ADR-0018); without a bow side nobody knows which
+  end is which, so the found line can only be moved once that is chosen.
+- **Who may move what** stays the database's call: `canEdit` from the API for annotations (the author
+  or a coach of the session, migration 0011/0012) and `can(measure_angles)` for measurements and
+  boat lines.
+- **The pick is in screen pixels, not the DOM's.** A fingertip-sized press area is what matters, so
+  the layer finds the nearest point of the selected drawing itself, 28 screen pixels away at any zoom
+  (the same reach as drawing mode), instead of an invisible SVG stroke: the stroke hit area of a small
+  circle proved unreliable (`vector-effect: non-scaling-stroke` skips its centre in Chromium). The
+  press area sits on top of the drawings so no stroke can take a press away from a ring; a press
+  beside the drawing drops the selection instead of playing the video, and only when it started there
+  (WebKit sends the click to whatever is under the finger at release).
+- **The attributes belong beside the points**: while measuring, the rower and the joint are chosen in
+  the bar over the picture (in full screen too) instead of the Angles tab below it, which is off
+  screen on a phone. The bar keeps one row on a phone; the labels of the two choices are hidden there
+  and the hint truncates rather than making the bar taller than the picture can spare.
+- **Drawings show on their own frame only** (Ewout): stepping one frame away hides them, so the
+  explanation's playback hold (`NOTE_HOLD_SECONDS`) no longer carries them along. The track's markers
+  still say where a note or drawing is, and the note toggle hides drawings with the notes.

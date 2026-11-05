@@ -35,6 +35,9 @@ const newAnnotation = z.discriminatedUnion('kind', [
   }),
 ]);
 const editNote = z.object({ body: text });
+/** Moving a saved drawing (#141): the new points, as when it was made. */
+const editDrawing = z.object({ points: z.array(point).min(2).max(3) });
+const editAnnotation = z.union([editNote, editDrawing]);
 
 /** What the client may do with it (#40), instead of the author's account id. */
 function present<T extends { authorUserId: string | null }>(row: T, tenant: TenantContext) {
@@ -141,18 +144,44 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
   app.patch('/api/annotations/:id', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
-    const body = editNote.safeParse(req.body);
-    if (!body.success) return reply.code(400).send({ error: 'invalid_note' });
+    const body = editAnnotation.safeParse(req.body);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_annotation' });
     const tenant = tenantOf(req);
-    const [row] = await withTenant(db, tenant, (tx) =>
-      tx
+    const edit = body.data;
+    // The kind decides what may change: a note its text, a drawing the points (#141). Who may
+    // change it stays the database's call: its author, or a coach of the session (ADR-0013).
+    const result = await withTenant(db, tenant, async (tx) => {
+      const [current] = await tx
+        .select({ kind: annotation.kind })
+        .from(annotation)
+        .where(eq(annotation.id, params.data.id));
+      if (current === undefined) return { outcome: 'not_found' as const };
+      if ('body' in edit) {
+        if (current.kind !== 'note') return { outcome: 'wrong_kind' as const };
+        const [row] = await tx
+          .update(annotation)
+          .set({ body: edit.body, updatedAt: new Date() })
+          .where(and(eq(annotation.id, params.data.id), eq(annotation.kind, 'note')))
+          .returning(columns);
+        return row === undefined ? { outcome: 'not_found' as const } : { row };
+      }
+      // An angle is arm, vertex, arm; a line and an arrow are two points.
+      const wanted = current.kind === 'angle' ? 3 : 2;
+      if (current.kind === 'note' || edit.points.length !== wanted) {
+        return { outcome: 'wrong_kind' as const };
+      }
+      const [row] = await tx
         .update(annotation)
-        .set({ body: body.data.body, updatedAt: new Date() })
-        .where(and(eq(annotation.id, params.data.id), eq(annotation.kind, 'note')))
-        .returning(columns),
-    );
+        .set({ shape: { points: edit.points }, updatedAt: new Date() })
+        .where(eq(annotation.id, params.data.id))
+        .returning(columns);
+      return row === undefined ? { outcome: 'not_found' as const } : { row };
+    });
+    if (result.outcome === 'not_found') return notFound(reply);
+    if (result.outcome === 'wrong_kind')
+      return reply.code(400).send({ error: 'invalid_annotation' });
     // A rower's update of someone else's note matches no row (RLS): the same 404 as unknown.
-    return row === undefined ? notFound(reply) : present(row, tenant);
+    return present(result.row, tenant);
   });
 
   // A whole moment (Ewout: one note per frame): every drawing and remark at that frame, in one

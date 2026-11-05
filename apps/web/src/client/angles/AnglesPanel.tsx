@@ -69,7 +69,12 @@ export function AnglesPanel(props: AnglesPanelProps) {
       : props.measuring.kind === 'boat_line'
         ? t.boatSteps
         : t.steps[props.measuring.joint];
-  const chosen = props.rowers.some((r) => r.id === rowerId) ? rowerId : null;
+  // While measuring, the picture's bar can change the rower and the joint (#141): show that here too,
+  // and let a chip here change it as well.
+  const active = props.measuring?.kind === 'joint' ? props.measuring : null;
+  const known = (id: string | null) => (props.rowers.some((r) => r.id === id) ? id : null);
+  const chosen = known(active?.rowerId ?? rowerId);
+  const jointNow = active?.joint ?? joint;
   // The boat line that applies on the frame on screen: a coach's, or the one found there.
   const auto = props.auto;
   const here = resolveBoatLine(props.frame, props.boatLines, auto);
@@ -228,6 +233,8 @@ export function AnglesPanel(props: AnglesPanelProps) {
                   aria-label={`${r.label} · ${r.name}`}
                   onClick={() => {
                     setRowerId(r.id);
+                    if (active !== null)
+                      props.onMeasure({ kind: 'joint', rowerId: r.id, joint: jointNow });
                   }}
                 >
                   {r.label} · {r.name.trim().split(/\s+/)[0]}
@@ -240,9 +247,12 @@ export function AnglesPanel(props: AnglesPanelProps) {
                   key={j}
                   type="button"
                   className="chip chip--toggle"
-                  aria-pressed={joint === j}
+                  aria-pressed={jointNow === j}
                   onClick={() => {
                     setJoint(j);
+                    if (active !== null && chosen !== null) {
+                      props.onMeasure({ kind: 'joint', rowerId: chosen, joint: j });
+                    }
                   }}
                 >
                   {t.joints[j]}
@@ -253,10 +263,11 @@ export function AnglesPanel(props: AnglesPanelProps) {
               type="button"
               disabled={chosen === null || props.busy}
               onClick={() => {
-                if (chosen !== null) props.onMeasure({ kind: 'joint', rowerId: chosen, joint });
+                if (chosen !== null)
+                  props.onMeasure({ kind: 'joint', rowerId: chosen, joint: jointNow });
               }}
             >
-              {t.measure} ({JOINT_POINTS[joint]})
+              {t.measure} ({JOINT_POINTS[jointNow]})
             </button>
           </div>
         )

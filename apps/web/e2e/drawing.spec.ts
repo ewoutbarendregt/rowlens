@@ -29,7 +29,7 @@ async function drag(page: Page, from: [number, number], to: [number, number]) {
   await page.mouse.up();
 }
 
-test('draw an angle and an arrow at a frame; they remain visible for the note hold', async ({
+test('draw an angle and an arrow at a frame; they stay on their own frame', async ({
   page,
 }, info) => {
   test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
@@ -98,7 +98,9 @@ test('draw an angle and an arrow at a frame; they remain visible for the note ho
   await page.locator('h1').click();
   await page.keyboard.press('.');
   await expect(frame).toHaveText('11');
-  await expect(shapes).toHaveCount(2);
+  // A drawing shows on its own frame only (Ewout, 2026-11-05); the marker says it is there.
+  await expect(shapes).toHaveCount(0);
+  await expect(page.getByTestId('player-markers').getByRole('button')).toHaveCount(1);
   await page.keyboard.press('Shift+ArrowRight');
   await expect(frame).toHaveText('41');
   await expect(shapes).toHaveCount(0);
@@ -134,6 +136,75 @@ test('draw an angle and an arrow at a frame; they remain visible for the note ho
   await page.reload();
   await expect(page.getByTestId('player-frame')).toBeVisible();
   await expect(moment).toHaveCount(0);
+});
+
+test('a saved drawing is picked up by tapping it; a handle moves it for good (#141)', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
+  await openProcessedClip(
+    page,
+    readFileSync(FIXTURE),
+    `Move ${info.project.name} ${String(Date.now())}`,
+  );
+  const frame = page.getByTestId('player-frame');
+  await page.locator('h1').click();
+  for (let n = 1; n <= 10; n++) await page.keyboard.press('.');
+  await expect(frame).toHaveText('10');
+
+  await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
+  await at(page, 0.2, 0.8);
+  await at(page, 0.6, 0.2);
+  await page.getByTestId('drawing-save').click();
+  await expect(page.getByTestId('drawing-save')).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  const shapes = page.locator('[data-testid=drawing-layer] g[data-kind]');
+  await expect(shapes).toHaveCount(1);
+  const box = await settledBox(page, 'drawing-layer');
+  /** The line's first end, as fractions of the picture. */
+  const start = async () => {
+    const line = shapes.locator('line.drawing__line').first();
+    return line.evaluate((l) => {
+      const view = l.closest('svg')?.viewBox.baseVal;
+      const n = (name: string) => Number(l.getAttribute(name));
+      return { x: n('x1') / (view?.width ?? 1), y: n('y1') / (view?.height ?? 1) };
+    });
+  };
+  /** Waits until the first end is where it should be: saving a move is a round trip to the API. */
+  const startAt = async (x: number, y: number) => {
+    await expect
+      .poll(async () => {
+        const p = await start();
+        return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      })
+      .toBe(`${x.toFixed(1)},${y.toFixed(1)}`);
+  };
+  await startAt(0.2, 0.8);
+
+  // A press on the stroke selects it: a ring on each point.
+  await page.mouse.click(box.x + 0.4 * box.width, box.y + 0.5 * box.height);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
+  // A press beside it drops the rings instead of playing the video.
+  await page.mouse.click(box.x + 0.12 * box.width, box.y + 0.12 * box.height);
+  await expect(page.getByTestId('drawing-handles')).toHaveCount(0);
+  await expect(shapes).toHaveCount(1);
+  await expect(frame).toHaveText('10');
+
+  // Dragging a ring moves that point: exactly under the mouse, and saved on release.
+  await page.mouse.click(box.x + 0.4 * box.width, box.y + 0.5 * box.height);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
+  await page.mouse.move(box.x + 0.2 * box.width, box.y + 0.8 * box.height);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 0.3 * box.width, box.y + 0.9 * box.height, { steps: 8 });
+  await page.mouse.up();
+  await startAt(0.3, 0.9);
+
+  // It stays there: a reload puts the drawing back where it was left.
+  await page.reload();
+  await expect(page.getByTestId('player-frame')).toBeVisible();
+  await page.getByTestId('player-markers').getByRole('button').click();
+  await expect(frame).toHaveText('10');
+  await startAt(0.3, 0.9);
 });
 
 test('drawing on the zoomed picture lands where tapped and zooms with it', async ({
