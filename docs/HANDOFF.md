@@ -7,32 +7,36 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 - `main`: **`5ef325b`** (move a saved drawing on the picture; choose its rower there, #141/#142).
 - Production: **`sha-5ef325b`**, deployed 2026-11-05 14:55 UTC (deploy run 42049743130): readiness ok
-  with the database healthy; trustable.nl and AudioScribe untouched. 18 migrations (this release had
-  none). Don't deploy again without Ewout's explicit request.
+  with `db` ok; trustable.nl and AudioScribe untouched. 18 migrations (that release had none). Don't
+  deploy again without Ewout's explicit request.
+- **PR #143 open** (`opencode/docs/141-deploy`, checks green): logs the `sha-5ef325b` deployment in
+  `DOCUMENTATION.md` and `docs/runbooks/server-setup.md` (also fills in the deployments since
+  `sha-ee73740`) and fixes BUG-020, a racy check in `e2e/strokes.spec.ts`. Docs/tests only; waits for
+  Ewout's yes. No deploy follows it.
+- Working tree clean, nothing else in flight. Last session branch `opencode/feat/141-draggable-drawings`
+  is merged and deleted (local copy may still exist).
 - Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174.
-  The edge stack is up (`pnpm edge:up`) from the last E2E run — `pnpm edge:down` when done.
+  The **edge stack is up** from the last E2E run — `pnpm edge:down` when done.
 
 ## What production contains (recent)
 
 - Drawings, angle measurements and the boat line can be moved after saving: a tap selects one (rings
-  on its points), a ring drags a point (half speed with a finger) and saves it; a measurement's rower
-  and joint are chosen in the picture; drawings show on their own frame (#141, ADR-0017 addendum).
-- Stroke marks by the coach (catch, half slide, finish; timings per stroke; arrows under the video;
-  optional calculated middle of the drive) — ADR-0016.
-- Angles per rower and phase (knee, hip, elbow, upper body against the boat line; crew difference)
-  — ADR-0017. Drawing made for fingers (tap to place, drag to adjust, Save).
-- The boat line found in every frame by the worker (waterline, OpenCV, no model); a coach's line
-  wins on its frame and restarts the search; bow side from a coach line or a one-time choice —
-  ADR-0018. On the 5 videos in production it found a line in 4361 of 8292 frames.
-- Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan).
-- ⏪ / ⏩ jump to the previous / next stroke moment; off with a hint without marks.
-- Names in the account menu, default boat, renaming sessions, videos first on the session page.
+  on its points), a ring drags a point (half speed with a finger), letting go saves it; a
+  measurement's rower and joint are chosen in the picture; drawings show on their own frame (#141,
+  ADR-0017 addendum).
+- Angles per rower and phase (knee, hip, elbow, upper body against the boat line; crew difference) —
+  ADR-0017; drawing made for fingers.
+- The boat line found in every frame by the worker (waterline, OpenCV, no model); a coach's line wins
+  on its frame and restarts the search; bow side once per video — ADR-0018.
+- Stroke marks (catch, half slide, finish; rate, drive, recovery, ratio; arrows under the video),
+  ⏪ / ⏩ jump to the previous / next stroke moment, zoom into part of the picture, names and default
+  boat in the account menu, renaming sessions, videos first on the session page.
 
 ## Open
 
-- **Ewout to judge on his iPhone**: the measurement bar (rower + joint + save) needs a second row
-  there (~84 px of a 201 px picture). Move that row under the picture, icon-only buttons, or leave
-  it — asked in #142.
+- **Decision for Ewout (asked in #142)**: on a phone the measurement bar (rower + joint + save) needs
+  a second row there (~84 px of a 201 px picture). Leave it, move that row under the picture (not
+  visible in full screen), or icon-only buttons.
 - **Waiting for Ewout's go-ahead**: the oar arc and the stern-camera perspective (plan in the
   2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
   finish, arc = sum; joint angles refused for the in-boat perspective; the worker skips the
@@ -43,14 +47,21 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - Open bugs: BUG-012 and BUG-017 (WebKit-only E2E flakes), BUG-014 (merging roster entries across
   sessions the merger can't see), BUG-015 (tools row wraps at 1000 px with classic scrollbars),
   BUG-016 (a picked rower sometimes missing after saving a lineup; one test cause fixed).
-  BUG-018 and BUG-019 (hit areas of a small circle, WebKit click target) are fixed in #142.
-- Open PRs: the deployment-log docs PR; old docs PRs #83, #89, #117 (conflicting, not in the
-  product stack); Dependabot #74–#79; #72/#73 (Node 26, Python 3.15 images) should be closed rather
-  than merged.
-- `docs/runbooks/server-setup.md` now lists every deployment since `sha-ee73740`.
+- Old PRs to leave alone or close: docs #83, #89, #117 (conflicting, not in the product stack);
+  Dependabot #74–#79; #72/#73 (Node 26, Python 3.15 images) should be closed rather than merged.
 
 ## Suggested next work
 
-1. The oar arc and stern-camera perspective, once Ewout says go.
-2. "My notes" for rowers across sessions (#109), notifications.
-3. Investigate BUG-016 and BUG-014.
+1. Merge #143 once Ewout says so (docs/tests only, no deploy).
+2. The oar arc and stern-camera perspective, once Ewout says go.
+3. "My notes" for rowers across sessions (#109), notifications; investigate BUG-016 and BUG-014.
+
+## Working agreements worth repeating
+
+- Ewout tries changes on the local stack and answers in Dutch or English; report short and concrete
+  (what changed, what was checked with numbers, what is not done, PR links). UI is checked on an
+  iPhone in WebKit and at ~1000×540.
+- Merge only when he says merge; deploy only when he says deploy, each time. One PR per issue.
+- WebKit sends a click to whatever is under the finger at release, and `vector-effect:
+  non-scaling-stroke` breaks SVG hit areas of small shapes in Chromium: test drawing interactions in
+  both engines (BUGS.md BUG-018/019).
