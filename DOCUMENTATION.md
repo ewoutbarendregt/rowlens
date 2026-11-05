@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Merge the editing stack and deploy verified production
+
+**Session**: codex/docs/147-production-deploy
+**Changed**: BUGS.md, FEATURES.md, TEST.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Merged #144 → #145 → #146 → #147 as `587b966`, `d6d3b08`, `990cad8`, `ddb90fd` after fresh CI per reviewed tree; final main CI 42128677789 and images 42128677869 passed, then deploy 42131217348 released `sha-ddb90fd` on 2026-11-05 23:41 UTC (2026-11-06 00:41 CET). Verified readiness/DB ok, matching web/worker images, 18 migrations, five HTTP 200 checks, unchanged IDs/start times for five shared-service containers and the standard backup/RowLens DB recreation; recorded Ubuntu download retries as BUG-025, while physical iPhone confirmation remains pending and the deployment log stays in a separate docs PR.
+**Prompts used**: "Merge en deploy"; "continue".
+
 ## 2026-11-05 — Place drawing points directly without a progress menu (#141, BUG-024)
 
 **Session**: codex/fix/141-direct-drawing-points (stacked on #146)

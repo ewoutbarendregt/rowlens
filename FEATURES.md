@@ -29,11 +29,11 @@ growth features. Suggested order:
 | Boat line found in every frame (waterline bow to stern, follows it out of the picture); coach's line wins and steers the search; bow side once per video | coach | must | done locally, PR open (ADR-0018) | #127 |
 | Names in the account menu; default boat; rename a session; who made it and when; videos first on the session page | everyone | must | done locally, PR open | — |
 | Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan); controls stay usable, drawings zoom along | coach, rower | must | done locally, PR open | — |
-| Move a saved drawing, measurement or boat line on the picture by dragging its points; choose a measurement's rower and joint in the picture; drawings only on their own frame | coach | must | deployed (#142, ADR-0017 addendum); control placement fix pending review | #141 |
-| Editing controls below the picture: unobstructed lines/angles/boat lines, 44 px controls, fullscreen; focused laptop + iPhone WebKit regression suite | coach | must | fixed locally, pending review (BUG-021) | #141 |
-| Playback after touch drawing: speed and pause activate on pointer release, with keyboard support and explicit release of drawing captures | coach, rower | must | candidate fix locally; physical iPhone confirmation pending (BUG-022) | — |
-| Explicitly delete catches, finishes and half slides from the Strokes panel, with inline confirmation | coach | must | done locally, pending review (BUG-023) | #85 |
-| Direct drawing points: visible first dot, no progress menu between taps; adjust/save controls after completion | coach, rower | must | done locally, pending review (BUG-024) | #141 |
+| Move a saved drawing, measurement or boat line on the picture by dragging its points; choose a measurement's rower and joint in the picture; drawings only on their own frame | coach | must | deployed (#142, ADR-0017 addendum); control placement fix deployed (#144) | #141 |
+| Editing controls below the picture: unobstructed lines/angles/boat lines, 44 px controls, fullscreen; focused laptop + iPhone WebKit regression suite | coach | must | deployed `sha-ddb90fd` (#144, BUG-021) | #141 |
+| Playback after touch drawing: speed and pause activate on pointer release, with keyboard support and explicit release of drawing captures | coach, rower | must | candidate fix deployed `sha-ddb90fd` (#145); physical iPhone confirmation pending (BUG-022) | — |
+| Explicitly delete catches, finishes and half slides from the Strokes panel, with inline confirmation | coach | must | deployed `sha-ddb90fd` (#146, BUG-023) | #85 |
+| Direct drawing points: visible first dot, no progress menu between taps; adjust/save controls after completion | coach, rower | must | deployed `sha-ddb90fd` (#147, BUG-024) | #141 |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
 configured on production (#28–#30), notifications (#62/#63), annotation status (#61), and the privacy

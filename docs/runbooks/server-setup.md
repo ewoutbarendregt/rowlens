@@ -16,7 +16,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `AUTH_ADMIN_EMAILS` (first admin, added before `sha-96a0202` with a backup), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587` (465 is blocked outbound on trustable-prod, BUG-010; changed 2026-11-02 07:34 UTC, backup `.env.bak-20261102b`), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the e-mail change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
-| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-ee73740` (deployed 2026-11-02 20:51 UTC), `web` on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; web and DB healthy. Previous release: `sha-96a0202` (pilot-code release for rollback: `sha-c15cb47`) | Codex, 2026-11-02, approved |
+| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-ddb90fd` (deployed 2026-11-05 23:41 UTC); web healthy; DB healthy, PostgreSQL 16.15, 18 migrations. Web joins `rowlens_internal` + `trustable_proxy`; DB stays internal. Previous release: `sha-5ef325b`. | Codex, 2026-11-06, approved |
 | Resend sender domain | ✅ `trustable.nl` verified (DKIM `resend._domainkey`, bounce MX on `send.trustable.nl`, SPF includes resend.com); AudioScribe already sends from it | checked 2026-11-02 |
 
 Nothing under `/opt/trustable` has been changed.
@@ -39,7 +39,7 @@ From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned
 it into `web`. Disk then: 150 GB, 47 % used; uploads pause at 85 %.
 
 The app database password is configured. The deploy script creates or updates the `rowlens_app` role,
-applies migrations before starting the app (through 0012 in `sha-ee73740`) and starts `web` with that
+applies migrations before starting the app (through 0017, 18 total, in `sha-ddb90fd`) and starts `web` with that
 role.
 
 ## Verified restrictions of the CI key (2026-11-01)
@@ -57,6 +57,19 @@ role.
 
 ## Recent deployments
 
+- **2026-11-05 23:41 UTC (2026-11-06 00:41 CET) — `sha-ddb90fd`** (#144–#147: unobstructed editing,
+  iPhone playback-button activation, explicit stroke-mark deletion and direct drawing points).
+  Ewout explicitly requested "Merge en deploy". Final main CI
+  [42128677789](https://github.com/ewoutbarendregt/rowlens/actions/runs/42128677789) and images
+  [42128677869](https://github.com/ewoutbarendregt/rowlens/actions/runs/42128677869) passed; deploy
+  [42131217348](https://github.com/ewoutbarendregt/rowlens/actions/runs/42131217348) succeeded.
+  Standard pre-deploy backup completed; 18 migrations remain (no new migration). Readiness returns
+  `sha-ddb90fd`, DB ok; web/worker run the matching tag, web healthy. The deploy recreated the
+  RowLens DB container, now healthy on PostgreSQL 16.15. Readiness, RowLens, trustable.nl, the API
+  health endpoint and AudioScribe all returned 200; all five shared-service container IDs/start
+  times are unchanged. No manual server configuration or shared-service changes. CI package
+  download stalls required fresh-runner retries (BUG-025); no checks were weakened. Physical
+  iPhone confirmation of BUG-022 and finger dragging remains pending.
 - **2026-11-05 14:55 UTC — `sha-5ef325b`** (#142: move a saved drawing on the picture, the rower in
   the picture). Images run
   [42048365629](https://github.com/ewoutbarendregt/rowlens/actions/runs/42048365629) published
