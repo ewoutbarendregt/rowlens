@@ -100,15 +100,17 @@ test('mark strokes with the keys and read rate, drive, recovery and ratio', asyn
   // Three complete strokes: averages, rate (45 + 51.4 + 60) / 3.
   await expect(page.getByTestId('stroke-averages')).toContainText(/52[,.]1/);
 
+  // ↑ and ↓ step to the previous and the next catch (Ewout, 2026-11-03).
+  await page.keyboard.press('ArrowUp');
+  await expect(page.getByTestId('player-frame')).toHaveText('50');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByTestId('player-frame')).toHaveText('85');
+
   // The same key on a marked frame takes the mark off: two complete strokes, no averages.
   await page.keyboard.press('i');
   await expect(rows).toHaveCount(3);
   await expect(page.getByTestId('stroke-averages')).toHaveCount(0);
   await expect(panel.getByRole('status')).toContainText(/3/);
-
-  // ↑ goes to the previous catch.
-  await page.keyboard.press('ArrowUp');
-  await expect(page.getByTestId('player-frame')).toHaveText('85');
 
   // Loop stroke 1: from its catch up to the frame before the next one.
   await panel.getByRole('button', { name: /^(Loop stroke 1|Haal 1 in een lus)$/ }).click();
