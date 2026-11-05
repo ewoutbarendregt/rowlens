@@ -33,15 +33,18 @@ analysis of rowing technique.
 | **M2 Analysis** | pose, stroke phases, stroke rate, sync, traceability, explanations, eval suite |
 | **M3 Growth** | club self-onboarding, comparisons, trends, more languages, own domain |
 
-## Delivery order (updated 2026-11-02)
+## Delivery order (updated 2026-11-05)
 
 1. Finish and harden the complete product flow for the first club, **centred on the coach and the
    rower** (epic #102): a roster of rowers (also without an account) and per-session lineups; notes
    assigned to rowers, shown in the video and shared with a teammate or the crew; a rower's own
    sessions and notes; plus authentication, stroke marking, notifications, auditability, quota and
    real-device checks.
-2. Add automated analysis only where results stay traceable to source frames.
-3. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
+2. First make the existing editing tools dependable on laptops and iPhones: creating, selecting,
+   moving and saving lines, angles and boat lines, including zoom, fullscreen and a low laptop
+   window (~1000×540). Oar arcs and stern-camera work are deferred (Ewout, 2026-11-05).
+3. Add automated analysis only where results stay traceable to source frames.
+4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
    the data model remains tenant-safe, but growth features do not drive the current UI.
 
 ## Out of scope (for now)

@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-020] The strokes E2E asserted a catch jump that only held while a removal was in flight — low
+**Location**: apps/web/e2e/strokes.spec.ts (the ↑ check after `i`)
+**Status**: fixed (opencode/docs/141-deploy)
+**Found**: 2026-11-05, the `edge` CI job on the deployment-log PR (#143), twice in a row on a slower runner (27 passed, 1 failed), while it passed locally and on `main`'s merge commit minutes earlier
+**Description**: The test pressed `i` (taking the catch at frame 85 off) and then asserted that ↑ lands on 85. `neighbourCatch` jumps to the previous catch *strictly before* the frame, so once the deletion had landed the jump went to 50; the assertion only held while the sidebar still showed the old marks, which is why it passed on a fast machine and failed under load.
+**Fix**: Check ↑ (85 → 50) and ↓ (50 → 85) with every mark in place, before taking the catch off.
+
 ### [BUG-019] A just-selected drawing was dropped again on WebKit — medium
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx (`.drawing__catcher`)
 **Status**: fixed (opencode/feat/141-draggable-drawings)

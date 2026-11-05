@@ -2,11 +2,51 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Update the deployment-log PR and prioritize editing basics
+
+**Session**: codex/docs/143-handoff-review (updates for #143)
+**Changed**: PLAN.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Updated the BUG-020 test record with the final successful CI run and aligned PR #143's description with its docs/tests scope; Ewout authorized its merge after the updated CI passes. Laptop and iPhone editing, selecting and moving lines/angles now take priority over oar arcs and stern-camera work; this docs/tests change requires no production deployment.
+**Prompts used**: "bijwerken en mergen graag, tevens deployment naar prd indien nodig. stern camera vind ik nog niet belangrijk ik wil eerst de basics goed werkend hebben. editing, verplaatsen van lijnen, hoeken op de laptop en op de iphone. dat is de basis functionaliteit"
+
+## 2026-11-05 — Codex takeover and review of the deployment-log PR
+
+**Session**: codex/docs/143-handoff-review
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, TEST.md
+**Summary**: Read the handoff, project instructions, PLAN, BUILD, recent work log and ADR-0017/0018, and reviewed all six files in PR #143. No blocking code findings: its latest head `dcc6cb5` has eight successful CI jobs (run 42058782838), and nine stroke unit tests passed locally; the PR description and test log still need their docs/tests scope and final CI outcome aligned. The local web returned HTTP 200; stopped the leftover edge stack without deleting its data. No merge, push, deployment or analysis implementation; this takeover record is committed locally on the branch above, based on #143.
+**Prompts used**:
+
+> Neem RowLens over vanaf de handoff van 2026-11-05. Lees eerst AGENTS.md,
+> docs/HANDOFF.md, PLAN.md, BUILD.md, de nieuwste entries van DOCUMENTATION.md
+> en docs/adr/0017 + 0018.
+>
+> Stand: main = 5ef325b, productie = sha-5ef325b (deploy 2026-11-05 14:55 UTC,
+> geverifieerd). Werktree schoon, niets in uitvoering. Lokaal: pnpm dev:up +
+> pnpm dev op :5174; de edge-stack staat nog aan (pnpm edge:down als je klaar
+> bent).
+>
+> Open: PR #143 (opencode/docs/141-deploy, checks groen) — deploy-log +
+> BUG-020-testfix, docs/tests alleen. Niet mergen zonder mijn ja. Daarna wacht
+> de oar arc + stern-camera (plan in de 2026-11-04-comment op #127) op mijn
+> go; die heeft eerst een stern-camera proefvideo op de lokale stack nodig.
+>
+> Werkwijze: eerst verkennen, dan een kort plan en wachten op mijn akkoord bij
+> architectuur (nieuwe tabellen/migraties/dependencies). Merge alleen als ik
+> "merge" zeg, deploy alleen als ik "deploy" zeg (per keer). Branch
+> codex/<type>/<issue>-<slug>, één PR per issue, tests als definition of done
+> (format/lint/typecheck/pnpm test, worker-checks, lokale + edge E2E, iPhone
+> WebKit en ~1000×540). Rapporteer kort met getallen en PR-links, in het
+> Nederlands of Engels zoals ik schrijf.
+>
+> Begin met: (1) samenvatten in 5 regels wat er volgens de handoff ligt, (2) je
+> beoordeling van PR #143, (3) je voorgestelde eerste stap. Vraag nog niets aan
+> mij tot je die drie hebt gegeven.
+
 ## 2026-11-05 — Move a saved drawing or measurement on the picture; choose its rower there (#141)
 
-**Session**: opencode/feat/141-draggable-drawings
+**Session**: opencode/feat/141-draggable-drawings (merged as #142); docs and the BUG-020 fix on opencode/docs/141-deploy (#143)
 **Changed**: .github/workflows/ci.yml, apps/web/src/server/api/{annotations.ts,annotations.db.test.ts}, apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/angles/AnglesPanel.tsx, apps/web/src/client/notes/{overlay.ts,strings.ts}, apps/web/src/client/styles.css, apps/web/e2e/{drawing.spec.ts,angles.spec.ts,boatline.spec.ts}, docs/adr/0017-angles-per-phase.md, docs/HANDOFF.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md
-**Summary**: Tapping a drawing on the picture (a note's line/arrow/angle, an angle measurement, the boat line the worker found) selects it — a light halo, a ring on each point — and dragging a ring moves that point: exactly with the mouse, at half speed with a finger, saved when the finger lifts. An angle's degrees and the crew difference follow live; moving a measurement keeps its rower, joint and frame; correcting the found boat line saves a coach's line on that frame, which wins from there on (ADR-0018). Drawings now show only on their own frame instead of during the note hold (the track's markers keep saying where they are), and the toggle hides them with the notes. While measuring, the rower and the joint are chosen in the bar over the picture instead of the Angles tab below it; the bar is one row on a phone (48 px on a 358×201 picture, was 98 px with the labels and the long hint). `PATCH /api/annotations/:id` takes `{ points }` for line/arrow/angle (2 or 3 points, the kind decides) beside `{ body }` for a note; a wrong kind or count is a 400 `invalid_annotation`, another club's drawing still a 404 through RLS. Two engine findings, both logged in BUGS.md: `pointer-events: stroke` with `vector-effect: non-scaling-stroke` makes a small circle's hit area skip its centre (Chromium), so the point under a press is found in screen pixels in the layer itself (28 px fingertip reach, as in drawing mode); and WebKit sends the click to whatever is under the finger at release, which dropped a just-selected drawing again — the catcher now only drops a selection when the press started on it. The `policy` job's branch check learned the `opencode/` prefix that AGENTS.md prescribes (it only allowed `claude/` and `codex/`).
+**Summary**: Tapping a drawing on the picture (a note's line/arrow/angle, an angle measurement, the boat line the worker found) selects it — a light halo, a ring on each point — and dragging a ring moves that point: exactly with the mouse, at half speed with a finger, saved when the finger lifts. An angle's degrees and the crew difference follow live; moving a measurement keeps its rower, joint and frame; correcting the found boat line saves a coach's line on that frame, which wins from there on (ADR-0018). Drawings now show only on their own frame instead of during the note hold (the track's markers keep saying where they are), and the toggle hides them with the notes. While measuring, the rower and the joint are chosen in the bar over the picture instead of the Angles tab below it; the bar is one row on a phone (48 px on a 358×201 picture, was 98 px with the labels and the long hint). `PATCH /api/annotations/:id` takes `{ points }` for line/arrow/angle (2 or 3 points, the kind decides) beside `{ body }` for a note; a wrong kind or count is a 400 `invalid_annotation`, another club's drawing still a 404 through RLS. Two engine findings, both logged in BUGS.md: `pointer-events: stroke` with `vector-effect: non-scaling-stroke` makes a small circle's hit area skip its centre (Chromium), so the point under a press is found in screen pixels in the layer itself (28 px fingertip reach, as in drawing mode); and WebKit sends the click to whatever is under the finger at release, which dropped a just-selected drawing again — the catcher now only drops a selection when the press started on it. The `policy` job's branch check learned the `opencode/` prefix that AGENTS.md prescribes (it only allowed `claude/` and `codex/`). Fixed on top of it: the strokes E2E checked a catch jump that only held while a mark removal was still in flight (BUG-020), which failed the `edge` job on the deployment-log PR under a slower runner. Merged as `sha-5ef325b` (PR #142) and deployed 2026-11-05 14:55 UTC: images run 42048365629, deploy run 42049743130, no migration (still 18); `/health/ready` reports `sha-5ef325b` with `db` ok, `rowlens-web` and `rowlens-worker` run that tag and are healthy, trustable.nl / api.trustable.nl / AudioScribe / RowLens answer 200 and the trustable containers are untouched.
 **Prompts used**: "when drawing the line the controls for selecting the rower and the joint are only available in the Angles tab, not in the picture. Now I have to go to a section outside of the viewport to edit it. Also, when I've drawn something on the video, I can't change it while drawing. Please make the drawing point draggable as well, so I can move them to the correct position. and the rower of the angle should be selectable from the picture"; answers: "1 c" (a finger drags at half speed, the mouse 1:1), "2" (drawings stay on their own frame, the track's markers show where a note or drawing is).
 
 ## 2026-11-05 — Project made portable to opencode (AGENTS.md as the single source)
