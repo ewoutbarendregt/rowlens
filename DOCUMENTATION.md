@@ -2,6 +2,39 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Codex takeover and review of the deployment-log PR
+
+**Session**: codex/docs/143-handoff-review
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, TEST.md
+**Summary**: Read the handoff, project instructions, PLAN, BUILD, recent work log and ADR-0017/0018, and reviewed all six files in PR #143. No blocking code findings: its latest head `dcc6cb5` has eight successful CI jobs (run 42058782838), and nine stroke unit tests passed locally; the PR description and test log still need their docs/tests scope and final CI outcome aligned. The local web returned HTTP 200; stopped the leftover edge stack without deleting its data. No merge, push, deployment or analysis implementation; this takeover record is committed locally on the branch above, based on #143.
+**Prompts used**:
+
+> Neem RowLens over vanaf de handoff van 2026-11-05. Lees eerst AGENTS.md,
+> docs/HANDOFF.md, PLAN.md, BUILD.md, de nieuwste entries van DOCUMENTATION.md
+> en docs/adr/0017 + 0018.
+>
+> Stand: main = 5ef325b, productie = sha-5ef325b (deploy 2026-11-05 14:55 UTC,
+> geverifieerd). Werktree schoon, niets in uitvoering. Lokaal: pnpm dev:up +
+> pnpm dev op :5174; de edge-stack staat nog aan (pnpm edge:down als je klaar
+> bent).
+>
+> Open: PR #143 (opencode/docs/141-deploy, checks groen) — deploy-log +
+> BUG-020-testfix, docs/tests alleen. Niet mergen zonder mijn ja. Daarna wacht
+> de oar arc + stern-camera (plan in de 2026-11-04-comment op #127) op mijn
+> go; die heeft eerst een stern-camera proefvideo op de lokale stack nodig.
+>
+> Werkwijze: eerst verkennen, dan een kort plan en wachten op mijn akkoord bij
+> architectuur (nieuwe tabellen/migraties/dependencies). Merge alleen als ik
+> "merge" zeg, deploy alleen als ik "deploy" zeg (per keer). Branch
+> codex/<type>/<issue>-<slug>, één PR per issue, tests als definition of done
+> (format/lint/typecheck/pnpm test, worker-checks, lokale + edge E2E, iPhone
+> WebKit en ~1000×540). Rapporteer kort met getallen en PR-links, in het
+> Nederlands of Engels zoals ik schrijf.
+>
+> Begin met: (1) samenvatten in 5 regels wat er volgens de handoff ligt, (2) je
+> beoordeling van PR #143, (3) je voorgestelde eerste stap. Vraag nog niets aan
+> mij tot je die drie hebt gegeven.
+
 ## 2026-11-05 — Move a saved drawing or measurement on the picture; choose its rower there (#141)
 
 **Session**: opencode/feat/141-draggable-drawings (merged as #142); docs and the BUG-020 fix on opencode/docs/141-deploy (#143)

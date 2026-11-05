@@ -15,8 +15,21 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
   Ewout's yes. No deploy follows it.
 - Working tree clean, nothing else in flight. Last session branch `opencode/feat/141-draggable-drawings`
   is merged and deleted (local copy may still exist).
-- Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174.
-  The **edge stack is up** from the last E2E run — `pnpm edge:down` when done.
+- Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174
+  (HTTP 200 checked during takeover). The **edge stack was stopped** with `pnpm edge:down` during
+  the Codex takeover; its data is retained.
+
+## Codex takeover review (2026-11-05)
+
+- Read the required project docs and ADR-0017/0018, and the 2026-11-04 plan comment on #127.
+- Reviewed all six files in #143: no blocking code findings; the catch-navigation test fix agrees
+  with `neighbourCatch`. Latest PR head `dcc6cb5`: all eight CI jobs succeeded in run 42058782838;
+  nine stroke unit tests also passed locally. No new full E2E, WebKit or layout run during takeover.
+- Before merging #143, align its description (still says "Docs only, no code") and TEST.md's older
+  CI outcome with its actual docs/tests scope and successful final run. Merge still needs Ewout's
+  explicit instruction; no deployment follows. No oar/stern-camera implementation is authorized.
+- Local takeover log is on `codex/docs/143-handoff-review`, based on #143; committed locally only,
+  with no new PR. Main and production are unchanged.
 
 ## What production contains (recent)
 
