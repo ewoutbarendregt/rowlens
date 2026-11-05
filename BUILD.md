@@ -351,6 +351,9 @@ scripts/github/      backlog/labels/milestones bootstrap
   save APIs stay the same. Control pointer events stop before reaching the stage's pan handlers.
 - Empty strips take no space. Buttons and selects have 44 px targets; selects use an explicit
   height because native WebKit controls ignored `min-height` alone.
+- Point placement is direct (BUG-024): a tap shows a point/ring immediately. The control strip,
+  including measurement attributes, appears only once all two/three points exist; no point-counter
+  menu appears between taps. Adjusting, saving, restarting and cancelling still work afterwards.
 - `pnpm --filter @rowlens/web e2e:editing` runs drawing, angles, boat-line and playback E2E on the edge stack:
   Chrome 1440×900, Chrome 1000×540 and iPhone 13 WebKit. Selection taps use native touch where
   supported; dragging uses the mouse API because Playwright's public touchscreen API exposes only

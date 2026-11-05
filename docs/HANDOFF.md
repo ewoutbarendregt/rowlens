@@ -47,7 +47,7 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## Explicit stroke-mark removal (2026-11-05, BUG-023)
 
-- Current checkout: `codex/feat/85-remove-stroke-marks`, based on open #145
+- Open #146 (`codex/feat/85-remove-stroke-marks`), based on open #145
   (`codex/fix/bug-022-playback-controls`), which is based on #144.
 - In Strokes, coaches/admins expand "Edit or delete marks". Every stored catch, finish and half
   slide has an explicit Delete action with `ConfirmInline`; deletion targets its frame, including
@@ -61,6 +61,21 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 - No merge or deployment was requested for these changes. Merge order when authorized: #144,
   then #145, then this stroke-removal change. Keep each lower branch until the next PR is retargeted
   to main, wait for CI, then continue. The physical iPhone playback report still needs confirmation.
+
+## Direct point placement (2026-11-05, BUG-024)
+
+- Current checkout: `codex/fix/141-direct-drawing-points`, based on #146.
+- Drawing/measurement controls appear only after all two/three points are placed. Before that,
+  the first point/ring is visible immediately and no progress menu is shown; rower/joint choices
+  and Save/Redo/Cancel remain available after completion, including fullscreen.
+- Removed unused NL/EN point-counter copy. Geometry, touch filtering, dragging and saving are
+  unchanged. Existing drawing and angle E2E now check the point visibility and absence of menus
+  between taps. Validation: 451 web + 50 worker, 43 local E2E, 35 full edge and all 15 drawing/angle
+  cases on both laptop sizes and iPhone WebKit passed. The low-laptop test now samples the stage
+  position after the completed controls appear. No merge or deployment was requested.
+- The edge stack was stopped after validation; dev stays available on :5174.
+- Open stack: #144 → #145 → #146 → this point-placement change. Preserve each lower branch while
+  retargeting the next PR to main and waiting for CI. Production remains unchanged.
 
 ## What production contains (recent)
 

@@ -107,3 +107,11 @@ strip directly below the picture, still inside the player in native fullscreen a
 immersive fallback. This supersedes the over-picture placement above; the rower and joint remain
 beside the picture instead of requiring the off-screen Angles panel. Selects and buttons have
 explicit 44 px touch targets; saving and permissions are unchanged.
+
+## Addendum (2026-11-05): place points without a progress menu
+
+While placing a drawing, boat line or angle measurement, the first tap immediately shows its dot
+and handle. The control strip stays absent until the required two or three points are placed;
+there is no "Point 1 of 2" menu between taps. After completion, adjustment, Save/Redo/Cancel and
+measurement attributes remain available below the picture, including fullscreen. Tap filtering,
+point geometry, dragging and persistence are unchanged.

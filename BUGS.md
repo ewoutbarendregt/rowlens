@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-024] Point placement showed an unwanted progress menu — low
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx (`.drawing-confirm`)
+**Status**: fixed locally (codex/fix/141-direct-drawing-points; pending review)
+**Found**: 2026-11-05, Ewout: wants the first dot directly, then the second, without a "Point 1 of 2" menu
+**Description**: After the first point, the drawing controls appeared with a point counter; measurement attributes could show the strip before any point. This interrupted the requested direct point-placement flow.
+**Fix**: Render drawing/measurement controls only after all two or three points are placed. The first tap still shows its visible point/ring immediately; partial angles keep their points without a menu. Adjustment, Save/Redo/Cancel and rower/joint choices remain available after completion, including fullscreen. Removed the unused NL/EN point-counter copy; no geometry or save changes.
+
 ### [BUG-023] Catch and finish removal was hidden behind toggling the exact frame — medium
 **Location**: apps/web/src/client/strokes/StrokesPanel.tsx, apps/web/src/client/sessions/VideoPage.tsx
 **Status**: fixed locally (codex/feat/85-remove-stroke-marks; pending review)

@@ -49,8 +49,13 @@ test('draw an angle and an arrow at a frame; they stay on their own frame', asyn
   await expect(angle).toBeEnabled(); // the signed-in account supplies the author
   await angle.click();
   // Arms horizontal and vertical in picture pixels: exactly 90° whatever the picture's shape.
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await at(page, 0.75, 0.5);
+  await expect(page.locator('.drawing--preview .drawing__handle-ring')).toBeVisible();
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await at(page, 0.5, 0.5);
+  await expect(page.locator('.drawing--preview .drawing__handle-ring')).toHaveCount(2);
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await at(page, 0.5, 0.15);
   const label = page.getByTestId('angle-label');
   await expect(label).toHaveText('90°');
@@ -72,6 +77,8 @@ test('draw an angle and an arrow at a frame; they stay on their own frame', asyn
   await drag(page, [0.1, 0.9], [0.3, 0.7]);
   await expect(save).toHaveCount(0);
   await at(page, 0.2, 0.8);
+  await expect(page.locator('.drawing--preview .drawing__handle-ring')).toBeVisible();
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await at(page, 0.4, 0.6);
   await save.click();
 
@@ -160,6 +167,9 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
 
   await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
   await at(page, 0.2, 0.8);
+  await expect(page.locator('.drawing--preview .drawing__handle-ring')).toBeVisible();
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath('first-point-no-menu.png') });
   await at(page, 0.6, 0.2);
   await page.getByTestId('drawing-save').click();
   await expect(page.getByTestId('drawing-save')).toHaveCount(0);

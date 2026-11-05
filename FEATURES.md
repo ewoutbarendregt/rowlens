@@ -33,6 +33,7 @@ growth features. Suggested order:
 | Editing controls below the picture: unobstructed lines/angles/boat lines, 44 px controls, fullscreen; focused laptop + iPhone WebKit regression suite | coach | must | fixed locally, pending review (BUG-021) | #141 |
 | Playback after touch drawing: speed and pause activate on pointer release, with keyboard support and explicit release of drawing captures | coach, rower | must | candidate fix locally; physical iPhone confirmation pending (BUG-022) | — |
 | Explicitly delete catches, finishes and half slides from the Strokes panel, with inline confirmation | coach | must | done locally, pending review (BUG-023) | #85 |
+| Direct drawing points: visible first dot, no progress menu between taps; adjust/save controls after completion | coach, rower | must | done locally, pending review (BUG-024) | #141 |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
 configured on production (#28–#30), notifications (#62/#63), annotation status (#61), and the privacy

@@ -15,14 +15,19 @@ async function tap(page: Page, points: [number, number][]) {
   const box = await settledBox(page, 'drawing-layer');
   // A finger where the device has one: the touch path is what coaches use (2026-11-03).
   const finger = test.info().project.use.hasTouch === true;
-  for (const [x, y] of points) {
+  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
+  for (const [index, [x, y]] of points.entries()) {
     if (finger) await page.touchscreen.tap(box.x + x * box.width, box.y + y * box.height);
     else await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
+    if (index < points.length - 1) {
+      await expect(page.locator('.drawing-confirm')).toHaveCount(0);
+    }
   }
   // The entire picture must remain tappable, including on iPhone and a low laptop window.
+  const completeBox = await settledBox(page, 'drawing-layer');
   const controls = await page.locator('.drawing-confirm').boundingBox();
   if (controls === null) throw new Error('drawing controls not visible');
-  expect(controls.y).toBeGreaterThanOrEqual(box.y + box.height - 1);
+  expect(controls.y).toBeGreaterThanOrEqual(completeBox.y + completeBox.height - 1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const targets = await page
     .locator('.drawing-confirm button, .drawing-confirm select')
