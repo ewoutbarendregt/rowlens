@@ -5,31 +5,22 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## State
 
-- `main`: **`5ef325b`** (move a saved drawing on the picture; choose its rower there, #141/#142).
-- Production: **`sha-5ef325b`**, deployed 2026-11-05 14:55 UTC (deploy run 42049743130): readiness ok
-  with `db` ok; trustable.nl and AudioScribe untouched. 18 migrations (that release had none). Don't
-  deploy again without Ewout's explicit request.
-- **PR #143 open** (`opencode/docs/141-deploy`, checks green): logs the `sha-5ef325b` deployment in
-  `DOCUMENTATION.md` and `docs/runbooks/server-setup.md` (also fills in the deployments since
-  `sha-ee73740`) and fixes BUG-020, a racy check in `e2e/strokes.spec.ts`. Docs/tests only; Ewout authorized updating and merging it on 2026-11-05.
-  Wait for CI on the updated head before merging; no production deployment is needed.
-- Working tree clean, nothing else in flight. Last session branch `opencode/feat/141-draggable-drawings`
-  is merged and deleted (local copy may still exist).
-- Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174
-  (HTTP 200 checked during takeover). The **edge stack was stopped** with `pnpm edge:down` during
-  the Codex takeover; its data is retained.
-
-## Codex takeover review (2026-11-05)
-
-- Read the required project docs and ADR-0017/0018, and the 2026-11-04 plan comment on #127.
-- Reviewed all six files in #143: no blocking code findings; the catch-navigation test fix agrees
-  with `neighbourCatch`. Latest PR head `dcc6cb5`: all eight CI jobs succeeded in run 42058782838;
-  nine stroke unit tests also passed locally. No new full E2E, WebKit or layout run during takeover.
-- Ewout authorized updating and merging #143; align its description and TEST.md with its actual
-  docs/tests scope and successful final CI run, then merge once the updated head is green.
-  No production deployment is needed for this docs/tests change.
-- Local takeover log is on `codex/docs/143-handoff-review`, based on #143; committed locally only,
-  with no new PR. Its commits are being included in #143; production is unchanged.
+- `main`: **`76adf5b`** (#143 merged after all eight CI jobs passed on updated head `5321da2`,
+  run 42062947694). It contains docs and the BUG-020 test fix; application code is still #142.
+- Production: **`sha-5ef325b`**, deployed 2026-11-05 14:55 UTC (run 42049743130), 18 migrations.
+  Read-only readiness rechecked during this session: expected version, `db` ok. No deployment
+  needed for #143; no production or shared-server changes were made.
+- Current work: **`codex/fix/141-unobstructed-editing`**, addressing BUG-021: move the drawing and
+  measurement controls below the picture, inside the fullscreen player too, so no points are
+  covered. Explicit 44 px selects/buttons, reload/fullscreen regression checks and a dedicated
+  `pnpm --filter @rowlens/web e2e:editing` suite (1440×900, 1000×540, iPhone 13 WebKit).
+- Validation: format/lint/typecheck green; 451 web + 50 worker tests; 43 local E2E, 29 full edge
+  E2E and 21 focused editing E2E passed. Controls measured 44 px high, zero horizontal overflow.
+- This functional fix is for review separately from the authorized #143 merge. It has not been
+  merged or deployed. Native WebKit taps are tested; touch dragging still needs a physical iPhone
+  check (the tests drag with Playwright's mouse API). BUG-012 remains open.
+- Local stack: dev Postgres :5434 + worker, `pnpm dev` web :5174. Edge was stopped after verification
+  with `pnpm edge:down`; the dev stack remains available.
 
 ## What production contains (recent)
 
@@ -47,9 +38,8 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## Open
 
-- **Decision for Ewout (asked in #142)**: on a phone the measurement bar (rower + joint + save) needs
-  a second row there (~84 px of a 201 px picture). Leave it, move that row under the picture (not
-  visible in full screen), or icon-only buttons.
+- **Editing review**: the pending BUG-021 fix moves the measurement bar below the picture and keeps
+  it available in fullscreen. Verify on the local stack before merging this functional change.
 - **Deferred by Ewout (2026-11-05)**: first make editing and moving lines and angles reliable on
   laptop and iPhone. The oar arc and stern-camera perspective (plan in the
   2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
@@ -66,7 +56,7 @@ detailed newest-first log. Update this file at the end of a session (`/handoff` 
 
 ## Suggested next work
 
-1. Finish the authorized update and merge of #143 once its updated CI is green (no deploy needed).
+1. Review the BUG-021 editing fix on the local stack; #143 is already merged, without a deploy.
 2. Verify and harden creating, selecting, editing and moving lines, angles and boat lines on
    laptop and iPhone WebKit, including zoom/fullscreen and ~1000×540. This is the product priority.
 3. "My notes" for rowers across sessions (#109), notifications; investigate BUG-016 and BUG-014.

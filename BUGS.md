@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-021] The measurement bar covered drawing points on small pictures — medium
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/styles.css (`.drawing-confirm`)
+**Status**: fixed locally (codex/fix/141-unobstructed-editing; pending review)
+**Found**: 2026-11-05, editing review at 1000×540; the bar also occupies a large part of an iPhone picture
+**Description**: The rower/joint/save overlay intercepts clicks in the lower part of the video. The angle E2E passed on a large desktop but could not place a knee and ankle at y=0.7 on a low laptop window. Native WebKit selects also measured only 20 px tall despite `min-height`, making the choices hard to tap.
+**Fix**: Put drawing and measurement controls directly below the picture inside the fullscreen player; keep the full picture available and explicitly size selects/buttons to 44 px. Regression checks cover overlap, touch-target height, persistence after reload and fullscreen on laptop, low laptop and iPhone WebKit. Test setup now scrolls the picture into view before coordinate input; rapid-seek coverage remains in the player suite (BUG-012 is still open).
+
 ### [BUG-020] The strokes E2E asserted a catch jump that only held while a removal was in flight — low
 **Location**: apps/web/e2e/strokes.spec.ts (the ↑ check after `i`)
 **Status**: fixed (opencode/docs/141-deploy)

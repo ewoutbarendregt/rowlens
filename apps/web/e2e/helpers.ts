@@ -65,6 +65,7 @@ export async function openProcessedClip(page: Page, clip: Buffer, title: string)
 /** The box of an element once the page has stopped scrolling it into view (a phone scrolls the
  * picture into view when a drawing tool is chosen). */
 export async function settledBox(page: Page, testId: string) {
+  await page.getByTestId(testId).scrollIntoViewIfNeeded();
   let last = '';
   for (let i = 0; i < 20; i++) {
     const box = await page.getByTestId(testId).boundingBox();

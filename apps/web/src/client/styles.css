@@ -1067,25 +1067,28 @@ a.list__item {
   touch-action: none;
 }
 
-/* Save / start over / cancel while drawing, over the bottom of the picture (also in full screen). */
+/* The controls stay in the player (including fullscreen), without covering any drawing points. */
+.player__drawing-controls:empty {
+  display: none;
+}
+
+.player__drawing-controls {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
 .drawing-confirm {
-  position: absolute;
-  left: 50%;
-  bottom: 8px;
-  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 6px 8px;
-  width: max-content;
-  max-width: calc(100% - 16px);
+  width: 100%;
   padding: 6px 8px;
   border-radius: var(--radius-md);
   background: rgb(20 20 20 / 0.82);
   color: #f2efe9;
   font-size: 0.8125rem;
-  transform: translateX(-50%);
 }
 
 .drawing-confirm__hint {
@@ -1097,8 +1100,7 @@ a.list__item {
   white-space: nowrap;
 }
 
-/* Choosing what a measurement is about, in the same bar as Save (#141): the picture keeps as much
-   room as it can. */
+/* Choosing what a measurement is about, in the same strip as Save. */
 .drawing-confirm__attrs {
   display: flex;
   flex-wrap: wrap;
@@ -1114,7 +1116,8 @@ a.list__item {
 }
 
 .drawing-confirm__attrs select {
-  min-height: 40px;
+  height: 44px;
+  min-height: 44px;
   max-width: 9rem;
   padding: 0 0.4rem;
   border: 1px solid rgb(255 255 255 / 0.4);
@@ -1122,25 +1125,22 @@ a.list__item {
   background: #f2efe9;
   color: #141414;
   font: inherit;
+  font-size: 1rem;
 }
 
-/* On a phone the picture is small, so the bar over it stays as thin as a fingertip allows. */
+/* On a phone the controls wrap below the picture, with forgiving touch targets. */
 @media (max-width: 480px) {
   .drawing-confirm {
-    bottom: 4px;
     gap: 4px 6px;
     padding: 4px 6px;
     font-size: 0.75rem;
   }
 
   .drawing-confirm button {
-    min-width: 40px;
-    min-height: 36px;
     padding: 0 0.5rem;
   }
 
   .drawing-confirm__attrs select {
-    min-height: 36px;
     max-width: 7rem;
   }
 
@@ -1152,7 +1152,7 @@ a.list__item {
 
 .drawing-confirm button {
   min-width: 44px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 0.75rem;
   border: 1px solid rgb(255 255 255 / 0.4);
   border-radius: var(--radius-md);

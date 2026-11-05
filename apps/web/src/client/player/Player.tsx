@@ -45,6 +45,8 @@ export interface PlayerProps {
   toolbar?: ReactNode;
   /** Drawn over the picture inside the stage, so it goes into full screen too (#60). */
   overlay?: ReactNode;
+  /** Hosts drawing controls beside the picture, inside fullscreen too. */
+  drawingControlsRef?: Ref<HTMLDivElement>;
   /** The page's own shortcuts, added to the line of keys (e.g. "N notes on/off"). */
   keyHints?: readonly string[];
   /** While the page draws on the picture, a one-finger or mouse drag is the drawing's, not a pan. */
@@ -94,6 +96,7 @@ export function Player({
   handle,
   toolbar,
   overlay,
+  drawingControlsRef,
   keyHints = [],
   strokeMarks,
   panLocked = false,
@@ -507,6 +510,10 @@ export function Player({
           </button>
         </div>
       </div>
+
+      {drawingControlsRef !== undefined && (
+        <div className="player__drawing-controls" ref={drawingControlsRef} />
+      )}
 
       {/* Mockup 1e: the moments above the track, the track, then where you are. */}
       {markers !== undefined && markers.length > 0 && (

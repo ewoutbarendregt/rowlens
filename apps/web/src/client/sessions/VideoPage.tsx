@@ -109,6 +109,7 @@ export function VideoPage() {
   const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
   const roster = useRoster();
   const [tool, setTool] = useState<DrawingKind | null>(null);
+  const [drawingControls, setDrawingControls] = useState<HTMLDivElement | null>(null);
   const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
   const [noteHoldSeconds, setNoteHoldSeconds] = useState(storedNoteHoldSeconds);
   const [forRower, setForRower] = useState<string | null>(null);
@@ -631,8 +632,7 @@ export function VideoPage() {
     video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
   const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
-  // While measuring, choosing the rower and the joint belongs beside the points you tap, not in the
-  // Angles tab below the picture (Ewout, 2026-11-05).
+  // Keep rower, joint and Save beside the picture, including fullscreen, without covering points.
   const angleText = angleStrings();
   const measureAttributes =
     measuring?.kind === 'joint' ? (
@@ -715,6 +715,7 @@ export function VideoPage() {
               handle={player}
               // While drawing or measuring, one finger places points; two fingers still zoom.
               panLocked={layerTool !== null}
+              drawingControlsRef={setDrawingControls}
               keyHints={[
                 nt.notesKey,
                 ...(canMark ? [strokeStrings().keyHintMark] : []),
@@ -735,6 +736,7 @@ export function VideoPage() {
                       if (drawing !== null) player.current?.pause();
                     }}
                     attributes={measureAttributes}
+                    controlsTarget={drawingControls}
                   />
                   {notesVisible && layerTool === null && activeMoment !== null && (
                     <VideoNotesOverlay moment={activeMoment} />
