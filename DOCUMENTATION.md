@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Project made portable to opencode (AGENTS.md as the single source)
+
+**Session**: claude/docs/opencode-handoff
+**Changed**: AGENTS.md, CLAUDE.md, opencode.json, .opencode/commands/{check,e2e,deploy,handoff}.md, docs/HANDOFF.md, README.md, .gitignore, TEST.md, DOCUMENTATION.md
+**Summary**: opencode loads `AGENTS.md` and skips `CLAUDE.md` when both exist, so `AGENTS.md` is now the complete, tool-neutral instruction file (project rules, Ewout's global documentation rules, facts that lived only in Claude's memory: no staging, deploy only on request, side-effect deploys, secrets via a terminal prompt; the deploy runbook and testing know-how). `CLAUDE.md` imports it and keeps only Claude specifics. `opencode.json` loads `docs/HANDOFF.md` and `PLAN.md` and turns the hard rules into permissions (no pushes to `main` or force pushes, no `docker system prune`; merging, deploying, ssh and `rm -rf` ask; `.env` files not editable); four slash commands (`/check`, `/e2e`, `/deploy`, `/handoff`). `docs/HANDOFF.md` brought from 2026-11-02 to now. Also deployed yesterday: `sha-b6e18a6` (stroke-moment jumps #139), deploy run 41799144428.
+**Prompts used**: "maak het project overdraagbaar voor opencode"
+
 ## 2026-11-04 — Jump to the previous / next stroke moment
 
 **Session**: claude/feat/jump-stroke-moments

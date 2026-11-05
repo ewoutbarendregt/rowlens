@@ -1,59 +1,50 @@
-# RowLens handoff — 2026-11-02
+# RowLens handoff — 2026-11-05
 
-Read `AGENTS.md` first. The repository and production have moved well beyond the 2026-11-01 auth
-handoff that used to be in this file; `DOCUMENTATION.md` remains the detailed newest-first log.
+For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
+detailed newest-first log. Update this file at the end of a session (`/handoff` in opencode).
 
-## Current repository state
+## State
 
-- `main` / `origin/main`: **`e90e40d`**, the video page in the mockup 1e layout with names without
-  question marks (#128) and the sessions-list E2E fix (#129), on top of notes in the video (#125)
-  and the Dutch-by-default interface (#124).
-- Current worktree: **`codex/docs/deploy-ee73740`**, used only to record the completed deployment.
-- Local stack: Postgres on 5434, worker and the Vite/API development processes are running. The edge
-  stack was stopped after its tests.
-- Production: **`sha-e90e40d`**, deployed 2026-11-03 (deploy run 41596334550). The public readiness endpoint
-  reports that version with its database check healthy; the RowLens page and trustable.nl returned
-  200, and the AudioScribe container stayed healthy and untouched. Do not deploy again without
-  Ewout's explicit approval.
+- `main`: **`b6e18a6`** (jump to the previous / next stroke moment, #139).
+- Production: **`sha-b6e18a6`**, deployed 2026-11-05 (deploy run 41799144428): readiness ok with the
+  database healthy; trustable.nl and AudioScribe untouched. 18 migrations. Don't deploy again
+  without Ewout's explicit request.
+- Local stack: Postgres :5434 and worker in Docker (`pnpm dev:up`), web via `pnpm dev` on :5174.
+  The edge stack is down.
+- GitHub Actions had a billing stop on 2026-11-04 (all jobs "not started"); Ewout fixed it.
 
-## Product PR state
+## What production contains (recent)
 
-PR #124 (interface language) and PR #125 (notes in the video) are merged. There is no open product PR
-in this stack; only the deployment-log documentation belongs after `main` now.
+- Stroke marks by the coach (catch, half slide, finish; timings per stroke; arrows under the video;
+  optional calculated middle of the drive) — ADR-0016.
+- Angles per rower and phase (knee, hip, elbow, upper body against the boat line; crew difference)
+  — ADR-0017. Drawing made for fingers (tap to place, drag to adjust, Save).
+- The boat line found in every frame by the worker (waterline, OpenCV, no model); a coach's line
+  wins on its frame and restarts the search; bow side from a coach line or a one-time choice —
+  ADR-0018. On the 5 videos in production it found a line in 4361 of 8292 frames.
+- Zoom into part of the picture (pinch, ⌘/Ctrl + scroll, + − 0, corner buttons; drag to pan).
+- ⏪ / ⏩ jump to the previous / next stroke moment; off with a hint without marks.
+- Names in the account menu, default boat, renaming sessions, videos first on the session page.
 
-Older documentation PRs #83, #89 and #117 are still open with conflicts and are not in this product
-stack. Dependabot's major Node 26 and Python 3.15 PRs (#72/#73) should still be closed rather than
-merged; see the older log for the remaining dependency PRs.
+## Open
 
-## What the latest release contains
-
-- Notes, explanation text and drawings appear together inside the video. They remain for a saved
-  0.5/1/2-second hold (default one second); a dark card automatically chooses the corner furthest
-  from drawing points.
-- The eye button and `N` toggle are remembered per device. The video and side panel share the same
-  all/mine/rower filter; hidden moments also leave the timeline markers.
-- The overlay lives inside the stage, including native fullscreen and the iPhone immersive fallback.
-- The free author field is gone. Within the tenant transaction the server uses the linked roster name,
-  falling back to the account display name, and ignores a spoofed client name. The rollback-only
-  pilot path still requires a validated label.
-
-## Verification for the latest release
-
-- Format, lint, typecheck and production/edge builds passed.
-- 385 web tests and 44 worker tests passed.
-- 38 local player/smoke E2E and 21 edge E2E passed (the edge run skips eight demo-only player tests;
-  those passed in the local run).
-- WebKit measurements: phone 390×844 stage 358×201; iPhone immersive fullscreen stage 374×201;
-  low laptop 1000×540 stage 427×240. The overlay stayed inside the video and no page overflowed.
-- The `main` images workflow published `sha-ee73740`; deploy run `41522914840` succeeded. Production
-  runs the matching web and worker images, and the web container plus database are healthy.
+- **Waiting for Ewout's go-ahead**: the oar arc and the stern-camera perspective (plan in the
+  2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
+  finish, arc = sum; joint angles refused for the in-boat perspective; the worker skips the
+  waterline search there; "time under water" in the Strokes tab. Needs a stern-camera sample video
+  on the local stack. Migration: add `oar` to `angle_joint`.
+- **Decision needed**: boat speed and acceleration from sensor data (which device the club uses);
+  ghost riders later, after a pose spike (#127).
+- Open bugs: BUG-012 and BUG-017 (WebKit-only E2E flakes), BUG-014 (merging roster entries across
+  sessions the merger can't see), BUG-015 (tools row wraps at 1000 px with classic scrollbars),
+  BUG-016 (a picked rower sometimes missing after saving a lineup; one test cause fixed).
+- Open PRs: old docs PRs #83, #89, #117 (conflicting, not in the product stack); Dependabot #74–#79;
+  #72/#73 (Node 26, Python 3.15 images) should be closed rather than merged.
+- Not yet logged in `docs/runbooks/server-setup.md`: the deployments since `sha-ee73740`
+  (they are in `DOCUMENTATION.md`).
 
 ## Suggested next work
 
-1. Continue the coach/rower workflow: a cross-session “My notes” view (#109), then notifications,
-   annotation status/auditability and quota hardening.
-2. Stroke marking (#85), thumbnail strip/retry, and real-device Android/4K checks remain open.
-
-Production commands, secrets handling and neighbour checks remain in `AGENTS.md` and
-`docs/runbooks/server-setup.md`. Never send user video, names or e-mail addresses to an external AI
-provider.
+1. The oar arc and stern-camera perspective, once Ewout says go.
+2. "My notes" for rowers across sessions (#109), notifications.
+3. Investigate BUG-016 and BUG-014.

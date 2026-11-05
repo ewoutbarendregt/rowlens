@@ -41,3 +41,7 @@ apps/web/public/demo-media/
 
 # Local video uploads (MEDIA_DIR=.media)
 apps/web/.media/
+
+# opencode: session plans and plugin installs stay local
+.opencode/plans/
+.opencode/node_modules/
