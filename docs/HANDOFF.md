@@ -1,128 +1,85 @@
-# RowLens handoff — 2026-11-05
+# RowLens handoff — 2026-11-06
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
-detailed newest-first log. Update this file at the end of a session (`/handoff` in opencode).
+newest-first detailed log. Update this file at the end of a session.
 
 ## State
 
-- `main`: **`76adf5b`** (#143 merged after all eight CI jobs passed on updated head `5321da2`,
-  run 42062947694). It contains docs and the BUG-020 test fix; application code is still #142.
-- Production: **`sha-5ef325b`**, deployed 2026-11-05 14:55 UTC (run 42049743130), 18 migrations.
-  Read-only readiness rechecked during this session: expected version, `db` ok. No deployment
-  needed for #143; no production or shared-server changes were made.
-- Open **PR #144** (`codex/fix/141-unobstructed-editing`), addressing BUG-021: move the drawing and
-  measurement controls below the picture, inside the fullscreen player too, so no points are
-  covered. Explicit 44 px selects/buttons, reload/fullscreen regression checks and a dedicated
-  `pnpm --filter @rowlens/web e2e:editing` suite (1440×900, 1000×540, iPhone 13 WebKit).
-- Validation: format/lint/typecheck green; 451 web + 50 worker tests; 43 local E2E, 29 full edge
-  E2E and 21 focused editing E2E passed. Controls measured 44 px high, zero horizontal overflow.
-- This functional fix is for review separately from the authorized #143 merge. It has not been
-  merged or deployed. Native WebKit taps are tested; touch dragging still needs a physical iPhone
-  check (the tests drag with Playwright's mouse API). BUG-012 remains open.
-- Local stack: dev Postgres :5434 + worker, `pnpm dev` web :5174. Edge was stopped after verification
-  with `pnpm edge:down`; the dev stack remains available.
+- `main`: **`ddb90fd`**, including merged PRs [#144](https://github.com/ewoutbarendregt/rowlens/pull/144),
+  [#145](https://github.com/ewoutbarendregt/rowlens/pull/145),
+  [#146](https://github.com/ewoutbarendregt/rowlens/pull/146) and
+  [#147](https://github.com/ewoutbarendregt/rowlens/pull/147).
+- Production: **`sha-ddb90fd`**, deployed 2026-11-05 23:41 UTC (2026-11-06 00:41 CET),
+  [run 42131217348](https://github.com/ewoutbarendregt/rowlens/actions/runs/42131217348).
+  Final main CI 42128677789 and images 42128677869 passed. Readiness: expected version and DB ok;
+  five public URLs returned 200. Web/worker use the new tag; 18 migrations. The deploy recreated
+  the RowLens DB container (healthy, PostgreSQL 16.15); five shared-service container IDs and
+  start times are unchanged. The standard pre-deploy backup succeeded.
+- Merge order was #144 → #145 → #146 → #147, preserving lower branches while retargeting each next
+  PR. Squash conflicts were resolved using the repository procedure, keeping each reviewed tree;
+  fresh CI passed before every merge. Final main is byte-for-byte equal to tested source `cdd51ee`.
+- Database: 18 migrations; this release adds no migrations, dependencies or permission changes.
+- Deployment log branch: `codex/docs/147-production-deploy`; docs only, not authorized for a later
+  merge or deployment by this session's instruction. Production verification is complete.
+- Local stack: dev Postgres :5434 + worker and web :5174. Edge was stopped after E2E; keep its data.
 
-## Playback activation fix (2026-11-05, BUG-022)
+## Changes in the merged release
 
-- Ewout reports **production iPhone** taps ignored after a line/angle: 1× remains selected when
-  tapping 0.25/0.5×; pause sometimes also ignores taps. This is activation, not a confirmed wrong
-  media rate. Exact production source `5ef325b` passes 9 normal laptop/WebKit cases locally.
-- Open #145 (`codex/fix/bug-022-playback-controls`), based on open #144. Candidate fix:
-  `ui/PressButton.tsx` handles speed/play/pause on valid pointer release without requiring a
-  compatibility click; keyboard/assistive activation stays supported. Drawing drags explicitly
-  release pointer capture on up/cancel and clear abandoned drags on lost capture.
-- A WebKit test suppressing compatibility clicks reproduced the ignored-button symptom before the
-  fix; it passes afterwards. The initial 12 playback cases passed, including measured slow rates
-  and pause after drawing. The final editing/playback matrix passes 33/33 cases; other validation is in TEST.md. The underlying physical
-  Safari gesture is not fully reproduced; a physical iPhone check remains necessary.
-- #144 remains open/unmerged, all eight CI jobs passed (run 42066230506). The playback fix is
-  a separate change stacked on #144; merge #144 **without deleting its branch**, then retarget the
-  playback PR to main and wait for its CI. New merge/deploy instructions are required.
-- Validation: format/lint/typecheck/build, 451 web + 50 worker, 43 local E2E and 33 editing/playback
-  matrix cases passed. Full edge: 32 passed, then 1 upload-quota failure passed on its own after
-  restarting only the local edge web container. No product upload limit was changed.
-- No production changes. The exact-production image was used on the local edge stack only, via a
-  temporary override under `/tmp`; the normal current source was restored and the edge stack was
-  stopped after testing. The dev stack remains available on :5174.
+- #144 / BUG-021: drawing and measurement controls below the picture, also in fullscreen; explicit
+  44 px buttons/selects leave points unobstructed on iPhone and low laptop windows.
+- #145 / BUG-022: speed and play/pause activate once on valid pointer release, preserving keyboard
+  activation; drawing drags release capture on up/cancel and clear abandoned drags on lost capture.
+  This fixes a reproduced missing-click failure mode. The original physical iPhone gesture is not
+  fully reproduced: keep BUG-022 in progress until Ewout confirms 0.25×, 0.5× and pause after drawing.
+- #146 / BUG-023: Halen / Strokes has an expandable mark editor. Catch, finish and half-slide marks
+  can be deleted explicitly with inline confirmation, independently of the playback cursor.
+- #147 / BUG-024: first drawing point appears immediately; no point-progress menu between taps.
+  After all two or three points, adjustment, Save/Redo/Cancel and measurement choices remain.
 
-## Explicit stroke-mark removal (2026-11-05, BUG-023)
+## Validation and limits
 
-- Open #146 (`codex/feat/85-remove-stroke-marks`), based on open #145
-  (`codex/fix/bug-022-playback-controls`), which is based on #144.
-- In Strokes, coaches/admins expand "Edit or delete marks". Every stored catch, finish and half
-  slide has an explicit Delete action with `ConfirmInline`; deletion targets its frame, including
-  marks outside a complete stroke. Errors keep the mark; reload persistence, timeline and timing
-  recalculation are covered by NL/EN tests on both laptop sizes and iPhone WebKit.
-- Existing current-frame toggle and keyboard shortcuts remain. No new schema, dependencies or
-  permissions; the existing DELETE and tenant/role policies are reused. Full checks are in TEST.md.
-- Validation: 451 web + 50 worker; 43 local E2E, 35 full edge E2E, 9 NL/EN strokes matrix and
-  3 final confirmation-size cases passed. Controls ≥44 px, no horizontal overflow. #145 now has
-  all eight CI jobs green (run 42090085510). Edge stopped after testing; dev remains on :5174.
-- No merge or deployment was requested for these changes. Merge order when authorized: #144,
-  then #145, then this stroke-removal change. Keep each lower branch until the next PR is retargeted
-  to main, wait for CI, then continue. The physical iPhone playback report still needs confirmation.
+- Format/lint/typecheck/build, 451 web tests and worker checks / 50 tests passed. Latest combined
+  source: 43 local E2E passed (47 edge-only skipped), 35 full edge passed (10 skipped).
+- Focused checks passed on 1440×900, 1000×540 and iPhone 13 WebKit: editing/playback 33; stroke-mark
+  deletion NL/EN 9 plus 3 final target-size checks; drawing/angle point placement 15. Details and
+  earlier transient quota/setup failures are in TEST.md and the PR descriptions.
+- WebKit uses native touch taps; Playwright's mouse API supplies dragging. Physical iPhone finger
+  dragging and the originally reported playback sequence remain unverified.
+- CI infrastructure BUG-025: Ubuntu package downloads intermittently stall before browser tests.
+  Affected jobs were retried on fresh runners, preserving successful checks. No tests or CI gates
+  were weakened. The release workflow's known permission failure is unrelated and harmless.
 
-## Direct point placement (2026-11-05, BUG-024)
+## Earlier production features retained
 
-- Current checkout: `codex/fix/141-direct-drawing-points`, based on #146.
-- Drawing/measurement controls appear only after all two/three points are placed. Before that,
-  the first point/ring is visible immediately and no progress menu is shown; rower/joint choices
-  and Save/Redo/Cancel remain available after completion, including fullscreen.
-- Removed unused NL/EN point-counter copy. Geometry, touch filtering, dragging and saving are
-  unchanged. Existing drawing and angle E2E now check the point visibility and absence of menus
-  between taps. Validation: 451 web + 50 worker, 43 local E2E, 35 full edge and all 15 drawing/angle
-  cases on both laptop sizes and iPhone WebKit passed. The low-laptop test now samples the stage
-  position after the completed controls appear. No merge or deployment was requested.
-- The edge stack was stopped after validation; dev stays available on :5174.
-- Open stack: #144 → #145 → #146 → this point-placement change. Preserve each lower branch while
-  retargeting the next PR to main and waiting for CI. Production remains unchanged.
+- Saved drawings, angle measurements and coach/automatic boat lines can be selected and moved by
+  dragging their point rings. Drawings show on their own frame; measurement rower/joint chosen in
+  the picture (#142, ADR-0017 addendum).
+- Angles per rower/phase and crew differences (ADR-0017); worker boat-waterline tracking with
+  OpenCV, no external model; a coach correction wins on its frame and restarts tracking (ADR-0018).
+- Stroke timings, previous/next stroke moment, zoom, account names/default boat, session renaming
+  and videos first on the session page.
 
-## What production contains (recent)
+## Open and next work
 
-- Drawings, angle measurements and the boat line can be moved after saving: a tap selects one (rings
-  on its points), a ring drags a point (half speed with a finger), letting go saves it; a
-  measurement's rower and joint are chosen in the picture; drawings show on their own frame (#141,
-  ADR-0017 addendum).
-- Angles per rower and phase (knee, hip, elbow, upper body against the boat line; crew difference) —
-  ADR-0017; drawing made for fingers.
-- The boat line found in every frame by the worker (waterline, OpenCV, no model); a coach's line wins
-  on its frame and restarts the search; bow side once per video — ADR-0018.
-- Stroke marks (catch, half slide, finish; rate, drive, recovery, ratio; arrows under the video),
-  ⏪ / ⏩ jump to the previous / next stroke moment, zoom into part of the picture, names and default
-  boat in the account menu, renaming sessions, videos first on the session page.
+1. Deployment and verification are complete; only the separate documentation PR remains for review.
+2. Confirm on a physical production iPhone: create/edit a line and angle, tap 0.25× / 0.5× and pause;
+   verify selected speed and actual playback. Confirm moving points with a finger, deletion of
+   catch/finish marks and direct drawing without the progress menu. Basics remain the priority.
+3. Other open bugs: BUG-012 and BUG-017 (WebKit E2E flakes), BUG-014 (merging roster entries across
+   sessions the merger cannot see), BUG-015 (tools wrap at 1000 px with classic scrollbars), BUG-016
+   (picked rower sometimes missing after lineup save) and BUG-025 (CI package downloads).
+4. "My notes" across sessions (#109) and notifications remain later work.
+- **Deferred by Ewout**: oar arc and stern-camera perspective (#127, 2026-11-04 comment). No go-ahead.
+  First needs a stern-camera sample on the local stack; the proposed `oar` enum migration needs
+  architectural approval. No work on this in the merged release.
+- Boat speed/acceleration needs the club's sensor-device decision; ghost riders after a pose spike.
+- Leave unrelated old docs PRs #83/#89/#117 and Dependabot #74–#79 alone; #72/#73 (Node 26/Python
+  3.15 images) should not be merged as part of this work.
 
-## Open
+## Working agreements
 
-- **Editing review**: the pending BUG-021 fix moves the measurement bar below the picture and keeps
-  it available in fullscreen. Verify on the local stack before merging this functional change.
-- **Deferred by Ewout (2026-11-05)**: first make editing and moving lines and angles reliable on
-  laptop and iPhone. The oar arc and stern-camera perspective (plan in the
-  2026-11-04 comment on #127): an "Oar" measurement per rower against the boat line at catch and
-  finish, arc = sum; joint angles refused for the in-boat perspective; the worker skips the
-  waterline search there; "time under water" in the Strokes tab. Needs a stern-camera sample video
-  on the local stack. Migration: add `oar` to `angle_joint`.
-- **Decision needed**: boat speed and acceleration from sensor data (which device the club uses);
-  ghost riders later, after a pose spike (#127).
-- Open bugs: BUG-012 and BUG-017 (WebKit-only E2E flakes), BUG-014 (merging roster entries across
-  sessions the merger can't see), BUG-015 (tools row wraps at 1000 px with classic scrollbars),
-  BUG-016 (a picked rower sometimes missing after saving a lineup; one test cause fixed).
-- Old PRs to leave alone or close: docs #83, #89, #117 (conflicting, not in the product stack);
-  Dependabot #74–#79; #72/#73 (Node 26, Python 3.15 images) should be closed rather than merged.
-
-## Suggested next work
-
-1. Review the BUG-021 editing fix on the local stack; #143 is already merged, without a deploy.
-2. Verify and harden creating, selecting, editing and moving lines, angles and boat lines on
-   laptop and iPhone WebKit, including zoom/fullscreen and ~1000×540. This is the product priority.
-3. "My notes" for rowers across sessions (#109), notifications; investigate BUG-016 and BUG-014.
-4. Oar arc and stern-camera work only after the basics are reliable and Ewout gives a new go-ahead.
-
-## Working agreements worth repeating
-
-- Ewout tries changes on the local stack and answers in Dutch or English; report short and concrete
-  (what changed, what was checked with numbers, what is not done, PR links). UI is checked on an
-  iPhone in WebKit and at ~1000×540.
-- Merge only when he says merge; deploy only when he says deploy, each time. One PR per issue.
-- WebKit sends a click to whatever is under the finger at release, and `vector-effect:
-  non-scaling-stroke` breaks SVG hit areas of small shapes in Chromium: test drawing interactions in
-  both engines (BUGS.md BUG-018/019).
+- Dutch or English matching Ewout; short reports with numbers, limits and PR links. Verify iPhone
+  WebKit and ~1000×540. Local review by default; merge/deploy only when explicitly requested each time.
+- One PR per change; no direct commits/pushes to main. No shared-server or configuration changes.
+- WebKit compatibility clicks can target a newly mounted element; SVG non-scaling strokes can break
+  small hit areas in Chromium. Keep both browser engines covered (BUG-018/019).

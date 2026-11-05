@@ -2,30 +2,37 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-025] Ubuntu package downloads stall CI browser preparation — low
+**Location**: .github/workflows/ci.yml (web fixture and edge browser installation)
+**Status**: open (intermittent CI infrastructure; fresh-runner retries passed)
+**Found**: 2026-11-05, CI runs 42094499020, 42093974799, 42126528172 and main CI 42128677789
+**Description**: Ubuntu package downloads can stall before browser tests. The first two runs reached their job time limits; #147 and main had stalled jobs cancelled and retried. The #147 edge job spent minutes downloading a 5.6 MB font package from azure.archive.ubuntu.com before retrying it. No application assertion failed in these attempts.
+**Fix**: Workaround: retry the affected job on a fresh runner. The #145, #147 and final main runs passed after retry; no tests were skipped or workflow limits weakened. Track download timeouts/mirror reliability separately if this recurs.
+
 ### [BUG-024] Point placement showed an unwanted progress menu — low
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx (`.drawing-confirm`)
-**Status**: fixed locally (codex/fix/141-direct-drawing-points; pending review)
+**Status**: fixed (#147; deployed `sha-ddb90fd`)
 **Found**: 2026-11-05, Ewout: wants the first dot directly, then the second, without a "Point 1 of 2" menu
 **Description**: After the first point, the drawing controls appeared with a point counter; measurement attributes could show the strip before any point. This interrupted the requested direct point-placement flow.
 **Fix**: Render drawing/measurement controls only after all two or three points are placed. The first tap still shows its visible point/ring immediately; partial angles keep their points without a menu. Adjustment, Save/Redo/Cancel and rower/joint choices remain available after completion, including fullscreen. Removed the unused NL/EN point-counter copy; no geometry or save changes.
 
 ### [BUG-023] Catch and finish removal was hidden behind toggling the exact frame — medium
 **Location**: apps/web/src/client/strokes/StrokesPanel.tsx, apps/web/src/client/sessions/VideoPage.tsx
-**Status**: fixed locally (codex/feat/85-remove-stroke-marks; pending review)
+**Status**: fixed (#146; deployed `sha-ddb90fd`)
 **Found**: 2026-11-05, Ewout: catch and finish marks could not be removed through an obvious action
 **Description**: The API already deletes stroke marks, but the UI only exposed deletion by pressing the same kind again on its exact frame. There was no explicit removal action for a listed catch, finish or half-slide mark.
 **Fix**: A coach/admin can expand "Edit or delete marks" in Strokes and delete any stored mark with an inline confirmation. The request targets the chosen mark's frame independently of the current playback frame; errors retain the mark, and reloaded data updates timeline/timings. Keyboard/current-frame toggling remains supported. No database or permission changes.
 
 ### [BUG-022] Slow playback and pause fail intermittently on a physical iPhone after drawing — high
 **Location**: apps/web/src/client/player/Player.tsx, apps/web/src/client/ui/PressButton.tsx, apps/web/src/client/drawing/DrawingLayer.tsx
-**Status**: in-progress (candidate fix on codex/fix/bug-022-playback-controls; physical iPhone confirmation pending)
+**Status**: in-progress (candidate fix #145 deployed `sha-ddb90fd`; physical iPhone confirmation pending)
 **Found**: 2026-11-05, Ewout on production `sha-5ef325b`, usually after a line or angle
 **Description**: On the physical iPhone, tapping 0.25×/0.5× leaves 1× selected and playback at normal speed; pause sometimes also ignores the tap. Exact production source built locally passes normal pointer/click tests (9/9), so the original physical gesture is not fully reproduced. Suppressing the compatibility mouse click in a focused WebKit test reproduces the ignored speed button (expected selected=true, got false), which identifies a matching activation failure mode rather than a media-rate calculation error.
 **Fix**: Speed and play/pause buttons now activate once on a valid primary-pointer release inside the button; they keep keyboard/assistive click activation, cancel on pointer cancellation/leave, and ignore the later compatibility click to avoid toggling twice. Drawing drags explicitly release pointer capture on up/cancel and clear abandoned drags on lost capture. The missing-click regression goes from failing to passing, with actual media-clock progression and pause checks. The original physical iPhone sequence still needs confirmation; do not treat this as proof of the underlying Safari cause.
 
 ### [BUG-021] The measurement bar covered drawing points on small pictures — medium
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/styles.css (`.drawing-confirm`)
-**Status**: fixed locally (codex/fix/141-unobstructed-editing; pending review)
+**Status**: fixed (#144; deployed `sha-ddb90fd`)
 **Found**: 2026-11-05, editing review at 1000×540; the bar also occupies a large part of an iPhone picture
 **Description**: The rower/joint/save overlay intercepts clicks in the lower part of the video. The angle E2E passed on a large desktop but could not place a knee and ankle at y=0.7 on a low laptop window. Native WebKit selects also measured only 20 px tall despite `min-height`, making the choices hard to tap.
 **Fix**: Put drawing and measurement controls directly below the picture inside the fullscreen player; keep the full picture available and explicitly size selects/buttons to 44 px. Regression checks cover overlap, touch-target height, persistence after reload and fullscreen on laptop, low laptop and iPhone WebKit. Test setup now scrolls the picture into view before coordinate input; rapid-seek coverage remains in the player suite (BUG-012 is still open).

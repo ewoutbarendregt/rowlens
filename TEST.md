@@ -63,6 +63,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 
 | Date | Branch | Command | Result |
 |---|---|---|---|
+| 2026-11-06 | codex/docs/147-production-deploy | Merge #144–#147 with fresh CI per retargeted head; final main CI 42128677789 + images 42128677869; deploy 42131217348; read-only production checks | All four PRs merged after green CI; final main tree equals tested `cdd51ee` (451 web / 50 worker / 43 local E2E / 35 edge E2E from the combined-source validation). CI retries for Ubuntu downloads passed (BUG-025), with no skipped gates. Deployed `sha-ddb90fd` at 2026-11-05 23:41 UTC: 5 URLs HTTP 200; readiness version + DB ok; matching web/worker tag; 18 migrations; standard backup + RowLens DB recreation verified; 5 shared-service container IDs/start times unchanged. Local :5174 HTTP 200, edge stopped; documentation format/diff checks passed. Physical iPhone playback/finger dragging pending. |
 | 2026-11-01 | claude/chore/17-phase-0-foundation | `pnpm test`, `uv run pytest` | 19 + 8 passed |
 | 2026-11-01 | claude/feat/19-web-app-skeleton | `pnpm test`, `pnpm --filter @rowlens/web e2e` | 38 passed; 6 passed |
 | 2026-11-01 | claude/test/22-local-edge-stack | `pnpm edge:up && pnpm e2e:edge` | 8 passed, 1 skipped |
