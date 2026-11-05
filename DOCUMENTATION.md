@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-05 — Place drawing points directly without a progress menu (#141, BUG-024)
+
+**Session**: codex/fix/141-direct-drawing-points (stacked on #146)
+**Changed**: apps/web/src/client/{drawing/DrawingLayer.tsx,notes/strings.ts}, apps/web/e2e/{drawing.spec.ts,angles.spec.ts}, BUGS.md, BUILD.md, FEATURES.md, TEST.md, docs/HANDOFF.md, docs/adr/0017-angles-per-phase.md, DOCUMENTATION.md
+**Summary**: The first tap shows its dot/ring immediately, with no point-progress menu while placing a line, arrow, boat line or angle; the control strip appears only after all required points, retaining adjustment, save and measurement choices. Removed the unused counter copy in both languages and added intermediate-point checks to the existing laptop/WebKit E2E tests; no geometry, API, merge or deployment changes.
+**Prompts used**: "Als ik iets wil tekenen, bijvoorbeeld een lijn, dan krijg ik nu een menuutje met ‘punt 1 van 2’. Ik wil dat menuutje niet zien, maar gewoon gelijk een eerste stip zien en daarna de tweede stip kunnen zetten"
+
 ## 2026-11-05 — Explicitly remove catch and finish marks (#85, BUG-023)
 
 **Session**: codex/feat/85-remove-stroke-marks (stacked on #145)

@@ -489,8 +489,7 @@ export function DrawingLayer({
           </g>
         )}
       </svg>
-      {tool !== null &&
-        (pending.length > 0 || (attributes !== undefined && attributes !== null)) &&
+      {complete &&
         controlsTarget !== null &&
         createPortal(
           <div
@@ -502,13 +501,7 @@ export function DrawingLayer({
             }}
           >
             {attributes}
-            <span className="drawing-confirm__hint">
-              {complete
-                ? t.drawAdjust
-                : pending.length > 0
-                  ? t.drawPoints(pending.length, needed)
-                  : t.hints[tool]}
-            </span>
+            <span className="drawing-confirm__hint">{t.drawAdjust}</span>
             <button
               type="button"
               className="drawing-confirm__save"

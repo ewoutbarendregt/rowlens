@@ -6,7 +6,6 @@ const en = {
   drawSave: 'Save',
   drawRedo: 'Start over',
   drawAdjust: 'Drag a point to adjust it, then save.',
-  drawPoints: (placed: number, needed: number) => `Point ${String(placed)} of ${String(needed)}`,
   tools: { line: 'Line', arrow: 'Arrow', angle: 'Angle' },
   hints: {
     line: 'Tap the start and the end on the picture.',
@@ -72,7 +71,6 @@ const nl: typeof en = {
   drawSave: 'Opslaan',
   drawRedo: 'Opnieuw',
   drawAdjust: 'Sleep een punt om het bij te stellen, en sla dan op.',
-  drawPoints: (placed: number, needed: number) => `Punt ${String(placed)} van ${String(needed)}`,
   tools: { line: 'Lijn', arrow: 'Pijl', angle: 'Hoek' },
   hints: {
     line: 'Tik op het begin en het eind op het beeld.',
