@@ -32,7 +32,7 @@ growth features. Suggested order:
 | Move a saved drawing, measurement or boat line on the picture by dragging its points; choose a measurement's rower and joint in the picture; drawings only on their own frame | coach | must | deployed (#142, ADR-0017 addendum); control placement fix pending review | #141 |
 | Editing controls below the picture: unobstructed lines/angles/boat lines, 44 px controls, fullscreen; focused laptop + iPhone WebKit regression suite | coach | must | fixed locally, pending review (BUG-021) | #141 |
 | Playback after touch drawing: speed and pause activate on pointer release, with keyboard support and explicit release of drawing captures | coach, rower | must | candidate fix locally; physical iPhone confirmation pending (BUG-022) | — |
-| Explicitly delete catches, finishes and half slides from the Strokes panel, with inline confirmation | coach | must | done locally, pending review (BUG-023) | #85 |
+| Choose a moment to delete via a trash icon on each stroke row, with inline confirmation; retain loose-mark removal | coach | must | updated locally, pending review; replaces the separate mark editor | #85 |
 | Direct drawing points: visible first dot, no progress menu between taps; adjust/save controls after completion | coach, rower | must | done locally, pending review (BUG-024) | #141 |
 
 Needed alongside, because rowers must be able to log in and be told about feedback: e-mail login
@@ -77,3 +77,8 @@ reference model comparison · rower-facing explanations + drills · eval suite i
 ## M3 Growth (outline)
 
 Club self-onboarding · side-by-side comparison · trends · goals · more languages · PWA push — `could`.
+
+## Stroke controls update (2026-11-06)
+
+- Inline per-row moment selection replaces the separate removal section; no whole-stroke deletion.
+- ↓ Catch / ↑ Finish frame tools above the video, including phone/fullscreen, are implemented locally for review.

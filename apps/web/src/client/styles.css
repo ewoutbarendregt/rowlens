@@ -1842,12 +1842,19 @@ a.list__item {
 }
 
 /* Page buttons in the player's toolbar (draw tools, quality) stay readable on black. */
-.page .player--fullscreen .player__toolbar button.button--quiet {
+.page .player--fullscreen .player__toolbar button.button--quiet,
+.page .player--fullscreen .stroke-frame-tools button.button--quiet {
   border-color: #93a4ae;
   color: #e6eef2;
 }
 
 .page .player--fullscreen .player__toolbar button[aria-pressed='true'] {
+  color: var(--rl-on-draw);
+}
+
+.page .player--fullscreen .stroke-frame-tools button[aria-pressed='true'] {
+  background: var(--rl-draw);
+  border-color: var(--rl-draw);
   color: var(--rl-on-draw);
 }
 
@@ -2863,30 +2870,18 @@ a.list__item {
   font-size: var(--text-small);
 }
 
-.strokes__marks {
-  margin-block: var(--space-3);
-}
-
-.strokes__marks summary {
-  min-height: 44px;
-  padding-block: var(--space-2);
-  cursor: pointer;
-  overflow-wrap: anywhere;
-}
-
-.strokes__marks ul {
+.strokes__moments {
   list-style: none;
-  margin: var(--space-2) 0 0;
+  margin: 0;
   padding: 0;
 }
 
-.strokes__marks li {
+.strokes__moments li {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   padding-block: var(--space-2);
-  border-top: 1px solid var(--color-divider);
 }
 
 .strokes__mark-jump {
@@ -2896,12 +2891,53 @@ a.list__item {
   overflow-wrap: anywhere;
 }
 
-.strokes__marks .confirm {
+.strokes__moments .confirm {
   flex-basis: 100%;
 }
 
-.page .strokes__marks .confirm button {
+.page .strokes__moments button,
+.page .strokes__table button.strokes__delete,
+.page .strokes__table button.strokes__loop {
+  min-width: 44px;
   min-height: 44px;
+}
+
+.strokes__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.page .strokes__delete,
+.page .strokes__table button.strokes__loop {
+  padding: 0;
+}
+
+.strokes__editor p {
+  margin: var(--space-2) 0;
+}
+
+.stroke-frame-tools {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page .stroke-frame-tools button {
+  transition: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.page .stroke-frame-tools button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-text-brand);
 }
 
 .strokes__averages {
@@ -2925,7 +2961,17 @@ a.list__item {
 }
 
 .strokes__table {
+  width: 100%;
+  table-layout: fixed;
   font-size: 0.8125rem;
+}
+
+.strokes__table th:first-child {
+  width: 44px;
+}
+
+.strokes__table th:last-child {
+  width: 94px;
 }
 
 .strokes__table th,
@@ -2955,19 +3001,15 @@ a.list__item {
   text-underline-offset: 3px;
 }
 
-.page .strokes__table button.strokes__loop {
-  min-width: 36px;
-  min-height: 32px;
-  padding: 0 0.375rem;
-}
-
 /* Reasons ("finish missing") wrap; the figures don't. */
 .strokes__table .muted {
   white-space: normal;
 }
 
 /* Headers may wrap and track less, so all columns fit a phone and the 320 px side column. */
-.strokes__table th {
+.strokes__table th,
+.strokes__table th.num {
+  overflow-wrap: anywhere;
   font-size: 0.625rem;
   letter-spacing: 0.04em;
   white-space: normal;

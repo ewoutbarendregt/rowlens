@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-027] Expanded inline stroke editor could widen the phone table — low
+**Location**: apps/web/src/client/styles.css (`.strokes__table`)
+**Status**: fixed locally (codex/feat/85-inline-stroke-tools)
+**Found**: 2026-11-06, screenshot review during the inline moment controls change
+**Description**: The first implementation let expanded confirmation content size the table, producing internal horizontal scrolling and clipped text even though the page itself did not overflow.
+**Fix**: Constrain table layout and action-column widths; override numeric header nowrap so headings cannot overlap. E2E checks both table scroll width/offset and document overflow, including expanded confirmation on laptop, 1000×540 and iPhone WebKit.
+
 ### [BUG-024] Point placement showed an unwanted progress menu — low
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx (`.drawing-confirm`)
 **Status**: fixed locally (codex/fix/141-direct-drawing-points; pending review)

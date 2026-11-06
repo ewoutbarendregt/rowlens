@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Inline per-moment deletion and quick catch/finish tools
+
+**Session**: codex/feat/85-inline-stroke-tools
+**Changed**: apps/web/src/client/{strokes/StrokesPanel.tsx,strokes/StrokeFrameTools.tsx,strokes/strings.ts,sessions/VideoPage.tsx,player/Player.tsx,ui/icons.tsx,styles.css}, apps/web/e2e/strokes.spec.ts, BUILD.md, FEATURES.md, BUGS.md, TEST.md, docs/adr/0016-stroke-marks.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Replaced the separate expandable deletion section with a trash action on each stroke row, where the coach chooses and confirms one moment; next-stroke catches and loose-mark deletion remain safe. Added pointer/keyboard catch and finish buttons immediately above the video, including phone/fullscreen, using existing APIs and permissions; constrained the table after screenshot review found internal scrolling (BUG-027).
+**Prompts used**: "Kun je simpelweg een delete icon toevoegen op elke regel in plaats van een aparte sectie voor het verwijderen van haalmomenten. Verder wil ik voor het aangeven van een inpikmoment een tooltje (pijltje omlaag icon) kunnen kiezen op of vlak naast de video. Hetzelfde voor het uitpikmoment."; "Per moment kiezen wat weg moet"; "Ga verder".
+
 ## 2026-11-05 — Place drawing points directly without a progress menu (#141, BUG-024)
 
 **Session**: codex/fix/141-direct-drawing-points (stacked on #146)

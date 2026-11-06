@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { Fragment, useId, useState } from 'react';
 import { locale } from '../i18n/language.ts';
 import { formatFrameTime } from '../player/frames.ts';
 import { Icon } from '../ui/icons.tsx';
@@ -38,7 +38,7 @@ interface StrokesPanelProps {
 export function StrokesPanel(props: StrokesPanelProps) {
   const t = strokeStrings();
   const id = useId();
-  const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);
   const [removing, setRemoving] = useState<number | null>(null);
   const { summary } = props;
   const here = props.marks.find((m) => m.frame === props.frame)?.kind ?? null;
@@ -52,6 +52,48 @@ export function StrokesPanel(props: StrokesPanelProps) {
   // Drive : recovery as rowers say it, "1 : 2.1".
   const ratio = (m: Measured) => (m.ok ? `1 : ${number(1).format(1 / m.value)}` : null);
   const complete = summary.strokes.filter((s) => s.rate.ok && s.ratio.ok).length;
+
+  const markList = (marks: readonly StrokeMark[]) => (
+    <ul className="strokes__moments">
+      {marks.map((mark) => (
+        <li key={mark.frame} data-testid="stroke-mark" data-frame={mark.frame}>
+          <button
+            type="button"
+            className="button--quiet strokes__mark-jump"
+            onClick={() => {
+              props.onJump(mark.frame);
+            }}
+          >
+            {t.markAt(t.kinds[mark.kind], formatFrameTime(mark.frame, props.fps), mark.frame)}
+          </button>
+          {removing === mark.frame ? (
+            <ConfirmInline
+              question={t.confirmRemove(t.kinds[mark.kind], mark.frame)}
+              onConfirm={() => {
+                setRemoving(null);
+                props.onRemove(mark.frame);
+              }}
+              onCancel={() => {
+                setRemoving(null);
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              className="button--quiet strokes__delete"
+              aria-label={t.removeMark(t.kinds[mark.kind], mark.frame)}
+              disabled={props.busy}
+              onClick={() => {
+                setRemoving(mark.frame);
+              }}
+            >
+              <Icon name="trash" />
+            </button>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
 
   return (
     <section className="card strokes" aria-labelledby={`${id}-h`} data-testid="strokes">
@@ -87,62 +129,11 @@ export function StrokesPanel(props: StrokesPanelProps) {
         </p>
       )}
 
-      {props.canMark && props.marks.length > 0 && (
-        <details
-          className="strokes__marks"
-          data-testid="stroke-mark-editor"
-          open={expanded}
-          onToggle={(event) => {
-            setExpanded(event.currentTarget.open);
-          }}
-        >
-          <summary>{t.editMarks(props.marks.length)}</summary>
-          {expanded && (
-            <ul>
-              {props.marks.map((mark) => (
-                <li key={mark.frame} data-testid="stroke-mark" data-frame={mark.frame}>
-                  <button
-                    type="button"
-                    className="button--quiet strokes__mark-jump"
-                    onClick={() => {
-                      props.onJump(mark.frame);
-                    }}
-                  >
-                    {t.markAt(
-                      t.kinds[mark.kind],
-                      formatFrameTime(mark.frame, props.fps),
-                      mark.frame,
-                    )}
-                  </button>
-                  {removing === mark.frame ? (
-                    <ConfirmInline
-                      question={t.confirmRemove(t.kinds[mark.kind], mark.frame)}
-                      onConfirm={() => {
-                        setRemoving(null);
-                        props.onRemove(mark.frame);
-                      }}
-                      onCancel={() => {
-                        setRemoving(null);
-                      }}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      className="button--quiet"
-                      aria-label={t.removeMark(t.kinds[mark.kind], mark.frame)}
-                      disabled={props.busy}
-                      onClick={() => {
-                        setRemoving(mark.frame);
-                      }}
-                    >
-                      {t.remove}
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </details>
+      {props.canMark && summary.loose.length > 0 && (
+        <div data-testid="stroke-loose-marks">
+          <p className="muted">{t.loose(summary.loose.length)}</p>
+          {markList(props.marks.filter((mark) => summary.loose.includes(mark.frame)))}
+        </div>
       )}
 
       <label className="strokes__option">
@@ -190,7 +181,9 @@ export function StrokesPanel(props: StrokesPanelProps) {
               </dd>
             </dl>
           )}
-          {summary.loose.length > 0 && <p className="muted">{t.loose(summary.loose.length)}</p>}
+          {!props.canMark && summary.loose.length > 0 && (
+            <p className="muted">{t.loose(summary.loose.length)}</p>
+          )}
 
           <div className="table-wrap">
             <table className="table strokes__table" data-testid="stroke-table">
@@ -210,7 +203,7 @@ export function StrokesPanel(props: StrokesPanelProps) {
                     {t.rate}
                   </th>
                   <th scope="col">
-                    <span className="visually-hidden">{t.loop}</span>
+                    <span className="visually-hidden">{t.actions}</span>
                   </th>
                 </tr>
               </thead>
@@ -220,65 +213,103 @@ export function StrokesPanel(props: StrokesPanelProps) {
                     props.frame >= s.catch && (s.nextCatch === null || props.frame < s.nextCatch);
                   const at = formatFrameTime(s.catch, props.fps);
                   return (
-                    <tr
-                      key={s.catch}
-                      aria-current={current ? 'true' : undefined}
-                      data-testid="stroke-row"
-                    >
-                      <td>
-                        <button
-                          type="button"
-                          className="strokes__jump"
-                          aria-label={t.jump(s.number, at)}
-                          title={at}
-                          onClick={() => {
-                            props.onJump(s.catch);
-                          }}
-                        >
-                          {s.number}
-                        </button>
-                      </td>
-                      {/* Without a single finish there is no drive, recovery or ratio: say why once. */}
-                      {!s.drive.ok ? (
-                        <td colSpan={3} className="num muted">
-                          {t.refusal[s.drive.reason]}
-                        </td>
-                      ) : (
-                        <>
-                          <td className="num">{show(s.drive, 2)}</td>
-                          <td className="num">
-                            {show(s.recovery, 2) ?? (
-                              <span className="muted">
-                                {!s.recovery.ok && t.refusal[s.recovery.reason]}
-                              </span>
-                            )}
-                          </td>
-                          <td className="num">
-                            {ratio(s.ratio) ?? <span className="muted">–</span>}
-                          </td>
-                        </>
-                      )}
-                      <td className="num">
-                        {show(s.rate, 1) ?? (
-                          <span className="muted">{!s.rate.ok && t.refusal[s.rate.reason]}</span>
-                        )}
-                      </td>
-                      <td>
-                        {s.nextCatch !== null && (
+                    <Fragment key={s.catch}>
+                      <tr
+                        data-frame={s.catch}
+                        aria-current={current ? 'true' : undefined}
+                        data-testid="stroke-row"
+                      >
+                        <td>
                           <button
                             type="button"
-                            className="button--quiet strokes__loop"
-                            aria-label={t.loopStroke(s.number)}
-                            title={t.loopStroke(s.number)}
+                            className="strokes__jump"
+                            aria-label={t.jump(s.number, at)}
+                            title={at}
                             onClick={() => {
-                              if (s.nextCatch !== null) props.onLoop(s.catch, s.nextCatch - 1);
+                              props.onJump(s.catch);
                             }}
                           >
-                            <Icon name="repeat" />
+                            {s.number}
                           </button>
+                        </td>
+                        {/* Without a single finish there is no drive, recovery or ratio: say why once. */}
+                        {!s.drive.ok ? (
+                          <td colSpan={3} className="num muted">
+                            {t.refusal[s.drive.reason]}
+                          </td>
+                        ) : (
+                          <>
+                            <td className="num">{show(s.drive, 2)}</td>
+                            <td className="num">
+                              {show(s.recovery, 2) ?? (
+                                <span className="muted">
+                                  {!s.recovery.ok && t.refusal[s.recovery.reason]}
+                                </span>
+                              )}
+                            </td>
+                            <td className="num">
+                              {ratio(s.ratio) ?? <span className="muted">–</span>}
+                            </td>
+                          </>
                         )}
-                      </td>
-                    </tr>
+                        <td className="num">
+                          {show(s.rate, 1) ?? (
+                            <span className="muted">{!s.rate.ok && t.refusal[s.rate.reason]}</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="strokes__actions">
+                            {s.nextCatch !== null && (
+                              <button
+                                type="button"
+                                className="button--quiet strokes__loop"
+                                aria-label={t.loopStroke(s.number)}
+                                title={t.loopStroke(s.number)}
+                                onClick={() => {
+                                  if (s.nextCatch !== null) props.onLoop(s.catch, s.nextCatch - 1);
+                                }}
+                              >
+                                <Icon name="repeat" />
+                              </button>
+                            )}
+                            {props.canMark && (
+                              <button
+                                type="button"
+                                className="button--quiet strokes__delete"
+                                aria-label={t.editStroke(s.number)}
+                                aria-expanded={editing === s.catch}
+                                aria-controls={`${id}-moments-${String(s.catch)}`}
+                                disabled={props.busy}
+                                onClick={() => {
+                                  setEditing(editing === s.catch ? null : s.catch);
+                                  setRemoving(null);
+                                }}
+                              >
+                                <Icon name="trash" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {props.canMark && editing === s.catch && (
+                        <tr
+                          className="strokes__editor"
+                          id={`${id}-moments-${String(s.catch)}`}
+                          data-testid="stroke-row-editor"
+                        >
+                          <td colSpan={6}>
+                            <p className="muted">{t.chooseMoment}</p>
+                            {markList(
+                              props.marks.filter(
+                                (mark) =>
+                                  mark.frame >= s.catch &&
+                                  (s.nextCatch === null || mark.frame < s.nextCatch),
+                              ),
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
               </tbody>

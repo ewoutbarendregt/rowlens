@@ -31,6 +31,7 @@ import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
 import { Player, type PlayerHandle } from '../player/Player.tsx';
 import { Icon } from '../ui/icons.tsx';
 import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
+import { StrokeFrameTools } from '../strokes/StrokeFrameTools.tsx';
 import { AnglesPanel, type AutoBoatLineState, type Measuring } from '../angles/AnglesPanel.tsx';
 import { AUTO_BOAT_LINE } from '../features.ts';
 import { angleStrings, leanText } from '../angles/strings.ts';
@@ -730,6 +731,20 @@ export function VideoPage() {
                 strokeStrings().keyHintJump,
               ]}
               strokeMarks={strokeMarks}
+              frameTools={
+                canMark && (
+                  <StrokeFrameTools
+                    frame={current}
+                    marks={marks}
+                    busy={marking}
+                    onMark={(kind) => {
+                      player.current?.pause();
+                      cancelTool();
+                      markAt(kind);
+                    }}
+                  />
+                )
+              }
               overlay={
                 <>
                   <DrawingLayer
