@@ -21,7 +21,7 @@ newest-first detailed log. Update this file at the end of a session.
   Docker rehearsal pass. Full local E2E: 47 passed/49 skipped; full edge: 38 passed/10 skipped.
   Local low-laptop/iPhone settings matrix: 6/6; edge regression matrix: 24/24 (settings, playback,
   angles/drawing, stroke controls). Screenshots inspected; 44 px controls and no document overflow.
-  Separate output paths avoid Playwright trace collisions. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open against main; CI is being checked on its final head.
+  Separate output paths avoid Playwright trace collisions. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open against main; The PR carries the current CI status; no merge/deploy is authorized.
 - Production stays `sha-e5960c7` (deploy 42195631449). Separate log PRs #148/#150 and the local
   OWASP review branch remain separate. Local dev :5174 is migrated and running (19 migrations); edge is stopped after tests. Oar arc/stern camera remain deferred.
 
