@@ -47,6 +47,15 @@ analysis of rowing technique.
 4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
    the data model remains tenant-safe, but growth features do not drive the current UI.
 
+## Club-wide read-only training access for rowers (#154)
+
+Ewout wants rowers to see other rowers' trainings without editing them. Proposed: all trainings in
+one club readable; foreign trainings read-only, own means created by the user; existing additional
+coach/admin permissions preserved. Keep private feedback private. Separate read/write RLS and
+resource API checks before media effects; no new tables/dependencies, one policy migration.
+See docs/plans/154-club-training-readonly.md. Await architectural approval and the clarification
+about allowing a rower's own feedback in someone else's training. No implementation yet.
+
 ## Admin user settings (#151, approved 2026-11-06)
 
 Ewout requests inspection/editing of all existing user settings. The inventory includes profile,

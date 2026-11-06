@@ -3,6 +3,25 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Current task — #154, rowers browse others' trainings read-only
+
+- Branch `codex/feat/154-club-training-readonly`, based on main `b000ca4`; proposal/logs only.
+- Ewout: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze
+  niet aanpassen". Proposed plan: `docs/plans/154-club-training-readonly.md`; issue #154.
+- Existing FOR ALL session/video/lineup policies reuse reading for writes. Broadening visibility
+  alone is unsafe: separate read/write RLS, resource-aware API guards before media operations,
+  and server-derived UI capabilities are needed. One migration, no new table/dependency.
+- Await architectural approval under AGENTS.md and clarification about fully read-only foreign
+  trainings versus allowing own feedback. Proposed own training = created by that user. Preserve
+  private-note rules, tenant boundaries and existing additional coach/admin capabilities.
+- Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
+  19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
+  older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization
+  carries over to #154. Local dev :5174 available; edge off. No application work has started.
+- The sections below are earlier implementation snapshots from main; the production/deployment
+  values in this current section supersede their older status. Current deployment evidence is in
+  PR #153 / branch codex/docs/152-deploy. Do not repeat that deployment.
+
 ## Admin user settings implementation — #151
 
 - Approved by Ewout: "Ok voer maar uit". Branch `codex/feat/151-admin-user-settings`, based on

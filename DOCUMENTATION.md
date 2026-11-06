@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Plan club-wide read-only training access for rowers (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: docs/plans/154-club-training-readonly.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected session visibility, mutation handlers and restrictive RLS: current FOR ALL policies reuse read access for writes, so broader visibility must ship with separate resource write rules and pre-filesystem API authorization. Recorded a concrete one-migration/no-new-table proposal and the pending feedback/architectural decisions; no application or database changes. Production is sha-b000ca4, verified after #152; its deployment log remains separate in #153.
+**Prompts used**: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen".
+
 ## 2026-11-06 — Implement central admin settings and additive roles (#151)
 
 **Session**: codex/feat/151-admin-user-settings
