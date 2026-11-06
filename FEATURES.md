@@ -94,4 +94,4 @@ Rower-only users see Trainings and own settings; the standalone Rowers route/dir
 writes are denied by API guards and RLS. Training-scoped crew names remain available. Coach/admin
 capabilities are additive. Account preferences synchronize across devices; explicit legacy import
 fills only uninitialized fields, revisions prevent stale overwrites, and administrative edits are
-audited atomically. Local checks pass, including full local/edge E2E and the iPhone WebKit/1000×540 matrix. Ready for PR review; not merged or deployed.
+audited atomically. Local checks pass, including full local/edge E2E and the iPhone WebKit/1000×540 matrix. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open; not merged or deployed.
