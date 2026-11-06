@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-030] A transient focus-refresh failure could discard an open edit — medium
+**Location**: apps/web/src/client/auth/useAuth.ts (`refreshAuth`, `loadState`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, final review of focus synchronization
+**Description**: A failed/503 authentication refresh on window focus was treated as a closed login gate, unmounting an authenticated page and its draft even when the server had not rejected the session.
+**Fix**: Preserve the last confirmed authentication state on transport/server failures; explicit disabled/access-denied responses still clear access. Browser coverage simulates a 503 during an open profile draft and checks that an explicit session rejection still closes it.
+
 ### [BUG-029] Expanded user settings overlapped Save on phones — medium
 **Location**: apps/web/src/client/styles.css (`.list__item.access > .access__settings`)
 **Status**: fixed locally (codex/feat/151-admin-user-settings)

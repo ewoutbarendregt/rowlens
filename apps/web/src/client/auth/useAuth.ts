@@ -48,7 +48,7 @@ export function forgetAuth(): void {
 export function refreshAuth(): void {
   const request = ++sequence;
   void loadState()
-    .catch((): AuthState => ({ kind: 'closed' }))
+    .catch((): AuthState => (current.kind === 'loading' ? { kind: 'closed' } : current))
     .then((next) => {
       if (request !== sequence) return;
       current = next;
@@ -75,7 +75,7 @@ export function useAuth(): { state: AuthState; refresh: () => void } {
 
 async function loadState(): Promise<AuthState> {
   const response = await api('/api/auth/status');
-  if (!response.ok) return { kind: 'closed' };
+  if (!response.ok) throw new Error('auth_status_unavailable');
   const status = (await response.json()) as {
     enabled: boolean;
     access: boolean;
@@ -90,7 +90,7 @@ async function loadState(): Promise<AuthState> {
   )
     return { kind: 'locked' };
   const club = await api('/api/club');
-  if (!club.ok) return { kind: 'locked' };
+  if (!club.ok) throw new Error('club_unavailable');
   return {
     kind: 'open',
     user: status.user,

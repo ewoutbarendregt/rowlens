@@ -49,6 +49,21 @@ test('admin edits one central account; rower boundaries, combined roles and pref
       .getByLabel(/^(First name|Voornaam)$/)
       .fill('Draft');
     await member.getByTestId('account-menu').locator('summary').click();
+    // A transient focus-refresh outage must not discard an open edit or sign the user out.
+    await member.route('**/api/auth/status', async (route) => {
+      await route.fulfill({ status: 503, contentType: 'application/json', body: '{}' });
+    });
+    const unavailable = member.waitForResponse((response) =>
+      response.url().endsWith('/api/auth/status'),
+    );
+    await member.evaluate(() => window.dispatchEvent(new Event('focus')));
+    expect((await unavailable).status()).toBe(503);
+    await member.getByTestId('account-menu').locator('summary').click();
+    await expect(
+      member.getByTestId('profile-form').getByLabel(/^(First name|Voornaam)$/),
+    ).toHaveValue('Draft');
+    await member.getByTestId('account-menu').locator('summary').click();
+    await member.unroute('**/api/auth/status');
     const status = (await (await member.request.get('./api/auth/status')).json()) as {
       user: { id: string };
     };
@@ -154,6 +169,17 @@ test('admin edits one central account; rower boundaries, combined roles and pref
     const identity = await row.locator('.access__identity').boundingBox();
     expect(identity?.width).toBeGreaterThan(200);
     await page.screenshot({ path: info.outputPath('admin-settings.png'), fullPage: true });
+    // An explicit rejection still closes access and clears the current account.
+    await member.route('**/api/auth/status', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ enabled: true, access: false }),
+      });
+    });
+    await member.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(member.getByTestId('account-menu')).toHaveCount(0);
+    await expect(member.getByLabel(/^(Email address|E-mailadres)$/)).toBeVisible();
   } finally {
     await context.close();
   }
