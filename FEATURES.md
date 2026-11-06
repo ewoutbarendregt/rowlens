@@ -102,5 +102,5 @@ Implemented locally after approval: all club trainings visible to rowers, coache
 admins. Foreign trainings are fully read-only for rower-only users, including their own previously
 authored feedback. Coaches/admins may edit others' trainings; combined roles retain those rights.
 Separate read/write UI/API/RLS permissions and pre-media guards, with no cross-club widening.
-Migration 0019 and local API/UI implementation are complete; final browser verification is in progress.
-See docs/plans/154-club-training-readonly.md and ADR-0020. Not merged/deployed.
+Migration 0019 and API/UI implementation are verified locally, including iPhone WebKit/1000×540.
+Ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155); see docs/plans/154-club-training-readonly.md and ADR-0020. Not merged/deployed.

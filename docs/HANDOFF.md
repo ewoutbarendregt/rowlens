@@ -14,17 +14,19 @@ newest-first detailed log. Update this file at the end of a session.
 - Migration 0019 (20 total locally) separates read/write RLS. APIs return resource capabilities and
   pre-authorize media effects under a parent lock with a fresh ownership recheck after lock waits.
   BUG-032 regression reproduces a concurrent creator-transfer/upload race, then passes after fix.
-- Verification in progress: full web/DB 520 passed (28 new permission cases); worker 50 with
-  Ruff/mypy, format/lint/typecheck/build, 77 deploy-script checks and local deploy/rollback rehearsal
-  pass. Full local E2E 49 passed/49 skipped; local iPhone WebKit/1000×540 settings/permissions 6 pass.
-  First edge full 38 passed/1 failed/10 skipped and matrix 13 passed/1 failed exposed asynchronous
-  test setup races, now corrected (wait for completed rower selection and persisted drawing).
-  Final edge full/matrix still running; finish these before PR. Screenshots inspected, no overflow.
-  Local :5174 stays available with 20 migrations. No new product changes since a5fb09b.
+- Ready for review in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155); current branch contains the implementation and verification logs.
+  520 web/DB tests (28 new permission cases), 50 worker with Ruff/mypy, format/lint/typecheck/build,
+  77 deploy-script tests and local deploy/rollback rehearsal pass. Full local E2E: 49 passed/49 skipped;
+  full edge: 39 passed/10 skipped. Local phone/low-laptop matrix 6/6; edge matrix 14/14 (permissions,
+  live role changes, private feedback, moving lines/angles, 0.25×/0.5×, pause, inline stroke controls).
+  Screenshots inspected, no document overflow. Test setup waits for async rower creation and drawing
+  persistence; diagnostic failures and corrections are logged in TEST.md. Check CI on the PR.
+- Local dev :5174/API :3100 is healthy with 20 migrations; edge has been stopped after testing.
+  No work is running. Next: Ewout tries the local stack; merge/deploy only on new explicit requests.
 - Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
   19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
   older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization
-  carries over to #154. Edge is temporarily running for tests; stop it before finishing.
+  carries over to #154. No production changes were made.
 - The sections below are earlier snapshots from main. This current section supersedes their older
   production/task status; deployment evidence is in #153. Do not repeat that deployment.
 

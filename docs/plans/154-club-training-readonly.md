@@ -1,6 +1,6 @@
 # Club training visibility and editing by role (#154)
 
-Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented locally, final verification in progress.
+Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented and verified locally; ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155).
 Requests: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen";
 "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/154

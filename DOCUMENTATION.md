@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Complete club training permission verification (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: PLAN.md, FEATURES.md, TEST.md, BUGS.md, docs/plans/154-club-training-readonly.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Approved implementation is ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155): club-wide reads, creator-only rower writes, club-wide coach/admin writes, private-feedback/tenant/admin boundaries and one policy migration. Final checks: 520 web/DB, 50 worker, 49 local E2E (49 skipped), 39 edge E2E (10 skipped), 6 local and 14 edge iPhone WebKit/1000×540 cases, format/lint/typecheck/build, 77 deploy-script tests and local deploy/rollback rehearsal pass. Screenshots inspected; local dev is healthy with 20 migrations and edge is stopped. No merge/deployment for #154; production stays sha-b000ca4. CI status is attached to the PR.
+**Prompts used**: "voer het plan uit".
+
 ## 2026-11-06 — Verify permissions and synchronize browser fixtures (#154)
 
 **Session**: codex/feat/154-club-training-readonly

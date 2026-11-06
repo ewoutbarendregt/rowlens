@@ -55,8 +55,8 @@ including no feedback mutations. Coaches/admins may edit every club training, in
 created by others; combinations retain those elevated rights. Keep private notes private to rowers
 and preserve cross-club/account-administration boundaries. One permission-policy migration, no
 new table/dependency. Ewout approved the revised plan with "voer het plan uit". See
-docs/plans/154-club-training-readonly.md and ADR-0020. Final browser verification is in progress;
-no merge or deployment is authorized for this change.
+docs/plans/154-club-training-readonly.md and ADR-0020. All local checks and the WebKit/low-laptop
+matrix pass; implementation is ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155). No merge/deployment is authorized for #154.
 
 ## Admin user settings (#151, approved 2026-11-06)
 

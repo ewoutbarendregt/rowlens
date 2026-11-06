@@ -4,14 +4,14 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-033] Slow upload chunks could exceed the parent-lock transaction timeout — high
 **Location**: apps/web/src/server/api/uploads.ts (`appendChunk`)
-**Status**: fixed locally (codex/feat/154-club-training-readonly)
+**Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)
 **Found**: 2026-11-06, slow-stream regression during #154 implementation
 **Description**: Holding a parent lock during streaming exposed the connection's normal 15-second idle-transaction timeout. A slow phone upload could lose its authorization lock and fail when saving progress.
 **Fix**: Disable that idle limit only within the authorized upload transaction; bound each chunk stream to five minutes, destroying a stalled source and releasing its lock. A 16-second stream regression first reproduced the disconnected transaction, then requires successful upload and persisted progress.
 
 ### [BUG-032] Upload could retain stale ownership after a concurrent creator transfer — high
 **Location**: apps/web/src/server/repositories/training-access.ts (`lockEditableSession`)
-**Status**: fixed locally (codex/feat/154-club-training-readonly)
+**Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)
 **Found**: 2026-11-06, concurrency regression during #154 implementation
 **Description**: An upload waiting on a locked session used a pre-transfer authorization snapshot. After an admin transferred the creator, the old owner could still append bytes and receive 204.
 **Fix**: Hold the parent row lock and recheck edit permission in a fresh SQL statement before any media effect. Integration test waits for an actual database lock, commits the transfer and requires refusal with the original bytes intact; it failed with 204 before the fix and passes afterward.
