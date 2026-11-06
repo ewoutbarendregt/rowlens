@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Verify permissions and synchronize browser fixtures (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/e2e/{angles,assign,playback,sessions,share}.spec.ts, apps/web/src/client/notes/NotesPanel.tsx, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Full web/DB 520 and worker 50 tests pass, along with format/lint/typecheck/build, 77 deploy-script checks and the local deploy/rollback rehearsal. Full local browsers pass 49 (49 worker-only skipped); the local WebKit/1000×540 settings/permissions matrix passes 6. Edge diagnostics exposed test setup races: await completed inline rower selection before saving, and persisted drawing before trying to select it (an early tap otherwise starts the underlying video); edge final verification is in progress. No additional product/schema change or production action.
+**Prompts used**: "voer het plan uit".
+
 ## 2026-11-06 — Implement approved club training permissions (#154)
 
 **Session**: codex/feat/154-club-training-readonly

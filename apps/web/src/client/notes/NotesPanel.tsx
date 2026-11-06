@@ -27,7 +27,7 @@ export interface Annotation {
   createdAt: string;
   /** Written by the viewer (#40). */
   mine?: boolean;
-  /** The viewer may change or delete it: coaches always, rowers their own (#40). */
+  /** Server-derived author/role permission, including writable training scope (ADR-0020). */
   canEdit?: boolean;
 }
 

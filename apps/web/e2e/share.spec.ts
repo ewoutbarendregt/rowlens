@@ -39,6 +39,13 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
   await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C1x');
   await lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ }).fill(`Rita ${tag}`);
   await page.getByRole('option', { name: new RegExp(`Rita ${tag}`) }).click();
+  await expect(lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  );
+  await expect(lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ })).toHaveValue(
+    `Rita ${tag}`,
+  );
   await lineup.getByRole('button', { name: /^(Save lineup|Opstelling opslaan)$/ }).click();
   await expect(lineup.getByRole('status')).toBeVisible();
 

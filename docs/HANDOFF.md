@@ -14,9 +14,13 @@ newest-first detailed log. Update this file at the end of a session.
 - Migration 0019 (20 total locally) separates read/write RLS. APIs return resource capabilities and
   pre-authorize media effects under a parent lock with a fresh ownership recheck after lock waits.
   BUG-032 regression reproduces a concurrent creator-transfer/upload race, then passes after fix.
-- Verification in progress: initial full web/DB 518 passed, worker 50 passed; the additional race
-  makes 27 new permission tests, all passing. Local focused E2E 2 passed. Full local/edge and
-  iPhone WebKit/1000×540 matrix remain to finish before the PR. Local :5174 stays available.
+- Verification in progress: full web/DB 520 passed (28 new permission cases); worker 50 with
+  Ruff/mypy, format/lint/typecheck/build, 77 deploy-script checks and local deploy/rollback rehearsal
+  pass. Full local E2E 49 passed/49 skipped; local iPhone WebKit/1000×540 settings/permissions 6 pass.
+  First edge full 38 passed/1 failed/10 skipped and matrix 13 passed/1 failed exposed asynchronous
+  test setup races, now corrected (wait for completed rower selection and persisted drawing).
+  Final edge full/matrix still running; finish these before PR. Screenshots inspected, no overflow.
+  Local :5174 stays available with 20 migrations. No new product changes since a5fb09b.
 - Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
   19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
   older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization
