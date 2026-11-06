@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Merge and deploy the inline stroke controls
+
+**Session**: codex/docs/149-production-deploy
+**Changed**: BUGS.md, FEATURES.md, TEST.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, DOCUMENTATION.md
+**Summary**: Merged #149 as `e5960c7` after all eight PR checks passed on `92818c7`; final main CI 42192694387 and images 42192694385 passed, then deploy 42195631449 released `sha-e5960c7` at 2026-11-06 09:31 UTC (10:31 CET). Verified readiness/version/DB, matching web/worker tags, 18 migrations, five HTTP 200 responses, successful backup and unchanged IDs/start times for all five shared-service containers; two web-runner retries handled package-preparation stalls, and the deployment log remains a separate docs PR.
+**Prompts used**: "Merge en deploy maar".
+
 ## 2026-11-06 — Inline per-moment deletion and quick catch/finish tools
 
 **Session**: codex/feat/85-inline-stroke-tools
