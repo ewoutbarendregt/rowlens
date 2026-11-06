@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Merge and deploy central settings and role sets
+
+**Session**: codex/docs/152-deploy
+**Changed**: DOCUMENTATION.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, docs/runbooks/server-setup.md
+**Summary**: On Ewout's explicit "doe maar" after the merge/deploy status question, squash-merged [PR #152](https://github.com/ewoutbarendregt/rowlens/pull/152) as b000ca4 and deployed sha-b000ca4 at 2026-11-06 18:18 UTC ([run 42269355939](https://github.com/ewoutbarendregt/rowlens/actions/runs/42269355939)). Main CI 42267931272 and published images 42267931362 passed; pre-deploy backup succeeded, readiness/DB and five public URLs are healthy, migration count is 19, all 5 accounts/5 memberships/3 access grants/7 active sessions and their role distribution were preserved, and all five shared containers are unchanged. This branch records the release only; no further merge/deploy is authorized.
+**Prompts used**: "gemerged en gedeployed?"; "doe maar".
+
 ## 2026-11-06 — Implement central admin settings and additive roles (#151)
 
 **Session**: codex/feat/151-admin-user-settings

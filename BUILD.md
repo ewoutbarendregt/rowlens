@@ -5,6 +5,10 @@ this file summarises the current state.
 
 ## Central user settings and role sets (2026-11-06, ADR-0019)
 
+Live on production since 2026-11-06 18:18 UTC (`sha-b000ca4`, [deploy 42269355939](https://github.com/ewoutbarendregt/rowlens/actions/runs/42269355939)),
+with 19 migrations and existing accounts/sessions preserved. Previous scalar-role images cannot run
+against migration 0018; see the rollback note in `docs/runbooks/server-setup.md`.
+
 Migration `0018_admin_user_settings.sql` extends `app_user` with nullable language/theme/video
 preferences, a revision and update time; scalar membership/access roles backfill to validated
 singleton arrays. Unknown preferences remain null until explicitly saved/imported. No dependencies
