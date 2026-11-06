@@ -298,12 +298,18 @@ scripts/github/      backlog/labels/milestones bootstrap
   the coach marked a half slide on that drive (ADR-0016 addendum). Low laptop
   screens (≤ 640 px high) get a 48 px play button so the player column still fits.
 
-- **Explicit mark removal (2026-11-05)**: coaches/admins expand "Edit or delete marks" in Strokes.
-  Each stored catch, finish and half slide has a frame/time jump and a Delete button with an inline
-  confirmation. The list renders only while expanded, including marks outside complete strokes.
-  `changeMark(frame, null)` uses the existing DELETE route for that frame, not the playback cursor;
-  failure keeps the mark and shows an error. Removing a mark updates the timeline and calculated
-  timings; angle measurements keep the existing ADR-0017 behavior when their phase mark disappears.
+- **Inline moment removal (2026-11-06)**: each coach/admin stroke row has a trash action beside
+  its loop button. It expands that row's stored moments (including ambiguous duplicate finishes);
+  choose one moment, then confirm its kind/frame inline. The next catch belongs to the next row.
+  Loose marks remain directly removable, even without any catches. No separate expandable editor.
+  `changeMark(frame, null)` reuses the existing protected DELETE route; failures retain the mark.
+- **Frame tools (2026-11-06)**: ↓ Catch / ↑ Finish immediately above the picture, including on
+  phones, with Notes open and in fullscreen. They pause playback, cancel point placement and
+  toggle the kind on the current frame; selected state follows the frame's stored mark. They use
+  `PressButton` for pointer-release and keyboard activation. Half slide and I/H/U remain in Strokes.
+- Table columns are constrained so an expanded editor cannot widen/scroll the table. New delete,
+  loop and frame actions have 44 px targets; selected fullscreen frame tools use the light drawing
+  colour with dark text, and unselected tools use light text. No schema, API or role changes.
 
 ## Angles per phase (ADR-0017)
 

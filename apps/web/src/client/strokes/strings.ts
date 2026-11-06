@@ -15,7 +15,8 @@ const en = {
     'Halfway in time between catch and finish, as an open circle on the timeline. A half slide the coach marked on the drive comes first.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' } as Record<StrokeMarkKind, string>,
   markHint: 'Step to the frame, then press the button or its key. Pressed again, it comes off.',
-  editMarks: (n: number) => `Edit or delete marks (${String(n)})`,
+  editStroke: (n: number) => `Choose a moment to delete from stroke ${String(n)}`,
+  chooseMoment: 'Choose the moment to delete.',
   markAt: (kind: string, time: string, frame: number) =>
     `${kind} · ${time} · frame ${String(frame)}`,
   remove: 'Delete',
@@ -50,6 +51,7 @@ const en = {
     two_finishes: 'two finishes',
   } as Record<StrokeRefusal, string>,
   jump: (n: number, time: string) => `Go to the catch of stroke ${String(n)} (${time})`,
+  actions: 'Actions',
   loop: 'Loop',
   loopStroke: (n: number) => `Loop stroke ${String(n)}`,
   failed: 'Could not update the mark. Check your connection and try again.',
@@ -67,7 +69,8 @@ const nl: typeof en = {
     'Halverwege in tijd tussen inpik en uitpik, als open rondje op de tijdlijn. Een halve bank die de coach in de haal markeerde gaat voor.',
   keys: { catch: 'I', half_slide: 'H', finish: 'U' },
   markHint: 'Stap naar het frame en druk op de knop of de toets. Nog een keer weghalen.',
-  editMarks: (n: number) => `Markeringen bewerken of verwijderen (${String(n)})`,
+  editStroke: (n: number) => `Kies een moment om te verwijderen uit haal ${String(n)}`,
+  chooseMoment: 'Kies welk moment je wilt verwijderen.',
   markAt: (kind: string, time: string, frame: number) =>
     `${kind} · ${time} · frame ${String(frame)}`,
   remove: 'Verwijderen',
@@ -102,6 +105,7 @@ const nl: typeof en = {
     two_finishes: 'twee uitpikken',
   },
   jump: (n: number, time: string) => `Naar de inpik van haal ${String(n)} (${time})`,
+  actions: 'Acties',
   loop: 'Lus',
   loopStroke: (n: number) => `Haal ${String(n)} in een lus`,
   failed:

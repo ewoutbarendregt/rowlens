@@ -62,6 +62,11 @@ const paths = {
       <circle cx="12" cy="12" r="3" />
     </>
   ),
+  trash: (
+    <>
+      <path d="M3 6h18M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M5 6l1 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-14M10 10v7M14 10v7" />
+    </>
+  ),
   repeat: (
     <>
       <path d="m17 2 4 4-4 4" />

@@ -44,6 +44,8 @@ export interface PlayerProps {
   handle?: Ref<PlayerHandle>;
   /** The page's tools for the picture (draw, notes on video, quality): a row above it (mockup 1e). */
   toolbar?: ReactNode;
+  /** Frame actions kept immediately above the picture, including on phones and in fullscreen. */
+  frameTools?: ReactNode;
   /** Drawn over the picture inside the stage, so it goes into full screen too (#60). */
   overlay?: ReactNode;
   /** Hosts drawing controls beside the picture, inside fullscreen too. */
@@ -96,6 +98,7 @@ export function Player({
   markers,
   handle,
   toolbar,
+  frameTools,
   overlay,
   drawingControlsRef,
   keyHints = [],
@@ -447,6 +450,7 @@ export function Player({
       className={`player${p.immersive ? ' player--immersive' : ''}${p.fullscreen ? ' player--fullscreen' : ''}`}
     >
       {toolbar !== undefined && <div className="player__toolbar">{toolbar}</div>}
+      {frameTools}
       <div
         ref={stageRef}
         className={`player__stage${view.scale > 1 ? ' player__stage--zoomed' : ''}`}

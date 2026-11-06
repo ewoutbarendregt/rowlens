@@ -53,3 +53,15 @@ Every stored catch, finish and half slide has a jump and a Delete action, with a
 confirmation naming its kind and frame. Deletion targets that frame regardless of the playback
 cursor, uses the existing tenant/role-protected API, and refreshes the derived timings and timeline.
 Marks outside complete strokes remain removable. No schema or permission changes are needed.
+
+## Addendum (2026-11-06): inline moment selection and frame tools
+
+Ewout replaces the separate mark editor with a trash icon on each timing-table row. The icon opens
+that row's moments; the coach chooses one catch, finish or half slide and confirms its deletion
+inline. A row excludes the next catch, and loose marks stay individually removable without a
+separate disclosure. This preserves single-moment deletion and the existing protected endpoint.
+
+Catch (down arrow) and finish (up arrow) also have quick buttons immediately above the video,
+including in fullscreen and when the Notes tab is open. They mark/toggle the current frame, pause
+playback and exit point-placement tools; selected state follows the frame. Existing panel buttons
+and keyboard shortcuts remain. No migration, dependency or analysis-rule change.
