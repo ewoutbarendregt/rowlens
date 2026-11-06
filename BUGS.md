@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-034] Permission migration could broaden old web handlers before their replacement — high
+**Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql, apps/web/src/server/db/tenant.ts
+**Status**: fixed locally in #155; upgrade compatibility verification in progress
+**Found**: 2026-11-06, final release-order review before any production action
+**Description**: Deployment migrates before replacing the web container; the prior image's media handlers assume visible trainings are writable. Broad new reads plus strict new writes could let those old handlers touch files after a zero-row deletion. Rolling back to the old image would recreate that mismatch.
+**Fix**: The new server sets a fixed per-transaction permission capability, never from request input. Migration 0019 uses the new read/write split only for that capability; missing context keeps the old image's existing visibility/write scope aligned. Unknown capabilities deny training access. A regression first exposed an extra legacy-visible ownerless training, then verifies old and new role semantics together; no extra migration/table/dependency or server reconfiguration.
+
 ### [BUG-033] Slow upload chunks could exceed the parent-lock transaction timeout — high
 **Location**: apps/web/src/server/api/uploads.ts (`appendChunk`)
 **Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)

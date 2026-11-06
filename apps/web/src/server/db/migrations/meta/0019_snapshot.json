@@ -2216,7 +2216,7 @@
           "to": [
             "rowlens_app"
           ],
-          "using": "rowlens_can_read_trainings()"
+          "using": "rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or rowlens_sees_all() or \"rowing_session\".\"created_by_user_id\" = rowlens_user_id() or rowlens_session_reachable(\"rowing_session\".\"id\"))"
         },
         "rowing_session_role_add": {
           "name": "rowing_session_role_add",

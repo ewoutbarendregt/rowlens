@@ -2,20 +2,27 @@
 -- Keep rowlens_sees_all admin/service-only: reading must not unlock privileged write policies.
 CREATE FUNCTION rowlens_can_read_trainings() RETURNS boolean
 LANGUAGE sql STABLE SET search_path=public,pg_temp AS $$
- SELECT rowlens_has_role('rower') OR rowlens_roster_manager()
+ -- The new web image opts in per transaction. Missing context retains pre-#155 semantics
+ -- while the old image is still serving during migration, or after an authorized rollback.
+ SELECT coalesce(current_setting('app.training_permissions',true),'') IN ('','owner-or-staff')
+ AND (rowlens_has_role('rower') OR rowlens_roster_manager())
 $$;
 --> statement-breakpoint
 CREATE OR REPLACE FUNCTION rowlens_can_see_session(p_session uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
  SELECT rowlens_can_read_trainings() AND EXISTS(SELECT 1 FROM rowing_session s
- WHERE s.id=p_session AND s.club_id=nullif(current_setting('app.club_id',true),'')::uuid)
+ WHERE s.id=p_session AND s.club_id=nullif(current_setting('app.club_id',true),'')::uuid
+ AND (current_setting('app.training_permissions',true)='owner-or-staff' OR rowlens_sees_all()
+ OR s.created_by_user_id=rowlens_user_id() OR rowlens_session_reachable(s.id)))
 $$;
 --> statement-breakpoint
 CREATE FUNCTION rowlens_can_edit_session(p_session uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
- SELECT EXISTS(SELECT 1 FROM rowing_session s
+ SELECT rowlens_can_read_trainings() AND EXISTS(SELECT 1 FROM rowing_session s
  WHERE s.id=p_session AND s.club_id=nullif(current_setting('app.club_id',true),'')::uuid
- AND (rowlens_roster_manager() OR (rowlens_has_role('rower') AND s.created_by_user_id=rowlens_user_id())))
+ AND CASE WHEN current_setting('app.training_permissions',true)='owner-or-staff'
+ THEN rowlens_roster_manager() OR (rowlens_has_role('rower') AND s.created_by_user_id=rowlens_user_id())
+ ELSE rowlens_sees_all() OR s.created_by_user_id=rowlens_user_id() OR rowlens_session_reachable(s.id) END)
 $$;
 --> statement-breakpoint
 CREATE FUNCTION rowlens_can_edit_video(p_video uuid) RETURNS boolean
@@ -85,7 +92,7 @@ CREATE POLICY "moment_share_role_read" ON "moment_share" AS RESTRICTIVE FOR SELE
 CREATE POLICY "moment_share_role_add" ON "moment_share" AS RESTRICTIVE FOR INSERT TO "rowlens_app" WITH CHECK (rowlens_can_edit_moment("moment_share"."moment_id") and rowlens_can_see_moment_id("moment_share"."moment_id"));--> statement-breakpoint
 CREATE POLICY "moment_share_role_edit" ON "moment_share" AS RESTRICTIVE FOR UPDATE TO "rowlens_app" USING (rowlens_can_edit_moment("moment_share"."moment_id") and rowlens_can_see_moment_id("moment_share"."moment_id")) WITH CHECK (rowlens_can_edit_moment("moment_share"."moment_id") and rowlens_can_see_moment_id("moment_share"."moment_id"));--> statement-breakpoint
 CREATE POLICY "moment_share_role_delete" ON "moment_share" AS RESTRICTIVE FOR DELETE TO "rowlens_app" USING (rowlens_can_edit_moment("moment_share"."moment_id") and rowlens_can_see_moment_id("moment_share"."moment_id"));--> statement-breakpoint
-CREATE POLICY "rowing_session_role_read" ON "rowing_session" AS RESTRICTIVE FOR SELECT TO "rowlens_app" USING (rowlens_can_read_trainings());--> statement-breakpoint
+CREATE POLICY "rowing_session_role_read" ON "rowing_session" AS RESTRICTIVE FOR SELECT TO "rowlens_app" USING (rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or rowlens_sees_all() or "rowing_session"."created_by_user_id" = rowlens_user_id() or rowlens_session_reachable("rowing_session"."id")));--> statement-breakpoint
 CREATE POLICY "rowing_session_role_add" ON "rowing_session" AS RESTRICTIVE FOR INSERT TO "rowlens_app" WITH CHECK (rowlens_roster_manager() or (rowlens_has_role('rower') and "rowing_session"."created_by_user_id" = rowlens_user_id()));--> statement-breakpoint
 CREATE POLICY "rowing_session_role_edit" ON "rowing_session" AS RESTRICTIVE FOR UPDATE TO "rowlens_app" USING (rowlens_can_edit_session("rowing_session"."id")) WITH CHECK (rowlens_can_edit_session("rowing_session"."id") and rowlens_may_set_session_creator("rowing_session"."id","rowing_session"."created_by_user_id"));--> statement-breakpoint
 CREATE POLICY "rowing_session_role_delete" ON "rowing_session" AS RESTRICTIVE FOR DELETE TO "rowlens_app" USING (rowlens_can_edit_session("rowing_session"."id"));--> statement-breakpoint

@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Keep the permission migration compatible with the prior web image (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/src/server/db/{tenant.ts,schema.ts,migrations/0019_club_training_permissions.sql,migrations/meta/0019_snapshot.json}, apps/web/src/server/api/training-permissions.db.test.ts, docs/adr/0020-club-training-permissions.md, docs/plans/154-club-training-readonly.md, BUILD.md, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Final review found the migrate-before-web-replacement window and old-image rollback could combine broad reads with media handlers that assume visibility implies write access (BUG-034). New handlers now opt in through fixed transaction context; absent context preserves the old image's aligned scope and unknown modes fail closed. Still one migration, no table/dependency/server changes; 30 permission tests pass after a failing compatibility regression and schema generation reports no difference. Full retesting is in progress; prior 520-test/browser evidence applies before this final compatibility change, and production remains sha-b000ca4.
+**Prompts used**: "voer het plan uit".
+
 ## 2026-11-06 — Complete club training permission verification (#154)
 
 **Session**: codex/feat/154-club-training-readonly

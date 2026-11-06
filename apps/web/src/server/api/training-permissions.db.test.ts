@@ -499,3 +499,47 @@ it('keeps a slow upload chunk authorized beyond the normal idle-transaction time
     await send('admin', 'DELETE', `/api/sessions/${target}`);
   }
 }, 30_000);
+
+it('keeps legacy image visibility and write policies aligned during upgrade and rollback', async () => {
+  // Images before #155 do not set this new server-controlled context. Their media handlers
+  // rely on visible trainings being writable; do not widen those reads before replacing them.
+  for (const who of ['a', 'coach', 'admin'] as const) {
+    const roles: Role[] = who === 'a' ? ['rower'] : [who];
+    const rows = await withTenant(
+      handle.db,
+      { clubId: club, userId: ids[who], roles },
+      async (tx) => {
+        await tx.execute(sql`select set_config('app.training_permissions', '', true)`);
+        const visible = await tx.execute<{ id: string; writable: boolean }>(
+          sql`select id, rowlens_can_edit_session(id) as writable from rowing_session where id in (${session},${legacy}) order by id`,
+        );
+        const changed = await tx.execute<{ id: string }>(
+          sql`update rowing_session set title=title where id=${session} returning id`,
+        );
+        return { visible: visible.rows, changed: changed.rows };
+      },
+    );
+    const expected = who === 'coach' ? [] : who === 'admin' ? [session, legacy] : [session];
+    expect(rows.visible.map((s) => s.id).sort()).toEqual(expected.sort());
+    expect(rows.visible.every((s) => s.writable)).toBe(true);
+    expect(rows.changed).toHaveLength(who === 'coach' ? 0 : 1);
+  }
+  // The new image opts in on every transaction: the participant still cannot write.
+  const current = await send('a', 'GET', `/api/sessions/${session}`);
+  expect(current.json<{ canEdit: boolean }>().canEdit).toBe(false);
+  expect(
+    (await send('coach', 'GET', `/api/sessions/${session}`)).json<{ canEdit: boolean }>().canEdit,
+  ).toBe(true);
+});
+
+it('fails closed for an unrecognized training permission capability', async () => {
+  const rows = await withTenant(
+    handle.db,
+    { clubId: club, userId: ids.admin, roles: ['admin'] },
+    async (tx) => {
+      await tx.execute(sql`select set_config('app.training_permissions','unknown',true)`);
+      return tx.execute(sql`select id from rowing_session where id=${session}`);
+    },
+  );
+  expect(rows.rows).toEqual([]);
+});

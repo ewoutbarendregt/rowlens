@@ -1,6 +1,6 @@
 # Club training visibility and editing by role (#154)
 
-Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented and verified locally; ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155).
+Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155); final upgrade-compatibility verification in progress.
 Requests: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen";
 "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/154
@@ -75,3 +75,14 @@ server-derived capabilities and pre-media parent locks. Permissions are rechecke
 after a lock wait, so a concurrent creator transfer cannot authorize an upload with stale ownership.
 ADR-0020 records the accepted decision. No merge/deployment for #154; production stays sha-b000ca4
 and deployment log #153 remains a separate PR.
+
+## Upgrade and rollback compatibility
+
+Final review found that deployment applies migrations before replacing the web image. The prior
+image's file handlers assume visible trainings are writable. New code therefore opts in through a
+fixed per-transaction server capability; absent context retains the old image's matching legacy
+read/write scope and unknown capability values fail closed. The approved migration remains 0019,
+with no extra table/dependency or server change. Regression coverage checks both image contracts,
+including participant rowers, unrelated coaches, admins and ownerless trainings. No production
+migration has run; the already-applied local dev 0019 definitions are updated non-destructively, and edge tests
+bootstrap the revised migration on a fresh local test database.

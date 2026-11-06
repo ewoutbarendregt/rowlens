@@ -249,6 +249,11 @@ scripts/github/      backlog/labels/milestones bootstrap
   Migration 0019 separates restrictive SELECT/INSERT/UPDATE/DELETE policies for session, video,
   lineup and moment resources. `rowlens_can_read_trainings` grants member club reads;
   `rowlens_can_edit_session/video/moment` restrict mutations to the creator or coach/admin.
+  New handlers opt in with fixed transaction context `app.training_permissions=owner-or-staff`.
+  Missing context retains pre-#155 visibility and corresponding write scope for an old image still
+  serving during migration or after an authorized rollback. Unknown values deny training access;
+  this context is never accepted from request input. The session read policy uses its row columns
+  directly so INSERT RETURNING can see a just-created session, without a stable self-lookup.
   Tenant policies and same-club parent foreign keys still apply. `rowlens_sees_all` remains
   admin/service-only so general read access cannot unlock privileged operations.
 - Note visibility remains private for rowers unless authored/assigned/shared to them; coaches/admins

@@ -36,9 +36,11 @@ export async function withTenant<T>(
   const { clubId, userId, role, roles: assigned } = contextSchema.parse(ctx);
   const roles = assigned ?? (role == null ? [] : [role]);
   const service = userId === null && role == null && assigned === undefined;
+  // Fixed server capability, never request input: only handlers with pre-media write checks
+  // opt into the new read/write split. Older images retain their aligned legacy scope (ADR-0020).
   return db.transaction(async (tx) => {
     await tx.execute(
-      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${roles.length ? primaryRole(roles) : ''}, true), set_config('app.roles', ${JSON.stringify(roles)}, true), set_config('app.service', ${service ? 'true' : 'false'}, true)`,
+      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${roles.length ? primaryRole(roles) : ''}, true), set_config('app.roles', ${JSON.stringify(roles)}, true), set_config('app.service', ${service ? 'true' : 'false'}, true), set_config('app.training_permissions', 'owner-or-staff', true)`,
     );
     return fn(tx);
   });

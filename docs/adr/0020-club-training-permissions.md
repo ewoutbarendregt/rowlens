@@ -29,6 +29,15 @@ see all feedback within their club. Mutating feedback also requires an editable 
 previously authored notes/drawings and assignment/sharing changes. Authorship never bypasses a
 foreign training's read-only state. Coach-only analysis remains coach-only in rower-owned trainings.
 
+The deploy script migrates before replacing web; old media handlers assume visibility implies
+writability. Each new `withTenant` transaction therefore sets a fixed server capability
+`app.training_permissions=owner-or-staff`; it is never request input. Only that mode activates new
+club-wide reads and owner/staff writes. Missing context retains the old image's aligned legacy
+read/write scope during upgrade and authorized rollback; unrecognized values fail closed for
+training access. Existing worker/service processing works in either mode. The session SELECT
+policy uses row columns directly, preserving INSERT RETURNING visibility for newly created rows.
+No second migration, configuration flag or coordinated server stop is needed.
+
 API metadata returns current resource capabilities. Read-only pages show playback, stepping, speed,
 zoom, crew and permitted feedback; they omit forms, drawing tools, upload/deletion and sharing edits.
 Own settings and the ADR-0019 standalone roster/account boundaries remain unchanged.

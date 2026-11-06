@@ -280,7 +280,11 @@ export const rowingSession = pgTable(
     unique('rowing_session_club_id_id_unique').on(t.clubId, t.id),
     index('rowing_session_club_date_idx').on(t.clubId, t.sessionDate),
     tenantPolicy('rowing_session_tenant', t.clubId),
-    rolePolicy('rowing_session_role_read', 'select', sql`rowlens_can_read_trainings()`),
+    rolePolicy(
+      'rowing_session_role_read',
+      'select',
+      sql`rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or ${seesAll} or ${t.createdByUserId} = ${me} or rowlens_session_reachable(${t.id}))`,
+    ),
     rolePolicy(
       'rowing_session_role_add',
       'insert',
