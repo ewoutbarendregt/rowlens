@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Inventory admin user settings and propose centralized preferences
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inventoried the existing admin access, own-profile SQL functions and five browser-only preferences, and opened #151 with a concrete proposal for tenant-scoped settings, audited admin edits and safe device-choice import. Implementation requires new tables/migration and protected profile operations, so it awaits architectural approval under AGENTS.md; no application or production changes.
+**Prompts used**: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen".
+
 ## 2026-11-06 — Inline per-moment deletion and quick catch/finish tools
 
 **Session**: codex/feat/85-inline-stroke-tools

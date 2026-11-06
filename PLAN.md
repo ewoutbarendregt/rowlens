@@ -47,6 +47,13 @@ analysis of rowing technique.
 4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
    the data model remains tenant-safe, but growth features do not drive the current UI.
 
+## Admin user settings (#151, proposed 2026-11-06)
+
+Ewout requests inspection/editing of all existing user settings. The inventory includes profile,
+role/access and five currently device-local preferences. See
+[the implementation proposal](docs/plans/151-admin-user-settings.md); centralized tenant-scoped
+storage, audit and protected admin profile operations need architectural/migration approval first.
+
 ## Out of scope (for now)
 
 Sensor data, public sharing/social, payments, native apps, accounts for minors.

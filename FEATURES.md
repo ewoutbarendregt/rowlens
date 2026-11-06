@@ -82,3 +82,9 @@ Club self-onboarding · side-by-side comparison · trends · goals · more langu
 
 - Inline per-row moment selection replaces the separate removal section; no whole-stroke deletion.
 - ↓ Catch / ↑ Finish frame tools above the video, including phone/fullscreen, are implemented locally for review.
+
+## Admin user settings (#151)
+
+Requested 2026-11-06: inspect/edit current-club users' profile, role/access and all five display/video
+preferences. Inventory and proposal complete; new centralized persistence/migration awaiting Ewout's
+approval. No functional implementation yet; see docs/plans/151-admin-user-settings.md.
