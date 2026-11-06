@@ -127,6 +127,13 @@
       "when": 1793741670220,
       "tag": "0017_auto_boat_line",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793971662149,
+      "tag": "0018_admin_user_settings",
+      "breakpoints": true
     }
   ]
 }

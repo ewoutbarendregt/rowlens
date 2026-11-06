@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, notExists } from 'drizzle-orm';
+import { sql, and, asc, eq, inArray, notExists } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import type { Tx } from '../db/client.ts';
@@ -59,7 +59,7 @@ export async function momentSharesOf(
     .leftJoin(sharer, eq(sharer.userId, momentShare.sharedByUserId))
     .where(eq(moment.videoId, videoId))
     .orderBy(asc(moment.frame), asc(rower.displayName));
-  const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+  const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
   const byFrame = new Map<number, MomentShares>();
   for (const r of rows) {
     const m = byFrame.get(r.frame) ?? { frame: r.frame, crew: null, rowers: [] };
@@ -208,10 +208,11 @@ export const momentRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
         const found =
           wanted.size === 0
             ? []
-            : await tx
-                .select({ id: rower.id, archivedAt: rower.archivedAt })
-                .from(rower)
-                .where(inArray(rower.id, [...wanted]));
+            : (
+                await tx.execute<{ id: string; archivedAt: Date | null }>(
+                  sql`select id, archived_at as "archivedAt" from rowlens_rower_targets(${`{${[...wanted].join(',')}}`}::uuid[])`,
+                )
+              ).rows;
         if (found.length !== wanted.size) return 'unknown_rower';
         if (found.some((r) => r.archivedAt !== null && !before.has(r.id))) return 'archived_rower';
 
@@ -270,7 +271,7 @@ export const momentRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
       return reply.code(400).send({ error: 'invalid_shares' });
     }
     const tenant = tenantOf(req);
-    const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+    const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
     const { id: videoId, frame } = params.data;
 
     const result = await withTenant(
@@ -302,10 +303,11 @@ export const momentRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
         const found =
           wanted.size === 0
             ? []
-            : await tx
-                .select({ id: rower.id, archivedAt: rower.archivedAt })
-                .from(rower)
-                .where(inArray(rower.id, [...wanted]));
+            : (
+                await tx.execute<{ id: string; archivedAt: Date | null }>(
+                  sql`select id, archived_at as "archivedAt" from rowlens_rower_targets(${`{${[...wanted].join(',')}}`}::uuid[])`,
+                )
+              ).rows;
         if (found.length !== wanted.size) return 'unknown_rower';
         if (found.some((r) => r.archivedAt !== null && !beforeRowers.has(r.id))) {
           return 'archived_rower';

@@ -1,3 +1,5 @@
+import { saveOwnPreference, useOwnSettings } from '../settings/controller.ts';
+import { settingsStrings } from '../settings/strings.ts';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api.ts';
@@ -19,8 +21,6 @@ import {
   activeVideoMoment,
   NOTE_HOLD_OPTIONS,
   type NoteHoldSeconds,
-  rememberNoteHoldSeconds,
-  rememberNotesVisible,
   storedNoteHoldSeconds,
   storedNotesVisible,
   videoMoments,
@@ -45,7 +45,7 @@ import {
   phaseOf,
   resolveBoatLine,
 } from '../../shared/angles.ts';
-import { rememberDriveMiddle, storedDriveMiddle } from '../strokes/preferences.ts';
+import { storedDriveMiddle } from '../strokes/preferences.ts';
 import { strokeStrings } from '../strokes/strings.ts';
 import {
   neighbourCatch,
@@ -98,6 +98,7 @@ export function VideoPage() {
   const nt = notesStrings();
   const { id = '' } = useParams();
   const auth = useAuth();
+  const personal = useOwnSettings();
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [rendition, setRendition] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export function VideoPage() {
   const [notes, setNotes] = useState<Annotation[]>([]);
   const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
   const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
-  const roster = useRoster();
+  const roster = useRoster(undefined, video?.sessionId ?? null);
   const [tool, setTool] = useState<DrawingKind | null>(null);
   const [drawingControls, setDrawingControls] = useState<HTMLDivElement | null>(null);
   const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
@@ -130,11 +131,22 @@ export function VideoPage() {
   const [angleBusy, setAngleBusy] = useState(false);
   const [angleFailed, setAngleFailed] = useState(false);
   const [driveMiddle, setDriveMiddle] = useState(storedDriveMiddle);
-  const canMark = auth.state.kind === 'open' && auth.state.user.role !== 'rower';
+  useEffect(() => {
+    setNotesVisible(personal.preferences.notesVisible);
+    setNoteHoldSeconds(personal.preferences.noteHoldSeconds);
+    setDriveMiddle(personal.preferences.driveMiddle);
+  }, [
+    personal.preferences.notesVisible,
+    personal.preferences.noteHoldSeconds,
+    personal.preferences.driveMiddle,
+  ]);
+  const canMark =
+    auth.state.kind === 'open' &&
+    auth.state.user.roles.some((role) => role === 'coach' || role === 'admin');
 
   const toggleNotes = useCallback(() => {
     setNotesVisible((visible) => {
-      rememberNotesVisible(!visible);
+      void saveOwnPreference({ notesVisible: !visible });
       return !visible;
     });
   }, []);
@@ -342,7 +354,9 @@ export function VideoPage() {
   const myRower =
     accountEmail === null
       ? undefined
-      : roster.rowers?.find((rower) => rower.email?.toLowerCase() === accountEmail);
+      : roster.rowers?.find(
+          (rower) => rower.mine === true || rower.email?.toLowerCase() === accountEmail,
+        );
   const filteredMoments = useMemo(
     () => videoMoments(notes, framesFor(momentRowers, forRower)),
     [notes, momentRowers, forRower],
@@ -702,6 +716,7 @@ export function VideoPage() {
         <LineupSummary boatType={video.boatType} lineup={video.lineup} />
       </header>
 
+      {personal.failed && <p role="alert">{settingsStrings().failed}</p>}
       {!ready && <p role="status">{t.notReady}</p>}
       {ready && video.fpsNum !== null && video.fpsDen !== null && (
         // Laptop: player (sticky) left, notes right, all in one view. Phone: stacked.
@@ -788,7 +803,7 @@ export function VideoPage() {
                           onChange={(event) => {
                             const value = Number(event.target.value) as NoteHoldSeconds;
                             setNoteHoldSeconds(value);
-                            rememberNoteHoldSeconds(value);
+                            void saveOwnPreference({ noteHoldSeconds: value });
                           }}
                         >
                           {NOTE_HOLD_OPTIONS.map((seconds) => (
@@ -926,7 +941,7 @@ export function VideoPage() {
                 driveMiddle={driveMiddle}
                 onDriveMiddleChange={(on) => {
                   setDriveMiddle(on);
-                  rememberDriveMiddle(on);
+                  void saveOwnPreference({ driveMiddle: on });
                 }}
               />
             </div>

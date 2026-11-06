@@ -3,6 +3,32 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Admin user settings implementation — #151
+
+- Approved by Ewout: "Ok voer maar uit". Branch `codex/feat/151-admin-user-settings`, based on
+  main `e5960c7` plus the three approved proposal commits. No new merge/deployment authorization.
+- One global account/profile and five central display/video preferences; seven non-empty role
+  combinations. Current-club admins inspect/edit accounts; unknown preferences remain explicit.
+  User e-mail remains read-only. Additive role arrays replace scalar grants (migration 0018);
+  settings writes use revisions, protected SQL functions and a scoped immutable admin audit.
+- Rower-only: Trainings and own settings; no standalone Rowers directory or roster writes. API/RLS
+  enforce this; scoped crew names omit e-mails and identify only the current member with `mine`.
+  Existing permitted note sharing, assignment and lineup interactions remain.
+- Client account caches are isolated; late responses are ignored, legacy device import requires
+  confirmation and fills only null fields. Focus/reload sync does not remount the player. Open
+  profile/admin drafts cannot silently overwrite newer changes. Transport/server failures preserve
+  the last confirmed auth state; explicit access denial still closes it (BUG-030). ADR-0019 records the decision.
+- Unsaved role choices retain their original conflict snapshot through profile/list refreshes
+  (BUG-031). Explicit reload/cancel discards the draft; stale saves report a conflict.
+- Verification: 492 web/DB + 50 worker tests, format/lint/typecheck/build, 77 deploy-script tests and
+  Docker rehearsal pass. Full local E2E: 47 passed/49 skipped; full edge: 38 passed/10 skipped.
+  Local low-laptop/iPhone settings matrix: 6/6; edge regression matrix: 24/24 (settings, playback,
+  angles/drawing, stroke controls). Screenshots inspected; 44 px controls and no document overflow.
+  Final outage/rejection checks: 12 Chromium + 10 low-laptop/iPhone cases pass.
+  Separate output paths avoid Playwright trace collisions. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open against main; The PR carries the current CI status; no merge/deploy is authorized.
+- Production stays `sha-e5960c7` (deploy 42195631449). Separate log PRs #148/#150 and the local
+  OWASP review branch remain separate. Local dev :5174 is migrated and running (19 migrations); edge is stopped after tests. Oar arc/stern camera remain deferred.
+
 ## Inline stroke controls — 2026-11-06
 
 - Current work: `codex/feat/85-inline-stroke-tools`, based on `main` `ddb90fd`; pending PR review.
@@ -80,8 +106,8 @@ newest-first detailed log. Update this file at the end of a session.
 
 ## Open and next work
 
-1. Review the inline stroke controls locally; production deployment and log PR #148 are separate.
-   Try choosing/deleting one moment per row, and ↓ Catch / ↑ Finish above the picture.
+1. Await architecture approval for #151; the concrete proposal is above. #149 is already deployed
+   as sha-e5960c7 (see deployment-log PR #150), so do not repeat that merge/deploy.
 2. Confirm on a physical production iPhone: create/edit a line and angle, tap 0.25× / 0.5× and pause;
    verify selected speed and actual playback. Confirm moving points with a finger, deletion of
    catch/finish marks and direct drawing without the progress menu. Basics remain the priority.

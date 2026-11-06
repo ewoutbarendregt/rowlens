@@ -1,6 +1,8 @@
 import { and, asc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
+import { can } from '../auth/can.ts';
+import { lineupSeat, rowingSession } from '../db/schema.ts';
 import { similarNames } from '../../shared/names.ts';
 import type { Tx } from '../db/client.ts';
 import { rower } from '../db/schema.ts';
@@ -89,12 +91,65 @@ async function mergeRowers(tx: Tx, clubId: string, from: string, into: string): 
  */
 export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, done) => {
   const { db, guard } = opts;
+  const requireManager = async (
+    req: import('fastify').FastifyRequest,
+    reply: import('fastify').FastifyReply,
+  ) => {
+    const t = tenantOf(req);
+    return can(
+      { roles: t.roles, role: t.role ?? null, userId: t.userId },
+      { kind: 'manage_roster' },
+    )
+      ? undefined
+      : notFound(reply);
+  };
 
   app.addHook('onSend', async (_req, reply) => {
     void reply.header('cache-control', 'private, no-store');
   });
 
-  app.get('/api/rowers', { preHandler: guard }, async (req) => {
+  // A rower may see necessary crew names only within an accessible training, never the directory.
+  app.get('/api/sessions/:id/rowers', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!params.success) return notFound(reply);
+    const t = tenantOf(req);
+    const manager = can(
+      { roles: t.roles, role: t.role ?? null, userId: t.userId },
+      { kind: 'manage_roster' },
+    );
+    const rows = await withTenant(db, t, async (tx) => {
+      const [session] = await tx
+        .select({ id: rowingSession.id })
+        .from(rowingSession)
+        .where(eq(rowingSession.id, params.data.id));
+      if (session === undefined) return null;
+      const crew = tx
+        .select({ id: lineupSeat.rowerId })
+        .from(lineupSeat)
+        .where(eq(lineupSeat.sessionId, session.id));
+      return tx
+        .select({
+          id: rower.id,
+          displayName: rower.displayName,
+          archivedAt: rower.archivedAt,
+          userId: rower.userId,
+        })
+        .from(rower)
+        .where(manager ? isNull(rower.archivedAt) : inArray(rower.id, crew))
+        .orderBy(asc(rower.displayName));
+    });
+    return rows === null
+      ? notFound(reply)
+      : {
+          rowers: rows.map(({ userId, ...r }) => ({
+            ...r,
+            email: null,
+            mine: userId !== null && userId === t.userId,
+          })),
+        };
+  });
+
+  app.get('/api/rowers', { preHandler: [guard, requireManager] }, async (req) => {
     const query = listQuery.safeParse(req.query);
     const archived = query.success ? query.data.archived : undefined;
     const rows = await withTenant(db, tenantOf(req), (tx) =>
@@ -113,7 +168,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     return { rowers: rows };
   });
 
-  app.post('/api/rowers', { preHandler: guard }, async (req, reply) => {
+  app.post('/api/rowers', { preHandler: [guard, requireManager] }, async (req, reply) => {
     const body = newRower.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_rower' });
     const tenant = tenantOf(req);
@@ -142,7 +197,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     return reply.code(201).send(result.row);
   });
 
-  app.patch('/api/rowers/:id', { preHandler: guard }, async (req, reply) => {
+  app.patch('/api/rowers/:id', { preHandler: [guard, requireManager] }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
     const body = editRower.safeParse(req.body);
@@ -164,7 +219,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
   });
 
   /** Two entries for one person: keep `into`, move everything of `:id` to it, remove `:id`. */
-  app.post('/api/rowers/:id/merge', { preHandler: guard }, async (req, reply) => {
+  app.post('/api/rowers/:id/merge', { preHandler: [guard, requireManager] }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
     const body = mergeBody.safeParse(req.body);

@@ -1,10 +1,13 @@
 import { LANGUAGE_NAMES, LANGUAGES, setLanguage, useLanguage } from '../i18n/language.ts';
 
+import { saveOwnPreference, useOwnSettings } from '../settings/controller.ts';
+
 const legend = { nl: 'Taal', en: 'Language' };
 
 /** Nederlands / English for this device; each language named in its own words. */
 export function LanguageSwitch() {
   const language = useLanguage();
+  const settings = useOwnSettings();
 
   return (
     <fieldset className="theme-switch" data-testid="language-switch">
@@ -17,8 +20,10 @@ export function LanguageSwitch() {
             className="button--quiet"
             lang={option}
             aria-pressed={language === option}
+            disabled={settings.loading || settings.saving}
             onClick={() => {
-              setLanguage(option);
+              if (settings.userId !== null) void saveOwnPreference({ language: option });
+              else setLanguage(option);
             }}
           >
             {LANGUAGE_NAMES[option]}

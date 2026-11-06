@@ -1,9 +1,10 @@
+import { AccountPreferences } from '../settings/AccountPreferences.tsx';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { adminStrings } from '../admin/strings.ts';
 import { api } from '../api.ts';
 import { authStrings } from '../auth/strings.ts';
-import type { AuthState } from '../auth/useAuth.ts';
+import { type AuthState, forgetAuth, refreshAuth } from '../auth/useAuth.ts';
 import { rowerStrings } from '../rowers/strings.ts';
 import { sessionStrings } from '../sessions/strings.ts';
 import { Icon } from './icons.tsx';
@@ -28,6 +29,8 @@ export function AppHeader({
 
   const logout = () => {
     void api('/api/auth/logout', { method: 'POST' }).finally(() => {
+      forgetAuth();
+      refreshAuth();
       void navigate('/', { replace: true });
     });
   };
@@ -52,8 +55,12 @@ export function AppHeader({
           <NavLink to="/sessions" end={false}>
             {sessionStrings().sessions}
           </NavLink>
-          <NavLink to="/rowers">{rowerStrings().rowers}</NavLink>
-          {state.user.role === 'admin' && <NavLink to="/admin">{adminStrings().admin}</NavLink>}
+          {(state.user.roles.includes('coach') || state.user.roles.includes('admin')) && (
+            <NavLink to="/rowers">{rowerStrings().rowers}</NavLink>
+          )}
+          {state.user.roles.includes('admin') && (
+            <NavLink to="/admin">{adminStrings().admin}</NavLink>
+          )}
         </nav>
         <details className="account" data-testid="account-menu">
           <summary aria-label={t.account}>
@@ -74,6 +81,7 @@ export function AppHeader({
             />
             <LanguageSwitch />
             <ThemeSwitch />
+            <AccountPreferences />
             <button className="button--quiet" type="button" onClick={logoutOthers}>
               {t.logoutOthers}
             </button>

@@ -105,7 +105,7 @@ beforeAll(async () => {
   const [pilot] = await asOwner<{ id: string }>(`select id from club where slug = 'pilot'`);
   club = pilot?.id ?? '';
   await asOwner(
-    `insert into club_access (club_id, email, role) values ($1, $2, 'rower'), ($1, $3, 'rower')`,
+    `insert into club_access (club_id, email, roles) values ($1, $2, ARRAY['rower']), ($1, $3, ARRAY['rower'])`,
     [club, A, B],
   );
   // The coach puts A and B in the roster with their e-mail (that links them at login); C has none.
@@ -180,6 +180,36 @@ describe('what a rower sees (#40)', () => {
     expect((await send('GET', `/api/videos/${videoId}`, as.b)).statusCode).toBe(404);
     expect(await notes('b')).toBeNull();
     expect((await send('GET', `/api/videos/${videoId}`, as.a)).statusCode).toBe(200);
+  });
+
+  it('denies rower directory management while exposing only crew names in visible trainings', async () => {
+    for (const [method, path, body] of [
+      ['GET', '/api/rowers', undefined],
+      ['POST', '/api/rowers', { displayName: 'Blocked' }],
+      ['PATCH', `/api/rowers/${roster.a}`, { displayName: 'Blocked', archived: true }],
+      ['POST', `/api/rowers/${roster.a}/merge`, { into: roster.c }],
+    ] as const)
+      expect((await send(method, path, as.a, body)).statusCode).toBe(404);
+    const crew = await send('GET', `/api/sessions/${sessionId}/rowers`, as.a);
+    expect(crew.statusCode).toBe(200);
+    const rows = crew.json<{
+      rowers: { id: string; email: string | null; mine: boolean; userId?: string }[];
+    }>().rowers;
+    expect(rows.map((r) => r.id).sort()).toEqual([roster.a, roster.c].sort());
+    expect(rows.every((r) => r.email === null && r.userId === undefined)).toBe(true);
+    expect(rows.filter((r) => r.mine).map((r) => r.id)).toEqual([roster.a]);
+    expect((await send('GET', `/api/sessions/${sessionId}/rowers`, as.b)).statusCode).toBe(404);
+    const status = (await send('GET', '/api/auth/status', as.a)).json<{ user: { id: string } }>();
+    const context = { clubId: club, userId: status.user.id, roles: ['rower'] as const };
+    const updated = await withTenant(handle.db, context, (tx) =>
+      tx.execute(sql`update rower set display_name='Blocked' where id=${roster.a} returning id`),
+    );
+    expect(updated.rows).toEqual([]);
+    await expect(
+      withTenant(handle.db, context, (tx) =>
+        tx.execute(sql`insert into rower(club_id,display_name) values(${club},'Blocked')`),
+      ),
+    ).rejects.toThrow();
   });
 
   it('keeps notes private until they are assigned or shared', async () => {
@@ -433,8 +463,10 @@ describe('what a rower sees (#40)', () => {
       'moment_rower',
       'moment_rower_log',
       'moment_share',
+      'rower',
       'rowing_session',
       'stroke_mark',
+      'user_settings_audit',
       'video',
       'video_auto_boat_line',
       'video_boat_line',

@@ -66,7 +66,7 @@ const table: [string, Action, Record<keyof typeof viewers, boolean>][] = [
   ],
   ['share', { kind: 'share' }, { admin: true, coach: true, rower: true, pilot: true }],
   ['assign', { kind: 'assign' }, { admin: true, coach: true, rower: true, pilot: true }],
-  ['roster', { kind: 'manage_roster' }, { admin: true, coach: true, rower: true, pilot: true }],
+  ['roster', { kind: 'manage_roster' }, { admin: true, coach: true, rower: false, pilot: true }],
   ['lineup', { kind: 'manage_lineup' }, { admin: true, coach: true, rower: true, pilot: true }],
   ['upload', { kind: 'upload' }, { admin: true, coach: true, rower: true, pilot: true }],
 ];
@@ -89,4 +89,35 @@ describe('can', () => {
   it('only the admin (and the pilot path) sees the whole club', () => {
     expect(Object.values(viewers).map(seesAll)).toEqual([true, false, false, true]);
   });
+});
+
+for (const roles of [
+  ['rower'],
+  ['coach'],
+  ['admin'],
+  ['rower', 'coach'],
+  ['rower', 'admin'],
+  ['coach', 'admin'],
+  ['rower', 'coach', 'admin'],
+] as const) {
+  it(`combined permissions ${roles.join('+')}`, () => {
+    const viewer = { roles, userId: ME };
+    expect(can(viewer, { kind: 'manage_access' })).toBe(roles.some((r) => r === 'admin'));
+    expect(can(viewer, { kind: 'manage_roster' })).toBe(
+      roles.some((r) => r === 'coach' || r === 'admin'),
+    );
+    expect(can(viewer, { kind: 'mark_strokes' })).toBe(
+      roles.some((r) => r === 'coach' || r === 'admin'),
+    );
+  });
+}
+it('an authenticated empty role set is never the pilot/service context', () => {
+  const viewer = { roles: [], userId: ME };
+  expect(seesAll(viewer)).toBe(false);
+  expect(can(viewer, { kind: 'manage_access' })).toBe(false);
+  expect(can(viewer, { kind: 'manage_roster' })).toBe(false);
+  for (const [, action] of table) {
+    expect(can(viewer, action)).toBe(false);
+    expect(can({ roles: [], userId: null }, action)).toBe(false);
+  }
 });

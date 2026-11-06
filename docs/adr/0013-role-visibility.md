@@ -51,3 +51,15 @@ only for the admin (and for no role: the worker, the pilot path). A coach sees a
 terms as a rower (created it, in its lineup, a note for them) and, within it, every note, which they
 may change (`rowlens_coaches_video()`). Existing sessions have no maker: only the admin sees them
 until the admin gives them to a coach (`PATCH /api/sessions/:id/creator`, admin only).
+
+## Addendum 2026-11-06: additive role sets and the roster boundary (#151)
+
+ADR-0019 replaces the scalar role with non-empty validated role arrays. Capabilities add up;
+rower+coach retains coach rights. `app.roles` drives restrictive policies; an explicit service flag
+replaces the old implicit empty-role worker exception. An authenticated empty role set is denied.
+
+Ewout: "Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan
+niet zichtbaar". This supersedes rower roster management above. Rower-only users cannot open the
+standalone directory or create/edit/archive/merge roster entries. Client navigation and routes,
+API guards and restrictive roster policies enforce it. Needed crew names are scoped to an accessible
+training and omit e-mails; existing lineup, note assignment and sharing rights remain.

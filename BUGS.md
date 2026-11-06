@@ -2,6 +2,34 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-031] Saving a profile could discard unsaved role choices — medium
+**Location**: apps/web/src/client/admin/AccessPage.tsx (`AccessRow`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, combined role/profile form verification
+**Description**: A users-list refresh replaced role-array references and reset pending role checkboxes, including after saving that same person's profile.
+**Fix**: Keep an explicit role draft and its original expected-role snapshot until save/cancel/reload; list refreshes do not erase it. Browser test first failed on the unchecked Coach box, then passed after the fix; concurrent role changes return 409 while preserving the draft until an explicit reload.
+
+### [BUG-030] A transient focus-refresh failure could discard an open edit — medium
+**Location**: apps/web/src/client/auth/useAuth.ts (`refreshAuth`, `loadState`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, final review of focus synchronization
+**Description**: A failed/503 authentication refresh on window focus was treated as a closed login gate, unmounting an authenticated page and its draft even when the server had not rejected the session.
+**Fix**: Preserve the last confirmed authentication state on transport/server failures; explicit disabled/access-denied responses still clear access. Browser coverage simulates a 503 during an open profile draft and checks that an explicit session rejection still closes it.
+
+### [BUG-029] Expanded user settings overlapped Save on phones — medium
+**Location**: apps/web/src/client/styles.css (`.list__item.access > .access__settings`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, mobile browser verification of the new admin editor
+**Description**: Generic list-child flex/grid rules overrode the expanded editor's intended full width, allowing long controls to overlap its Save action.
+**Fix**: Give the expanded editor an explicit full-width flex row, single-column fields and constrained selects; keep row actions in a separate flex group. Verify real taps and document overflow on phone and low laptop windows.
+
+### [BUG-028] An open own-profile form could overwrite a newer admin edit — medium
+**Location**: apps/web/src/client/ui/ProfileForm.tsx, apps/web/src/server/api/profile.ts
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, inspection while implementing centralized admin settings
+**Description**: Local component state retained the old name/boat after a remote account update; saving the entire old form without a revision could replace the newer profile.
+**Fix**: Untouched forms use refreshed account values; a draft captures its revision and preserves edits across refreshes. Stale saves return 409 and require an inline reload. Preference writes are partial, revision checked and serialized separately; legacy own-profile requests remain compatible.
+
 ### [BUG-027] Expanded inline stroke editor could widen the phone table — low
 **Location**: apps/web/src/client/styles.css (`.strokes__table`)
 **Status**: fixed locally (codex/feat/85-inline-stroke-tools)

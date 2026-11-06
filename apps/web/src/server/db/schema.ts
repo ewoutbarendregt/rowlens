@@ -5,6 +5,7 @@ import {
   boolean,
   check,
   date,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -101,9 +102,24 @@ export const appUser = pgTable(
     lastName: text('last_name'),
     /** The boat a new session starts with; null: C4x+. */
     defaultBoatType: text('default_boat_type'),
+    language: text('language'),
+    theme: text('theme'),
+    notesVisible: boolean('notes_visible'),
+    noteHoldSeconds: doublePrecision('note_hold_seconds'),
+    driveMiddle: boolean('drive_middle'),
+    settingsRevision: integer('settings_revision').notNull().default(0),
+    settingsUpdatedAt: timestamp('settings_updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    check('app_user_language_check', sql`${t.language} is null or ${t.language} in ('nl','en')`),
+    check('app_user_theme_check', sql`${t.theme} is null or ${t.theme} in ('light','dark','hc')`),
+    check(
+      'app_user_hold_check',
+      sql`${t.noteHoldSeconds} is null or ${t.noteHoldSeconds} in (0.5,1,2)`,
+    ),
     check(
       'app_user_name_check',
       sql`(${t.firstName} is null or char_length(${t.firstName}) between 1 and 60) and (${t.lastName} is null or char_length(${t.lastName}) between 1 and 60)`,
@@ -127,13 +143,16 @@ export const membership = pgTable(
     userId: uuid('user_id')
       .notNull()
       .references(() => appUser.id, { onDelete: 'cascade' }),
-    role: text('role').notNull().default('coach'),
+    roles: text('roles')
+      .array()
+      .notNull()
+      .default(sql`ARRAY['coach']::text[]`),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     unique('membership_club_user_unique').on(t.clubId, t.userId),
     index('membership_user_idx').on(t.userId),
-    check('membership_role_check', sql`${t.role} in ('rower', 'coach', 'admin')`),
+    check('membership_roles_check', sql`rowlens_valid_roles(${t.roles})`),
     tenantPolicy('membership_tenant', t.clubId),
   ],
 ).enableRLS();
@@ -215,6 +234,14 @@ export const rower = pgTable(
     check('rower_name_check', sql`char_length(${t.displayName}) between 1 and 60`),
     check('rower_email_check', sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`),
     tenantPolicy('rower_tenant', t.clubId),
+    rolePolicy(
+      'rower_read',
+      'select',
+      sql`rowlens_roster_manager() or ${t.userId} = rowlens_user_id() or ${t.id} in (select rowlens_training_rower_ids())`,
+    ),
+    rolePolicy('rower_add', 'insert', sql`rowlens_roster_manager()`),
+    rolePolicy('rower_edit', 'update', sql`rowlens_roster_manager()`),
+    rolePolicy('rower_delete', 'delete', sql`rowlens_roster_manager()`),
   ],
 ).enableRLS();
 
@@ -786,14 +813,14 @@ export const clubAccess = pgTable(
       .notNull()
       .references(() => club.id),
     email: text('email').notNull(),
-    role: text('role').notNull(),
+    roles: text('roles').array().notNull(),
     addedByUserId: uuid('added_by_user_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     unique('club_access_club_email_unique').on(t.clubId, t.email),
-    check('club_access_role_check', sql`${t.role} in ('rower', 'coach', 'admin')`),
+    check('club_access_roles_check', sql`rowlens_valid_roles(${t.roles})`),
     check(
       'club_access_email_check',
       sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`,
@@ -815,11 +842,40 @@ export const clubAccessLog = pgTable(
     email: text('email').notNull(),
     action: clubAccessAction('action').notNull(),
     role: text('role'),
+    roles: text('roles').array(),
     byUserId: uuid('by_user_id'),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('club_access_log_club_at_idx').on(t.clubId, t.at),
     tenantPolicy('club_access_log_tenant', t.clubId),
+  ],
+).enableRLS();
+
+/** Append-only administrative account changes; global identity, tenant-scoped authority. */
+export const userSettingsAudit = pgTable(
+  'user_settings_audit',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    subjectUserId: uuid('subject_user_id').notNull(),
+    actorUserId: uuid('actor_user_id').notNull(),
+    changedKeys: text('changed_keys').array().notNull(),
+    roles: text('roles').array(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('user_settings_audit_club_at_idx').on(t.clubId, t.at),
+    tenantPolicy('user_settings_audit_tenant', t.clubId),
+    rolePolicy('user_settings_audit_read', 'select', sql`rowlens_has_role('admin')`),
+    rolePolicy(
+      'user_settings_audit_add',
+      'insert',
+      sql`rowlens_has_role('admin') and ${t.actorUserId} = rowlens_user_id() and exists (select 1 from membership m where m.club_id = ${t.clubId} and m.user_id = ${t.subjectUserId})`,
+    ),
+    rolePolicy('user_settings_audit_edit', 'update', sql`false`),
+    rolePolicy('user_settings_audit_delete', 'delete', sql`false`),
   ],
 ).enableRLS();

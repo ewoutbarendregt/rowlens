@@ -50,7 +50,7 @@ export function App() {
       <Route
         path="rowers"
         element={
-          <RequireAuth>
+          <RequireAuth role="roster">
             <RowersPage />
           </RequireAuth>
         }

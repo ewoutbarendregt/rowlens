@@ -111,7 +111,7 @@ async function entries(cookies = admin) {
 }
 
 async function admit(email: string, role: string, cookies = admin) {
-  return send('POST', '/api/admin/access', cookies, { email, role });
+  return send('POST', '/api/admin/access', cookies, { email, roles: [role] });
 }
 
 describe('admins admit people (#42)', () => {
@@ -154,7 +154,7 @@ describe('admins admit people (#42)', () => {
     const cookies = await signIn(coach);
     const id = (await entries()).find((e) => e.email === coach)?.id ?? '';
     expect(
-      (await send('PATCH', `/api/admin/access/${id}`, admin, { role: 'admin' })).statusCode,
+      (await send('PATCH', `/api/admin/access/${id}`, admin, { roles: ['admin'] })).statusCode,
     ).toBe(204);
     expect(await roleOf(cookies)).toBe('admin');
     expect((await send('GET', '/api/admin/access', cookies)).statusCode).toBe(200);
@@ -182,7 +182,7 @@ describe('admins admit people (#42)', () => {
     });
     expect(
       (
-        await send('PATCH', `/api/admin/access/${secondId}`, secondCookies, { role: 'rower' })
+        await send('PATCH', `/api/admin/access/${secondId}`, secondCookies, { roles: ['rower'] })
       ).json(),
     ).toEqual({ error: 'self' });
     // The server admin always remains, so the app admin can be removed by the server admin.
@@ -207,7 +207,7 @@ describe('admins admit people (#42)', () => {
             method,
             path,
             cookies,
-            method === 'GET' ? undefined : { role: 'admin', email: coach },
+            method === 'GET' ? undefined : { roles: ['admin'], email: coach },
           )
         ).statusCode,
       ).toBe(404);
@@ -219,7 +219,7 @@ describe('admins admit people (#42)', () => {
     const logged = fresh('logged');
     await admit(logged, 'rower');
     const id = (await entries()).find((e) => e.email === logged)?.id ?? '';
-    await send('PATCH', `/api/admin/access/${id}`, admin, { role: 'coach' });
+    await send('PATCH', `/api/admin/access/${id}`, admin, { roles: ['coach'] });
     await send('DELETE', `/api/admin/access/${id}`, admin);
     const rows = await asOwner<{ action: string; role: string | null; by_user_id: string | null }>(
       `select action, role, by_user_id from club_access_log where email = $1 order by at`,
@@ -239,12 +239,12 @@ describe('admins admit people (#42)', () => {
     );
     const theirs = fresh('theirs');
     const [row] = await asOwner<{ id: string }>(
-      `insert into club_access (club_id, email, role) values ($1, $2, 'admin') returning id`,
+      `insert into club_access (club_id, email, roles) values ($1, $2, ARRAY['admin']) returning id`,
       [other?.id, theirs],
     );
     expect((await entries()).some((e) => e.email === theirs)).toBe(false);
     expect(
-      (await send('PATCH', `/api/admin/access/${row?.id ?? ''}`, admin, { role: 'rower' }))
+      (await send('PATCH', `/api/admin/access/${row?.id ?? ''}`, admin, { roles: ['rower'] }))
         .statusCode,
     ).toBe(404);
     expect((await send('DELETE', `/api/admin/access/${row?.id ?? ''}`, admin)).statusCode).toBe(

@@ -11,20 +11,19 @@ import { withTenant } from '../db/tenant.ts';
 import { hmac, newCode, newToken, safeEqual, sha256 } from './crypto.ts';
 import type { DeliverLoginCode } from './mail.ts';
 
-export type Role = 'rower' | 'coach' | 'admin';
+export type { Role } from '../../shared/roles.ts';
+import { primaryRole, rolesSchema, type Role } from '../../shared/roles.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
     tenant: TenantContext | null;
     /** The member's role in the club; null on the pilot-code path, which has no user. */
     role: Role | null;
+    roles: Role[] | null;
     /** The signed-in account's own name; null on the pilot-code path. */
     accountName: string | null;
   }
 }
-
-const asRole = (value: unknown): Role | null =>
-  value === 'rower' || value === 'coach' || value === 'admin' ? value : null;
 
 const SESSION_DAYS = 30;
 const CODE_MINUTES = 10;
@@ -56,7 +55,7 @@ interface Identity {
 interface SessionIdentity extends Identity {
   sessionId: string;
   csrfHash: string;
-  role: Role;
+  roles: Role[];
 }
 
 export interface AuthGate {
@@ -99,30 +98,38 @@ export function createAuthGate(opts: {
    * Who may log in, and as what (#42): server admins are always admin; otherwise the app's access
    * list decides; the server's coach list is the fallback. Anyone else gets nothing.
    */
-  const roleFor = async (email: string): Promise<Role | null> => {
+  const rolesFor = async (email: string): Promise<Role[] | null> => {
     const auth = opts.auth;
     if (auth === null) return null;
-    if (auth.adminEmails.has(email)) return 'admin';
-    const result = await opts.db.execute<{ role: string | null }>(
-      sql`select rowlens_auth_access(${email}, ${auth.clubSlug}) as role`,
+    const result = await opts.db.execute<{ roles: string[] | null }>(
+      sql`select rowlens_auth_access(${email}, ${auth.clubSlug}) as roles`,
     );
-    const listed = asRole(result.rows[0]?.role);
-    if (listed !== null) return listed;
-    return auth.allowedEmails.has(email) ? 'coach' : null;
+    const listed = result.rows[0]?.roles;
+    const assigned = listed ?? (auth.allowedEmails.has(email) ? ['coach'] : []);
+    const parsed = rolesSchema.safeParse(
+      auth.adminEmails.has(email) ? [...new Set([...assigned, 'admin'])] : assigned,
+    );
+    return parsed.success ? parsed.data : null;
   };
 
   const identityFor = async (email: string, ensure: boolean, locale: 'nl' | 'en') => {
     if (opts.auth === null) return null;
-    const role = await roleFor(email);
-    if (role === null) return null;
+    const roles = await rolesFor(email);
+    if (roles === null) return null;
     const name =
       email
         .slice(0, email.indexOf('@'))
         .replace(/[._-]+/g, ' ')
         .trim() || 'Roeier';
+    const serverRoles = opts.auth.adminEmails.has(email)
+      ? ['admin']
+      : opts.auth.allowedEmails.has(email)
+        ? ['coach']
+        : [];
+    const serverRoleArray = `{${serverRoles.join(',')}}`;
     const query = ensure
-      ? sql`select * from rowlens_auth_ensure_user(${email}, ${name}, ${locale}, ${opts.auth.clubSlug}, ${role})`
-      : sql`select * from rowlens_auth_identity(${email})`;
+      ? sql`select * from rowlens_auth_ensure_user(${email}, ${name}, ${locale}, ${opts.auth.clubSlug}, ${serverRoleArray}::text[])`
+      : sql`select * from rowlens_auth_identity_for_club(${email}, ${opts.auth.clubSlug})`;
     const result = await opts.db.execute<{
       user_id: string;
       club_id: string;
@@ -162,14 +169,14 @@ export function createAuthGate(opts: {
       email: string;
       display_name: string;
       locale: string;
-      role: string;
+      roles: string[];
     }>(sql`select * from rowlens_auth_session(${sha256(token)})`);
     const row = result.rows[0];
-    const role = asRole(row?.role);
-    return row === undefined || role === null
+    const parsed = rolesSchema.safeParse(row?.roles);
+    return row === undefined || !parsed.success
       ? null
       : {
-          role,
+          roles: parsed.data,
           sessionId: row.session_id,
           userId: row.user_id,
           clubId: row.club_id,
@@ -236,7 +243,9 @@ export function createAuthGate(opts: {
           email: session.email,
           displayName: session.displayName,
           locale: session.locale,
-          role: session.role,
+          id: session.userId,
+          roles: session.roles,
+          role: primaryRole(session.roles),
           linked: (linked.rows[0]?.n ?? 0) > 0,
           authorName,
           firstName: own?.first_name ?? null,
@@ -395,8 +404,9 @@ export function createAuthGate(opts: {
       return reply;
     }
     if (!validCsrf(req, session)) return reply.code(403).send({ error: 'invalid_csrf' });
-    req.tenant = { clubId: session.clubId, userId: session.userId, role: session.role };
-    req.role = session.role;
+    req.tenant = { clubId: session.clubId, userId: session.userId, roles: session.roles };
+    req.roles = session.roles;
+    req.role = primaryRole(session.roles);
     req.accountName = session.displayName;
     setSessionCookies(
       reply,

@@ -45,7 +45,12 @@ export const strokeRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     const body = markBody.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_mark' });
     const tenant = tenantOf(req);
-    if (!can({ role: tenant.role ?? null, userId: tenant.userId }, { kind: 'mark_strokes' })) {
+    if (
+      !can(
+        { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId },
+        { kind: 'mark_strokes' },
+      )
+    ) {
       return reply.code(403).send({ error: 'forbidden' });
     }
     const result = await withTenant(db, tenant, async (tx) => {
@@ -83,7 +88,12 @@ export const strokeRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     const params = frameParams.safeParse(req.params);
     if (!params.success) return notFound(reply);
     const tenant = tenantOf(req);
-    if (!can({ role: tenant.role ?? null, userId: tenant.userId }, { kind: 'mark_strokes' })) {
+    if (
+      !can(
+        { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId },
+        { kind: 'mark_strokes' },
+      )
+    ) {
       return reply.code(403).send({ error: 'forbidden' });
     }
     const gone = await withTenant(db, tenant, (tx) =>

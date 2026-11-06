@@ -2,6 +2,34 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Implement central admin settings and additive roles (#151)
+
+**Session**: codex/feat/151-admin-user-settings
+**Changed**: apps/web/src/shared/{roles,user-settings}.ts, apps/web/src/server/{auth,api,db,repositories}, apps/web/src/client/{admin,auth,settings,ui,sessions,rowers,lineup}, apps/web/e2e/{admin,share,user-settings}.spec.ts, worker/src/rowlens_worker/db.py, docs/adr/0019-user-settings-and-role-sets.md, docs/adr/{0013,0015,README}.md, docs/plans/151-admin-user-settings.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Implemented the approved one-account/multiple-role architecture: central profile/preferences, current-club admin editing and audited role sets, explicit legacy import, revision/response ownership safeguards and rower-only navigation/API/RLS restrictions. Existing scalar roles/live sessions survive migration; invitation/test URLs use the shared base-path builders; transient focus-refresh failures preserve open edits while explicit session rejection still clears access; unsaved role choices and their original conflict snapshot survive profile/list refreshes; 492 web/DB tests, 50 worker tests, full local 47/edge 38 E2E passes and 30 local/edge phone/low-laptop matrix cases pass; PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open; production remains sha-e5960c7 with no merge/deploy authorization for this feature.
+**Prompts used**: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen"; "Er is maar 1 register van gebruikers. Een gebruiker kan verschillende rollen hebben: roeier, coach, beheerder"; "Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan niet zichtbaar"; "Ok voer maar uit".
+
+## 2026-11-06 — Specify the rower-only navigation and roster boundary
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Added Ewout's rule that rower-only users see Trainings and their own settings, with no Rowers tab or direct standalone roster access; combined roles retain separately granted coach/admin rights. Recorded the existing unconditional navigation/auth-only roster paths and planned route/API/RLS tests, preserving scoped crew information inside accessible trainings; application/production remain unchanged pending the overall architecture approval.
+**Prompts used**: "Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan niet zichtbaar".
+
+## 2026-11-06 — Clarify one central user register with multiple roles
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Updated #151 to keep one central account/profile/settings set while allowing simultaneous rower, coach and admin roles. The current scalar role needs a coordinated auth/API/client/RLS migration; the revised proposal extends app_user preferences, uses role sets and one scoped audit table, with no application or production changes before architectural approval.
+**Prompts used**: "Er is maar 1 register van gebruikers. Een gebruiker kan verschillende rollen hebben: roeier, coach, beheerder".
+
+## 2026-11-06 — Inventory admin user settings and propose centralized preferences
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inventoried the existing admin access, own-profile SQL functions and five browser-only preferences, and opened #151 with a concrete proposal for tenant-scoped settings, audited admin edits and safe device-choice import. Implementation requires new tables/migration and protected profile operations, so it awaits architectural approval under AGENTS.md; no application or production changes.
+**Prompts used**: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen".
+
 ## 2026-11-06 — Inline per-moment deletion and quick catch/finish tools
 
 **Session**: codex/feat/85-inline-stroke-tools

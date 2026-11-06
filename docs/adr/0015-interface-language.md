@@ -31,3 +31,10 @@ may follow.** Issue #34 had planned "browser language, else Dutch"; this replace
 - The choice is per device, not per account (no extra column, works before login). If people ask to
   carry it across devices, it can move to the account later.
 - Still open in #34: one catalog format (i18next) and a lint rule against hard-coded strings.
+
+## Addendum 2026-11-06: account preference after login (#151)
+
+ADR-0019 moves the signed-in language/theme/video choices to the existing central account. Login
+language and OTP mail still follow the anonymous device choice. Uninitialized server fields may
+use a device fallback, but importing those unowned legacy choices requires explicit confirmation
+and cannot overwrite a saved server value. No app/player remount is introduced.

@@ -25,7 +25,7 @@ const renameBody = z.object({ title });
 type Member = {
   user_id: string;
   email: string;
-  role: string;
+  roles: string[];
   first_name: string | null;
   last_name: string | null;
 };
@@ -33,7 +33,7 @@ type Member = {
 /** This club's members by user id (rowlens_club_members only sees the current club). */
 async function members(tx: Tx) {
   const result = await tx.execute<Member>(
-    sql`select user_id, email, role, first_name, last_name from rowlens_club_members()`,
+    sql`select user_id, email, roles, first_name, last_name from rowlens_club_members()`,
   );
   return new Map(result.rows.map((m) => [m.user_id, m]));
 }
@@ -132,7 +132,10 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
   app.patch('/api/sessions/:id/creator', { preHandler: guard }, async (req, reply) => {
     const tenant = tenantOf(req);
     if (
-      !can({ role: tenant.role ?? null, userId: tenant.userId }, { kind: 'assign_session_creator' })
+      !can(
+        { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId },
+        { kind: 'assign_session_creator' },
+      )
     ) {
       return notFound(reply);
     }
@@ -216,17 +219,17 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         .orderBy(video.createdAt);
       const { createdByUserId, ...rest } = session;
       const club = await members(tx);
-      const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+      const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
       // Only the admin sees and sets who made it (and the coaches to choose from).
       const admin = can(
-        { role: tenant.role ?? null, userId: tenant.userId },
+        { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId },
         { kind: 'assign_session_creator' },
       );
       const creator = admin
         ? {
             creatorUserId: createdByUserId,
             coaches: [...club.values()]
-              .filter((m) => m.role !== 'rower')
+              .filter((m) => m.roles.includes('coach') || m.roles.includes('admin'))
               .map((m) => ({ userId: m.user_id, email: m.email }))
               .sort((a, b) => a.email.localeCompare(b.email)),
           }
@@ -256,7 +259,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
       if (session === undefined) return 'not_found' as const;
-      const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+      const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
       if (!can(viewer, { kind: 'rename_session', createdByUserId: session.createdByUserId })) {
         return 'forbidden' as const;
       }

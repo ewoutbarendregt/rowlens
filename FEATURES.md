@@ -82,3 +82,16 @@ Club self-onboarding · side-by-side comparison · trends · goals · more langu
 
 - Inline per-row moment selection replaces the separate removal section; no whole-stroke deletion.
 - ↓ Catch / ↑ Finish frame tools above the video, including phone/fullscreen, are implemented locally for review.
+
+## Admin user settings (#151)
+
+Approved 2026-11-06 and implemented locally (ADR-0019): one central account/profile/preferences set;
+all seven non-empty rower/coach/admin combinations. Admin → Users searches the current club's
+accounts and edits profile, roles and all five display/video preferences. Never-signed-in access
+grants show their account status. E-mail remains a read-only login identity.
+
+Rower-only users see Trainings and own settings; the standalone Rowers route/directory and roster
+writes are denied by API guards and RLS. Training-scoped crew names remain available. Coach/admin
+capabilities are additive. Account preferences synchronize across devices; explicit legacy import
+fills only uninitialized fields, revisions prevent stale overwrites, and administrative edits are
+audited atomically. Local checks pass, including full local/edge E2E and the iPhone WebKit/1000×540 matrix. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open; not merged or deployed.
