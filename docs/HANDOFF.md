@@ -8,6 +8,9 @@ newest-first detailed log. Update this file at the end of a session.
 - Current branch: `codex/docs/151-user-settings-plan`; proposal/logs only, based on main `e5960c7`.
 - Ewout clarified: one central user register and one profile/settings set per person; multiple
   simultaneous roles (rower, coach, admin), e.g. rower+coach. The current scalar role is insufficient.
+- Rower-only users see Trainings and own settings: hide Rowers and guard direct route/general
+  roster API and DB writes. Preserve scoped crew lookups within visible trainings. With combined
+  roles, rower+coach retains coach rights; admin grants remain additive. Proposal updated, not code.
 - Ewout requests all existing user settings visible/editable by admin. Five preferences are only
   in the browser today; full remote administration needs centralized storage. Profile reads/writes
   also need new guarded SQL functions; current ones reach only the signed-in user's own account.

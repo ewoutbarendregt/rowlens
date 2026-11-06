@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Specify the rower-only navigation and roster boundary
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Added Ewout's rule that rower-only users see Trainings and their own settings, with no Rowers tab or direct standalone roster access; combined roles retain separately granted coach/admin rights. Recorded the existing unconditional navigation/auth-only roster paths and planned route/API/RLS tests, preserving scoped crew information inside accessible trainings; application/production remain unchanged pending the overall architecture approval.
+**Prompts used**: "Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan niet zichtbaar".
+
 ## 2026-11-06 — Clarify one central user register with multiple roles
 
 **Session**: codex/docs/151-user-settings-plan

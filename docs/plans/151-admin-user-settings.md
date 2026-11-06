@@ -56,6 +56,35 @@ other unimplemented features are not existing settings and are outside this chan
 - Remote changes apply on the member's next settings refresh/reload/focus synchronization, without
   remounting the app or interrupting drawings/uploads. There is no impersonation or forced login.
 
+## Rower navigation and roster boundary (Ewout, 2026-11-06)
+
+"Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan niet
+zichtbaar".
+
+| Assigned roles | Navigation / settings | Standalone Rowers directory |
+|---|---|---|
+| Rower only | Trainings and own account settings | Hidden; direct route and general roster-management requests denied |
+| Coach (including Rower + Coach) | Trainings, Rowers and own account settings | Available with coach rights |
+| Admin (with any other assigned roles) | Trainings, Rowers, Admin and own account settings | Available with admin rights |
+
+This follows the previously specified additive role model: a rower+coach retains coach rights;
+having the rower box selected does not remove a separately granted capability. Preferences remain
+on the same central user account regardless of role combination.
+
+Hiding the link is insufficient. Guard `/rowers` on the client and the general roster directory
+and management APIs on the server; apply corresponding tenant/role DB restrictions. Rower-only
+accounts must not retrieve the full club directory, e-mail addresses or write/merge/archive roster
+entries through direct requests. Never permit another user's settings updates from that role.
+
+Keep existing permitted interactions inside visible trainings (their normal visibility/ownership
+rules still apply). Any crew-name lookup needed by a training must be scoped to that visible
+training and return only necessary fields, rather than reusing an unrestricted roster endpoint.
+
+Current implementation is broader: AppHeader always renders Rowers, the client route requires only
+login, roster routes use the auth guard and `can(manage_roster)` permits all roles. This request
+supersedes the roster-management part of the old ADR-0013 decision when implemented; record the
+accepted change there along with the role-set migration.
+
 ## Proposed persistence and authorization
 
 One migration, no new dependency and no second user register:
@@ -132,7 +161,9 @@ remain effective; a generic settings body cannot change them.
 2. Add API/DB tests first: non-admin/anonymous/pilot refusals, other-club enumeration/write refusal,
    invalid values, stale revisions, audit atomicity/immutability and membership eligibility. Cover
    all seven non-empty role combinations, role removal without losing other roles, singleton
-   backfill, last-admin concurrency and rejection of empty/unknown/duplicate roles.
+   backfill, last-admin concurrency and rejection of empty/unknown/duplicate roles. Rower-only
+   tests cover absent Rowers/Admin navigation, direct-route/API refusals, DB write refusals, own
+   settings access and scoped training crew lookups; combined-role tests preserve coach/admin access.
 3. Add the self-settings sync and update current profile/display/video controls; retain safe login
    defaults and current working upload/player/drawing state.
 4. Extend Admin user UI in NL/EN, with 44 px controls and explicit Save/Cancel/error handling.

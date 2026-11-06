@@ -89,3 +89,7 @@ Requested 2026-11-06: one central user register/profile/settings set per person;
 multiple roles (rower, coach, admin) simultaneously. Admin can inspect/edit profile, role sets/access
 and all five display/video preferences. Inventory and updated proposal complete; new centralized persistence/migration awaiting Ewout's
 approval. No functional implementation yet; see docs/plans/151-admin-user-settings.md.
+
+#151 navigation clarification: rower-only users see Trainings and own settings; Rowers is hidden
+and unavailable through a direct route/general roster API. Combined rower+coach/admin roles retain
+the separately granted elevated rights. Specified in the proposal; not implemented yet.
