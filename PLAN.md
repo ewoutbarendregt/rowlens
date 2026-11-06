@@ -50,11 +50,11 @@ analysis of rowing technique.
 ## Admin user settings (#151, approved 2026-11-06)
 
 Ewout requests inspection/editing of all existing user settings. The inventory includes profile,
-multiple simultaneous roles/access and five currently device-local preferences. One central user
+multiple simultaneous roles/access and five formerly device-local preferences. One central user
 register/profile/settings set per person (Ewout's clarification); role combinations grant permissions.
 Rower-only users see Trainings and their own settings, without Rowers navigation or standalone
 roster access; rower+coach retains coach rights. See
-[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Local/edge checks and the phone/laptop regression matrix pass; PR review is next. Production remains unchanged.
+[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Deployed as `sha-b000ca4` via [PR #152](https://github.com/ewoutbarendregt/rowlens/pull/152) on 2026-11-06: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Local/edge checks, the phone/laptop regression matrix and main CI pass; production verification confirms 19 migrations and retained accounts/sessions.
 
 ## Out of scope (for now)
 
