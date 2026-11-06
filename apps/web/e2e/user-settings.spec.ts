@@ -1,24 +1,25 @@
 import { expect, test, type Page } from '@playwright/test';
+import { withBasePath } from '../src/shared/base-path.ts';
 import { adminEmail, authEmail } from './env.ts';
 import { signIn, signOut, openNewSession } from './helpers.ts';
 import type { UserSettings } from '../src/shared/user-settings.ts';
 
 async function mutation(page: Page, path: string, method: string, body: unknown) {
   return page.evaluate(
-    async ({ path, method, body }) => {
+    async ({ url, method, body }) => {
       const csrf =
         document.cookie
           .split('; ')
           .find((c) => c.startsWith('rowlens_csrf='))
           ?.split('=')[1] ?? '';
-      const response = await fetch(`/projects/rowlens${path}`, {
+      const response = await fetch(url, {
         method,
         headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
         body: JSON.stringify(body),
       });
       return response.status;
     },
-    { path, method, body },
+    { url: withBasePath('/projects/rowlens', path), method, body },
   );
 }
 const settings = async (page: Page) =>

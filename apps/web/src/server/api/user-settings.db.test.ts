@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { withBasePath } from '../../shared/base-path.ts';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
 import { sql } from 'drizzle-orm';
@@ -34,7 +35,7 @@ function send(
   ip++;
   return app.inject({
     method,
-    url: BASE + path,
+    url: withBasePath(BASE, path),
     headers: {
       origin: ORIGIN,
       'sec-fetch-site': 'same-origin',

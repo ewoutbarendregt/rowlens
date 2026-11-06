@@ -1,6 +1,7 @@
 import { and, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import { absoluteUrl } from '../../shared/base-path.ts';
 import { primaryRole, rolesSchema, type Role } from '../../shared/roles.ts';
 import type { DeliverInvite } from '../auth/mail.ts';
 import type { AppConfig } from '../config.ts';
@@ -174,7 +175,7 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
         await opts.deliverInvite({
           email: address,
           clubName: result.clubName,
-          loginUrl: `${opts.publicOrigin}${opts.basePath}/`,
+          loginUrl: absoluteUrl(opts.publicOrigin, opts.basePath, '/'),
         });
         invited = true;
       } catch (error) {

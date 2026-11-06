@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { withBasePath } from '../../shared/base-path.ts';
 import { expect, inject, it } from 'vitest';
 import { buildApp } from '../app.ts';
 import { loadConfig } from '../config.ts';
@@ -39,7 +40,7 @@ it('serializes mutually competing admin demotions and rechecks the waiting actor
   const send = (path: string, cookie: string, body: unknown) =>
     app.inject({
       method: 'POST',
-      url: `/projects/rowlens${path}`,
+      url: withBasePath('/projects/rowlens', path),
       headers: {
         origin: 'https://trustable.nl',
         'x-forwarded-for': `192.0.2.${String(++ip)}`,
@@ -61,7 +62,10 @@ it('serializes mutually competing admin demotions and rechecks the waiting actor
     const demote = (cookie: string, email: string) =>
       app.inject({
         method: 'PATCH',
-        url: `/projects/rowlens/api/admin/access/${grants.find((g) => g.email === email)?.id ?? ''}`,
+        url: withBasePath(
+          '/projects/rowlens',
+          `/api/admin/access/${grants.find((g) => g.email === email)?.id ?? ''}`,
+        ),
         headers: {
           origin: 'https://trustable.nl',
           'sec-fetch-site': 'same-origin',
