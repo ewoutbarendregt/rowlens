@@ -54,7 +54,7 @@ multiple simultaneous roles/access and five currently device-local preferences. 
 register/profile/settings set per person (Ewout's clarification); role combinations grant permissions.
 Rower-only users see Trainings and their own settings, without Rowers navigation or standalone
 roster access; rower+coach retains coach rights. See
-[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Complete the browser matrix and PR checks before review; production remains unchanged.
+[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Local/edge checks and the phone/laptop regression matrix pass; PR review is next. Production remains unchanged.
 
 ## Out of scope (for now)
 

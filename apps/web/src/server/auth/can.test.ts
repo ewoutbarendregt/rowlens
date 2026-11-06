@@ -116,4 +116,8 @@ it('an authenticated empty role set is never the pilot/service context', () => {
   expect(seesAll(viewer)).toBe(false);
   expect(can(viewer, { kind: 'manage_access' })).toBe(false);
   expect(can(viewer, { kind: 'manage_roster' })).toBe(false);
+  for (const [, action] of table) {
+    expect(can(viewer, action)).toBe(false);
+    expect(can({ roles: [], userId: null }, action)).toBe(false);
+  }
 });

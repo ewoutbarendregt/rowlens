@@ -17,11 +17,13 @@ newest-first detailed log. Update this file at the end of a session.
 - Client account caches are isolated; late responses are ignored, legacy device import requires
   confirmation and fills only null fields. Focus/reload sync does not remount the player. Open
   profile/admin drafts cannot silently overwrite newer changes. ADR-0019 records the decision.
-- Verification is in progress; backend/worker/deploy-script checks passed, phone/laptop/edge browser
-  matrices are being finalized. See TEST.md / latest DOCUMENTATION entry for exact final results.
+- Verification: 492 web/DB + 50 worker tests, format/lint/typecheck/build, 77 deploy-script tests and
+  Docker rehearsal pass. Full local E2E: 47 passed/49 skipped; full edge: 38 passed/10 skipped.
+  Local low-laptop/iPhone settings matrix: 6/6; edge regression matrix: 24/24 (settings, playback,
+  angles/drawing, stroke controls). Screenshots inspected; 44 px controls and no document overflow.
+  Separate output paths avoid Playwright trace collisions. PR/CI details follow when opened.
 - Production stays `sha-e5960c7` (deploy 42195631449). Separate log PRs #148/#150 and the local
-  OWASP review branch remain separate. Local dev :5174 is migrated and running; edge is on for tests
-  and must be stopped at completion. Oar arc/stern camera remain deferred.
+  OWASP review branch remain separate. Local dev :5174 is migrated and running (19 migrations); edge is stopped after tests. Oar arc/stern camera remain deferred.
 
 ## Inline stroke controls — 2026-11-06
 
