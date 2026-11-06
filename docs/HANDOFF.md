@@ -14,17 +14,23 @@ newest-first detailed log. Update this file at the end of a session.
 - Migration 0019 (20 total locally) separates read/write RLS. APIs return resource capabilities and
   pre-authorize media effects under a parent lock with a fresh ownership recheck after lock waits.
   BUG-032 regression reproduces a concurrent creator-transfer/upload race, then passes after fix.
-- PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) is open; final compatibility fix is
-  being verified after the earlier successful full runs. The prior head 5e3dc8a passed CI; do not
-  confuse that result with the new working changes. No merge/deploy authorization.
-- BUG-034: deployment migrates while the old web image is still serving. New `withTenant` uses a
-  fixed `app.training_permissions=owner-or-staff`; migration 0019 preserves old read/write semantics
-  for missing context (old image/rollback) and denies unknown modes. No extra migration/table/dependency.
-  Focused permission tests now 30/30; Drizzle generation reports no differences. Full rechecks pending.
-- Local dev's already-applied 0019 helpers/policies are updated non-destructively, retaining data
-  and 20 migration records; edge bootstraps the revised artifact on a fresh local test database.
-  Dev :5174/API :3100 stays available. Edge is running
-  for compatibility regression tests; stop it after the final suite. Prior checks are recorded below.
+- Ready in PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155). Final code is 44b4062 plus
+  verification documentation; check current CI on the PR. No merge/deploy authorization.
+- BUG-034 compatibility is included in the same migration: new `withTenant` transactions set fixed
+  `app.training_permissions=owner-or-staff`. Absent context keeps the prior role-set-aware image's
+  aligned legacy read/write scope during upgrade/authorized rollback; unknown modes deny training
+  access. No second migration/table/dependency, server reconfiguration or coordinated stop is needed.
+  Scalar-role images remain incompatible with ADR-0019. Legacy/new contract tests pass together.
+- Final verification after that change: 522 web/DB (30 new permission cases), 50 worker with Ruff/mypy,
+  format/lint/typecheck/build, schema-generation consistency, 77 deploy-script tests and repeated
+  real local deploy/rollback rehearsal pass. Full local E2E 49 passed/49 skipped; full edge 39 passed/
+  10 skipped. Local phone/1000×540 matrix 6/6; edge matrix 14/14 (permissions/live roles/private
+  feedback, angle measurements, line movement, 0.25×/0.5×, pause and inline stroke tools).
+  Screenshots inspected; no document overflow. Earlier diagnostic runs are retained in TEST.md.
+- Local dev :5174/API :3100 is healthy with 20 migrations. Its already-applied 0019 helpers/policy
+  were updated non-destructively with data retained; edge bootstrapped the revised migration on a
+  fresh test database and is stopped after verification. No local check is running; dev stays on.
+  Next: Ewout tries the local stack. Merge/deploy require new explicit requests.
 - Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
   19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
   older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization

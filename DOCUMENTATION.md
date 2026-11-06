@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Finish upgrade-compatible training permissions (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: TEST.md, BUGS.md, docs/HANDOFF.md, docs/plans/154-club-training-readonly.md, docs/adr/0020-club-training-permissions.md, DOCUMENTATION.md
+**Summary**: Final implementation in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) passes 522 web/DB tests (30 new permission cases), 50 worker tests, format/lint/typecheck/build, schema-generation consistency, 77 deploy-script tests and the repeated real local deploy/rollback rehearsal. After the compatibility fix, full local E2E again passes 49 (49 skipped), full edge 39 (10 skipped), local iPhone WebKit/1000×540 6/6 and edge 14/14; screenshots reviewed. Local dev is healthy with 20 migrations, edge is stopped, and CI status is on the PR. Production remains sha-b000ca4; no merge/deployment for #154.
+**Prompts used**: "voer het plan uit".
+
 ## 2026-11-06 — Keep the permission migration compatible with the prior web image (#154)
 
 **Session**: codex/feat/154-club-training-readonly

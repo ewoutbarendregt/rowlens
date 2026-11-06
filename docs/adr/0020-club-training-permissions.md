@@ -36,7 +36,8 @@ club-wide reads and owner/staff writes. Missing context retains the old image's 
 read/write scope during upgrade and authorized rollback; unrecognized values fail closed for
 training access. Existing worker/service processing works in either mode. The session SELECT
 policy uses row columns directly, preserving INSERT RETURNING visibility for newly created rows.
-No second migration, configuration flag or coordinated server stop is needed.
+No second migration, configuration flag or coordinated server stop is needed. Older scalar-role
+images remain unsupported by the role-array schema (ADR-0019).
 
 API metadata returns current resource capabilities. Read-only pages show playback, stepping, speed,
 zoom, crew and permitted feedback; they omit forms, drawing tools, upload/deletion and sharing edits.
