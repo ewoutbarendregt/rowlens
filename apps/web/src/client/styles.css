@@ -3315,3 +3315,96 @@ a.list__item {
 .lineup-fold [data-testid='lineup'] > h2 {
   display: none;
 }
+
+/* Account settings remain usable with touch and in narrow windows. */
+.role-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0;
+}
+.role-choices label,
+.account-preferences label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+}
+.role-choices input,
+.account-preferences input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+.access__identity {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.access__identity .badge {
+  margin-inline-end: 0.3rem;
+}
+.access__settings {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.admin-settings {
+  margin-top: 1rem;
+  max-width: 36rem;
+}
+.admin-settings label {
+  display: grid;
+  gap: 0.25rem;
+}
+.admin-settings input,
+.admin-settings select,
+.account-preferences select {
+  min-height: 44px;
+  max-width: 100%;
+}
+.account-preferences {
+  margin: 1rem 0;
+  min-width: 0;
+}
+.account-preferences label {
+  flex-wrap: wrap;
+}
+.list__item.access > .access__settings {
+  display: block;
+  flex: 0 0 100%;
+}
+.list__item.access > .access__actions {
+  display: flex;
+  flex: 0 0 auto;
+}
+.admin-settings {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+}
+.admin-settings__field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.admin-settings__field select {
+  width: 100%;
+}
+.role-choices input[type='checkbox'] {
+  min-height: 22px;
+  padding: 0;
+}
+.list__item.access > .access__identity {
+  flex: 1 1 18rem;
+}
+.role-choices {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+}
+.role-choices input {
+  accent-color: var(--color-accent);
+}
+.admin-settings select,
+.account-preferences select {
+  height: 44px;
+  font: inherit;
+}

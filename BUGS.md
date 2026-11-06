@@ -2,6 +2,20 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-029] Expanded user settings overlapped Save on phones — medium
+**Location**: apps/web/src/client/styles.css (`.list__item.access > .access__settings`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, mobile browser verification of the new admin editor
+**Description**: Generic list-child flex/grid rules overrode the expanded editor's intended full width, allowing long controls to overlap its Save action.
+**Fix**: Give the expanded editor an explicit full-width flex row, single-column fields and constrained selects; keep row actions in a separate flex group. Verify real taps and document overflow on phone and low laptop windows.
+
+### [BUG-028] An open own-profile form could overwrite a newer admin edit — medium
+**Location**: apps/web/src/client/ui/ProfileForm.tsx, apps/web/src/server/api/profile.ts
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, inspection while implementing centralized admin settings
+**Description**: Local component state retained the old name/boat after a remote account update; saving the entire old form without a revision could replace the newer profile.
+**Fix**: Untouched forms use refreshed account values; a draft captures its revision and preserves edits across refreshes. Stale saves return 409 and require an inline reload. Preference writes are partial, revision checked and serialized separately; legacy own-profile requests remain compatible.
+
 ### [BUG-027] Expanded inline stroke editor could widen the phone table — low
 **Location**: apps/web/src/client/styles.css (`.strokes__table`)
 **Status**: fixed locally (codex/feat/85-inline-stroke-tools)

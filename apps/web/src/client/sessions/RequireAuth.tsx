@@ -12,13 +12,16 @@ export function RequireAuth({
 }: {
   children: ReactNode;
   /** Admin-only pages send everyone else to the sessions list (#108). */
-  role?: 'admin';
+  role?: 'admin' | 'roster';
 }) {
   const { state, refresh } = useAuth();
   const t = authStrings();
   if (state.kind === 'loading') return null;
   if (state.kind !== 'open') return <Navigate to="/" replace />;
-  if (role === 'admin' && state.user.role !== 'admin') return <Navigate to="/sessions" replace />;
+  if (role === 'admin' && !state.user.roles.includes('admin'))
+    return <Navigate to="/sessions" replace />;
+  if (role === 'roster' && !state.user.roles.some((r) => r === 'coach' || r === 'admin'))
+    return <Navigate to="/sessions" replace />;
   // Everyone gives their name first (Ewout, 2026-11-03): it shows on sessions and notes.
   const named = state.user.firstName !== null && state.user.lastName !== null;
   return (

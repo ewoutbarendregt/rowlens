@@ -19,7 +19,7 @@ test('a coach shares one note with the crew; the rower sees only that note', asy
   await signIn(page, adminEmail);
   await page.goto('./admin');
   await page.getByLabel(/^(E-mail address|E-mailadres)$/).fill(rowerEmail);
-  await page.getByLabel(/^(Role|Rol)$/).selectOption('rower');
+  await expect(page.getByRole('checkbox', { name: /^(Rower|Roeier)$/ })).toBeChecked();
   await page.getByRole('button', { name: /^(Give access|Toegang geven)$/ }).click();
   await expect(page.getByTestId('access').filter({ hasText: rowerEmail })).toBeVisible();
   await signOut(page);

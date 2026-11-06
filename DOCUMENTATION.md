@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Implement central admin settings and additive roles (#151)
+
+**Session**: codex/feat/151-admin-user-settings
+**Changed**: apps/web/src/shared/{roles,user-settings}.ts, apps/web/src/server/{auth,api,db,repositories}, apps/web/src/client/{admin,auth,settings,ui,sessions,rowers,lineup}, apps/web/e2e/{admin,share,user-settings}.spec.ts, worker/src/rowlens_worker/db.py, docs/adr/0019-user-settings-and-role-sets.md, docs/adr/{0013,0015,README}.md, docs/plans/151-admin-user-settings.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Implemented the approved one-account/multiple-role architecture: central profile/preferences, current-club admin editing and audited role sets, explicit legacy import, revision/response ownership safeguards and rower-only navigation/API/RLS restrictions. Existing scalar roles/live sessions survive migration; backend/worker checks pass, browser verification is being finalized locally; production remains sha-e5960c7 with no merge/deploy authorization for this feature.
+**Prompts used**: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen"; "Er is maar 1 register van gebruikers. Een gebruiker kan verschillende rollen hebben: roeier, coach, beheerder"; "Gebruikers met rol roeier zien alleen trainingen en hun eigen settings, tab ‘roeiers’ is dan niet zichtbaar"; "Ok voer maar uit".
+
 ## 2026-11-06 — Specify the rower-only navigation and roster boundary
 
 **Session**: codex/docs/151-user-settings-plan

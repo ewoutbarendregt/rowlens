@@ -85,11 +85,13 @@ Club self-onboarding · side-by-side comparison · trends · goals · more langu
 
 ## Admin user settings (#151)
 
-Requested 2026-11-06: one central user register/profile/settings set per person; users may hold
-multiple roles (rower, coach, admin) simultaneously. Admin can inspect/edit profile, role sets/access
-and all five display/video preferences. Inventory and updated proposal complete; new centralized persistence/migration awaiting Ewout's
-approval. No functional implementation yet; see docs/plans/151-admin-user-settings.md.
+Approved 2026-11-06 and implemented locally (ADR-0019): one central account/profile/preferences set;
+all seven non-empty rower/coach/admin combinations. Admin → Users searches the current club's
+accounts and edits profile, roles and all five display/video preferences. Never-signed-in access
+grants show their account status. E-mail remains a read-only login identity.
 
-#151 navigation clarification: rower-only users see Trainings and own settings; Rowers is hidden
-and unavailable through a direct route/general roster API. Combined rower+coach/admin roles retain
-the separately granted elevated rights. Specified in the proposal; not implemented yet.
+Rower-only users see Trainings and own settings; the standalone Rowers route/directory and roster
+writes are denied by API guards and RLS. Training-scoped crew names remain available. Coach/admin
+capabilities are additive. Account preferences synchronize across devices; explicit legacy import
+fills only uninitialized fields, revisions prevent stale overwrites, and administrative edits are
+audited atomically. Full checks/PR review in progress; not merged or deployed.

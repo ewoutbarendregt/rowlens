@@ -21,4 +21,6 @@
 | [0017](0017-angles-per-phase.md) | Angles per rower and phase, measured by the coach | accepted |
 | [0018](0018-boat-line-per-frame.md) | The boat line found in every frame, the coach's line wins | accepted |
 
+| [0019](0019-user-settings-and-role-sets.md) | Central account preferences, additive role sets and admin editing | accepted |
+
 New ADR: copy `0000-template.md` to the next number.

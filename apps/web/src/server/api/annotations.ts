@@ -42,7 +42,7 @@ const editAnnotation = z.union([editNote, editDrawing]);
 /** What the client may do with it (#40), instead of the author's account id. */
 function present<T extends { authorUserId: string | null }>(row: T, tenant: TenantContext) {
   const { authorUserId, ...rest } = row;
-  const viewer = { role: tenant.role ?? null, userId: tenant.userId };
+  const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
   return {
     ...rest,
     mine: tenant.userId !== null && authorUserId === tenant.userId,

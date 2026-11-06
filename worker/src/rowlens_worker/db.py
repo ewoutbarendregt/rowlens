@@ -19,7 +19,8 @@ def in_club(conn: psycopg.Connection, club_id: UUID) -> Iterator[psycopg.Connect
     """A transaction in one club: RLS sees ``app.club_id`` (ADR-0005), reset at commit/rollback."""
     with conn.transaction():
         conn.execute(
-            "select set_config('app.club_id', %s, true), set_config('app.user_id', '', true)",
+            "select set_config('app.club_id', %s, true), set_config('app.user_id', '', true), "
+            "set_config('app.roles', '[]', true), set_config('app.service', 'true', true)",
             (str(club_id),),
         )
         yield conn

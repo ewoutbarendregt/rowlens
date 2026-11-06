@@ -73,7 +73,10 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
 
   const allowed = (req: Parameters<typeof tenantOf>[0]) => {
     const tenant = tenantOf(req);
-    return can({ role: tenant.role ?? null, userId: tenant.userId }, { kind: 'measure_angles' });
+    return can(
+      { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId },
+      { kind: 'measure_angles' },
+    );
   };
 
   app.get('/api/videos/:id/angles', { preHandler: guard }, async (req, reply) => {

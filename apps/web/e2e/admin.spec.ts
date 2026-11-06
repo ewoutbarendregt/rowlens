@@ -18,7 +18,7 @@ test('an admin gives a rower access; the rower signs in without admin rights', a
   await page.getByRole('tab', { name: /^(Users|Gebruikers)$/ }).click();
 
   await page.getByLabel(/^(E-mail address|E-mailadres)$/).fill(rower);
-  await page.getByLabel(/^(Role|Rol)$/).selectOption('rower');
+  await expect(page.getByRole('checkbox', { name: /^(Rower|Roeier)$/ })).toBeChecked();
   await page.getByRole('button', { name: /^(Give access|Toegang geven)$/ }).click();
   // Without a mail server (local E2E) the page says the e-mail couldn't be sent; access is given.
   await expect(page.getByRole('form', { name: /^(Give access|Toegang geven)$/ })).toContainText(
@@ -30,6 +30,10 @@ test('an admin gives a rower access; the rower signs in without admin rights', a
   await signOut(page);
   await signIn(page, rower);
   await expect(page.getByRole('link', { name: /^(Admin|Beheer)$/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /^(Rowers|Roeiers)$/ })).toHaveCount(0);
+  await page.goto('./rowers');
+  await expect(page).toHaveURL(/\/sessions$/);
+  expect((await page.request.get('./api/rowers')).status()).toBe(404);
   await page.goto('./admin');
   await expect(page).toHaveURL(/\/sessions$/); // sent to the sessions list
   const api = await page.request.get('./api/admin/access');

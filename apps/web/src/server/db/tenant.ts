@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { primaryRole, rolesSchema, type Role } from '../../shared/roles.ts';
 import type { Database, Tx } from './client.ts';
 
 /** Who is acting, in which club, as what (ADR-0005, ADR-0013). */
@@ -8,15 +9,17 @@ export interface TenantContext {
   /** Authenticated user; `null` only for the legacy pilot-code rollback path. */
   userId: string | null;
   /**
-   * The member's role. Rowers see only their own sessions and the notes meant for them (restrictive
-   * RLS policies read `app.role`); absent for the worker and the pilot-code path, which see the club.
+   * All assigned roles. Restrictive RLS reads app.roles; only explicit unauthenticated service
+   * contexts (worker/pilot) see the club without membership roles.
    */
-  role?: 'rower' | 'coach' | 'admin' | null;
+  roles?: readonly Role[];
+  role?: Role | null;
 }
 
 const contextSchema = z.object({
   clubId: z.uuid(),
   userId: z.uuid().nullable(),
+  roles: rolesSchema.optional(),
   role: z.enum(['rower', 'coach', 'admin']).nullable().optional(),
 });
 
@@ -30,10 +33,12 @@ export async function withTenant<T>(
   ctx: TenantContext,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  const { clubId, userId, role } = contextSchema.parse(ctx);
+  const { clubId, userId, role, roles: assigned } = contextSchema.parse(ctx);
+  const roles = assigned ?? (role == null ? [] : [role]);
+  const service = userId === null && role == null && assigned === undefined;
   return db.transaction(async (tx) => {
     await tx.execute(
-      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${role ?? ''}, true)`,
+      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${roles.length ? primaryRole(roles) : ''}, true), set_config('app.roles', ${JSON.stringify(roles)}, true), set_config('app.service', ${service ? 'true' : 'false'}, true)`,
     );
     return fn(tx);
   });

@@ -47,15 +47,14 @@ analysis of rowing technique.
 4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
    the data model remains tenant-safe, but growth features do not drive the current UI.
 
-## Admin user settings (#151, proposed 2026-11-06)
+## Admin user settings (#151, approved 2026-11-06)
 
 Ewout requests inspection/editing of all existing user settings. The inventory includes profile,
 multiple simultaneous roles/access and five currently device-local preferences. One central user
 register/profile/settings set per person (Ewout's clarification); role combinations grant permissions.
 Rower-only users see Trainings and their own settings, without Rowers navigation or standalone
 roster access; rower+coach retains coach rights. See
-[the implementation proposal](docs/plans/151-admin-user-settings.md); centralized account settings, multi-role
-authorization, tenant-scoped audit and protected admin profile operations need architectural/migration approval first.
+[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Complete the browser matrix and PR checks before review; production remains unchanged.
 
 ## Out of scope (for now)
 

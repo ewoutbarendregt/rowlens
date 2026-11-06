@@ -1,6 +1,6 @@
 # Admin inspection and editing of user settings (#151)
 
-Status: proposed; architectural approval required before application or migration changes.
+Status: accepted by Ewout on 2026-11-06 ("Ok voer maar uit"); implemented on codex/feat/151-admin-user-settings. See ADR-0019.
 Request: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/151
 
@@ -19,7 +19,7 @@ The current implementation has one scalar role on membership/access, in auth res
 API/client/RLS checks. Multiple roles therefore require an authorization/data migration, not just
 replacing a dropdown with checkboxes.
 
-## Current inventory
+## Inventory at approval
 
 | Setting | Current source | Current editing |
 |---|---|---|
@@ -39,7 +39,7 @@ The e-mail address is the login identity and is shown for identification. Changi
 that identity is not part of the generic settings update. Notification preferences (#63) and
 other unimplemented features are not existing settings and are outside this change.
 
-## Proposed behaviour
+## Accepted behaviour
 
 - Admin → Users lists all current-club accounts, searchable by name/e-mail. Each user has an
   in-page Settings form for profile, display and video preferences, plus three independent role
@@ -85,7 +85,7 @@ login, roster routes use the auth guard and `can(manage_roster)` permits all rol
 supersedes the roster-management part of the old ADR-0013 decision when implemented; record the
 accepted change there along with the role-set migration.
 
-## Proposed persistence and authorization
+## Accepted persistence and authorization
 
 One migration, no new dependency and no second user register:
 
@@ -124,7 +124,7 @@ administrator, including concurrent updates. Server-managed admin grants are pre
 without erasing other assigned roles. Authenticated empty/unknown role sets must deny access;
 never reinterpret them as the worker/pilot's existing special service context.
 
-Proposed routes:
+Implemented routes:
 
 - `GET/PATCH /api/me/settings`: signed-in member's own five preferences.
 - `GET /api/admin/users`: current-club member summaries and account status, not unrestricted users.

@@ -3,28 +3,25 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Admin user settings proposal — #151
+## Admin user settings implementation — #151
 
-- Current branch: `codex/docs/151-user-settings-plan`; proposal/logs only, based on main `e5960c7`.
-- Ewout clarified: one central user register and one profile/settings set per person; multiple
-  simultaneous roles (rower, coach, admin), e.g. rower+coach. The current scalar role is insufficient.
-- Rower-only users see Trainings and own settings: hide Rowers and guard direct route/general
-  roster API and DB writes. Preserve scoped crew lookups within visible trainings. With combined
-  roles, rower+coach retains coach rights; admin grants remain additive. Proposal updated, not code.
-- Ewout requests all existing user settings visible/editable by admin. Five preferences are only
-  in the browser today; full remote administration needs centralized storage. Profile reads/writes
-  also need new guarded SQL functions; current ones reach only the signed-in user's own account.
-- Concrete scope/schema/sync/authorization/test proposal: `docs/plans/151-admin-user-settings.md`;
-  issue https://github.com/ewoutbarendregt/rowlens/issues/151. Await explicit architectural approval
-  under AGENTS.md before implementing new tables/migration or changing authorization.
-- Do not replace this with a partial profile-only implementation without Ewout's agreement. Do not
-  claim unknown browser preferences are visible before synchronization. Preserve admin edits when
-  an old device first imports its local choices. Updated proposal stores preferences on app_user,
-  changes scalar roles to validated sets, and adds one scoped audit table; no second user register.
-  Preserve tenant boundaries; a central registry does not imply cross-club admin authorization.
-- No application, schema or production changes this session. Production last verified
-  `sha-e5960c7`, deploy 42195631449; separate deployment-log PR #150 remains open. Previous release
-  log PR #148 and the local OWASP review branch remain separate. Dev stack :5174 available; edge off.
+- Approved by Ewout: "Ok voer maar uit". Branch `codex/feat/151-admin-user-settings`, based on
+  main `e5960c7` plus the three approved proposal commits. No new merge/deployment authorization.
+- One global account/profile and five central display/video preferences; seven non-empty role
+  combinations. Current-club admins inspect/edit accounts; unknown preferences remain explicit.
+  User e-mail remains read-only. Additive role arrays replace scalar grants (migration 0018);
+  settings writes use revisions, protected SQL functions and a scoped immutable admin audit.
+- Rower-only: Trainings and own settings; no standalone Rowers directory or roster writes. API/RLS
+  enforce this; scoped crew names omit e-mails and identify only the current member with `mine`.
+  Existing permitted note sharing, assignment and lineup interactions remain.
+- Client account caches are isolated; late responses are ignored, legacy device import requires
+  confirmation and fills only null fields. Focus/reload sync does not remount the player. Open
+  profile/admin drafts cannot silently overwrite newer changes. ADR-0019 records the decision.
+- Verification is in progress; backend/worker/deploy-script checks passed, phone/laptop/edge browser
+  matrices are being finalized. See TEST.md / latest DOCUMENTATION entry for exact final results.
+- Production stays `sha-e5960c7` (deploy 42195631449). Separate log PRs #148/#150 and the local
+  OWASP review branch remain separate. Local dev :5174 is migrated and running; edge is on for tests
+  and must be stopped at completion. Oar arc/stern camera remain deferred.
 
 ## Inline stroke controls — 2026-11-06
 

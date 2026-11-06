@@ -26,11 +26,11 @@ const en = {
   confirmRemove: (email: string) =>
     `Remove access for ${email}? They are signed out everywhere and can’t sign in again.`,
   removeYes: 'Yes, remove',
-  self: 'You can’t change your own access.',
+  self: 'You must keep your own admin role.',
   lastAdmin: 'There must be at least one admin.',
   tabs: { users: 'Users', roles: 'Roles' },
   rolesIntro:
-    'What each role sees and may do. The roles are fixed; give someone another role under Users.',
+    'What each role sees and may do. The roles are fixed; combine roles under Users. Their permissions add up.',
   can: 'Sees and may',
   rights: [
     {
@@ -52,7 +52,8 @@ const en = {
       coach: 'Yes, and take back any share',
       rower: 'Yes, take back their own',
     },
-    { what: 'Upload videos, lineups, roster', admin: 'Yes', coach: 'Yes', rower: 'Yes' },
+    { what: 'Upload videos and manage own lineups', admin: 'Yes', coach: 'Yes', rower: 'Yes' },
+    { what: 'Club roster', admin: 'Yes', coach: 'Yes', rower: 'No' },
     { what: 'Admin: users and roles', admin: 'Yes', coach: 'No', rower: 'No' },
     { what: 'Give a session to a coach', admin: 'Yes', coach: 'No', rower: 'No' },
   ],
@@ -84,11 +85,11 @@ const nl: typeof en = {
   confirmRemove: (email: string) =>
     `Toegang van ${email} intrekken? Diegene wordt overal uitgelogd en kan niet meer inloggen.`,
   removeYes: 'Ja, intrekken',
-  self: 'Je kunt je eigen toegang niet wijzigen.',
+  self: 'Je moet je eigen beheerdersrol behouden.',
   lastAdmin: 'Er moet minstens één beheerder blijven.',
   tabs: { users: 'Gebruikers', roles: 'Rollen' },
   rolesIntro:
-    'Wat elke rol ziet en mag. De rollen liggen vast; geef iemand een andere rol onder Gebruikers.',
+    'Wat elke rol ziet en mag. De rollen liggen vast; combineer rollen onder Gebruikers. De rechten tellen bij elkaar op.',
   can: 'Ziet en mag',
   rights: [
     {
@@ -110,7 +111,13 @@ const nl: typeof en = {
       coach: 'Ja, en elk delen intrekken',
       rower: 'Ja, eigen delen intrekken',
     },
-    { what: 'Video’s uploaden, opstellingen, ploeglijst', admin: 'Ja', coach: 'Ja', rower: 'Ja' },
+    {
+      what: 'Video’s uploaden en eigen opstellingen beheren',
+      admin: 'Ja',
+      coach: 'Ja',
+      rower: 'Ja',
+    },
+    { what: 'Ploeglijst van de club', admin: 'Ja', coach: 'Ja', rower: 'Nee' },
     { what: 'Beheer: gebruikers en rollen', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
     { what: 'Een training aan een coach geven', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
   ],

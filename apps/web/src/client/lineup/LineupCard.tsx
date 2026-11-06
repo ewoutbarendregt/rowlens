@@ -8,6 +8,7 @@ import {
 } from '../../shared/boats.ts';
 import { api } from '../api.ts';
 import { RowerPicker } from '../rowers/RowerPicker.tsx';
+import { useAuth } from '../auth/useAuth.ts';
 import { useRoster } from '../rowers/useRoster.ts';
 import { formatDate } from '../sessions/strings.ts';
 import { lineupStrings } from './strings.ts';
@@ -45,8 +46,11 @@ interface LineupCardProps {
  */
 export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardProps) {
   const t = lineupStrings();
+  const { state: auth } = useAuth();
+  const allowCreate =
+    auth.kind === 'open' && auth.user.roles.some((r) => r === 'coach' || r === 'admin');
   const id = useId();
-  const roster = useRoster();
+  const roster = useRoster(undefined, sessionId);
   const [boat, setBoat] = useState<BoatClass | null>(boatType);
   const [seats, setSeats] = useState<Seats>(() => toMap(lineup));
   const [recent, setRecent] = useState<RecentLineup[] | null>(null);
@@ -198,6 +202,7 @@ export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardP
                       r === null ? null : { id: r.id, displayName: r.displayName, archived: false },
                     );
                   }}
+                  allowCreate={allowCreate}
                   onAdded={() => void roster.reload()}
                 />
               </li>

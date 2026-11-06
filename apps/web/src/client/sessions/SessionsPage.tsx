@@ -48,7 +48,8 @@ export function SessionsPage() {
   const t = sessionStrings();
   const l = lineupStrings();
   const { state } = useAuth();
-  const unlinked = state.kind === 'open' && state.user.role !== 'admin' && !state.user.linked;
+  const unlinked =
+    state.kind === 'open' && !state.user.roles.includes('admin') && !state.user.linked;
   const navigate = useNavigate();
   const formId = useId();
   const [params, setParams] = useSearchParams();

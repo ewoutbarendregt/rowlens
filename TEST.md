@@ -16,6 +16,25 @@ Test strategy, prompts and results. This file is the source of truth for testing
 Rules: every bug fix starts with a failing test; every new tenant table/route gets a cross-club test;
 E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirrors prod.
 
+## Central settings and role sets (#151)
+
+- Unit: all seven role combinations and fail-closed empty roles; account-owned caches, late-response
+  rejection, serialized revisions, conflict recovery and account switches.
+- Real Postgres: full-field admin editing, own preferences/profile revisions, same-account/multiple
+  clubs, other-club denial, immutable audit, known-only legacy import, atomic concurrent writes,
+  current-session/new-login role preservation, protected server/self grants, stale snapshots and
+  mutually competing admin demotions. A separate container tests a real 0017→0018 upgrade, existing
+  profile/grant backfill, active bearer sessions and idempotent migration retries.
+- Rower boundary: general directory and roster create/edit/archive/merge denied, RLS writes denied,
+  visible-training crew only, no crew e-mails/other user IDs, own `mine` marker; existing sharing and
+  assignment visibility tests retained.
+- Browser: edit another member without changing admin display; account sync on focus/re-login;
+  rower navigation/direct APIs and additive coach rights; preserved dirty own-profile draft with
+  conflict/reload; default boat; explicit legacy import; second-device preferences/account switch;
+  measured 44 px editor controls, full-width identity and no document overflow.
+- Current results: 492 web/DB + 50 worker tests pass; 77 deploy-script checks and Docker rehearsal
+  pass. Final local/edge/browser matrices and CI are being recorded below before PR review.
+
 ## Coverage status
 
 | Area | Tests | Status |
@@ -63,6 +82,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 
 | Date | Branch | Command | Result |
 |---|---|---|---|
+| 2026-11-06 | codex/feat/151-admin-user-settings | Approved implementation: format/lint/typecheck/build; full web/DB; worker; deployment tests/rehearsal; local and edge E2E; low laptop and iPhone WebKit settings matrix | 492 web/DB and 50 worker pass; 77 deploy-script checks/rehearsal pass. Full edge 38 passed / 10 skipped; focused Chromium 6/6 and local low-laptop/iPhone 6/6. Final full local and edge regression matrix pending. Diagnostic runs: initial auth-function count needed updating; new UI label selectors and role-save completion wait corrected; phone editor flex/native-select sizing fixed (BUG-029); an old sharing-spec scalar-role selector updated. One parallel local/edge run collided in the default Playwright trace directory (ENOENT); subsequent runs use separate output directories. |
 | 2026-11-06 | codex/docs/151-user-settings-plan | Inspect header, rowers route/API guards and manage_roster policy; document rower navigation; format/diff checks | Proposal only, no functional changes. Planned coverage: rower-only Trainings/own settings, absent Rowers/Admin links, direct-route/API/DB refusal, safe training crew lookup and combined-role access. |
 | 2026-11-06 | codex/docs/151-user-settings-plan | Inspect current scalar role in schema/auth/can/client/RLS; update proposal; documentation format/diff checks | One central user register confirmed; proposed simultaneous role sets and account-wide preferences. No application/SQL changes or functional tests; architectural approval still required. Planned coverage includes all 7 non-empty role combinations and tenant/last-admin isolation. |
 | 2026-11-06 | codex/docs/151-user-settings-plan | Read-only inventory of admin/profile/auth/RLS and browser preferences; documentation format/diff checks | Proposal only; no application, SQL or production changes. Implementation/functional tests await architectural approval for #151. |

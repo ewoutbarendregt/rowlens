@@ -6,6 +6,7 @@ import { addRower, type Rower } from './useRoster.ts';
 const MAX_OPTIONS = 8;
 
 interface RowerPickerProps {
+  allowCreate?: boolean;
   /** The active roster to search in. */
   rowers: Rower[];
   value: { id: string; displayName: string } | null;
@@ -30,6 +31,7 @@ type Option = { kind: 'rower'; rower: Rower } | { kind: 'add'; name: string };
  */
 export function RowerPicker({
   rowers,
+  allowCreate = true,
   value,
   onChange,
   onAdded,
@@ -58,7 +60,7 @@ export function RowerPicker({
   const exact = rowers.some((r) => normalizeName(r.displayName) === normalizeName(trimmed));
   const options: Option[] = [
     ...matches.map((rower) => ({ kind: 'rower' as const, rower })),
-    ...(trimmed !== '' && !exact ? [{ kind: 'add' as const, name: trimmed }] : []),
+    ...(allowCreate && trimmed !== '' && !exact ? [{ kind: 'add' as const, name: trimmed }] : []),
   ];
   const isUnavailable = (o: Option) => o.kind === 'rower' && unavailable?.has(o.rower.id) === true;
 

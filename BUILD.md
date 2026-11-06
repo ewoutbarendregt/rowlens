@@ -3,6 +3,34 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Central user settings and role sets (2026-11-06, ADR-0019)
+
+Migration `0018_admin_user_settings.sql` extends `app_user` with nullable language/theme/video
+preferences, a revision and update time; scalar membership/access roles backfill to validated
+singleton arrays. Unknown preferences remain null until explicitly saved/imported. No dependencies
+or second identity register. Historical scalar access logs remain readable; new entries carry full
+role sets. `user_settings_audit` is tenant scoped, admin readable and immutable to the app role.
+
+Authentication resolves complete, live role arrays. `withTenant` sets transaction-local
+`app.roles` and an explicit service marker; an authenticated missing role never becomes a worker.
+The worker's `in_club` sets service mode explicitly. Existing session/note visibility remains;
+roster read/write restrictions add coach/admin requirements, with crew names scoped to accessible
+trainings. `rowlens_rower_targets` validates known sharing targets without exposing the directory.
+
+Own preference and admin settings repositories use pinned definer functions inside `withTenant`.
+Target membership and actual admin membership are checked against the current club, while settings
+remain global to that account. Role changes/provisioning/settings writes share a per-club advisory
+lock; the account row lock and revision protect cross-device edits. Global `app_user` access is
+still denied to the app role. The existing own-profile endpoint accepts a revision; old clients'
+explicit own-profile requests remain compatible and cannot write display/video preferences.
+
+`client/settings/store.ts` binds cached preferences to user IDs, ignores stale account responses,
+serializes explicit preference patches, reloads on conflicts, and refreshes on window focus.
+Browser cache contains preferences/revision only, never profile names/e-mail. Logout clears active
+account state immediately. Central preferences apply without remounting the player. Legacy device
+values are never auto-imported: a member confirms once, and SQL fills only still-null keys. Admin
+editing another user does not apply that user's theme/language to the admin interface.
+
 ## Repository layout
 
 ```
