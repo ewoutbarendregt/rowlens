@@ -72,6 +72,7 @@ test('admin edits one central account; rower boundaries, combined roles and pref
     await page.getByLabel(/Search users|Zoek gebruikers/).fill(email);
     const row = page.getByTestId('access').filter({ hasText: email });
     await row.getByRole('button', { name: /^(Settings|Instellingen)$/ }).click();
+    await row.getByRole('checkbox', { name: 'Coach', exact: true }).check();
     const editor = row.getByTestId('admin-user-settings');
     await editor.getByLabel(/^(First name|Voornaam)$/).fill('Central');
     await editor.getByLabel(/^(Last name|Achternaam)$/).fill('Tester');
@@ -89,6 +90,7 @@ test('admin edits one central account; rower boundaries, combined roles and pref
       .selectOption('true');
     await editor.getByRole('button', { name: /^(Save|Opslaan)$/ }).click();
     await expect(editor.getByRole('status')).toHaveText(/Saved|Opgeslagen/);
+    await expect(row.getByRole('checkbox', { name: 'Coach', exact: true })).toBeChecked();
     // Editing another user never applies their display choices to the administrator.
     await expect(page.locator('html')).toHaveAttribute('lang', 'nl');
     await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'dark');
@@ -130,8 +132,33 @@ test('admin edits one central account; rower boundaries, combined roles and pref
         .getByRole('form', { name: /^(New session|Nieuwe training)$/ })
         .getByLabel(/^(Boat|Boot)$/),
     ).toHaveValue('C2x');
-    // Add coach; this is still one identity, with the rower role retained.
+    // Another admin changes the grants after this draft began: keep the draft and reject its old snapshot.
+    const users = (await (await page.request.get('./api/admin/users')).json()) as {
+      entries: { id: string | null; email: string }[];
+    };
+    const grantId = users.entries.find((entry) => entry.email === email)?.id ?? '';
+    expect(
+      await mutation(page, `/api/admin/access/${grantId}`, 'PATCH', { roles: ['rower', 'admin'] }),
+    ).toBe(204);
+    const conflicted = page.waitForResponse(
+      (response) =>
+        response.url().includes('/api/admin/access/') && response.request().method() === 'PATCH',
+    );
+    await row
+      .getByRole('button', { name: /^(Save|Opslaan)$/ })
+      .first()
+      .click();
+    expect((await conflicted).status()).toBe(409);
+    await expect(row.getByRole('alert')).toContainText(/changed elsewhere|elders gewijzigd/);
+    await expect(row.getByRole('checkbox', { name: 'Coach', exact: true })).toBeChecked();
+    await row
+      .getByRole('alert')
+      .getByRole('button', { name: /^(Reload|Herladen)$/ })
+      .click();
+    await expect(row.getByRole('checkbox', { name: /^(Admin|Beheerder)$/ })).toBeChecked();
+    await row.getByRole('checkbox', { name: /^(Admin|Beheerder)$/ }).uncheck();
     await row.getByRole('checkbox', { name: 'Coach', exact: true }).check();
+    // Add coach; this is still one identity, with the rower role retained.
     const roleSaved = page.waitForResponse(
       (response) =>
         response.url().includes('/api/admin/access/') && response.request().method() === 'PATCH',

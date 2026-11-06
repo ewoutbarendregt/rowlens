@@ -252,15 +252,13 @@ function AccessRow({
   const t = adminStrings();
   const s = settingsStrings();
   const [open, setOpen] = useState(false);
-  const [roles, setRoles] = useState(entry.roles);
+  const [roleDraft, setRoleDraft] = useState<{ roles: Role[]; expectedRoles: Role[] } | null>(null);
+  const roles = roleDraft?.roles ?? entry.roles;
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => {
-    setRoles(entry.roles);
-  }, [entry.roles]);
   const root = entry.source === 'server' && entry.roles.includes('admin');
-  const changed = roles.join(',') !== entry.roles.join(',');
+  const changed = roleDraft !== null && roles.join(',') !== roleDraft.expectedRoles.join(',');
   const change = async (method: 'PATCH' | 'DELETE' | 'POST') => {
     setError(null);
     setBusy(true);
@@ -273,12 +271,13 @@ function AccessRow({
             ? undefined
             : method === 'POST'
               ? { email: entry.email, roles }
-              : { roles, expectedRoles: entry.roles },
+              : { roles, expectedRoles: roleDraft?.expectedRoles ?? entry.roles },
       },
     ).catch(() => null);
     setBusy(false);
     if (response?.ok === true) {
       await onChanged();
+      setRoleDraft(null);
       if (entry.userId === ownId) refreshAuth();
       return;
     }
@@ -351,7 +350,17 @@ function AccessRow({
       </div>
       {open && (
         <div className="access__settings">
-          <RoleChoices value={roles} onChange={setRoles} disabled={busy} root={root} />
+          <RoleChoices
+            value={roles}
+            onChange={(next) => {
+              setRoleDraft((current) => ({
+                roles: next,
+                expectedRoles: current?.expectedRoles ?? entry.roles,
+              }));
+            }}
+            disabled={busy}
+            root={root}
+          />
           {roles.length === 0 && <p>{s.needRole}</p>}
           <div className="form__actions">
             <button
@@ -366,7 +375,7 @@ function AccessRow({
               className="button--quiet"
               disabled={busy}
               onClick={() => {
-                setRoles(entry.roles);
+                setRoleDraft(null);
                 setError(null);
               }}
             >
@@ -395,6 +404,7 @@ function AccessRow({
             className="button--quiet"
             onClick={() => {
               void onChanged();
+              setRoleDraft(null);
               setError(null);
             }}
           >

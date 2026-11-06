@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-031] Saving a profile could discard unsaved role choices — medium
+**Location**: apps/web/src/client/admin/AccessPage.tsx (`AccessRow`)
+**Status**: fixed locally (codex/feat/151-admin-user-settings)
+**Found**: 2026-11-06, combined role/profile form verification
+**Description**: A users-list refresh replaced role-array references and reset pending role checkboxes, including after saving that same person's profile.
+**Fix**: Keep an explicit role draft and its original expected-role snapshot until save/cancel/reload; list refreshes do not erase it. Browser test first failed on the unchecked Coach box, then passed after the fix; concurrent role changes return 409 while preserving the draft until an explicit reload.
+
 ### [BUG-030] A transient focus-refresh failure could discard an open edit — medium
 **Location**: apps/web/src/client/auth/useAuth.ts (`refreshAuth`, `loadState`)
 **Status**: fixed locally (codex/feat/151-admin-user-settings)

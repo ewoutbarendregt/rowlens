@@ -18,6 +18,8 @@ newest-first detailed log. Update this file at the end of a session.
   confirmation and fills only null fields. Focus/reload sync does not remount the player. Open
   profile/admin drafts cannot silently overwrite newer changes. Transport/server failures preserve
   the last confirmed auth state; explicit access denial still closes it (BUG-030). ADR-0019 records the decision.
+- Unsaved role choices retain their original conflict snapshot through profile/list refreshes
+  (BUG-031). Explicit reload/cancel discards the draft; stale saves report a conflict.
 - Verification: 492 web/DB + 50 worker tests, format/lint/typecheck/build, 77 deploy-script tests and
   Docker rehearsal pass. Full local E2E: 47 passed/49 skipped; full edge: 38 passed/10 skipped.
   Local low-laptop/iPhone settings matrix: 6/6; edge regression matrix: 24/24 (settings, playback,
