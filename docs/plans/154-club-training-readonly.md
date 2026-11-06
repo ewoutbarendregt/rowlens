@@ -1,6 +1,6 @@
 # Club training visibility and editing by role (#154)
 
-Status: revised proposal; implementation and its one permission-policy migration still await approval.
+Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented locally, final verification in progress.
 Requests: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen";
 "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/154
@@ -13,7 +13,7 @@ Issue: https://github.com/ewoutbarendregt/rowlens/issues/154
 | Coach (including rower + coach) | All | Yes, with coach rights | Yes, with coach rights |
 | Admin (with any other roles) | All | Yes | Yes |
 
-Proposed ownership definition: an own training was created by the current user. Merely appearing
+Approved ownership definition: an own training was created by the current user. Merely appearing
 in the lineup does not establish ownership. Training ownership does not grant a rower coach-only
 stroke/angle analysis rights. Existing additional roles remain additive; being a rower never
 reduces a separately granted coach/admin capability.
@@ -55,7 +55,7 @@ Relevant paths: server/db/schema.ts and SQL helpers/policies; server/auth/can.ts
 server/api/{sessions,videos,uploads,lineups,annotations,moments,strokes,angles}.ts;
 client session/video/lineup/upload/notes controls and NL/EN strings.
 
-## Proposed implementation
+## Approved implementation
 
 1. One migration separates read and write policies/helpers while retaining tenant RLS and explicit
    service handling. All members read all current-club trainings. Write permission combines
@@ -70,5 +70,8 @@ client session/video/lineup/upload/notes controls and NL/EN strings.
    previously authored foreign feedback, ownerless legacy sessions and all role combinations.
    Run web/worker/local/edge checks plus iPhone WebKit and 1000×540 before a PR.
 
-No application change, migration, merge or deployment has been performed for this revised proposal.
-Production stays sha-b000ca4; deployment log #153 remains a separate PR.
+Implementation uses migration 0019 (20 migrations total locally), separate resource read/write policies,
+server-derived capabilities and pre-media parent locks. Permissions are rechecked in a fresh statement
+after a lock wait, so a concurrent creator transfer cannot authorize an upload with stale ownership.
+ADR-0020 records the accepted decision. No merge/deployment for #154; production stays sha-b000ca4
+and deployment log #153 remains a separate PR.

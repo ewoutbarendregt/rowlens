@@ -1,10 +1,9 @@
 import { canManageRoster, type Role } from '../../shared/roles.ts';
 
 /**
- * What a member may do (#40, #108, ADR-0013), for the decisions the API makes itself. What a member
- * may *see* is enforced by the database (restrictive RLS policies): the admin sees the club, coaches
- * and rowers their own sessions. These rules sit on top, for rows the member can already see.
- * `null` role: the pilot-code path, which sees the club like an admin.
+ * Role/author capabilities layered over tenant RLS (ADR-0019/0020). All members read club trainings;
+ * mutation handlers and RLS additionally require creator or coach/admin resource write permission.
+ * Explicit legacy service contexts retain processing access; authenticated empty roles fail closed.
  */
 export interface Viewer {
   roles?: readonly Role[] | undefined;
@@ -62,7 +61,7 @@ export function can(viewer: Viewer, action: Action): boolean {
         runsSessions(viewer) || (viewer.userId !== null && action.sharedByUserId === viewer.userId)
       );
     // Roster management requires coach/admin (#151). Rowers retain sharing, assignments,
-    // uploads and lineups within their visible trainings.
+    // uploads and lineups within their editable trainings (resource checks at API/RLS boundaries).
     case 'manage_roster':
       return service(viewer) || canManageRoster(rolesOf(viewer));
     case 'share':

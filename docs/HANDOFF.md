@@ -5,27 +5,24 @@ newest-first detailed log. Update this file at the end of a session.
 
 ## Current task — #154, club-wide reading and role-based editing
 
-- Branch `codex/feat/154-club-training-readonly`, based on main `b000ca4`; proposal/logs only.
-- Ewout: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze
-  niet aanpassen". Proposed plan: `docs/plans/154-club-training-readonly.md`; issue #154.
-- Existing FOR ALL session/video/lineup policies reuse reading for writes. Broadening visibility
-  alone is unsafe: separate read/write RLS, resource-aware API guards before media operations,
-  and server-derived UI capabilities are needed. One migration, no new table/dependency.
-- Ewout confirmed "Volledig alleen-lezen" for foreign trainings viewed as rower-only, including
-  no notes/drawing creation/edit/deletion or sharing/assignment changes, even for old own feedback.
-- Ewout then requested a plan revision: coaches and admins may edit others' trainings. The revised
-  matrix gives all roles club-wide reading, rower-only ownership-limited writes and club-wide
-  coach/admin writes (also combined roles). Do not preserve the old own/reachable-only coach scope.
-  Proposed own training = self-created. Keep private notes private to rowers, club boundaries and
-  admin-only account/creator administration. Revised plan and one-migration approval still pending.
-  No application or schema changes are authorized by the request to revise the plan.
+- Ewout approved the revised plan and its one policy migration: "voer het plan uit".
+  Branch `codex/feat/154-club-training-readonly`, based on main `b000ca4`; implementation local.
+- All roles read all current-club trainings. Rower-only writes remain creator-owned, not crew-owned;
+  foreign trainings are fully read-only, including old own feedback, assignment and sharing.
+  Coaches/admins edit every club training; combined roles retain elevated rights. Private feedback
+  stays private to rowers, and creator/account administration stays admin-only. See ADR-0020.
+- Migration 0019 (20 total locally) separates read/write RLS. APIs return resource capabilities and
+  pre-authorize media effects under a parent lock with a fresh ownership recheck after lock waits.
+  BUG-032 regression reproduces a concurrent creator-transfer/upload race, then passes after fix.
+- Verification in progress: initial full web/DB 518 passed, worker 50 passed; the additional race
+  makes 27 new permission tests, all passing. Local focused E2E 2 passed. Full local/edge and
+  iPhone WebKit/1000×540 matrix remain to finish before the PR. Local :5174 stays available.
 - Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
   19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
   older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization
-  carries over to #154. Local dev :5174 available; edge off. No application work has started.
-- The sections below are earlier implementation snapshots from main; the production/deployment
-  values in this current section supersede their older status. Current deployment evidence is in
-  PR #153 / branch codex/docs/152-deploy. Do not repeat that deployment.
+  carries over to #154. Edge is temporarily running for tests; stop it before finishing.
+- The sections below are earlier snapshots from main. This current section supersedes their older
+  production/task status; deployment evidence is in #153. Do not repeat that deployment.
 
 ## Admin user settings implementation — #151
 

@@ -52,6 +52,7 @@ export async function momentSharesOf(
       archivedAt: rower.archivedAt,
       sharedByUserId: momentShare.sharedByUserId,
       sharedBy: sharer.displayName,
+      trainingWritable: sql<boolean>`rowlens_can_edit_video(${moment.videoId})`,
     })
     .from(momentShare)
     .innerJoin(moment, eq(moment.id, momentShare.momentId))
@@ -63,7 +64,8 @@ export async function momentSharesOf(
   const byFrame = new Map<number, MomentShares>();
   for (const r of rows) {
     const m = byFrame.get(r.frame) ?? { frame: r.frame, crew: null, rowers: [] };
-    const canUnshare = can(viewer, { kind: 'unshare', sharedByUserId: r.sharedByUserId });
+    const canUnshare =
+      r.trainingWritable && can(viewer, { kind: 'unshare', sharedByUserId: r.sharedByUserId });
     if (r.scope === 'crew') m.crew = { sharedBy: r.sharedBy, canUnshare };
     else if (r.rowerId !== null && r.displayName !== null) {
       m.rowers.push({
@@ -89,7 +91,10 @@ async function noteAt(
   videoId: string,
   frame: number,
 ): Promise<{ id: string } | 'no_moment' | null> {
-  const [v] = await tx.select({ id: video.id }).from(video).where(eq(video.id, videoId));
+  const [v] = await tx
+    .select({ id: video.id })
+    .from(video)
+    .where(and(eq(video.id, videoId), sql`rowlens_can_edit_video(${video.id})`));
   if (v === undefined) return null;
   const [drawnOrWritten] = await tx
     .select({ id: annotation.id })

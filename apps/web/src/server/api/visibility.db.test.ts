@@ -85,6 +85,19 @@ const sessionsOf = async (who: keyof typeof as) =>
     .json<{ sessions: { id: string }[] }>()
     .sessions.map((s) => s.id);
 
+async function ownReadyVideo(who: keyof typeof as) {
+  const created = await send('POST', '/api/sessions', as[who], {
+    title: `Own feedback ${randomUUID()}`,
+    date: '2026-11-06',
+  });
+  const id = created.json<{ id: string }>().id;
+  const [v] = await asOwner<{ id: string }>(
+    `insert into video(club_id,session_id,original_filename,content_type,perspective,size_bytes,status,frame_count,fps_num,fps_den) values($1,$2,'own.mp4','video/mp4','boat',4,'ready',300,30,1) returning id`,
+    [club, id],
+  );
+  return v?.id ?? '';
+}
+
 beforeAll(async () => {
   handle = connectDatabase(inject('appUrl'), 2);
   app = await buildApp({
@@ -172,14 +185,13 @@ describe('what a rower sees (#40)', () => {
     expect(linked.map((r) => r.user_id !== null)).toEqual([true, true, false]);
   });
 
-  it('shows a rower only the sessions they rowed in', async () => {
-    expect(await sessionsOf('coach')).toContain(sessionId);
-    expect(await sessionsOf('a')).toContain(sessionId);
-    expect(await sessionsOf('b')).not.toContain(sessionId);
-    expect((await send('GET', `/api/sessions/${sessionId}`, as.b)).statusCode).toBe(404);
-    expect((await send('GET', `/api/videos/${videoId}`, as.b)).statusCode).toBe(404);
-    expect(await notes('b')).toBeNull();
-    expect((await send('GET', `/api/videos/${videoId}`, as.a)).statusCode).toBe(200);
+  it('shows all club trainings without disclosing private feedback', async () => {
+    for (const who of ['a', 'b', 'coach', 'coach2', 'admin'] as const) {
+      expect(await sessionsOf(who)).toContain(sessionId);
+      expect((await send('GET', `/api/sessions/${sessionId}`, as[who])).statusCode).toBe(200);
+      expect((await send('GET', `/api/videos/${videoId}`, as[who])).statusCode).toBe(200);
+    }
+    expect(await frames('b')).toEqual([]);
   });
 
   it('denies rower directory management while exposing only crew names in visible trainings', async () => {
@@ -198,7 +210,7 @@ describe('what a rower sees (#40)', () => {
     expect(rows.map((r) => r.id).sort()).toEqual([roster.a, roster.c].sort());
     expect(rows.every((r) => r.email === null && r.userId === undefined)).toBe(true);
     expect(rows.filter((r) => r.mine).map((r) => r.id)).toEqual([roster.a]);
-    expect((await send('GET', `/api/sessions/${sessionId}/rowers`, as.b)).statusCode).toBe(404);
+    expect((await send('GET', `/api/sessions/${sessionId}/rowers`, as.b)).statusCode).toBe(200);
     const status = (await send('GET', '/api/auth/status', as.a)).json<{ user: { id: string } }>();
     const context = { clubId: club, userId: status.user.id, roles: ['rower'] as const };
     const updated = await withTenant(handle.db, context, (tx) =>
@@ -244,54 +256,51 @@ describe('what a rower sees (#40)', () => {
     expect(await frames('b')).toEqual([20]); // B is not in the lineup
   });
 
-  it("lets a rower share what they see, take back their own share, not the coach's", async () => {
-    const mine = await send('PUT', `/api/videos/${videoId}/frames/10/shares`, as.a, {
-      rowerIds: [roster.b],
-      crew: true,
-    });
-    expect(mine.statusCode).toBe(200);
-    expect(await frames('b')).toEqual([10, 20]);
-    const view = (await notes('a'))?.shares.find((s) => s.frame === 10);
-    expect(view?.rowers.find((r) => r.id === roster.b)?.canUnshare).toBe(true);
-
-    const notYours = await send('PUT', `/api/videos/${videoId}/frames/10/shares`, as.a, {
-      rowerIds: [roster.b],
-      crew: false, // the crew share is the coach's
-    });
-    expect([notYours.statusCode, notYours.json()]).toEqual([403, { error: 'not_yours' }]);
-    const back = await send('PUT', `/api/videos/${videoId}/frames/10/shares`, as.a, {
-      rowerIds: [],
-      crew: true,
-    });
-    expect(back.statusCode).toBe(200);
+  it('refuses all sharing changes in another training, even on visible feedback', async () => {
+    for (const body of [
+      { rowerIds: [roster.b], crew: true },
+      { rowerIds: [], crew: true },
+      { rowerIds: [roster.b], crew: false },
+    ])
+      expect(
+        (await send('PUT', `/api/videos/${videoId}/frames/10/shares`, as.a, body)).statusCode,
+      ).toBe(404);
     expect(await frames('b')).toEqual([20]);
-    // A rower can't share a note they can't see.
-    const hidden = await send('PUT', `/api/videos/${videoId}/frames/20/shares`, as.a, {
-      rowerIds: [roster.a],
-      crew: false,
+    expect((await notes('a'))?.shares.find((s) => s.frame === 10)?.crew).toMatchObject({
+      canUnshare: false,
     });
-    expect(hidden.statusCode).toBe(409);
   });
 
-  it('lets a rower write their own notes and change only those; the coach sees them', async () => {
+  it('lets rowers edit their own training notes but not feedback in foreign trainings', async () => {
     const coachNote = (await notes('a'))?.annotations.find((n) => n.frame === 10)?.id ?? '';
     expect(
-      (await send('PATCH', `/api/annotations/${coachNote}`, as.a, { body: 'mine now' })).statusCode,
+      (await send('PATCH', `/api/annotations/${coachNote}`, as.a, { body: 'Denied' })).statusCode,
     ).toBe(404);
     expect((await send('DELETE', `/api/annotations/${coachNote}`, as.a)).statusCode).toBe(404);
-
-    const own = await send('POST', `/api/videos/${videoId}/annotations`, as.a, {
+    expect(
+      (
+        await send('POST', `/api/videos/${videoId}/annotations`, as.a, {
+          kind: 'note',
+          frame: 30,
+          body: 'Denied',
+        })
+      ).statusCode,
+    ).toBe(404);
+    const mine = await ownReadyVideo('a');
+    const own = await send('POST', `/api/videos/${mine}/annotations`, as.a, {
       kind: 'note',
       frame: 30,
-      body: 'Is my catch late here?',
+      body: 'My catch?',
       authorName: 'A',
     });
-    expect(own.statusCode).toBe(201);
+    expect(own.statusCode, own.body).toBe(201);
     expect(own.json()).toMatchObject({ mine: true, canEdit: true });
     const ownId = own.json<{ id: string }>().id;
-    expect(await frames('a')).toEqual([10, 30]);
-    expect(await frames('b')).toEqual([20]);
-    expect(await frames('coach')).toEqual([10, 20, 30]);
+    expect(
+      (await send('GET', `/api/videos/${mine}/annotations`, as.coach)).json<{
+        annotations: unknown[];
+      }>().annotations,
+    ).toHaveLength(1);
     expect(
       (await send('PATCH', `/api/annotations/${ownId}`, as.a, { body: 'Catch late?' })).statusCode,
     ).toBe(200);
@@ -299,8 +308,9 @@ describe('what a rower sees (#40)', () => {
   });
 
   it('names a note after the account, never after what the client sends (#106)', async () => {
+    const mine = await ownReadyVideo('a');
     // A is linked to the roster entry "A <tag>": that name, whatever the request says.
-    const linked = await send('POST', `/api/videos/${videoId}/annotations`, as.a, {
+    const linked = await send('POST', `/api/videos/${mine}/annotations`, as.a, {
       kind: 'note',
       frame: 40,
       body: 'Linked',
@@ -318,7 +328,8 @@ describe('what a rower sees (#40)', () => {
     // The page shows the same name before anything is written ("as …").
     const status = await app.inject({ url: `${BASE}/api/auth/status`, headers: { cookie: as.a } });
     expect(status.json()).toMatchObject({ user: { authorName: `A ${tag}` } });
-    for (const frame of [40, 41]) {
+    await send('DELETE', `/api/videos/${mine}/frames/40/annotations`, as.coach);
+    for (const frame of [41]) {
       await send('DELETE', `/api/videos/${videoId}/frames/${String(frame)}/annotations`, as.coach);
     }
   });
@@ -330,7 +341,7 @@ describe('what a rower sees (#40)', () => {
     });
     const own = created.json<{ id: string }>().id;
     expect(await sessionsOf('b')).toContain(own);
-    expect(await sessionsOf('a')).not.toContain(own);
+    expect(await sessionsOf('a')).toContain(own);
     const lineup = await send('PUT', `/api/sessions/${own}/lineup`, as.b, {
       boatType: 'C1x',
       seats: [{ seat: 1, rowerId: roster.b }],
@@ -347,7 +358,7 @@ describe('what a rower sees (#40)', () => {
     expect(all.rows[0]?.n).toBe(2);
   });
 
-  it('stroke marks: the coach sets them, a rower reads them, others see nothing (#85)', async () => {
+  it('stroke marks: the coach sets them, a rower reads them, all club members can read (#85)', async () => {
     const at = `/api/videos/${videoId}/strokes`;
     expect((await send('PUT', `${at}/12`, as.coach, { kind: 'catch' })).statusCode).toBe(200);
     expect((await send('GET', at, as.a)).json()).toEqual({ marks: [{ frame: 12, kind: 'catch' }] });
@@ -363,13 +374,14 @@ describe('what a rower sees (#40)', () => {
         ),
       ),
     ).rejects.toThrow();
-    // Another coach doesn't see this session, so not its video or marks either.
-    expect((await send('GET', at, as.coach2)).statusCode).toBe(404);
-    expect((await send('PUT', `${at}/50`, as.coach2, { kind: 'catch' })).statusCode).toBe(404);
+    // An unrelated coach can read and change marks throughout the club.
+    expect((await send('GET', at, as.coach2)).statusCode).toBe(200);
+    expect((await send('PUT', `${at}/50`, as.coach2, { kind: 'catch' })).statusCode).toBe(200);
     expect((await send('DELETE', `${at}/12`, as.coach)).statusCode).toBe(204);
+    await send('DELETE', `${at}/50`, as.coach2);
   });
 
-  it('angles: the coach measures, a rower reads them, others see nothing (ADR-0017)', async () => {
+  it('angles: the coach measures, a rower reads them, all club members can read (ADR-0017)', async () => {
     const at = `/api/videos/${videoId}`;
     await send('PUT', `${at}/strokes/15`, as.coach, { kind: 'catch' });
     const knee = {
@@ -412,8 +424,8 @@ describe('what a rower sees (#40)', () => {
         ),
       ),
     ).resolves.toMatchObject({ rows: [] });
-    // Another coach doesn't see this session, so not its angles either.
-    expect((await send('GET', `${at}/angles`, as.coach2)).statusCode).toBe(404);
+    // Unrelated coaches can read these measurements.
+    expect((await send('GET', `${at}/angles`, as.coach2)).statusCode).toBe(200);
     expect((await send('DELETE', `/api/angles/${id}`, as.coach)).statusCode).toBe(204);
     await send('DELETE', `${at}/boat-line/0`, as.coach);
     await send('DELETE', `${at}/strokes/15`, as.coach);
@@ -443,10 +455,10 @@ describe('what a rower sees (#40)', () => {
         ),
       ),
     ).resolves.toMatchObject({ rows: [] });
-    // Another coach doesn't see this session, so not its lines either.
-    expect((await send('GET', at, as.coach2)).statusCode).toBe(404);
+    // Unrelated coaches may change this bow side too.
+    expect((await send('GET', at, as.coach2)).statusCode).toBe(200);
     expect((await send('PUT', `${at}/bow-side`, as.coach2, { bowSide: 'right' })).statusCode).toBe(
-      404,
+      200,
     );
     await asOwner(`delete from video_auto_boat_line where video_id = $1`, [videoId]);
   });
@@ -474,15 +486,15 @@ describe('what a rower sees (#40)', () => {
   });
 });
 
-describe('coaches see their own sessions; the admin sees and assigns all (#108)', () => {
-  it("a coach doesn't see another coach's session; the admin does", async () => {
-    expect(await sessionsOf('coach2')).not.toContain(sessionId);
-    expect((await send('GET', `/api/videos/${videoId}`, as.coach2)).statusCode).toBe(404);
+describe('coaches manage all trainings; creator reassignment stays admin-only (#154)', () => {
+  it('coaches and admins see every club training', async () => {
+    expect(await sessionsOf('coach2')).toContain(sessionId);
+    expect((await send('GET', `/api/videos/${videoId}`, as.coach2)).statusCode).toBe(200);
     expect(await sessionsOf('admin')).toContain(sessionId);
     expect(await frames('admin')).toEqual(await frames('coach'));
   });
 
-  it('only the admin gives a session to a coach, who then sees all its notes', async () => {
+  it('only the admin reassigns a creator; coaches already see all its notes', async () => {
     const coach2Id = (
       await asOwner<{ id: string }>(`select id from app_user where email = $1`, [COACH2])
     )[0]?.id;
@@ -579,11 +591,11 @@ describe('names, default boat and renaming (2026-11-03)', () => {
     expect(listed.find((s) => s.id === own)?.creatorName).toBe('Cora Coach');
   });
 
-  it("renames: the maker and the admin may; a rower in it may not; another coach doesn't see it", async () => {
+  it('renames: the maker and the admin may; a rower in it may not; an unrelated coach may too', async () => {
     const rename = (who: keyof typeof as, title: string) =>
       send('PATCH', `/api/sessions/${own}`, as[who], { title });
     expect((await rename('a', 'By a rower')).statusCode).toBe(403);
-    expect((await rename('coach2', 'By another coach')).statusCode).toBe(404);
+    expect((await rename('coach2', 'By another coach')).statusCode).toBe(200);
     expect((await rename('coach', '')).statusCode).toBe(400);
     expect((await rename('coach', ' Saturday, renamed ')).json()).toMatchObject({
       title: 'Saturday, renamed',

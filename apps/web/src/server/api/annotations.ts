@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { annotation, video } from '../db/schema.ts';
@@ -40,17 +40,21 @@ const editDrawing = z.object({ points: z.array(point).min(2).max(3) });
 const editAnnotation = z.union([editNote, editDrawing]);
 
 /** What the client may do with it (#40), instead of the author's account id. */
-function present<T extends { authorUserId: string | null }>(row: T, tenant: TenantContext) {
-  const { authorUserId, ...rest } = row;
+function present<T extends { authorUserId: string | null; trainingWritable: boolean }>(
+  row: T,
+  tenant: TenantContext,
+) {
+  const { authorUserId, trainingWritable, ...rest } = row;
   const viewer = { roles: tenant.roles, role: tenant.role ?? null, userId: tenant.userId };
   return {
     ...rest,
     mine: tenant.userId !== null && authorUserId === tenant.userId,
-    canEdit: can(viewer, { kind: 'edit_annotation', authorUserId }),
+    canEdit: trainingWritable && can(viewer, { kind: 'edit_annotation', authorUserId }),
   };
 }
 
 const columns = {
+  trainingWritable: sql<boolean>`rowlens_can_edit_video(${annotation.videoId})`,
   id: annotation.id,
   frame: annotation.frame,
   kind: annotation.kind,
@@ -109,7 +113,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
       const [v] = await tx
         .select({ id: video.id, status: video.status, frameCount: video.frameCount })
         .from(video)
-        .where(eq(video.id, params.data.id));
+        .where(and(eq(video.id, params.data.id), sql`rowlens_can_edit_video(${video.id})`));
       if (v === undefined) return 'not_found' as const;
       // Frames exist only once the worker has made the CFR renditions (ADR-0007).
       if (v.status !== 'ready' || v.frameCount === null) return 'not_ready' as const;
@@ -196,7 +200,7 @@ export const annotationRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, o
         const [v] = await tx
           .select({ id: video.id })
           .from(video)
-          .where(eq(video.id, params.data.id));
+          .where(and(eq(video.id, params.data.id), sql`rowlens_can_edit_video(${video.id})`));
         if (v === undefined) return null;
         const gone = await tx
           .delete(annotation)

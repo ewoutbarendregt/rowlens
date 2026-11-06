@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Implement approved club training permissions (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/src/server/{api,db,repositories/training-access.ts}, apps/web/src/client/{sessions,notes}, apps/web/e2e/{helpers.ts,training-permissions.spec.ts}, docs/adr/{0013,0019,0020,README}.md, docs/plans/154-club-training-readonly.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Implemented club-wide training reading and creator/staff editing with separate restrictive RLS, one approved migration, API capabilities and fully read-only rower UI for foreign trainings. Private feedback and tenant/admin boundaries remain; pre-media locks plus a fresh ownership recheck fix the reproduced concurrent-transfer upload race (BUG-032); slow chunks retain the lock under a bounded deadline (BUG-033). Role refresh reloads feedback with stale-response protection, and NL/EN admin role explanations match the new scope. Initial full web/DB 518 and worker 50 tests pass; 27 permission tests and 2 local focused E2E pass, with remaining browser verification in progress. Production stays sha-b000ca4; no #154 merge/deploy authorization.
+**Prompts used**: "voer het plan uit"; "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen"; "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
+
 ## 2026-11-06 — Revise training permissions for coaches and admins (#154)
 
 **Session**: codex/feat/154-club-training-readonly

@@ -60,6 +60,7 @@ import { formatVideoFacts, sessionStrings, type Perspective, type VideoStatus } 
 interface VideoDetail {
   id: string;
   sessionId: string;
+  canEdit: boolean;
   sessionTitle: string;
   filename: string;
   seq: number | null;
@@ -99,6 +100,7 @@ export function VideoPage() {
   const { id = '' } = useParams();
   const auth = useAuth();
   const personal = useOwnSettings();
+  const rolesKey = auth.state.kind === 'open' ? auth.state.user.roles.join(',') : '';
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
   const [rendition, setRendition] = useState<string | null>(null);
@@ -141,6 +143,7 @@ export function VideoPage() {
     personal.preferences.driveMiddle,
   ]);
   const canMark =
+    video?.canEdit === true &&
     auth.state.kind === 'open' &&
     auth.state.user.roles.some((role) => role === 'coach' || role === 'admin');
 
@@ -172,6 +175,9 @@ export function VideoPage() {
     };
   }, [toggleNotes]);
 
+  const feedbackScope = `${id}:${rolesKey}`;
+  const feedbackScopeRef = useRef(feedbackScope);
+  feedbackScopeRef.current = feedbackScope;
   const loadNotes = useCallback(() => {
     api(`/api/videos/${id}/annotations`)
       .then((res) =>
@@ -184,7 +190,7 @@ export function VideoPage() {
           : null,
       )
       .then((body) => {
-        if (body !== null) {
+        if (body !== null && feedbackScopeRef.current === feedbackScope) {
           setNotes(body.annotations);
           setMomentRowers(body.moments ?? []);
           setMomentShares(body.shares ?? []);
@@ -193,8 +199,13 @@ export function VideoPage() {
       .catch(() => {
         // The player still works; the panel shows what it has.
       });
-  }, [id]);
-  useEffect(loadNotes, [loadNotes]);
+  }, [id, feedbackScope]);
+  useEffect(() => {
+    setNotes([]);
+    setMomentRowers([]);
+    setMomentShares([]);
+    loadNotes();
+  }, [loadNotes]);
 
   const loadMarks = useCallback(() => {
     api(`/api/videos/${id}/strokes`)
@@ -450,23 +461,27 @@ export function VideoPage() {
       points: drawing.shape?.points ?? [],
       frame: moment?.frame ?? current,
       // Rowers change only their own; coaches those of the sessions they coach (ADR-0013).
-      editable: drawing.canEdit === true,
+      editable: video?.canEdit === true && drawing.canEdit === true,
     }));
-  }, [filteredMoments, current, notesVisible, tool]);
+  }, [filteredMoments, current, notesVisible, tool, video?.canEdit]);
 
-  const chooseTool = useCallback((next: DrawingKind | null) => {
-    if (next !== null) {
-      player.current?.pause();
-      // On a phone the picture may be scrolled away; drawing happens on it.
-      const stage = document.querySelector('.player__stage');
-      const box = stage?.getBoundingClientRect();
-      if (box !== undefined && (box.top < 0 || box.bottom > window.innerHeight)) {
-        stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const chooseTool = useCallback(
+    (next: DrawingKind | null) => {
+      if (next !== null && video?.canEdit !== true) return;
+      if (next !== null) {
+        player.current?.pause();
+        // On a phone the picture may be scrolled away; drawing happens on it.
+        const stage = document.querySelector('.player__stage');
+        const box = stage?.getBoundingClientRect();
+        if (box !== undefined && (box.top < 0 || box.bottom > window.innerHeight)) {
+          stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
-    }
-    setTool(next);
-    if (next !== null) setMeasuring(null);
-  }, []);
+      setTool(next);
+      if (next !== null) setMeasuring(null);
+    },
+    [video?.canEdit],
+  );
   const cancelTool = useCallback(() => {
     setTool(null);
     setMeasuring(null);
@@ -625,18 +640,29 @@ export function VideoPage() {
   );
 
   useEffect(() => {
+    let stale = false;
     api(`/api/videos/${id}`)
       .then((res) => (res.ok ? (res.json() as Promise<VideoDetail>) : Promise.reject(new Error())))
       .then((v) => {
+        if (stale) return;
         setVideo(v);
         const names = v.renditions.map((r) => r.name);
         const small = names.includes('play-540') ? 'play-540' : (names[0] ?? null);
         setRendition(preferSmall() ? small : names.includes('play-1080') ? 'play-1080' : small);
       })
       .catch(() => {
-        setFailed(true);
+        if (!stale) setFailed(true);
       });
-  }, [id]);
+    return () => {
+      stale = true;
+    };
+  }, [id, rolesKey]);
+  useEffect(() => {
+    if (video !== null && !video.canEdit) {
+      setTool(null);
+      setMeasuring(null);
+    }
+  }, [video]);
 
   if (failed) {
     return (
@@ -701,6 +727,11 @@ export function VideoPage() {
 
   return (
     <main className="page page--wide video-page">
+      {!video.canEdit && (
+        <p className="muted" data-testid="training-read-only">
+          {t.readOnly}
+        </p>
+      )}
       {/* Mockup 1e: back, title and facts on the left; the lineup as columns on the right. */}
       <header className="video-head">
         <div className="video-head__main">
@@ -783,7 +814,7 @@ export function VideoPage() {
               }
               toolbar={
                 <>
-                  <DrawTools tool={tool} onTool={chooseTool} />
+                  {video.canEdit && <DrawTools tool={tool} onTool={chooseTool} />}
                   <div className="player__toolbar-end">
                     <div className="video-note-controls" role="group" aria-label={nt.videoNotes}>
                       <button
@@ -879,6 +910,7 @@ export function VideoPage() {
               hidden={sideTab !== 'notes'}
             >
               <NotesPanel
+                canEdit={video.canEdit}
                 videoId={video.id}
                 fps={video.fpsNum / video.fpsDen}
                 frame={current}

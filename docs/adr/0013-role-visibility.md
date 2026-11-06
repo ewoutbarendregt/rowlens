@@ -63,3 +63,12 @@ niet zichtbaar". This supersedes rower roster management above. Rower-only users
 standalone directory or create/edit/archive/merge roster entries. Client navigation and routes,
 API guards and restrictive roster policies enforce it. Needed crew names are scoped to an accessible
 training and omit e-mails; existing lineup, note assignment and sharing rights remain.
+
+## Addendum 2026-11-06: club-wide training reading and staff editing (#154)
+
+ADR-0020 supersedes the earlier own/reachable-only training scope: every club member reads all club
+trainings; rower-only users edit self-created trainings, while coaches/admins edit all. Foreign
+trainings are fully read-only for rowers, including old own feedback, sharing and assignment.
+Private feedback visibility, club isolation, additive roles, standalone roster restrictions and
+admin-only account/creator administration remain. Migration 0019 separates resource read/write
+policies and media operations authorize before file effects.

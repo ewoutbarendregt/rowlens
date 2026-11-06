@@ -49,13 +49,14 @@ analysis of rowing technique.
 
 ## Club training visibility and editing by role (#154)
 
-Revised proposal: all members can view all trainings in their current club. Rower-only users keep
+Approved and implemented locally: all members can view all trainings in their current club. Rower-only users keep
 existing editing rights in their own (self-created) trainings; foreign trainings are fully read-only,
 including no feedback mutations. Coaches/admins may edit every club training, including those
 created by others; combinations retain those elevated rights. Keep private notes private to rowers
 and preserve cross-club/account-administration boundaries. One permission-policy migration, no
-new table/dependency. See docs/plans/154-club-training-readonly.md. Ewout asked to revise the plan;
-implementation and migration approval remain pending. No application changes yet.
+new table/dependency. Ewout approved the revised plan with "voer het plan uit". See
+docs/plans/154-club-training-readonly.md and ADR-0020. Final browser verification is in progress;
+no merge or deployment is authorized for this change.
 
 ## Admin user settings (#151, approved 2026-11-06)
 

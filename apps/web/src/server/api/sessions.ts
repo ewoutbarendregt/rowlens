@@ -2,6 +2,7 @@ import { and, count, desc, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { BOAT_CLASS_NAMES } from '../../shared/boats.ts';
+import { lockEditableSession, lockEditableVideo } from '../repositories/training-access.ts';
 import { can } from '../auth/can.ts';
 import type { Tx } from '../db/client.ts';
 import { rower, rowingSession, video } from '../db/schema.ts';
@@ -92,6 +93,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           createdAt: rowingSession.createdAt,
           boatType: rowingSession.boatType,
           createdByUserId: rowingSession.createdByUserId,
+          canEdit: sql<boolean>`rowlens_can_edit_session(${rowingSession.id})`,
           videoCount: count(video.id),
         })
         .from(rowingSession)
@@ -190,6 +192,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           createdAt: rowingSession.createdAt,
           boatType: rowingSession.boatType,
           createdByUserId: rowingSession.createdByUserId,
+          canEdit: sql<boolean>`rowlens_can_edit_session(${rowingSession.id})`,
         })
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
@@ -238,7 +241,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
         ...rest,
         ...creator,
         creatorName: createdByUserId === null ? null : nameOf(club.get(createdByUserId)),
-        canRename: can(viewer, { kind: 'rename_session', createdByUserId }),
+        canRename: session.canEdit && can(viewer, { kind: 'rename_session', createdByUserId }),
         lineup,
         videos,
       };
@@ -284,20 +287,18 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
     if (!params.success) return notFound(reply);
     const tenant = tenantOf(req);
     const videoIds = await withTenant(db, tenant, async (tx) => {
-      // Block new videos for this session while we collect every existing media key.
-      const [session] = await tx
-        .select({ id: rowingSession.id })
-        .from(rowingSession)
-        .where(and(eq(rowingSession.id, params.data.id), eq(rowingSession.clubId, tenant.clubId)))
-        .for('update');
-      if (session === undefined) return null;
+      if (!(await lockEditableSession(tx, params.data.id))) return null;
+      // The parent lock also blocks new uploads until its media keys are collected.
+      const session = { id: params.data.id };
       const rows = await tx
         .select({ id: video.id })
         .from(video)
         .where(and(eq(video.sessionId, session.id), eq(video.clubId, tenant.clubId)));
-      await tx
+      const deleted = await tx
         .delete(rowingSession)
-        .where(and(eq(rowingSession.id, session.id), eq(rowingSession.clubId, tenant.clubId)));
+        .where(and(eq(rowingSession.id, session.id), eq(rowingSession.clubId, tenant.clubId)))
+        .returning({ id: rowingSession.id });
+      if (deleted.length === 0) return null;
       return rows.map((row) => row.id);
     });
     if (videoIds === null) return notFound(reply);
@@ -316,12 +317,13 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
     const params = idParam.safeParse(req.params);
     if (!params.success) return notFound(reply);
     const tenant = tenantOf(req);
-    const deleted = await withTenant(db, tenant, (tx) =>
-      tx
+    const deleted = await withTenant(db, tenant, async (tx) => {
+      if (!(await lockEditableVideo(tx, params.data.id))) return [];
+      return tx
         .delete(video)
         .where(and(eq(video.id, params.data.id), eq(video.clubId, tenant.clubId)))
-        .returning({ id: video.id }),
-    );
+        .returning({ id: video.id });
+    });
     if (deleted.length === 0) return notFound(reply);
     await media?.remove(videoKey(tenant.clubId, params.data.id));
     req.log.info({ videoId: params.data.id }, 'video deleted');

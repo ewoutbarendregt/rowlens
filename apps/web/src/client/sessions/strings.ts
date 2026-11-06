@@ -2,6 +2,7 @@ import { type Language, lang, locale } from '../i18n/language.ts';
 // Sessions and upload strings in NL and EN (moves into the i18n catalogs with #34).
 const en = {
   sessions: 'Sessions',
+  readOnly: 'You can view this session, but you cannot change it.',
   noSessions: 'No sessions yet. Create one, then upload its videos.',
   newSession: 'New session',
   title: 'Title',
@@ -72,7 +73,7 @@ const en = {
   loadFailed: 'Could not load this page. Check your connection and reload.',
   cancel: 'Cancel',
   creator: 'Coach (made by)',
-  noCreator: 'Nobody (only the admin sees it)',
+  noCreator: 'Nobody (only coaches and admins can change it)',
   creatorHint: 'Only you, as admin, see this. The coach chosen here sees this session.',
   filters: 'Filters',
   from: 'From',
@@ -101,11 +102,12 @@ const en = {
   noLineup: 'No lineup yet',
   cox: 'cox',
   unlinked:
-    'You see the sessions you made or rowed in, but your account isn’t linked to your name in the roster yet. Ask a coach or the admin to add your e-mail address to your name on the Rowers page.',
+    'You can see all sessions in this club, but your account isn’t linked to your name in the roster yet. Ask a coach or the admin to add your e-mail address to your name on the Rowers page.',
 };
 
 const nl: typeof en = {
   sessions: 'Trainingen',
+  readOnly: 'Je kunt deze training bekijken, maar niet aanpassen.',
   noSessions: 'Nog geen trainingen. Maak er een aan en upload daarna de video’s.',
   newSession: 'Nieuwe training',
   title: 'Titel',
@@ -177,7 +179,7 @@ const nl: typeof en = {
   loadFailed: 'Deze pagina kon niet laden. Controleer je verbinding en herlaad.',
   cancel: 'Annuleren',
   creator: 'Coach (gemaakt door)',
-  noCreator: 'Niemand (alleen de beheerder ziet hem)',
+  noCreator: 'Niemand (alleen coaches en beheerders kunnen wijzigen)',
   creatorHint: 'Alleen jij als beheerder ziet dit. De coach die je hier kiest, ziet deze training.',
   filters: 'Filters',
   from: 'Van',
@@ -208,7 +210,7 @@ const nl: typeof en = {
   noLineup: 'Nog geen opstelling',
   cox: 'stuur',
   unlinked:
-    'Je ziet de trainingen die je aanmaakte of waarin je roeide, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag een coach of de beheerder je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
+    'Je kunt alle trainingen van deze club zien, maar je account is nog niet gekoppeld aan je naam in de ploeglijst. Vraag een coach of de beheerder je e-mailadres bij jouw naam op de Roeiers-pagina te zetten.',
 };
 
 export type SessionStrings = typeof en;

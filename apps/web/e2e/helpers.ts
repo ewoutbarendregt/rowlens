@@ -37,8 +37,13 @@ export async function openNewSession(page: Page): Promise<void> {
  * Edge stack only (needs the worker): a new session with the E2E clip, processed and opened in the
  * player. Returns at frame 0 with the page focused for keyboard steps.
  */
-export async function openProcessedClip(page: Page, clip: Buffer, title: string): Promise<void> {
-  await signIn(page);
+export async function openProcessedClip(
+  page: Page,
+  clip: Buffer,
+  title: string,
+  email = authEmail,
+): Promise<void> {
+  await signIn(page, email);
   await page.goto('./sessions');
   await openNewSession(page);
   await page.getByLabel(/^(Title|Titel)$/).fill(title);

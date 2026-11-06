@@ -16,6 +16,16 @@ Test strategy, prompts and results. This file is the source of truth for testing
 Rules: every bug fix starts with a failing test; every new tenant table/route gets a cross-club test;
 E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirrors prod.
 
+## Club training permissions (#154)
+
+Approved with "voer het plan uit". Integration fixtures use two clubs, two rowers (including a
+participant who is not the creator), unrelated coach/admin, legacy ownerless sessions, old own and
+private feedback, seven role combinations and actual temporary media files. Foreign rower mutations
+must return 403/404 without database/file changes; staff mutations must succeed throughout the club.
+A concurrent transfer test waits for a real database lock, commits ownership reassignment and checks
+that the previous owner cannot append bytes. Browser coverage checks list/detail/player read-only
+controls, private feedback, playback and own/staff editing, including iPhone WebKit and 1000×540.
+
 ## Central settings and role sets (#151)
 
 - Unit: all seven role combinations and fail-closed empty roles; account-owned caches, late-response
@@ -82,6 +92,7 @@ E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirror
 
 | Date | Branch | Command | Result |
 |---|---|---|---|
+| 2026-11-06 | codex/feat/154-club-training-readonly | Approved implementation, permissions and concurrency | Initial full web/DB: 518 passed; worker: Ruff/check-format/mypy and 50 pytest passed. New permission suite: 27 passed, including seven role combinations and concurrent ownership transfer. Existing visibility: 21 passed after updating obsolete scope expectations. Initial red suite: 12 failed/5 passed; prototype transfer test failed with unauthorized 204, then passed with refusal/bytes preserved. Local focused browser: 2 passed after correcting test selectors. Final full/browser matrix pending. |
 | 2026-11-06 | codex/feat/154-club-training-readonly | Read-only inspection of session/video/lineup/feedback RLS, API mutation/media paths and client permissions; proposal format/diff checks | Proposal only. Planned: club-wide rower reads, foreign-training mutation refusals with data/media preserved, own rower rights, unrelated coach/admin edits of all club trainings, cross-club isolation, role combinations, private feedback and WebKit/low-laptop playback. Fully read-only foreign feedback confirmed; revised plan/migration approval pending, no application changes. |
 | 2026-11-06 | codex/feat/151-admin-user-settings | Approved implementation: format/lint/typecheck/build; full web/DB; worker; deployment tests/rehearsal; local and edge E2E; low laptop and iPhone WebKit settings matrix | 492 web/DB and 50 worker pass; 77 deploy-script checks/rehearsal pass. Full edge 38 passed / 10 skipped; focused Chromium 6/6 and local low-laptop/iPhone 6/6. Final full local: 47 passed / 49 skipped; full edge: 38 passed / 10 skipped. Final local low-laptop/iPhone matrix: 6/6; final edge low-laptop/iPhone regression matrix: 24/24 (settings, angle drawings, actual 0.25×/0.5× playback and pause, stroke marks/removal/fullscreen). Screenshots inspected; control heights ≥44 px, identity width >200 px and no page overflow. Role draft regression (BUG-031): baseline failed on the unchecked Coach choice after profile save; keep explicit drafts/snapshots and verify 409/reload after a competing admin change. Final focus-refresh correction (BUG-030): 12 Chromium and 10 low-laptop/iPhone cases pass, including a simulated 503 preserving the open draft and an explicit access rejection clearing it. Edge DB has 19 migrations and readiness DB ok; edge stopped after tests. Diagnostic runs: initial auth-function count needed updating; new UI label selectors and role-save completion wait corrected; phone editor flex/native-select sizing fixed (BUG-029); an old sharing-spec scalar-role selector updated. One parallel local/edge run collided in the default Playwright trace directory (ENOENT); subsequent runs use separate output directories. |
 | 2026-11-06 | codex/docs/151-user-settings-plan | Inspect header, rowers route/API guards and manage_roster policy; document rower navigation; format/diff checks | Proposal only, no functional changes. Planned coverage: rower-only Trainings/own settings, absent Rowers/Admin links, direct-route/API/DB refusal, safe training crew lookup and combined-role access. |
