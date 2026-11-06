@@ -85,6 +85,7 @@ Club self-onboarding · side-by-side comparison · trends · goals · more langu
 
 ## Admin user settings (#151)
 
-Requested 2026-11-06: inspect/edit current-club users' profile, role/access and all five display/video
-preferences. Inventory and proposal complete; new centralized persistence/migration awaiting Ewout's
+Requested 2026-11-06: one central user register/profile/settings set per person; users may hold
+multiple roles (rower, coach, admin) simultaneously. Admin can inspect/edit profile, role sets/access
+and all five display/video preferences. Inventory and updated proposal complete; new centralized persistence/migration awaiting Ewout's
 approval. No functional implementation yet; see docs/plans/151-admin-user-settings.md.

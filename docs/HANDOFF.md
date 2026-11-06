@@ -6,6 +6,8 @@ newest-first detailed log. Update this file at the end of a session.
 ## Admin user settings proposal — #151
 
 - Current branch: `codex/docs/151-user-settings-plan`; proposal/logs only, based on main `e5960c7`.
+- Ewout clarified: one central user register and one profile/settings set per person; multiple
+  simultaneous roles (rower, coach, admin), e.g. rower+coach. The current scalar role is insufficient.
 - Ewout requests all existing user settings visible/editable by admin. Five preferences are only
   in the browser today; full remote administration needs centralized storage. Profile reads/writes
   also need new guarded SQL functions; current ones reach only the signed-in user's own account.
@@ -14,7 +16,9 @@ newest-first detailed log. Update this file at the end of a session.
   under AGENTS.md before implementing new tables/migration or changing authorization.
 - Do not replace this with a partial profile-only implementation without Ewout's agreement. Do not
   claim unknown browser preferences are visible before synchronization. Preserve admin edits when
-  an old device first imports its local choices. Current-club scope; global profile semantics explicit.
+  an old device first imports its local choices. Updated proposal stores preferences on app_user,
+  changes scalar roles to validated sets, and adds one scoped audit table; no second user register.
+  Preserve tenant boundaries; a central registry does not imply cross-club admin authorization.
 - No application, schema or production changes this session. Production last verified
   `sha-e5960c7`, deploy 42195631449; separate deployment-log PR #150 remains open. Previous release
   log PR #148 and the local OWASP review branch remain separate. Dev stack :5174 available; edge off.

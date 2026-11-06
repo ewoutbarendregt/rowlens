@@ -50,9 +50,10 @@ analysis of rowing technique.
 ## Admin user settings (#151, proposed 2026-11-06)
 
 Ewout requests inspection/editing of all existing user settings. The inventory includes profile,
-role/access and five currently device-local preferences. See
-[the implementation proposal](docs/plans/151-admin-user-settings.md); centralized tenant-scoped
-storage, audit and protected admin profile operations need architectural/migration approval first.
+multiple simultaneous roles/access and five currently device-local preferences. One central user
+register/profile/settings set per person (Ewout's clarification); role combinations grant permissions. See
+[the implementation proposal](docs/plans/151-admin-user-settings.md); centralized account settings, multi-role
+authorization, tenant-scoped audit and protected admin profile operations need architectural/migration approval first.
 
 ## Out of scope (for now)
 

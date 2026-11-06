@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Clarify one central user register with multiple roles
+
+**Session**: codex/docs/151-user-settings-plan
+**Changed**: docs/plans/151-admin-user-settings.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Updated #151 to keep one central account/profile/settings set while allowing simultaneous rower, coach and admin roles. The current scalar role needs a coordinated auth/API/client/RLS migration; the revised proposal extends app_user preferences, uses role sets and one scoped audit table, with no application or production changes before architectural approval.
+**Prompts used**: "Er is maar 1 register van gebruikers. Een gebruiker kan verschillende rollen hebben: roeier, coach, beheerder".
+
 ## 2026-11-06 — Inventory admin user settings and propose centralized preferences
 
 **Session**: codex/docs/151-user-settings-plan

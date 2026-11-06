@@ -4,12 +4,27 @@ Status: proposed; architectural approval required before application or migratio
 Request: "Als beheerder wil ik alle settings van alle gebruikers kunnen inzien en aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/151
 
+## Product model clarified by Ewout
+
+"Er is maar 1 register van gebruikers. Een gebruiker kan verschillende rollen hebben: roeier,
+coach, beheerder".
+
+There is one central `app_user` identity, one profile and one set of personal preferences per user.
+A person may simultaneously have any non-empty combination of rower, coach and admin. Role grants
+are permissions on that same identity, not separate user records or separate settings per role.
+The existing central register is retained. Club membership still scopes access to tenant data;
+this clarification does not authorize removing RLS or granting platform-wide cross-club access.
+
+The current implementation has one scalar role on membership/access, in auth responses and in
+API/client/RLS checks. Multiple roles therefore require an authorization/data migration, not just
+replacing a dropdown with checkboxes.
+
 ## Current inventory
 
 | Setting | Current source | Current editing |
 |---|---|---|
 | First name, last name, default boat | `app_user`, migration 0016 | Own account menu, `PUT /api/me/profile` |
-| Role and access | `membership`, `club_access`, server allowlists | Existing Admin access routes, with self/last-admin/server-managed protections |
+| Roles and access | Currently one scalar role on `membership` / `club_access`, plus server allowlists | Proposed multi-role checkboxes on the same user, retaining self/last-admin/server-managed protections |
 | Interface language | Browser `rowlens.lang` | Language switch; NL/EN |
 | Colour mode | Browser `rowlens.theme` | Light/dark/high contrast |
 | Notes visible on video | Browser `rowlens.videoNotes.visible` | Video toolbar; default on |
@@ -27,14 +42,15 @@ other unimplemented features are not existing settings and are outside this chan
 ## Proposed behaviour
 
 - Admin → Users lists all current-club accounts, searchable by name/e-mail. Each user has an
-  in-page Settings form for profile, display and video preferences. Existing role/access actions
-  remain available in the same user area with their existing guards.
+  in-page Settings form for profile, display and video preferences, plus three independent role
+  checkboxes: Rower, Coach, Admin. A rower+coach is one user with both boxes selected. Access
+  removal stays an explicit separate action; do not accidentally revoke access by clearing all roles.
 - A user who has access but has never signed in remains visible in the access list. Until an
   account/membership exists, show that status; do not invent a profile or browser preferences.
 - Admins can inspect and edit another member without applying that member's theme/language to
   their own interface. Explicit Save/Cancel, validation and network/conflict feedback preserve drafts.
 - Members retain their own settings controls. This is editing preferences, not introducing locked
-  organizational policy. Saved choices follow the member across devices within the current club.
+  organizational policy. Saved choices follow the same user across devices and roles.
 - Anonymous login-page language/theme remain device choices. Once signed in, centralized settings
   become authoritative. OTP mail continues to follow the explicit login-page language (ADR-0015).
 - Remote changes apply on the member's next settings refresh/reload/focus synchronization, without
@@ -42,33 +58,51 @@ other unimplemented features are not existing settings and are outside this chan
 
 ## Proposed persistence and authorization
 
-One migration, no new dependency:
+One migration, no new dependency and no second user register:
 
-1. `user_settings`: unique `(club_id, user_id)`, linked to the current-club membership; five typed
-   preference columns (language, theme, notes_visible, note_hold_seconds, drive_middle), revision
-   and timestamps. Enum/range checks match the existing supported choices. Initially nullable
-   fields mean unimported, not a known preference. Use application defaults for effective behaviour.
-2. `user_settings_audit`: append-only club-scoped records of actor, subject, time and changed keys
-   for administrative profile/preference changes. Existing role/access logging remains in use.
-3. Protected SQL functions for admin profile reads/writes, because the app role cannot directly
-   read/write `app_user`. Check `app.role = admin` and target membership in `app.club_id`, pin
-   `search_path`, restrict grants and use `withTenant` repositories; no raw global table access.
+1. Extend the existing global `app_user` account with the five typed preference fields (language,
+   theme, notes_visible, note_hold_seconds, drive_middle), a settings revision and timestamps.
+   Enum/range checks match existing choices. Initially nullable preference fields mean unimported,
+   not a known preference. Apply existing defaults for effective behaviour without pretending those
+   defaults have been observed. Keep all personal settings on the same account, not per role/club.
+2. Replace scalar membership/access roles with validated role sets on the existing records.
+   Proposed representation: non-empty, duplicate-free `roles` arrays containing only rower, coach
+   and admin. Existing scalar values migrate to singleton sets, preserving current access.
+   Pending access/invitation grants and active memberships stay synchronized atomically; login
+   must not replace a deliberately assigned combination with a single default role.
+3. Add one tenant-scoped, append-only `user_settings_audit` table for actor, subject, time and
+   changed keys/role sets. Retain existing role/access audit history; new multi-role writes must
+   be recorded without fabricating one scalar role as the full set.
+4. Protected SQL functions for account settings/profile reads and writes: the app role still
+   cannot access global `app_user` directly. Through `withTenant`, check explicit admin membership
+   and target membership in `app.club_id`, pin `search_path`, restrict grants and validate input.
 
-Preferences, audit and role/access are club-scoped. RLS must restrict preference reads/writes to
-self or current-club admin; audit reads are admin-only and existing audit records cannot be edited
-or deleted by the app. Test DB policies directly as well as the API guards.
+Authorization combines the granted roles for the requested action and current resource; never
+choose one role and discard the others. Replace scalar role equality checks in authentication,
+`TenantContext`, `can()`, route guards, client navigation/tools and DB visibility helpers. An
+admin capability may allow more than a rower capability, but that does not silently assign the
+rower or coach role to an admin. Preserve existing session/note visibility and author restrictions.
 
-Names/default boat retain their existing global account meaning (ADR-0005): a profile edit affects
-that account wherever used. Admin profile operations may target only an existing member of their
-own club; they expose no other club's settings, membership or activity. Explicitly test a global
-account shared by clubs and unrelated users, rather than treating profile fields as club-local.
+Club memberships, access and audit remain tenant-scoped; RLS continues to isolate club data.
+Global personal settings retain the account semantics of `app_user`: a change applies wherever
+that account is used. Administrative operations may target only a member of the authorized club;
+they do not enumerate another club's users or expose its role assignments/activity. Test shared
+accounts and unrelated users explicitly. A central identity register is not a new platform-admin
+permission model.
+
+The last-admin guard checks whether the admin role would disappear from the final eligible
+administrator, including concurrent updates. Server-managed admin grants are preserved additively
+without erasing other assigned roles. Authenticated empty/unknown role sets must deny access;
+never reinterpret them as the worker/pilot's existing special service context.
 
 Proposed routes:
 
 - `GET/PATCH /api/me/settings`: signed-in member's own five preferences.
 - `GET /api/admin/users`: current-club member summaries and account status, not unrestricted users.
 - `GET/PATCH /api/admin/users/:id/settings`: admin profile/preference inspection and update.
-- Keep the existing profile and role/access routes compatible and share validation/storage logic.
+- Keep the existing own-profile flow working; expose the complete `roles` set consistently to
+  authenticated clients and admin access APIs. Coordinate the role payload transition rather than
+  accepting a legacy scalar update that silently removes other roles.
 
 An administrative profile/preferences update and its audit entry commit in the same transaction.
 Validate partial payloads and use a revision/snapshot precondition to reject stale edits (409)
@@ -84,18 +118,21 @@ remain effective; a generic settings body cannot change them.
 - Fill only still-uninitialized server fields atomically. Never overwrite an admin's saved value
   or a concurrent explicit member edit with late bootstrap data.
 - Existing server values win over old browser caches on later visits. Persist only deliberate
-  field changes, not the whole stale local snapshot. Key authenticated caches by account + club.
-- On sign-out/account/club change, cancel pending requests and isolate cached state. Settings from
-  one user or club must not be imported into another account.
+  field changes, not the whole stale local snapshot. Key personal-preference caches by account; retain club-scoped authorization state separately.
+- On sign-out/account change, cancel pending requests and isolate personal cached state. On club
+  changes, refresh authorization; the same user keeps the same preferences. Never import one
+  user's cached preferences into another account.
 - Admin UI distinguishes unsynchronized browser values from stored choices. An admin can set an
   explicit value before that member next visits, and that value must survive the first import.
 
 ## Implementation and validation after approval
 
 1. Record an accepted ADR updating the per-device decisions in ADR-0014/0015; implement migration,
-   typed schemas, tenant repositories, protected profile functions and audit together.
+   typed schemas, protected global-account functions, role sets, tenant policies and audit together.
 2. Add API/DB tests first: non-admin/anonymous/pilot refusals, other-club enumeration/write refusal,
-   invalid values, stale revisions, audit atomicity/immutability and membership eligibility.
+   invalid values, stale revisions, audit atomicity/immutability and membership eligibility. Cover
+   all seven non-empty role combinations, role removal without losing other roles, singleton
+   backfill, last-admin concurrency and rejection of empty/unknown/duplicate roles.
 3. Add the self-settings sync and update current profile/display/video controls; retain safe login
    defaults and current working upload/player/drawing state.
 4. Extend Admin user UI in NL/EN, with 44 px controls and explicit Save/Cancel/error handling.
@@ -107,6 +144,6 @@ remain effective; a generic settings body cannot change them.
 
 ## Approval requested
 
-Approve centralized storage of the five currently device-local preferences, the two new scoped
-tables/audit and the protected administrative profile operations described above. No application,
+Approve extending the existing central account with personal preferences, migrating scalar roles
+to role sets, one new scoped audit table and the protected administrative operations above. No application,
 schema, dependency or production change is authorized or implemented by this proposal alone.
