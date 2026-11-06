@@ -1,51 +1,74 @@
-# Rower: browse other club trainings without editing (#154)
+# Club training visibility and editing by role (#154)
 
-Status: proposed; permission-policy migration awaits Ewout's architectural approval.
-Request: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen".
+Status: revised proposal; implementation and its one permission-policy migration still await approval.
+Requests: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen";
+"Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/154
 
-## Scope to confirm
+## Revised permission matrix
 
-- Rower-only users can list/open all trainings, videos and necessary crew information in their
-  current club. No cross-club access, standalone Rowers directory or other users' settings.
-- A training made by someone else is read-only. An own training means one created by the current
-  user, not simply one in whose lineup they appear. Existing additional coach/admin capabilities
-  remain; test all role combinations without accidentally expanding their write scope.
-- No renaming/deleting another person's training, changing its lineup, adding/removing/replacing
-  videos or changing stroke/angle/boat-line data. Playback, stepping, speed, zoom and personal
-  preferences remain usable while viewing. Do not present unauthorized editing controls.
-- Existing private-note visibility remains: broader training access does not publish private notes.
-  Clarification pending: should foreign trainings be fully read-only, or may a rower add/manage
-  their own notes/drawings there? Never allow changing someone else's private feedback by default.
+| Roles | View trainings in the current club | Edit own training | Edit someone else's training |
+|---|---|---|---|
+| Rower only | All | Existing rower rights | No; fully read-only |
+| Coach (including rower + coach) | All | Yes, with coach rights | Yes, with coach rights |
+| Admin (with any other roles) | All | Yes | Yes |
+
+Proposed ownership definition: an own training was created by the current user. Merely appearing
+in the lineup does not establish ownership. Training ownership does not grant a rower coach-only
+stroke/angle analysis rights. Existing additional roles remain additive; being a rower never
+reduces a separately granted coach/admin capability.
+
+Ewout corrected the earlier proposal: coaches must be able to edit other members' trainings even
+when they neither created nor rowed in them. Do not preserve the old own/reachable-only coaching
+scope. Coaches need club-wide training visibility and management; admins retain the same scope.
+
+## What fully read-only means for a rower
+
+- Browse all current-club trainings, videos and necessary crew names. Playback, stepping, speed,
+  zoom and personal preferences remain usable. No cross-club access, standalone Rowers directory
+  or other users' account settings.
+- In a foreign training, no renaming/deleting, lineup changes, video uploads/replacement/removal,
+  upload continuation/cancellation, stroke/angle/boat-line mutations or media-file changes.
+- No adding, editing or deleting notes/drawings there, including feedback previously authored by
+  the viewer. No assignment, sharing/unsharing or other feedback mutations. Authorship alone
+  must not bypass a foreign training's read-only rule.
+- Existing private-note visibility remains for rowers: all-training access does not publish private
+  feedback to them. Coaches/admins retain their elevated note/analysis permissions across all club
+  trainings; ordinary rowers retain only existing author/role rights in their own trainings.
+- Coach/admin training management does not grant account administration or creator reassignment
+  to coaches; those existing admin-only operations remain admin-only. Club roster permissions and
+  personal-settings permissions from #152 are unchanged.
 
 ## Findings
 
 `rowlens_can_see_session` currently permits admin/service, creator, crew and sessions with feedback
 for the member. Session/video/lineup policies reuse visibility for SELECT and mutations (`FOR ALL`).
-Simply broadening the visibility helper would also broaden writes. `rowlens_coaches_video` also
-uses visibility: preserve its existing management scope when combined roles gain broader reading.
+Simply broadening the visibility helper would also broaden rower writes. Split reading from
+editing. `rowlens_coaches_video` must support the newly requested club-wide coach scope.
 
-Several mutation handlers currently rely on visibility/RLS rather than explicit session ownership.
-Session/video deletion and upload/cancellation also affect media files. Check write authorization
+Several mutation handlers currently rely on visibility/RLS rather than explicit resource write
+permission. Session/video deletion and upload/cancellation also affect media files. Authorize
 before collecting/deleting/writing media; a denied database mutation alone must not leave files
 changed or falsely report success.
 
-Relevant paths: server/db/schema.ts and its SQL helpers/policies; server/auth/can.ts;
+Relevant paths: server/db/schema.ts and SQL helpers/policies; server/auth/can.ts;
 server/api/{sessions,videos,uploads,lineups,annotations,moments,strokes,angles}.ts;
 client session/video/lineup/upload/notes controls and NL/EN strings.
 
 ## Proposed implementation
 
-1. One new migration separates read and write policies/helpers, preserving tenant RLS and explicit
-   service handling. Allow club-wide rower reading, use resource ownership and existing elevated
-   permissions for writes. No new table or dependency. Update the permission ADRs for this change.
-2. Apply the same resource decisions to API mutations (before filesystem effects) and expose
-   server-derived capabilities to the client. Foreign-training controls become read-only; own
-   training editing and personal settings remain available. Feedback follows the clarified choice.
-3. Add integration/API/direct-RLS tests with two rowers, two owned trainings and an unrelated club;
-   verify every mutation refusal leaves data and media unchanged. Cover private notes, role
-   combinations, ownerless legacy sessions, user-visible session filtering and read-only playback.
-   Run the full web/worker/local/edge checks plus iPhone WebKit and 1000×540 before a PR.
+1. One migration separates read and write policies/helpers while retaining tenant RLS and explicit
+   service handling. All members read all current-club trainings. Write permission combines
+   resource ownership for rowers with club-wide coach/admin capabilities. No new table/dependency.
+   Update the permission ADRs to supersede the former own/reachable-only training scope.
+2. Use the same resource decisions for API mutations before filesystem effects, and return
+   server-derived capabilities to the UI. Rower-only foreign trainings have no editable controls;
+   coach/admin controls remain available throughout the club. Own settings remain available.
+3. Test two rowers, an unrelated coach, an admin and another club: all current-club trainings
+   readable; every foreign-training rower write denied without data/media changes; coach/admin
+   writes allowed even without participation/creation. Cover own rower rights, private notes,
+   previously authored foreign feedback, ownerless legacy sessions and all role combinations.
+   Run web/worker/local/edge checks plus iPhone WebKit and 1000×540 before a PR.
 
-No implementation, migration, merge or deployment has been performed for this proposal.
+No application change, migration, merge or deployment has been performed for this revised proposal.
 Production stays sha-b000ca4; deployment log #153 remains a separate PR.

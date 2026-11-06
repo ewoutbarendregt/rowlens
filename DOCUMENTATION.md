@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Revise training permissions for coaches and admins (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: docs/plans/154-club-training-readonly.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Recorded fully read-only foreign trainings for rower-only users, including all feedback mutations and previously authored feedback. Revised the proposal as Ewout requested: coaches/admins can view and edit all club trainings, including others', and combined roles retain those capabilities; the former own/reachable-only coach scope must change. Only the plan/logs changed; approval for the revised implementation and one policy migration is still pending, and production remains sha-b000ca4.
+**Prompts used**: "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
+
 ## 2026-11-06 — Plan club-wide read-only training access for rowers (#154)
 
 **Session**: codex/feat/154-club-training-readonly

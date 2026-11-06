@@ -3,7 +3,7 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Current task — #154, rowers browse others' trainings read-only
+## Current task — #154, club-wide reading and role-based editing
 
 - Branch `codex/feat/154-club-training-readonly`, based on main `b000ca4`; proposal/logs only.
 - Ewout: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze
@@ -11,9 +11,14 @@ newest-first detailed log. Update this file at the end of a session.
 - Existing FOR ALL session/video/lineup policies reuse reading for writes. Broadening visibility
   alone is unsafe: separate read/write RLS, resource-aware API guards before media operations,
   and server-derived UI capabilities are needed. One migration, no new table/dependency.
-- Await architectural approval under AGENTS.md and clarification about fully read-only foreign
-  trainings versus allowing own feedback. Proposed own training = created by that user. Preserve
-  private-note rules, tenant boundaries and existing additional coach/admin capabilities.
+- Ewout confirmed "Volledig alleen-lezen" for foreign trainings viewed as rower-only, including
+  no notes/drawing creation/edit/deletion or sharing/assignment changes, even for old own feedback.
+- Ewout then requested a plan revision: coaches and admins may edit others' trainings. The revised
+  matrix gives all roles club-wide reading, rower-only ownership-limited writes and club-wide
+  coach/admin writes (also combined roles). Do not preserve the old own/reachable-only coach scope.
+  Proposed own training = self-created. Keep private notes private to rowers, club boundaries and
+  admin-only account/creator administration. Revised plan and one-migration approval still pending.
+  No application or schema changes are authorized by the request to revise the plan.
 - Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
   19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
   older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization

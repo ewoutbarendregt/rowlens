@@ -96,9 +96,10 @@ capabilities are additive. Account preferences synchronize across devices; expli
 fills only uninitialized fields, revisions prevent stale overwrites, and administrative edits are
 audited atomically. Local checks pass, including full local/edge E2E and the iPhone WebKit/1000×540 matrix. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open; not merged or deployed.
 
-## Rower training browsing (#154)
+## Club training browsing and editing (#154)
 
-Requested 2026-11-06: browse other members' trainings within the club without editing them.
-Proposal complete: separate read/write permissions in UI/API/RLS and guard media effects. Keep
-club boundaries and private feedback; own-feedback behaviour and policy migration approval pending.
-No functional change yet. See docs/plans/154-club-training-readonly.md.
+Revised proposal after Ewout's clarification: all club trainings visible to rowers, coaches and
+admins. Foreign trainings are fully read-only for rower-only users, including their own previously
+authored feedback. Coaches/admins may edit others' trainings; combined roles retain those rights.
+Separate read/write UI/API/RLS permissions and pre-media guards, with no cross-club widening.
+No functional changes yet; revised plan/migration approval pending. See docs/plans/154-club-training-readonly.md.
