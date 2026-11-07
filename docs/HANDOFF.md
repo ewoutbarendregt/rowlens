@@ -5,6 +5,7 @@ newest-first detailed log. Update this file at the end of a session.
 
 ## Current task — unified users and multi-club admission (2026-11-07)
 
+- PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) is open for review; CI status is on the PR. No merge/deploy authorization.
 - Ewout approved with "ja uitvoeren". Branch `codex/feat/unified-club-users`, from main 799dfbe;
   planning docs copied without incorporating separate deployment-log PR #156. Production remains
   sha-799dfbe, as previously explicitly deployed; no new merge/deploy is authorized.

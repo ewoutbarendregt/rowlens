@@ -239,3 +239,5 @@ non-canonical `/projects/rowlens`; fixed by giving the router basename `/project
 - No physical iPhone gesture check was performed; WebKit simulation and screenshots were used.
 
 Final proxy regression rerun passed **39/39** (13 deliberately skipped) on the final feature-off image; the earlier transient lineup failure did not recur. The edge stack was stopped with data retained.
+
+PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) contains the verified implementation; CI status is attached to the PR. No merge or deployment is authorized.
