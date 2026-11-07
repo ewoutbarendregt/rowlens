@@ -15,6 +15,14 @@ entries are unlinked (read-only aggregate inspection); administrators must expli
 verified accounts/admitted club members before a later contract migration removes old identifiers.
 No production write, invitation, merge or deployment is authorized.
 
+## Club administration follow-up — approved 2026-11-07
+
+Members, additive club roles and membership decisions belong under Club administration. The RowLens
+administrator sees all clubs under Clubs and can create, rename, archive and restore them. Ewout
+approved the reversible archive model and migration 0023 with "Ja, archiveren en kunnen herstellen".
+See ADR-0022. Accounts, other club memberships and historical references remain intact; permanent
+deletion and club branding are outside this change.
+
 ## What we're building
 
 RowLens: a multi-tenant web platform where rowing clubs upload video of rowing sessions, play them back

@@ -115,12 +115,14 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
       const listed = await tx.select().from(clubAccess).orderBy(clubAccess.email);
       const seen = await members(tx);
       const out: AccessEntry[] = [];
-      const addresses = new Set([
-        ...(await roots(tx)),
-        ...(tenantOf(req).clubId === (await pilotClub(tx)) ? auth.allowedEmails : []),
-        ...listed.map((r) => r.email),
-        ...seen.keys(),
-      ]);
+      const addresses = opts.unifiedUsers
+        ? new Set(seen.keys())
+        : new Set([
+            ...(await roots(tx)),
+            ...(tenantOf(req).clubId === (await pilotClub(tx)) ? auth.allowedEmails : []),
+            ...listed.map((r) => r.email),
+            ...seen.keys(),
+          ]);
       for (const address of addresses) {
         const row = listed.find((r) => r.email === address);
         const member = seen.get(address);
@@ -137,7 +139,10 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
           email: address,
           roles: selected,
           role: primaryRole(selected),
-          source: root || row === undefined ? 'server' : 'app',
+          source:
+            root || (row === undefined && (!opts.unifiedUsers || member === undefined))
+              ? 'server'
+              : 'app',
           joinedAt: member === undefined ? null : iso(member.joined_at),
           lastSeenAt: member === undefined ? null : iso(member.last_seen_at),
           firstName: member?.first_name ?? null,

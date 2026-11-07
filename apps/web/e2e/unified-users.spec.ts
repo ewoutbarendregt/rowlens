@@ -32,7 +32,9 @@ async function json(page: Page, path: string, body?: unknown) {
 async function layout(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const small = await page
-    .locator('.clubs-page button,.clubs-page select,.clubs-page input')
+    .locator(
+      ':is(.clubs-page,.club-admin-page) button,:is(.clubs-page,.club-admin-page) select,:is(.clubs-page,.club-admin-page) input:not([type=checkbox]),.club-admin-page .role-choices label',
+    )
     .evaluateAll((nodes) =>
       nodes.flatMap((n) => {
         const r = n.getBoundingClientRect();
@@ -73,10 +75,26 @@ test('account request, admission, history-free user selection and club switching
     .filter({ has: admin.getByRole('heading', { name: 'WVIJburg', exact: true }) })
     .getByRole('button', { name: /^(Huidige club|Club openen)$/ })
     .click();
-  await admin.getByRole('link', { name: 'Clubs', exact: true }).click();
+  await admin.getByRole('link', { name: 'Clubbeheer', exact: true }).click();
+  await admin.getByRole('tab', { name: 'Aanmeldingen', exact: true }).click();
   const request = admin.locator('article').filter({ hasText: email });
   await request.getByRole('button', { name: 'Toelaten als roeier', exact: true }).click();
   await expect(request).toHaveCount(0);
+  await admin.getByRole('tab', { name: 'Clubleden', exact: true }).click();
+  const memberRow = admin.getByTestId('access').filter({ hasText: email });
+  await expect(memberRow).toBeVisible();
+  await memberRow.getByRole('button', { name: 'Instellingen', exact: true }).click();
+  await memberRow.getByRole('checkbox', { name: 'Coach', exact: true }).check();
+  await memberRow
+    .locator('.form__actions')
+    .first()
+    .getByRole('button', { name: 'Opslaan', exact: true })
+    .click();
+  await expect(memberRow.locator('.badge').filter({ hasText: /^Coach$/ })).toBeVisible();
+  await layout(admin);
+  await admin.screenshot({ path: testInfo.outputPath('club-members.png'), fullPage: true });
+  await admin.getByRole('link', { name: 'Clubs', exact: true }).click();
+
   await page.reload();
   await page.getByRole('button', { name: 'Huidige club', exact: true }).click();
   await expect(page).toHaveURL(/\/sessions$/);
@@ -138,4 +156,50 @@ test('long club names fit the header without horizontal overflow', async ({ page
   await expect(page.getByTestId('club-name')).toHaveText(name);
   await layout(page);
   await page.screenshot({ path: info.outputPath('long-club.png'), fullPage: true });
+});
+
+test('platform club edit, archive and restore preserve a club administrator membership', async ({
+  page,
+}, info) => {
+  await signIn(page, adminEmail);
+  await page.getByRole('link', { name: 'Clubs', exact: true }).click();
+  const users = (await json(page, '/api/platform/users')).data as { id: string; email: string }[];
+  const uid = users.find((u) => u.email === adminEmail)?.id ?? '';
+  const name = `Lifecycle ${randomUUID().slice(0, 8)}`;
+  await page.getByLabel('Clubnaam', { exact: true }).fill(name);
+  await page.getByLabel('Clubadres', { exact: true }).fill(`life-${randomUUID()}`);
+  await page.getByLabel('Clubbeheerder', { exact: true }).selectOption(uid);
+  await page.getByRole('button', { name: 'Club aanmaken', exact: true }).click();
+  const row = page
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name, exact: true }) });
+  await row.getByRole('button', { name: /^(Club openen|Huidige club)$/ }).click();
+  await page.getByRole('link', { name: 'Clubs', exact: true }).click();
+  await row.getByRole('button', { name: 'Club wijzigen', exact: true }).click();
+  const changed = name + ' edited';
+  await page.getByLabel('Clubnaam', { exact: true }).fill(changed);
+  await page.getByRole('button', { name: 'Club opslaan', exact: true }).click();
+  const edited = page
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: changed, exact: true }) });
+  await edited.getByRole('button', { name: 'Club archiveren', exact: true }).click();
+  await edited
+    .getByTestId('confirm')
+    .getByRole('button', { name: 'Club archiveren', exact: true })
+    .click();
+  await expect(edited).toContainText('Gearchiveerd');
+  await expect(edited.getByRole('button', { name: /^(Club openen|Huidige club)$/ })).toHaveCount(0);
+  await layout(page);
+  await page.screenshot({ path: info.outputPath('archived-club.png'), fullPage: true });
+  await edited.getByRole('button', { name: 'Club herstellen', exact: true }).click();
+  await edited
+    .getByTestId('confirm')
+    .getByRole('button', { name: 'Club herstellen', exact: true })
+    .click();
+  await expect(edited).not.toContainText('Gearchiveerd');
+  await edited.getByRole('button', { name: /^(Club openen|Huidige club)$/ }).click();
+  await page.getByRole('link', { name: 'Clubbeheer', exact: true }).click();
+  await expect(page.getByRole('tab', { name: 'Clubleden', exact: true })).toBeVisible();
+  await expect(page.getByTestId('access').filter({ hasText: adminEmail })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

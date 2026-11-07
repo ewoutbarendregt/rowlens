@@ -3428,16 +3428,21 @@ a.list__item {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.club-admin-page input:not([type='checkbox']),
+.club-admin-page select,
 .clubs-page input,
+.club-admin-page select,
 .clubs-page select {
   width: 100%;
   min-height: 44px;
   max-width: 100%;
 }
+.club-admin-page button,
 .clubs-page button {
   min-height: 44px;
 }
 
+.club-admin-page select,
 .clubs-page select {
   height: 44px;
 }

@@ -8,6 +8,12 @@ const en = {
   link: 'Link to this user',
   linkedQuestion: 'Confirm that these historical references belong to the selected user.',
   clubs: 'Clubs',
+  archived: 'Archived',
+  archive: 'Archive club',
+  restore: 'Restore club',
+  archiveQuestion:
+    'Archive this club? Members lose access; accounts and historical data are preserved.',
+  restoreQuestion: 'Restore this club and its existing memberships?',
   chooseUser: 'Choose a user',
   applications: 'Membership requests',
   apply: 'Request membership',
@@ -41,6 +47,7 @@ const en = {
   access:
     'Club members can access their club content. RowLens administrators have access to all clubs and their content.',
   switchHint: 'Opening another club closes the current page. Save your changes first.',
+  cancelEdit: 'Cancel editing',
   edit: 'Edit club',
   profile: 'User settings',
   loading: 'Loading…',
@@ -54,6 +61,12 @@ const nl: typeof en = {
   link: 'Aan deze gebruiker koppelen',
   linkedQuestion: 'Bevestig dat deze historische verwijzingen bij de gekozen gebruiker horen.',
   clubs: 'Clubs',
+  archived: 'Gearchiveerd',
+  archive: 'Club archiveren',
+  restore: 'Club herstellen',
+  archiveQuestion:
+    'Deze club archiveren? Leden verliezen toegang; accounts en historische gegevens blijven bewaard.',
+  restoreQuestion: 'Deze club en de bestaande lidmaatschappen herstellen?',
   chooseUser: 'Kies een gebruiker',
   applications: 'Lidmaatschapsaanvragen',
   apply: 'Lidmaatschap aanvragen',
@@ -87,6 +100,7 @@ const nl: typeof en = {
   access:
     'Clubleden hebben toegang tot hun clubgegevens. RowLens-beheerders hebben toegang tot alle clubs en hun inhoud.',
   switchHint: 'Een andere club openen sluit de huidige pagina. Sla je wijzigingen eerst op.',
+  cancelEdit: 'Wijzigen annuleren',
   edit: 'Club wijzigen',
   profile: 'Gebruikersinstellingen',
   loading: 'Laden…',

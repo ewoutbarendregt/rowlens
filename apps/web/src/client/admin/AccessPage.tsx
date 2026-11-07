@@ -8,6 +8,7 @@ import { settingsStrings } from '../settings/strings.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { UserSettingsEditor } from './UserSettingsEditor.tsx';
 import { adminStrings } from './strings.ts';
+import { ClubApplications } from './ClubApplications.tsx';
 
 interface Entry {
   id: string | null;
@@ -84,7 +85,7 @@ export function AccessPage() {
   const [roles, setRoles] = useState<Role[]>(['rower']);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; alert: boolean } | null>(null);
-  const [tab, setTab] = useState<'users' | 'roles'>('users');
+  const [tab, setTab] = useState<'users' | 'roles' | 'applications'>('users');
   const [search, setSearch] = useState('');
   const load = useCallback(async () => {
     try {
@@ -134,10 +135,13 @@ export function AccessPage() {
     setMessage({ text: errorText(t, error), alert: true });
   };
   return (
-    <main className="page">
+    <main className="page club-admin-page">
       <h1>{t.admin}</h1>
       <div className="tabs" role="tablist" aria-label={t.admin}>
-        {(['users', 'roles'] as const).map((name) => (
+        {(unified
+          ? (['users', 'applications', 'roles'] as const)
+          : (['users', 'roles'] as const)
+        ).map((name) => (
           <button
             key={name}
             type="button"
@@ -150,11 +154,19 @@ export function AccessPage() {
               setTab(name);
             }}
           >
-            {t.tabs[name]}
+            {unified && name === 'users' ? t.members : t.tabs[name]}
           </button>
         ))}
       </div>
-      {tab === 'roles' ? (
+      {tab === 'applications' ? (
+        <section
+          role="tabpanel"
+          id={`${formId}-panel-applications`}
+          aria-labelledby={`${formId}-tab-applications`}
+        >
+          <ClubApplications onChanged={load} />
+        </section>
+      ) : tab === 'roles' ? (
         <section
           role="tabpanel"
           id={`${formId}-panel-roles`}
@@ -222,7 +234,7 @@ export function AccessPage() {
             {roles.length === 0 && <p>{s.needRole}</p>}
             {message && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
           </form>
-          <h2>{t.people}</h2>
+          <h2>{unified ? t.members : t.people}</h2>
           <div className="form">
             <label htmlFor={`${formId}-search`}>{s.search}</label>
             <input

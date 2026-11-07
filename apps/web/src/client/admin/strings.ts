@@ -2,9 +2,10 @@ import { lang } from '../i18n/language.ts';
 
 // Admin strings in NL and EN (move into the i18n catalogs with #34).
 const en = {
+  members: 'Club members',
   activityUnknown: 'No club activity recorded',
   unifiedIntro:
-    'Admit an existing verified account to this club and assign its club roles. Membership requests are under Clubs.',
+    'Admit an existing verified account to this club and assign its club roles. Review membership requests under Requests.',
   platformRoleHint:
     'RowLens administrators manage clubs and have full access to all clubs and their content, including private feedback. This global role is granted by the platform operator.',
   admittedClub: (email: string) => `${email} now has access to this club.`,
@@ -37,7 +38,7 @@ const en = {
   removeYes: 'Yes, remove',
   self: 'You must keep your own admin role.',
   lastAdmin: 'There must be at least one admin.',
-  tabs: { users: 'Users', roles: 'Roles' },
+  tabs: { users: 'Users', applications: 'Requests', roles: 'Roles' },
   rolesIntro:
     'What each role sees and may do. The roles are fixed; combine roles under Users. Their permissions add up.',
   can: 'Sees and may',
@@ -79,9 +80,10 @@ const en = {
 };
 
 const nl: typeof en = {
+  members: 'Clubleden',
   activityUnknown: 'Geen clubactiviteit vastgelegd',
   unifiedIntro:
-    'Laat een bestaand geverifieerd account toe tot deze club en kies de clubrollen. Lidmaatschapsaanvragen staan onder Clubs.',
+    'Laat een bestaand geverifieerd account toe tot deze club en kies de clubrollen. Beoordeel nieuwe aanmeldingen onder Aanmeldingen.',
   platformRoleHint:
     'RowLens-beheerders beheren clubs en hebben volledige toegang tot alle clubs en hun inhoud, inclusief afgeschermde feedback. De platformbeheerder kent deze globale rol toe.',
   admittedClub: (email: string) => `${email} heeft nu toegang tot deze club.`,
@@ -115,7 +117,7 @@ const nl: typeof en = {
   removeYes: 'Ja, intrekken',
   self: 'Je moet je eigen beheerdersrol behouden.',
   lastAdmin: 'Er moet minstens één beheerder blijven.',
-  tabs: { users: 'Gebruikers', roles: 'Rollen' },
+  tabs: { users: 'Gebruikers', applications: 'Aanmeldingen', roles: 'Rollen' },
   rolesIntro:
     'Wat elke rol ziet en mag. De rollen liggen vast; combineer rollen onder Gebruikers. De rechten tellen bij elkaar op.',
   can: 'Ziet en mag',

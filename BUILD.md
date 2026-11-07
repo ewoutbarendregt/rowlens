@@ -3,6 +3,20 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Club administration and archival (ADR-0022)
+
+Club administration has member/role editing, pending-request decisions and historical mapping.
+Unified member lists contain actual memberships, not unused allowlist entries. Clubs shows the
+platform directory including archived clubs to RowLens administrators; ordinary accounts retain
+club selection and applications. Protected platform GET/lifecycle operations enforce persisted
+platform authority and audit archive/restore, with inline confirmation in NL/EN.
+
+Migration 0023 adds club.archived_at and an owner-scoped active-club predicate to shared tenant RLS.
+Account club selection/directory/applications and protected club-admin authorization also reject
+archived clubs. Global lifecycle management can restore them without a selected active club.
+Accounts, memberships, pending requests, media and history remain; existing background jobs may
+finish. The local stack has 24 migrations. No production change was made.
+
 ## Unified-account transition (ADR-0021, local implementation)
 
 Global OTP creates an account only after verifying inbox ownership. Protected account sessions and

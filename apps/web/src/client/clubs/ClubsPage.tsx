@@ -10,17 +10,13 @@ interface Club {
   id: string;
   name: string;
   slug: string;
+  archivedAt?: string | null;
 }
 interface Application {
   id: string;
   clubId: string;
   name: string;
   status: 'pending' | 'approved' | 'rejected' | 'cancelled';
-}
-interface Admission {
-  id: string;
-  name: string;
-  email: string;
 }
 interface User {
   id: string;
@@ -32,7 +28,6 @@ export function ClubsPage() {
   const t = clubStrings();
   const [directory, setDirectory] = useState<Club[]>([]),
     [applications, setApplications] = useState<Application[]>([]),
-    [admissions, setAdmissions] = useState<Admission[]>([]),
     [users, setUsers] = useState<User[]>([]);
   const [revision, setRevision] = useState(0),
     [failed, setFailed] = useState(false),
@@ -43,37 +38,26 @@ export function ClubsPage() {
     [slug, setSlug] = useState(''),
     [adminId, setAdminId] = useState(''),
     [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [legacy, setLegacy] = useState<{ people: { id: string; name: string }[]; users: User[] }>({
-    people: [],
-    users: [],
-  });
-  const [mappingFailed, setMappingFailed] = useState(false);
-  const [mapping, setMapping] = useState<Record<string, string>>({});
-  const [confirm, setConfirm] = useState<string | null>(null);
+  const [archiveConfirm, setArchiveConfirm] = useState<Club | null>(null);
   const actor = state.kind === 'open' ? state.user.id : null;
   const platform = state.kind === 'open' && state.user.platformAdmin === true;
-  const admin = state.kind === 'open' && state.user.roles.includes('admin') && !!state.club.id;
   const clubId = state.kind === 'open' ? state.club.id : null;
   useEffect(() => {
     let stale = false;
     setLoaded(false);
     setFailed(false);
     void Promise.all([
-      api('/api/account/clubs'),
-      ...(admin ? [api('/api/admin/applications')] : []),
+      api(platform ? '/api/platform/clubs' : '/api/account/clubs'),
       ...(platform ? [api('/api/platform/users')] : []),
-      ...(admin ? [api('/api/admin/legacy-people')] : []),
     ])
       .then(async (responses) => {
         if (responses.some((r) => !r.ok)) throw new Error('unavailable');
         const data = (await Promise.all(responses.map((r) => r.json()))) as unknown[];
         if (stale) return;
         const own = data[0] as { clubs: Club[]; applications: Application[] };
-        setDirectory(own.clubs);
-        setApplications(own.applications);
-        setAdmissions(admin ? (data[1] as Admission[]) : []);
-        setUsers(platform ? (data[admin ? 2 : 1] as User[]) : []);
-        if (admin) setLegacy(data[platform ? 3 : 2] as typeof legacy);
+        setDirectory(platform ? (data[0] as Club[]) : own.clubs);
+        setApplications(platform ? [] : own.applications);
+        setUsers(platform ? (data[1] as User[]) : []);
         setLoaded(true);
       })
       .catch(() => {
@@ -82,19 +66,14 @@ export function ClubsPage() {
     return () => {
       stale = true;
     };
-  }, [revision, actor, admin, platform, clubId]);
+  }, [revision, actor, platform, clubId]);
   if (state.kind !== 'open' || !state.unified) return null;
   const change = async (path: string, body?: unknown) => {
     setBusy(true);
     setFailed(false);
-    setMappingFailed(false);
     try {
       const r = await api(path, { method: 'POST', ...(body === undefined ? {} : { body }) });
       if (!r.ok) {
-        if (path.startsWith('/api/admin/legacy-people/') && r.status === 409) {
-          setMappingFailed(true);
-          return false;
-        }
         throw new Error('failed');
       }
       setRevision((v) => v + 1);
@@ -117,7 +96,7 @@ export function ClubsPage() {
       {failed && <p role="alert">{t.failed}</p>}
       {!loaded && !failed && <p role="status">{t.loading}</p>}
       <p>{t.switchHint}</p>
-      {!state.clubs?.length && <p>{t.none}</p>}
+      {!platform && !state.clubs?.length && <p>{t.none}</p>}
       <section className="card">
         <h2>{t.clubs}</h2>
         <div className="club-list">
@@ -127,7 +106,9 @@ export function ClubsPage() {
             return (
               <article key={c.id} className="club-list__item">
                 <h3>{c.name}</h3>
-                {member ? (
+                {c.archivedAt ? (
+                  <p>{t.archived}</p>
+                ) : member ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -157,101 +138,50 @@ export function ClubsPage() {
                   </>
                 )}
                 {platform && (
-                  <button
-                    className="button--quiet"
-                    onClick={() => {
-                      setEdit(c);
-                      setName(c.name);
-                      setSlug(c.slug);
-                      setAdminId('');
-                    }}
-                  >
-                    {t.edit}
-                  </button>
+                  <>
+                    <button
+                      className="button--quiet"
+                      onClick={() => {
+                        setEdit(c);
+                        setName(c.name);
+                        setSlug(c.slug);
+                        setAdminId('');
+                      }}
+                    >
+                      {t.edit}
+                    </button>
+                    {archiveConfirm?.id === c.id ? (
+                      <ConfirmInline
+                        question={c.archivedAt ? t.restoreQuestion : t.archiveQuestion}
+                        yesLabel={c.archivedAt ? t.restore : t.archive}
+                        onCancel={() => {
+                          setArchiveConfirm(null);
+                        }}
+                        onConfirm={() => {
+                          setArchiveConfirm(null);
+                          void change(`/api/platform/clubs/${c.id}/archive`, {
+                            archived: !c.archivedAt,
+                          });
+                        }}
+                      />
+                    ) : (
+                      <button
+                        className="button--quiet"
+                        disabled={busy}
+                        onClick={() => {
+                          setArchiveConfirm(c);
+                        }}
+                      >
+                        {c.archivedAt ? t.restore : t.archive}
+                      </button>
+                    )}
+                  </>
                 )}
               </article>
             );
           })}
         </div>
       </section>
-      {admin && (
-        <section className="card">
-          <h2>{t.applications}</h2>
-          {loaded && !admissions.length && <p>{t.empty}</p>}
-          {admissions.map((a) => (
-            <article key={a.id} className="club-list__item">
-              <h3>{a.name}</h3>
-              <p>{a.email}</p>
-              <div className="club-actions">
-                <button
-                  disabled={busy}
-                  onClick={() => void change(`/api/admin/applications/${a.id}`, { approve: true })}
-                >
-                  {t.approve}
-                </button>
-                <button
-                  disabled={busy}
-                  className="button--quiet"
-                  onClick={() => void change(`/api/admin/applications/${a.id}`, { approve: false })}
-                >
-                  {t.reject}
-                </button>
-              </div>
-            </article>
-          ))}
-        </section>
-      )}
-      {admin && legacy.people.length > 0 && (
-        <section className="card">
-          <h2>{t.legacy}</h2>
-          <p>{t.legacyHint}</p>
-          {mappingFailed && <p role="alert">{t.mappingConflict}</p>}
-          {legacy.people.map((p) => (
-            <article key={p.id} className="club-list__item">
-              <h3>{p.name}</h3>
-              <label>
-                {t.chooseUser}
-                <select
-                  aria-label={t.chooseUser}
-                  value={mapping[p.id] ?? ''}
-                  onChange={(e) => {
-                    setMapping({ ...mapping, [p.id]: e.target.value });
-                  }}
-                >
-                  <option value="">{t.choose}</option>
-                  {legacy.users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {confirm === p.id ? (
-                <ConfirmInline
-                  question={t.linkedQuestion}
-                  yesLabel={t.link}
-                  onCancel={() => {
-                    setConfirm(null);
-                  }}
-                  onConfirm={() => {
-                    setConfirm(null);
-                    void change(`/api/admin/legacy-people/${p.id}`, { userId: mapping[p.id] });
-                  }}
-                />
-              ) : (
-                <button
-                  disabled={busy || !mapping[p.id]}
-                  onClick={() => {
-                    setConfirm(p.id);
-                  }}
-                >
-                  {t.link}
-                </button>
-              )}
-            </article>
-          ))}
-        </section>
-      )}
       {platform && (
         <section className="card">
           <h2>{t.platform}</h2>
@@ -316,6 +246,21 @@ export function ClubsPage() {
               </select>
             </label>
             <button disabled={busy}>{edit ? t.save : t.create}</button>
+            {edit && (
+              <button
+                type="button"
+                className="button--quiet"
+                disabled={busy}
+                onClick={() => {
+                  setEdit(null);
+                  setName('');
+                  setSlug('');
+                  setAdminId('');
+                }}
+              >
+                {t.cancelEdit}
+              </button>
+            )}
           </form>
           <h3>{t.users}</h3>
           <label>

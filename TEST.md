@@ -2,6 +2,28 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Club administration and reversible archiving (2026-11-07)
+
+- Full web/DB: **544/544**, then **545/545** across 56 files after the member-list regression was
+  added. Unified integration suite now has 20 cases, including actual members and role assignment,
+  other-club/account-only exclusion, archive/restore audit, access denial to archived content via
+  API and direct tenant SQL, account/other-club continuity and retained training history.
+- Worker: **50/50**, Ruff lint/format and mypy pass. Generated schema check reports no changes.
+- Final local legacy browsers: **49 passed, 57 skipped** (desktop/mobile Chromium, flags off).
+- New account/admin lifecycle matrix: **8/8** on Chromium **1000×540** and iPhone 13 **WebKit**.
+  Includes admission from Club administration, member role editing, creating/renaming a club,
+  archiving the currently selected club and restoring the original membership. Screenshots inspected;
+  no document overflow and controls/role-label targets >=44px. Physical iPhone not checked.
+- A later browser rerun could not start Testcontainers' cleanup container (30s port-binding timeout
+  before any test). Repeating after startup load subsided passed all **8/8**, including additional
+  Club administration touch-target checks. Initial lint found two void-return shorthand handlers;
+  corrected; final lint, typecheck and repository formatting checks pass.
+- Deployment-script checks: **77/77**. Real Docker first deployment, migration upgrade, deliberately
+  broken-release rollback and explicit previous-release rollback rehearsal passed.
+- Local development database migration 0023 applied (24 total); readiness reports database healthy.
+  Full local proxy regression: **39 passed, 14 skipped**, using the real worker. Edge stopped after
+  verification with its data retained. No production mutation or deployment.
+
 ## Platform bootstrap regression (2026-11-07)
 
 - Initial test fixtures omitted required display_name (2 failures); corrected synthetic fixtures.

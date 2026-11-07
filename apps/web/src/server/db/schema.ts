@@ -72,8 +72,8 @@ export function tenantPolicy(name: string, clubId: SQLWrapper) {
   return pgPolicy(name, {
     for: 'all',
     to: appRole,
-    using: sql`${clubId} = ${currentClubId}`,
-    withCheck: sql`${clubId} = ${currentClubId}`,
+    using: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
+    withCheck: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
   });
 }
 
@@ -83,6 +83,7 @@ export const club = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     slug: text('slug').notNull().unique(),
     name: text('name').notNull(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   // The app may read its own club; clubs are created by migrations or admin tooling, not the app.
@@ -90,7 +91,7 @@ export const club = pgTable(
     pgPolicy('club_read_own', {
       for: 'select',
       to: appRole,
-      using: sql`${t.id} = ${currentClubId}`,
+      using: sql`${t.id} = ${currentClubId} and ${t.archivedAt} is null`,
     }),
   ],
 ).enableRLS();

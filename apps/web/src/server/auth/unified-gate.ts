@@ -329,6 +329,24 @@ export function createUnifiedGate(opts: {
     app.get('/api/platform/users', { preHandler: platformGuard }, (req) =>
       run(req, sql`select rowlens_platform_users() as value`),
     );
+    app.get('/api/platform/clubs', { preHandler: platformGuard }, (req) =>
+      run(req, sql`select rowlens_platform_clubs() as value`),
+    );
+    app.post(
+      '/api/platform/clubs/:id/archive',
+      { preHandler: platformGuard },
+      async (req, reply) => {
+        const p = z.object({ id: z.uuid() }).safeParse(req.params);
+        const b = z.object({ archived: z.boolean() }).strict().safeParse(req.body);
+        if (!p.success || !b.success) return reply.code(400).send({ error: 'invalid_club' });
+        return (await run(
+          req,
+          sql`select rowlens_archive_club(${p.data.id},${b.data.archived}) as value`,
+        ))
+          ? reply.code(204).send()
+          : reply.code(404).send();
+      },
+    );
     app.post('/api/platform/clubs', { preHandler: platformGuard }, async (req, reply) => {
       const b = z
         .object({

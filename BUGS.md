@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-045] Unified club member list included unused access addresses — medium
+**Location**: apps/web/src/server/api/access.ts:128
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The unified club member list inherited the legacy allowlist register and could show addresses without a club membership. A membership without a matching grant was also mislabeled server-managed, obscuring role editing.
+**Fix**: In unified mode, enumerate actual current-club memberships and mark membership-only entries editable unless explicitly server-managed. Integration coverage checks all members, exclusion of other-club/account-only users, role assignment and cross-club denial. Legacy feature-off behavior remains.
+
 ### [BUG-044] Platform bootstrap fails on audit parameter type inference — medium
 **Location**: apps/web/src/server/db/grant-platform-admin-cli.ts:25
 **Status**: fixed

@@ -74,6 +74,142 @@ afterAll(async () => {
   await h.close();
 });
 describe('unified accounts and club admission', () => {
+  it('lists every current-club member, excludes account-only users and edits membership-only roles', async () => {
+    const local = await createTwoClubs();
+    const admin = await signIn(),
+      member = await signIn(),
+      outsider = await signIn();
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin']),($1,$3,ARRAY['rower']),($4,$5,ARRAY['coach'])",
+      [local.a, admin.id, member.id, local.b, outsider.id],
+    );
+    const response = await call('GET', '/api/admin/users', undefined, admin.cookies, local.a);
+    expect(response.statusCode).toBe(200);
+    const entries = response.json<{ entries: { userId: string; source: string }[] }>().entries;
+    expect(entries.map((e) => e.userId).sort()).toEqual([admin.id, member.id].sort());
+    expect(entries.find((e) => e.userId === member.id)?.source).toBe('app');
+    expect(
+      (await call('GET', '/api/admin/users', undefined, member.cookies, local.a)).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/admin/access',
+          { email: member.email, roles: ['rower', 'coach'] },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(201);
+    expect(
+      (await call('GET', '/api/auth/status', undefined, member.cookies, local.a)).json<{
+        user: { roles: string[] };
+      }>().user.roles,
+    ).toEqual(['rower', 'coach']);
+    expect(
+      (await call('GET', '/api/admin/users', undefined, admin.cookies, local.b)).statusCode,
+    ).toBe(404);
+  });
+  it('archives and restores clubs without losing memberships/history or affecting another club', async () => {
+    const local = await createTwoClubs();
+    const platform = await signIn();
+    const member = await signIn();
+    await asOwner('insert into platform_admin(user_id) values($1)', [platform.id]);
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$3,ARRAY['admin']),($2,$3,ARRAY['rower'])",
+      [local.a, local.b, member.id],
+    );
+    const session = await call(
+      'POST',
+      '/api/sessions',
+      { title: 'Retained history', date: '2026-11-07' },
+      member.cookies,
+      local.a,
+    );
+    expect(session.statusCode).toBe(201);
+    expect((await call('GET', '/api/platform/clubs', undefined, member.cookies)).statusCode).toBe(
+      404,
+    );
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/platform/clubs/${local.a}/archive`,
+          { archived: true },
+          member.cookies,
+        )
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/platform/clubs/${local.a}/archive`,
+          { archived: true },
+          platform.cookies,
+        )
+      ).statusCode,
+    ).toBe(204);
+    for (const cookies of [member.cookies, platform.cookies]) {
+      expect((await call('GET', '/api/sessions', undefined, cookies, local.a)).statusCode).toBe(
+        404,
+      );
+      expect((await call('GET', '/api/admin/users', undefined, cookies, local.a)).statusCode).toBe(
+        404,
+      );
+      expect((await call('GET', '/api/sessions', undefined, cookies, local.b)).statusCode).toBe(
+        200,
+      );
+      expect((await call('GET', '/api/me/settings', undefined, cookies, local.a)).statusCode).toBe(
+        200,
+      );
+    }
+    const directory = (await call('GET', '/api/account/clubs', undefined, member.cookies)).json<{
+      clubs: { id: string }[];
+    }>();
+    expect(directory.clubs.some((c) => c.id === local.a)).toBe(false);
+    const listed = (await call('GET', '/api/platform/clubs', undefined, platform.cookies)).json<
+      { id: string; archivedAt: string | null }[]
+    >();
+    expect(listed.find((c) => c.id === local.a)?.archivedAt).toBeTruthy();
+    expect(
+      (await call('POST', '/api/account/applications', { clubId: local.a }, member.cookies))
+        .statusCode,
+    ).toBe(409);
+    const denied = await withTenant(
+      h.db,
+      { clubId: local.a, userId: platform.id, platformAdmin: true },
+      async (tx) => {
+        const rows = await tx.execute(sql`select * from rowing_session`);
+        const admitted = await tx.execute<{ value: string }>(
+          sql`select rowlens_admit_account(${member.email},ARRAY['coach']) as value`,
+        );
+        return { rows: rows.rows, admitted: admitted.rows[0]?.value };
+      },
+    );
+    expect(denied.rows).toEqual([]);
+    expect(denied.admitted).not.toBe('ok');
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/platform/clubs/${local.a}/archive`,
+          { archived: false },
+          platform.cookies,
+        )
+      ).statusCode,
+    ).toBe(204);
+    const restored = await call('GET', '/api/sessions', undefined, member.cookies, local.a);
+    expect(restored.statusCode).toBe(200);
+    expect(restored.body).toContain('Retained history');
+    expect(
+      await asOwner(
+        'select action from platform_audit where target=$1 and action in ($2,$3) order by at',
+        [local.a, 'club.archived', 'club.restored'],
+      ),
+    ).toEqual([{ action: 'club.archived' }, { action: 'club.restored' }]);
+  });
   it('verifies an unknown account without admitting it to any club; OTP is single-use', async () => {
     const u = await signIn();
     const status = (await call('GET', '/api/auth/status', undefined, u.cookies)).json<{

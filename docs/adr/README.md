@@ -26,4 +26,6 @@
 
 | [0021](0021-unified-accounts-and-club-admission.md) | Unified accounts, club admission and full platform administration | accepted |
 
+| [0022](0022-club-archiving.md) | Reversible club archiving and separate administration screens | accepted |
+
 New ADR: copy `0000-template.md` to the next number.

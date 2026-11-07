@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Separate club admission from platform club lifecycle management
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/client/{admin,clubs,styles.css}, apps/web/src/server/{api/access.ts,auth/unified-gate.ts,auth/unified-gate.db.test.ts,db/schema.ts,db/migrations/0023_club_archive.sql,db/migrations/meta}, apps/web/e2e/unified-users.spec.ts, docs/adr/{0022-club-archiving.md,README.md}, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Club administration now groups actual club members and role editing with a Requests tab for admission/rejection. RowLens administrators see a complete club directory with create/edit and inline-confirmed archive/restore; approved migration 0023 enforces archived-club denial in tenant RLS and account selection while retaining accounts, memberships and history. Full web/DB 545, worker 50, 8 laptop/iPhone WebKit cases, 49 legacy local cases, 39 proxy cases, 77 deploy checks and the local migration/rollback rehearsal pass. Details, proxy regression and diagnostic startup failures are in TEST.md; no production change or merge/deploy.
+**Prompts used**: "als clubbeheerder wil ik onder clubbeheer alle clubleden kunnen inzien en hun rollen kunnen toekennen. ik wil ook nieuwe aanmeldingen kunnen zien en kunnen goedkeuren. Onder Clubs wil ik als rowlens admin een lijst met bestaande clubs zien en clubs kunnen toevoegen, verwijderen, en wijzigen." Follow-up approval: "Ja, archiveren en kunnen herstellen".
+
 ## 2026-11-07 — Fix operator bootstrap audit parameter typing
 
 **Session**: codex/feat/unified-club-users

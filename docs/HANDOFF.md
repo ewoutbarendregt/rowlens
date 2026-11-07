@@ -3,6 +3,24 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Current follow-up — club administration and reversible club archiving
+
+- On branch `codex/feat/unified-club-users`, included in PR #157. Ewout requested members/roles and
+  admission under Club administration, full club management under Clubs, and approved archiving
+  with restoration: "Ja, archiveren en kunnen herstellen" (ADR-0022; migration 0023).
+- Club administration has Club members, Requests and Roles tabs. Unified member lists exclude
+  unused allowlist addresses; all actual memberships are listed and membership-only roles editable.
+  The platform Clubs directory includes archived clubs and inline-confirmed archive/restore.
+- Archive denies new club content/API/direct tenant SQL and applications; accounts, other club
+  memberships, pending requests and history remain. Restore re-enables the same club and memberships.
+  Background jobs can finish; no permanent deletion or branding was added.
+- Latest checks: 545 web/DB, 50 worker + Ruff/mypy, 8 laptop/iPhone WebKit cases, 49 legacy local
+  browsers (57 skipped), 39 proxy browsers (14 skipped), 77 deploy checks and real local migration/rollback rehearsal pass. Edge stopped with data retained. Schema
+  consistency passes. TEST.md records a Testcontainers startup timeout followed by an 8/8 rerun.
+- Local dev readiness is healthy, now **24 migrations**. Refresh `/admin` and `/clubs` for review.
+  No real club was archived by the agent; lifecycle tests use synthetic clubs. Production remains
+  unchanged. No merge/deploy authorization; latest CI status is on PR #157.
+
 ## Current task — unified users and multi-club admission (2026-11-07)
 
 - Operator bootstrap BUG-044 is fixed: audit parameter explicitly typed UUID before conversion to
