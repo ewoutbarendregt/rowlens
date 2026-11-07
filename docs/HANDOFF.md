@@ -29,7 +29,8 @@ newest-first detailed log. Update this file at the end of a session.
   49 local E2E (49 skipped), 39 edge E2E (10 skipped), 6 local +14 edge iPhone WebKit/1000×540 cases.
   Logs and diagnostic iterations are in TEST.md. Known release-please run 42349540067 failed only
   because GitHub Actions may not create PRs; it does not affect CI, images or deployment.
-- Workspace: `codex/docs/155-deploy` records this rollout for a separate review PR. Local dev :5174/
+- Workspace: [deployment-log PR #156](https://github.com/ewoutbarendregt/rowlens/pull/156)
+  (`codex/docs/155-deploy`) is open for review, not merged. Local dev :5174/
   API :3100 is healthy with 20 migrations; edge is stopped and no verification job is running.
   Feature branch codex/feat/154-club-training-readonly was deleted after merge; older deployment-log
   PRs #148/#150/#153 and the OWASP review branch remain untouched. Do not merge them implicitly.
