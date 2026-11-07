@@ -47,6 +47,17 @@ analysis of rowing technique.
 4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
    the data model remains tenant-safe, but growth features do not drive the current UI.
 
+## Club training visibility and editing by role (#154)
+
+Approved and implemented locally: all members can view all trainings in their current club. Rower-only users keep
+existing editing rights in their own (self-created) trainings; foreign trainings are fully read-only,
+including no feedback mutations. Coaches/admins may edit every club training, including those
+created by others; combinations retain those elevated rights. Keep private notes private to rowers
+and preserve cross-club/account-administration boundaries. One permission-policy migration, no
+new table/dependency. Ewout approved the revised plan with "voer het plan uit". See
+docs/plans/154-club-training-readonly.md and ADR-0020. All local checks and the WebKit/low-laptop
+matrix pass; implementation is ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155). No merge/deployment is authorized for #154.
+
 ## Admin user settings (#151, approved 2026-11-06)
 
 Ewout requests inspection/editing of all existing user settings. The inventory includes profile,

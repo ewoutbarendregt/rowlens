@@ -55,6 +55,16 @@ export function rolePolicy(
   });
 }
 
+/** Reading a training never implies permission to change it (#154). */
+function resourcePolicies(name: string, read: SQL, write: SQL) {
+  return [
+    rolePolicy(`${name}_read`, 'select', read),
+    rolePolicy(`${name}_add`, 'insert', write),
+    rolePolicy(`${name}_edit`, 'update', write),
+    rolePolicy(`${name}_delete`, 'delete', write),
+  ];
+}
+
 const me = sql`rowlens_user_id()`;
 const seesAll = sql`rowlens_sees_all()`;
 
@@ -271,10 +281,23 @@ export const rowingSession = pgTable(
     index('rowing_session_club_date_idx').on(t.clubId, t.sessionDate),
     tenantPolicy('rowing_session_tenant', t.clubId),
     rolePolicy(
-      'rowing_session_role',
-      'all',
-      sql`${seesAll} or ${t.createdByUserId} = ${me} or rowlens_session_reachable(${t.id})`,
+      'rowing_session_role_read',
+      'select',
+      sql`rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or ${seesAll} or ${t.createdByUserId} = ${me} or rowlens_session_reachable(${t.id}))`,
     ),
+    rolePolicy(
+      'rowing_session_role_add',
+      'insert',
+      sql`rowlens_roster_manager() or (rowlens_has_role('rower') and ${t.createdByUserId} = ${me})`,
+    ),
+    pgPolicy('rowing_session_role_edit', {
+      as: 'restrictive',
+      for: 'update',
+      to: appRole,
+      using: sql`rowlens_can_edit_session(${t.id})`,
+      withCheck: sql`rowlens_can_edit_session(${t.id}) and rowlens_may_set_session_creator(${t.id},${t.createdByUserId})`,
+    }),
+    rolePolicy('rowing_session_role_delete', 'delete', sql`rowlens_can_edit_session(${t.id})`),
   ],
 ).enableRLS();
 
@@ -307,7 +330,11 @@ export const lineupSeat = pgTable(
     index('lineup_seat_rower_idx').on(t.rowerId),
     check('lineup_seat_seat_check', sql`${t.seat} between 0 and 8`),
     tenantPolicy('lineup_seat_tenant', t.clubId),
-    rolePolicy('lineup_seat_role', 'all', sql`rowlens_can_see_session(${t.sessionId})`),
+    ...resourcePolicies(
+      'lineup_seat_role',
+      sql`rowlens_can_see_session(${t.sessionId})`,
+      sql`rowlens_can_edit_session(${t.sessionId})`,
+    ),
   ],
 ).enableRLS();
 
@@ -377,7 +404,11 @@ export const video = pgTable(
     unique('video_club_id_id_unique').on(t.clubId, t.id),
     unique('video_session_seq_unique').on(t.sessionId, t.seq),
     tenantPolicy('video_tenant', t.clubId),
-    rolePolicy('video_role', 'all', sql`rowlens_can_see_session(${t.sessionId})`),
+    ...resourcePolicies(
+      'video_role',
+      sql`rowlens_can_see_session(${t.sessionId})`,
+      sql`rowlens_can_edit_session(${t.sessionId})`,
+    ),
   ],
 ).enableRLS();
 
@@ -454,18 +485,18 @@ export const annotation = pgTable(
     rolePolicy(
       'annotation_role_add',
       'insert',
-      sql`${seesAll} or (${t.authorUserId} = ${me} and rowlens_can_see_video(${t.videoId}))`,
+      sql`rowlens_can_edit_video(${t.videoId}) and (${seesAll} or (${t.authorUserId} = ${me} and rowlens_can_see_video(${t.videoId})))`,
     ),
     // Coaches may change every note in a session they can see; rowers only their own (#108).
     rolePolicy(
       'annotation_role_edit',
       'update',
-      sql`${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId})`,
+      sql`rowlens_can_edit_video(${t.videoId}) and (${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId}))`,
     ),
     rolePolicy(
       'annotation_role_delete',
       'delete',
-      sql`${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId})`,
+      sql`rowlens_can_edit_video(${t.videoId}) and (${seesAll} or ${t.authorUserId} = ${me} or rowlens_coaches_video(${t.videoId}))`,
     ),
   ],
 ).enableRLS();
@@ -695,7 +726,11 @@ export const moment = pgTable(
     }).onDelete('cascade'),
     check('moment_frame_check', sql`${t.frame} >= 0`),
     tenantPolicy('moment_tenant', t.clubId),
-    rolePolicy('moment_role', 'all', sql`rowlens_can_see_moment(${t.videoId}, ${t.frame})`),
+    ...resourcePolicies(
+      'moment_role',
+      sql`rowlens_can_see_moment(${t.videoId}, ${t.frame})`,
+      sql`rowlens_can_edit_video(${t.videoId}) and rowlens_can_see_moment(${t.videoId}, ${t.frame})`,
+    ),
   ],
 ).enableRLS();
 
@@ -724,7 +759,11 @@ export const momentRower = pgTable(
     }).onDelete('restrict'),
     index('moment_rower_rower_idx').on(t.rowerId),
     tenantPolicy('moment_rower_tenant', t.clubId),
-    rolePolicy('moment_rower_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
+    ...resourcePolicies(
+      'moment_rower_role',
+      sql`rowlens_can_see_moment_id(${t.momentId})`,
+      sql`rowlens_can_edit_moment(${t.momentId}) and rowlens_can_see_moment_id(${t.momentId})`,
+    ),
   ],
 ).enableRLS();
 
@@ -765,7 +804,11 @@ export const momentShare = pgTable(
     check('moment_share_scope_check', sql`(${t.scope} = 'rower') = (${t.rowerId} is not null)`),
     index('moment_share_rower_idx').on(t.rowerId),
     tenantPolicy('moment_share_tenant', t.clubId),
-    rolePolicy('moment_share_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
+    ...resourcePolicies(
+      'moment_share_role',
+      sql`rowlens_can_see_moment_id(${t.momentId})`,
+      sql`rowlens_can_edit_moment(${t.momentId}) and rowlens_can_see_moment_id(${t.momentId})`,
+    ),
   ],
 ).enableRLS();
 
@@ -797,7 +840,11 @@ export const momentRowerLog = pgTable(
     }).onDelete('cascade'),
     index('moment_rower_log_moment_idx').on(t.momentId, t.at),
     tenantPolicy('moment_rower_log_tenant', t.clubId),
-    rolePolicy('moment_rower_log_role', 'all', sql`rowlens_can_see_moment_id(${t.momentId})`),
+    ...resourcePolicies(
+      'moment_rower_log_role',
+      sql`rowlens_can_see_moment_id(${t.momentId})`,
+      sql`rowlens_can_edit_moment(${t.momentId}) and rowlens_can_see_moment_id(${t.momentId})`,
+    ),
   ],
 ).enableRLS();
 

@@ -238,18 +238,34 @@ scripts/github/      backlog/labels/milestones bootstrap
 - `GET /api/sessions` adds `lineup`, `mySeat` and `notesForMe`; the page filters and sorts on the
   client (`sessions/filter.ts`: period, rower, boat, title words, notes for me; five sorts). The page
   owns the filters and mirrors them into the URL (inputs bound straight to the URL lag on phones).
-- Visibility: only the admin sees the club; coaches see their own sessions and all notes in them
-  (ADR-0013 addendum, migration 0012). The admin gives a session to a coach on its page.
+- Visibility/editing: ADR-0020 and migration 0019 supersede the old own/reachable-only scope.
+  All club members read all trainings; only the creator (existing rower rights) and any club
+  coach/admin may edit. Only admins reassign creators; ownerless sessions are staff-editable.
 - Admin panel `/admin`: tabs Users (access list) and Roles (what each role sees and may do).
 
 ## What a rower sees, and sharing notes (#40, #112, ADR-0013)
 
-- `withTenant` sets `app.role`; restrictive RLS policies (migration 0011) limit rowers to sessions they
-  rowed in or created (or where a note is assigned/shared to them) and to notes assigned, shared or
-  written by them. Coaches, admins, the worker and the pilot path see the club. Helper functions:
-  `rowlens_sees_all`, `rowlens_my_rowers`, `rowlens_can_see_session/video/moment/moment_id`.
-- `annotation.author_user_id`, `rowing_session.created_by_user_id`; rowers edit only their own
-  annotations (`present()` in `api/annotations.ts` returns `mine`/`canEdit`).
+- `withTenant` sets validated additive `app.roles` and an explicit service flag (ADR-0019).
+  Migration 0019 separates restrictive SELECT/INSERT/UPDATE/DELETE policies for session, video,
+  lineup and moment resources. `rowlens_can_read_trainings` grants member club reads;
+  `rowlens_can_edit_session/video/moment` restrict mutations to the creator or coach/admin.
+  New handlers opt in with fixed transaction context `app.training_permissions=owner-or-staff`.
+  Missing context retains pre-#155 visibility and corresponding write scope for an old image still
+  serving during migration or after an authorized rollback. Unknown values deny training access;
+  this context is never accepted from request input. The session read policy uses its row columns
+  directly so INSERT RETURNING can see a just-created session, without a stable self-lookup.
+  Tenant policies and same-club parent foreign keys still apply. `rowlens_sees_all` remains
+  admin/service-only so general read access cannot unlock privileged operations.
+- Note visibility remains private for rowers unless authored/assigned/shared to them; coaches/admins
+  see all club feedback. Annotation authorship also requires an editable parent for mutations.
+  APIs return `canEdit` for sessions/videos/annotations; the read-only UI hides all mutations and
+  renders crew/assignment/share names statically. Playback and own preferences stay available.
+- Media mutations lock the editable parent session before file operations, then recheck permission
+  in a fresh SQL statement after acquiring the lock (including any wait for creator transfer).
+  Upload streaming/progress/job creation share that transaction. For a chunk, disable the normal
+  15-second idle-transaction limit locally and bound its stream to five minutes; delete handlers remove files only
+  after a successful database deletion. Crew lookups for read-only viewers expose actual crew names,
+  no e-mails, and identify only the current member with `mine`.
 - `moment_share` (scope `rower` or `crew`) and `PUT /api/videos/:id/frames/:frame/shares {rowerIds,
   crew}`; a rower takes back only their own shares (403 `not_yours`), changes go to
   `moment_rower_log` (`shared`/`unshared`).

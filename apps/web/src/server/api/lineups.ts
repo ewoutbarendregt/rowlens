@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, isNotNull, ne } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { BOAT_CLASS_NAMES, seatsOf } from '../../shared/boats.ts';
+import { lockEditableSession } from '../repositories/training-access.ts';
 import type { Tx } from '../db/client.ts';
 import { lineupSeat, rower, rowingSession } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
@@ -104,6 +105,7 @@ export const lineupRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
       db,
       tenant,
       async (tx): Promise<LineupSeat[] | SaveError | null> => {
+        if (!(await lockEditableSession(tx, params.data.id))) return null;
         const [session] = await tx
           .select({ id: rowingSession.id })
           .from(rowingSession)

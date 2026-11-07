@@ -1,0 +1,3299 @@
+{
+  "id": "06abdb17-fe56-48fe-85d3-1c74274989d7",
+  "prevId": "9a5a51c5-c21c-4aca-b347-b33ad32204d9",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.angle_measure": {
+      "name": "angle_measure",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frame": {
+          "name": "frame",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rower_id": {
+          "name": "rower_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "joint": {
+          "name": "joint",
+          "type": "angle_joint",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "points": {
+          "name": "points",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by_user_id": {
+          "name": "created_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "angle_measure_rower_idx": {
+          "name": "angle_measure_rower_idx",
+          "columns": [
+            {
+              "expression": "rower_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "angle_measure_video_fk": {
+          "name": "angle_measure_video_fk",
+          "tableFrom": "angle_measure",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "angle_measure_rower_fk": {
+          "name": "angle_measure_rower_fk",
+          "tableFrom": "angle_measure",
+          "tableTo": "rower",
+          "columnsFrom": [
+            "club_id",
+            "rower_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "angle_measure_unique": {
+          "name": "angle_measure_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "video_id",
+            "frame",
+            "rower_id",
+            "joint"
+          ]
+        }
+      },
+      "policies": {
+        "angle_measure_tenant": {
+          "name": "angle_measure_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"angle_measure\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"angle_measure\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "angle_measure_role_read": {
+          "name": "angle_measure_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_video(\"angle_measure\".\"video_id\")"
+        },
+        "angle_measure_role_add": {
+          "name": "angle_measure_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
+        },
+        "angle_measure_role_edit": {
+          "name": "angle_measure_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")",
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
+        },
+        "angle_measure_role_delete": {
+          "name": "angle_measure_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"angle_measure\".\"video_id\")"
+        }
+      },
+      "checkConstraints": {
+        "angle_measure_frame_check": {
+          "name": "angle_measure_frame_check",
+          "value": "\"angle_measure\".\"frame\" >= 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.annotation": {
+      "name": "annotation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frame": {
+          "name": "frame",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "annotation_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'note'"
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "shape": {
+          "name": "shape",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "author_name": {
+          "name": "author_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "author_user_id": {
+          "name": "author_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "annotation_video_frame_idx": {
+          "name": "annotation_video_frame_idx",
+          "columns": [
+            {
+              "expression": "video_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "frame",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "annotation_video_fk": {
+          "name": "annotation_video_fk",
+          "tableFrom": "annotation",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "annotation_tenant": {
+          "name": "annotation_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"annotation\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "annotation_role_read": {
+          "name": "annotation_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_moment(\"annotation\".\"video_id\", \"annotation\".\"frame\") or \"annotation\".\"author_user_id\" = rowlens_user_id()"
+        },
+        "annotation_role_add": {
+          "name": "annotation_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_video(\"annotation\".\"video_id\") and (rowlens_sees_all() or (\"annotation\".\"author_user_id\" = rowlens_user_id() and rowlens_can_see_video(\"annotation\".\"video_id\")))"
+        },
+        "annotation_role_edit": {
+          "name": "annotation_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_video(\"annotation\".\"video_id\") and (rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\"))",
+          "withCheck": "rowlens_can_edit_video(\"annotation\".\"video_id\") and (rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\"))"
+        },
+        "annotation_role_delete": {
+          "name": "annotation_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_video(\"annotation\".\"video_id\") and (rowlens_sees_all() or \"annotation\".\"author_user_id\" = rowlens_user_id() or rowlens_coaches_video(\"annotation\".\"video_id\"))"
+        }
+      },
+      "checkConstraints": {
+        "annotation_frame_check": {
+          "name": "annotation_frame_check",
+          "value": "\"annotation\".\"frame\" >= 0"
+        },
+        "annotation_body_check": {
+          "name": "annotation_body_check",
+          "value": "char_length(\"annotation\".\"body\") <= 2000"
+        },
+        "annotation_author_check": {
+          "name": "annotation_author_check",
+          "value": "char_length(\"annotation\".\"author_name\") between 1 and 60"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.app_user": {
+      "name": "app_user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locale": {
+          "name": "locale",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'nl'"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "default_boat_type": {
+          "name": "default_boat_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "language": {
+          "name": "language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "theme": {
+          "name": "theme",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes_visible": {
+          "name": "notes_visible",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note_hold_seconds": {
+          "name": "note_hold_seconds",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drive_middle": {
+          "name": "drive_middle",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "settings_revision": {
+          "name": "settings_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "settings_updated_at": {
+          "name": "settings_updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "app_user_email_unique": {
+          "name": "app_user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "app_user_language_check": {
+          "name": "app_user_language_check",
+          "value": "\"app_user\".\"language\" is null or \"app_user\".\"language\" in ('nl','en')"
+        },
+        "app_user_theme_check": {
+          "name": "app_user_theme_check",
+          "value": "\"app_user\".\"theme\" is null or \"app_user\".\"theme\" in ('light','dark','hc')"
+        },
+        "app_user_hold_check": {
+          "name": "app_user_hold_check",
+          "value": "\"app_user\".\"note_hold_seconds\" is null or \"app_user\".\"note_hold_seconds\" in (0.5,1,2)"
+        },
+        "app_user_name_check": {
+          "name": "app_user_name_check",
+          "value": "(\"app_user\".\"first_name\" is null or char_length(\"app_user\".\"first_name\") between 1 and 60) and (\"app_user\".\"last_name\" is null or char_length(\"app_user\".\"last_name\") between 1 and 60)"
+        },
+        "app_user_default_boat_check": {
+          "name": "app_user_default_boat_check",
+          "value": "default_boat_type is null or default_boat_type in ('C1x', 'C2x', 'C2x+', 'C4x+', 'C4+', '1x', '2x', '2-', '2+', '4x', '4-', '4+', '4x+', '8+')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.club": {
+      "name": "club",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "club_slug_unique": {
+          "name": "club_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {
+        "club_read_own": {
+          "name": "club_read_own",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"club\".\"id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.club_access": {
+      "name": "club_access",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roles": {
+          "name": "roles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "added_by_user_id": {
+          "name": "added_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "club_access_club_id_club_id_fk": {
+          "name": "club_access_club_id_club_id_fk",
+          "tableFrom": "club_access",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "club_access_club_email_unique": {
+          "name": "club_access_club_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "email"
+          ]
+        }
+      },
+      "policies": {
+        "club_access_tenant": {
+          "name": "club_access_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"club_access\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"club_access\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "club_access_roles_check": {
+          "name": "club_access_roles_check",
+          "value": "rowlens_valid_roles(\"club_access\".\"roles\")"
+        },
+        "club_access_email_check": {
+          "name": "club_access_email_check",
+          "value": "\"club_access\".\"email\" = lower(\"club_access\".\"email\") and \"club_access\".\"email\" like '%_@_%'"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.club_access_log": {
+      "name": "club_access_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "club_access_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "roles": {
+          "name": "roles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "by_user_id": {
+          "name": "by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "club_access_log_club_at_idx": {
+          "name": "club_access_log_club_at_idx",
+          "columns": [
+            {
+              "expression": "club_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "club_access_log_club_id_club_id_fk": {
+          "name": "club_access_log_club_id_club_id_fk",
+          "tableFrom": "club_access_log",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "club_access_log_tenant": {
+          "name": "club_access_log_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"club_access_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"club_access_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.job": {
+      "name": "job",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "status": {
+          "name": "status",
+          "type": "job_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'queued'"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "max_attempts": {
+          "name": "max_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 3
+        },
+        "run_after": {
+          "name": "run_after",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "locked_by": {
+          "name": "locked_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "locked_until": {
+          "name": "locked_until",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "job_ready_idx": {
+          "name": "job_ready_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "run_after",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "job_club_id_club_id_fk": {
+          "name": "job_club_id_club_id_fk",
+          "tableFrom": "job",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "job_idempotency_key_unique": {
+          "name": "job_idempotency_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "idempotency_key"
+          ]
+        }
+      },
+      "policies": {
+        "job_tenant": {
+          "name": "job_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"job\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.lineup_seat": {
+      "name": "lineup_seat",
+      "schema": "",
+      "columns": {
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seat": {
+          "name": "seat",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rower_id": {
+          "name": "rower_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "lineup_seat_rower_idx": {
+          "name": "lineup_seat_rower_idx",
+          "columns": [
+            {
+              "expression": "rower_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "lineup_seat_session_fk": {
+          "name": "lineup_seat_session_fk",
+          "tableFrom": "lineup_seat",
+          "tableTo": "rowing_session",
+          "columnsFrom": [
+            "club_id",
+            "session_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "lineup_seat_rower_fk": {
+          "name": "lineup_seat_rower_fk",
+          "tableFrom": "lineup_seat",
+          "tableTo": "rower",
+          "columnsFrom": [
+            "club_id",
+            "rower_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "lineup_seat_pk": {
+          "name": "lineup_seat_pk",
+          "columns": [
+            "session_id",
+            "seat"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "lineup_seat_session_rower_unique": {
+          "name": "lineup_seat_session_rower_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "session_id",
+            "rower_id"
+          ]
+        }
+      },
+      "policies": {
+        "lineup_seat_tenant": {
+          "name": "lineup_seat_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"lineup_seat\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"lineup_seat\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "lineup_seat_role_read": {
+          "name": "lineup_seat_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_session(\"lineup_seat\".\"session_id\")"
+        },
+        "lineup_seat_role_add": {
+          "name": "lineup_seat_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_session(\"lineup_seat\".\"session_id\")"
+        },
+        "lineup_seat_role_edit": {
+          "name": "lineup_seat_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"lineup_seat\".\"session_id\")",
+          "withCheck": "rowlens_can_edit_session(\"lineup_seat\".\"session_id\")"
+        },
+        "lineup_seat_role_delete": {
+          "name": "lineup_seat_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"lineup_seat\".\"session_id\")"
+        }
+      },
+      "checkConstraints": {
+        "lineup_seat_seat_check": {
+          "name": "lineup_seat_seat_check",
+          "value": "\"lineup_seat\".\"seat\" between 0 and 8"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.login_code": {
+      "name": "login_code",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code_hash": {
+          "name": "code_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "request_ip_hash": {
+          "name": "request_ip_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "login_code_user_created_idx": {
+          "name": "login_code_user_created_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "login_code_membership_fk": {
+          "name": "login_code_membership_fk",
+          "tableFrom": "login_code",
+          "tableTo": "membership",
+          "columnsFrom": [
+            "club_id",
+            "user_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "login_code_tenant": {
+          "name": "login_code_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"login_code\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"login_code\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.membership": {
+      "name": "membership",
+      "schema": "",
+      "columns": {
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roles": {
+          "name": "roles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY['coach']::text[]"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "membership_user_idx": {
+          "name": "membership_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "membership_club_id_club_id_fk": {
+          "name": "membership_club_id_club_id_fk",
+          "tableFrom": "membership",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "membership_user_id_app_user_id_fk": {
+          "name": "membership_user_id_app_user_id_fk",
+          "tableFrom": "membership",
+          "tableTo": "app_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "membership_club_user_unique": {
+          "name": "membership_club_user_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "user_id"
+          ]
+        }
+      },
+      "policies": {
+        "membership_tenant": {
+          "name": "membership_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"membership\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"membership\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {
+        "membership_roles_check": {
+          "name": "membership_roles_check",
+          "value": "rowlens_valid_roles(\"membership\".\"roles\")"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.moment": {
+      "name": "moment",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frame": {
+          "name": "frame",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "moment_video_fk": {
+          "name": "moment_video_fk",
+          "tableFrom": "moment",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "moment_video_frame_unique": {
+          "name": "moment_video_frame_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "video_id",
+            "frame"
+          ]
+        },
+        "moment_club_id_id_unique": {
+          "name": "moment_club_id_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "id"
+          ]
+        }
+      },
+      "policies": {
+        "moment_tenant": {
+          "name": "moment_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"moment\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"moment\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "moment_role_read": {
+          "name": "moment_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")"
+        },
+        "moment_role_add": {
+          "name": "moment_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_video(\"moment\".\"video_id\") and rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")"
+        },
+        "moment_role_edit": {
+          "name": "moment_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_video(\"moment\".\"video_id\") and rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")",
+          "withCheck": "rowlens_can_edit_video(\"moment\".\"video_id\") and rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")"
+        },
+        "moment_role_delete": {
+          "name": "moment_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_video(\"moment\".\"video_id\") and rowlens_can_see_moment(\"moment\".\"video_id\", \"moment\".\"frame\")"
+        }
+      },
+      "checkConstraints": {
+        "moment_frame_check": {
+          "name": "moment_frame_check",
+          "value": "\"moment\".\"frame\" >= 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.moment_rower": {
+      "name": "moment_rower",
+      "schema": "",
+      "columns": {
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "moment_id": {
+          "name": "moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rower_id": {
+          "name": "rower_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "assigned_at": {
+          "name": "assigned_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "assigned_by_user_id": {
+          "name": "assigned_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "moment_rower_rower_idx": {
+          "name": "moment_rower_rower_idx",
+          "columns": [
+            {
+              "expression": "rower_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "moment_rower_moment_fk": {
+          "name": "moment_rower_moment_fk",
+          "tableFrom": "moment_rower",
+          "tableTo": "moment",
+          "columnsFrom": [
+            "club_id",
+            "moment_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "moment_rower_rower_fk": {
+          "name": "moment_rower_rower_fk",
+          "tableFrom": "moment_rower",
+          "tableTo": "rower",
+          "columnsFrom": [
+            "club_id",
+            "rower_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "moment_rower_pk": {
+          "name": "moment_rower_pk",
+          "columns": [
+            "moment_id",
+            "rower_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "moment_rower_tenant": {
+          "name": "moment_rower_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"moment_rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"moment_rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "moment_rower_role_read": {
+          "name": "moment_rower_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")"
+        },
+        "moment_rower_role_add": {
+          "name": "moment_rower_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_moment(\"moment_rower\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")"
+        },
+        "moment_rower_role_edit": {
+          "name": "moment_rower_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_rower\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")",
+          "withCheck": "rowlens_can_edit_moment(\"moment_rower\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")"
+        },
+        "moment_rower_role_delete": {
+          "name": "moment_rower_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_rower\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower\".\"moment_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.moment_rower_log": {
+      "name": "moment_rower_log",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "moment_id": {
+          "name": "moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rower_id": {
+          "name": "rower_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "moment_rower_action",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "by_user_id": {
+          "name": "by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "moment_rower_log_moment_idx": {
+          "name": "moment_rower_log_moment_idx",
+          "columns": [
+            {
+              "expression": "moment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "moment_rower_log_moment_fk": {
+          "name": "moment_rower_log_moment_fk",
+          "tableFrom": "moment_rower_log",
+          "tableTo": "moment",
+          "columnsFrom": [
+            "club_id",
+            "moment_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "moment_rower_log_tenant": {
+          "name": "moment_rower_log_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"moment_rower_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"moment_rower_log\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "moment_rower_log_role_read": {
+          "name": "moment_rower_log_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")"
+        },
+        "moment_rower_log_role_add": {
+          "name": "moment_rower_log_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_moment(\"moment_rower_log\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")"
+        },
+        "moment_rower_log_role_edit": {
+          "name": "moment_rower_log_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_rower_log\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")",
+          "withCheck": "rowlens_can_edit_moment(\"moment_rower_log\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")"
+        },
+        "moment_rower_log_role_delete": {
+          "name": "moment_rower_log_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_rower_log\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_rower_log\".\"moment_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.moment_share": {
+      "name": "moment_share",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "moment_id": {
+          "name": "moment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scope": {
+          "name": "scope",
+          "type": "moment_share_scope",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rower_id": {
+          "name": "rower_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shared_by_user_id": {
+          "name": "shared_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "shared_at": {
+          "name": "shared_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "moment_share_crew_unique": {
+          "name": "moment_share_crew_unique",
+          "columns": [
+            {
+              "expression": "moment_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"moment_share\".\"scope\" = 'crew'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "moment_share_rower_idx": {
+          "name": "moment_share_rower_idx",
+          "columns": [
+            {
+              "expression": "rower_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "moment_share_moment_fk": {
+          "name": "moment_share_moment_fk",
+          "tableFrom": "moment_share",
+          "tableTo": "moment",
+          "columnsFrom": [
+            "club_id",
+            "moment_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "moment_share_rower_fk": {
+          "name": "moment_share_rower_fk",
+          "tableFrom": "moment_share",
+          "tableTo": "rower",
+          "columnsFrom": [
+            "club_id",
+            "rower_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "moment_share_rower_unique": {
+          "name": "moment_share_rower_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "moment_id",
+            "rower_id"
+          ]
+        }
+      },
+      "policies": {
+        "moment_share_tenant": {
+          "name": "moment_share_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"moment_share\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"moment_share\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "moment_share_role_read": {
+          "name": "moment_share_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")"
+        },
+        "moment_share_role_add": {
+          "name": "moment_share_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_moment(\"moment_share\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")"
+        },
+        "moment_share_role_edit": {
+          "name": "moment_share_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_share\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")",
+          "withCheck": "rowlens_can_edit_moment(\"moment_share\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")"
+        },
+        "moment_share_role_delete": {
+          "name": "moment_share_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_moment(\"moment_share\".\"moment_id\") and rowlens_can_see_moment_id(\"moment_share\".\"moment_id\")"
+        }
+      },
+      "checkConstraints": {
+        "moment_share_scope_check": {
+          "name": "moment_share_scope_check",
+          "value": "(\"moment_share\".\"scope\" = 'rower') = (\"moment_share\".\"rower_id\" is not null)"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.rower": {
+      "name": "rower",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "rower_club_id_club_id_fk": {
+          "name": "rower_club_id_club_id_fk",
+          "tableFrom": "rower",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "rower_user_id_app_user_id_fk": {
+          "name": "rower_user_id_app_user_id_fk",
+          "tableFrom": "rower",
+          "tableTo": "app_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rower_club_id_id_unique": {
+          "name": "rower_club_id_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "id"
+          ]
+        },
+        "rower_club_email_unique": {
+          "name": "rower_club_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "email"
+          ]
+        },
+        "rower_club_user_unique": {
+          "name": "rower_club_user_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "user_id"
+          ]
+        }
+      },
+      "policies": {
+        "rower_tenant": {
+          "name": "rower_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"rower\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "rower_read": {
+          "name": "rower_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_roster_manager() or \"rower\".\"user_id\" = rowlens_user_id() or \"rower\".\"id\" in (select rowlens_training_rower_ids())"
+        },
+        "rower_add": {
+          "name": "rower_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_roster_manager()"
+        },
+        "rower_edit": {
+          "name": "rower_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_roster_manager()",
+          "withCheck": "rowlens_roster_manager()"
+        },
+        "rower_delete": {
+          "name": "rower_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_roster_manager()"
+        }
+      },
+      "checkConstraints": {
+        "rower_name_check": {
+          "name": "rower_name_check",
+          "value": "char_length(\"rower\".\"display_name\") between 1 and 60"
+        },
+        "rower_email_check": {
+          "name": "rower_email_check",
+          "value": "\"rower\".\"email\" = lower(\"rower\".\"email\") and \"rower\".\"email\" like '%_@_%'"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.rowing_session": {
+      "name": "rowing_session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_date": {
+          "name": "session_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "boat_type": {
+          "name": "boat_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by_user_id": {
+          "name": "created_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "rowing_session_club_date_idx": {
+          "name": "rowing_session_club_date_idx",
+          "columns": [
+            {
+              "expression": "club_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "session_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "rowing_session_club_id_club_id_fk": {
+          "name": "rowing_session_club_id_club_id_fk",
+          "tableFrom": "rowing_session",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rowing_session_club_id_id_unique": {
+          "name": "rowing_session_club_id_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "id"
+          ]
+        }
+      },
+      "policies": {
+        "rowing_session_tenant": {
+          "name": "rowing_session_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"rowing_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "rowing_session_role_read": {
+          "name": "rowing_session_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or rowlens_sees_all() or \"rowing_session\".\"created_by_user_id\" = rowlens_user_id() or rowlens_session_reachable(\"rowing_session\".\"id\"))"
+        },
+        "rowing_session_role_add": {
+          "name": "rowing_session_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_roster_manager() or (rowlens_has_role('rower') and \"rowing_session\".\"created_by_user_id\" = rowlens_user_id())"
+        },
+        "rowing_session_role_edit": {
+          "name": "rowing_session_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"rowing_session\".\"id\")",
+          "withCheck": "rowlens_can_edit_session(\"rowing_session\".\"id\") and rowlens_may_set_session_creator(\"rowing_session\".\"id\",\"rowing_session\".\"created_by_user_id\")"
+        },
+        "rowing_session_role_delete": {
+          "name": "rowing_session_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"rowing_session\".\"id\")"
+        }
+      },
+      "checkConstraints": {
+        "rowing_session_boat_type_check": {
+          "name": "rowing_session_boat_type_check",
+          "value": "boat_type in ('C1x', 'C2x', 'C2x+', 'C4x+', 'C4+', '1x', '2x', '2-', '2+', '4x', '4-', '4+', '4x+', '8+')"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.stroke_mark": {
+      "name": "stroke_mark",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frame": {
+          "name": "frame",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "stroke_mark_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by_user_id": {
+          "name": "created_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "stroke_mark_video_fk": {
+          "name": "stroke_mark_video_fk",
+          "tableFrom": "stroke_mark",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "stroke_mark_video_frame_unique": {
+          "name": "stroke_mark_video_frame_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "video_id",
+            "frame"
+          ]
+        }
+      },
+      "policies": {
+        "stroke_mark_tenant": {
+          "name": "stroke_mark_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"stroke_mark\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"stroke_mark\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "stroke_mark_role_read": {
+          "name": "stroke_mark_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_video(\"stroke_mark\".\"video_id\")"
+        },
+        "stroke_mark_role_add": {
+          "name": "stroke_mark_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
+        },
+        "stroke_mark_role_edit": {
+          "name": "stroke_mark_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")",
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
+        },
+        "stroke_mark_role_delete": {
+          "name": "stroke_mark_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"stroke_mark\".\"video_id\")"
+        }
+      },
+      "checkConstraints": {
+        "stroke_mark_frame_check": {
+          "name": "stroke_mark_frame_check",
+          "value": "\"stroke_mark\".\"frame\" >= 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.user_session": {
+      "name": "user_session",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "csrf_hash": {
+          "name": "csrf_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "user_session_user_idx": {
+          "name": "user_session_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_session_membership_fk": {
+          "name": "user_session_membership_fk",
+          "tableFrom": "user_session",
+          "tableTo": "membership",
+          "columnsFrom": [
+            "club_id",
+            "user_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "user_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_session_token_hash_unique": {
+          "name": "user_session_token_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "token_hash"
+          ]
+        }
+      },
+      "policies": {
+        "user_session_tenant": {
+          "name": "user_session_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"user_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"user_session\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.user_settings_audit": {
+      "name": "user_settings_audit",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subject_user_id": {
+          "name": "subject_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_user_id": {
+          "name": "actor_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "changed_keys": {
+          "name": "changed_keys",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "roles": {
+          "name": "roles",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "at": {
+          "name": "at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "user_settings_audit_club_at_idx": {
+          "name": "user_settings_audit_club_at_idx",
+          "columns": [
+            {
+              "expression": "club_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_settings_audit_club_id_club_id_fk": {
+          "name": "user_settings_audit_club_id_club_id_fk",
+          "tableFrom": "user_settings_audit",
+          "tableTo": "club",
+          "columnsFrom": [
+            "club_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "user_settings_audit_tenant": {
+          "name": "user_settings_audit_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"user_settings_audit\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"user_settings_audit\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "user_settings_audit_read": {
+          "name": "user_settings_audit_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_has_role('admin')"
+        },
+        "user_settings_audit_add": {
+          "name": "user_settings_audit_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_has_role('admin') and \"user_settings_audit\".\"actor_user_id\" = rowlens_user_id() and exists (select 1 from membership m where m.club_id = \"user_settings_audit\".\"club_id\" and m.user_id = \"user_settings_audit\".\"subject_user_id\")"
+        },
+        "user_settings_audit_edit": {
+          "name": "user_settings_audit_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "false",
+          "withCheck": "false"
+        },
+        "user_settings_audit_delete": {
+          "name": "user_settings_audit_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "false"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.video": {
+      "name": "video",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "original_filename": {
+          "name": "original_filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content_type": {
+          "name": "content_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "perspective": {
+          "name": "perspective",
+          "type": "video_perspective",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uploaded_bytes": {
+          "name": "uploaded_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "video_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'uploading'"
+        },
+        "status_reason": {
+          "name": "status_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "seq": {
+          "name": "seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "recorded_at": {
+          "name": "recorded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "processing_progress": {
+          "name": "processing_progress",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fps_num": {
+          "name": "fps_num",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "fps_den": {
+          "name": "fps_den",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duration_ms": {
+          "name": "duration_ms",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "frame_count": {
+          "name": "frame_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "codec": {
+          "name": "codec",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "rotation": {
+          "name": "rotation",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vfr": {
+          "name": "vfr",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "renditions": {
+          "name": "renditions",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "renditions_bytes": {
+          "name": "renditions_bytes",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "video_session_idx": {
+          "name": "video_session_idx",
+          "columns": [
+            {
+              "expression": "session_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "video_session_fk": {
+          "name": "video_session_fk",
+          "tableFrom": "video",
+          "tableTo": "rowing_session",
+          "columnsFrom": [
+            "club_id",
+            "session_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "video_club_id_id_unique": {
+          "name": "video_club_id_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "club_id",
+            "id"
+          ]
+        },
+        "video_session_seq_unique": {
+          "name": "video_session_seq_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "session_id",
+            "seq"
+          ]
+        }
+      },
+      "policies": {
+        "video_tenant": {
+          "name": "video_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"video\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "video_role_read": {
+          "name": "video_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_session(\"video\".\"session_id\")"
+        },
+        "video_role_add": {
+          "name": "video_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_can_edit_session(\"video\".\"session_id\")"
+        },
+        "video_role_edit": {
+          "name": "video_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"video\".\"session_id\")",
+          "withCheck": "rowlens_can_edit_session(\"video\".\"session_id\")"
+        },
+        "video_role_delete": {
+          "name": "video_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_edit_session(\"video\".\"session_id\")"
+        }
+      },
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.video_auto_boat_line": {
+      "name": "video_auto_boat_line",
+      "schema": "",
+      "columns": {
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'queued'"
+        },
+        "frames": {
+          "name": "frames",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "detector": {
+          "name": "detector",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "computed_at": {
+          "name": "computed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bow_side": {
+          "name": "bow_side",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "video_auto_boat_line_video_fk": {
+          "name": "video_auto_boat_line_video_fk",
+          "tableFrom": "video_auto_boat_line",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "video_auto_boat_line_tenant": {
+          "name": "video_auto_boat_line_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"video_auto_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"video_auto_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "video_auto_boat_line_role_read": {
+          "name": "video_auto_boat_line_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_video(\"video_auto_boat_line\".\"video_id\")"
+        },
+        "video_auto_boat_line_role_add": {
+          "name": "video_auto_boat_line_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_auto_boat_line\".\"video_id\")"
+        },
+        "video_auto_boat_line_role_edit": {
+          "name": "video_auto_boat_line_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"video_auto_boat_line\".\"video_id\")",
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_auto_boat_line\".\"video_id\")"
+        }
+      },
+      "checkConstraints": {
+        "video_auto_boat_line_status_check": {
+          "name": "video_auto_boat_line_status_check",
+          "value": "\"video_auto_boat_line\".\"status\" in ('queued', 'running', 'done', 'failed')"
+        },
+        "video_auto_boat_line_bow_side_check": {
+          "name": "video_auto_boat_line_bow_side_check",
+          "value": "\"video_auto_boat_line\".\"bow_side\" in ('left', 'right')"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "public.video_boat_line": {
+      "name": "video_boat_line",
+      "schema": "",
+      "columns": {
+        "club_id": {
+          "name": "club_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "video_id": {
+          "name": "video_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "frame": {
+          "name": "frame",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "points": {
+          "name": "points",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by_user_id": {
+          "name": "created_by_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "video_boat_line_video_fk": {
+          "name": "video_boat_line_video_fk",
+          "tableFrom": "video_boat_line",
+          "tableTo": "video",
+          "columnsFrom": [
+            "club_id",
+            "video_id"
+          ],
+          "columnsTo": [
+            "club_id",
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "video_boat_line_pk": {
+          "name": "video_boat_line_pk",
+          "columns": [
+            "video_id",
+            "frame"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {
+        "video_boat_line_tenant": {
+          "name": "video_boat_line_tenant",
+          "as": "PERMISSIVE",
+          "for": "ALL",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "\"video_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid",
+          "withCheck": "\"video_boat_line\".\"club_id\" = nullif(current_setting('app.club_id', true), '')::uuid"
+        },
+        "video_boat_line_role_read": {
+          "name": "video_boat_line_role_read",
+          "as": "RESTRICTIVE",
+          "for": "SELECT",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_can_see_video(\"video_boat_line\".\"video_id\")"
+        },
+        "video_boat_line_role_add": {
+          "name": "video_boat_line_role_add",
+          "as": "RESTRICTIVE",
+          "for": "INSERT",
+          "to": [
+            "rowlens_app"
+          ],
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
+        },
+        "video_boat_line_role_edit": {
+          "name": "video_boat_line_role_edit",
+          "as": "RESTRICTIVE",
+          "for": "UPDATE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")",
+          "withCheck": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
+        },
+        "video_boat_line_role_delete": {
+          "name": "video_boat_line_role_delete",
+          "as": "RESTRICTIVE",
+          "for": "DELETE",
+          "to": [
+            "rowlens_app"
+          ],
+          "using": "rowlens_sees_all() or rowlens_coaches_video(\"video_boat_line\".\"video_id\")"
+        }
+      },
+      "checkConstraints": {
+        "video_boat_line_frame_check": {
+          "name": "video_boat_line_frame_check",
+          "value": "\"video_boat_line\".\"frame\" >= 0"
+        }
+      },
+      "isRLSEnabled": true
+    }
+  },
+  "enums": {
+    "public.angle_joint": {
+      "name": "angle_joint",
+      "schema": "public",
+      "values": [
+        "knee",
+        "hip",
+        "elbow",
+        "trunk"
+      ]
+    },
+    "public.annotation_kind": {
+      "name": "annotation_kind",
+      "schema": "public",
+      "values": [
+        "note",
+        "line",
+        "arrow",
+        "angle"
+      ]
+    },
+    "public.club_access_action": {
+      "name": "club_access_action",
+      "schema": "public",
+      "values": [
+        "added",
+        "role_changed",
+        "removed"
+      ]
+    },
+    "public.job_status": {
+      "name": "job_status",
+      "schema": "public",
+      "values": [
+        "queued",
+        "running",
+        "succeeded",
+        "dead"
+      ]
+    },
+    "public.moment_rower_action": {
+      "name": "moment_rower_action",
+      "schema": "public",
+      "values": [
+        "assigned",
+        "unassigned",
+        "shared",
+        "unshared"
+      ]
+    },
+    "public.moment_share_scope": {
+      "name": "moment_share_scope",
+      "schema": "public",
+      "values": [
+        "rower",
+        "crew"
+      ]
+    },
+    "public.video_perspective": {
+      "name": "video_perspective",
+      "schema": "public",
+      "values": [
+        "boat",
+        "bank",
+        "drone"
+      ]
+    },
+    "public.stroke_mark_kind": {
+      "name": "stroke_mark_kind",
+      "schema": "public",
+      "values": [
+        "catch",
+        "half_slide",
+        "finish"
+      ]
+    },
+    "public.video_status": {
+      "name": "video_status",
+      "schema": "public",
+      "values": [
+        "uploading",
+        "uploaded",
+        "processing",
+        "ready",
+        "failed",
+        "rejected"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

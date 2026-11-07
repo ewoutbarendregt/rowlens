@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { rowingSession, video } from '../db/schema.ts';
@@ -38,6 +38,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
       tx
         .select({
           id: video.id,
+          canEdit: sql<boolean>`rowlens_can_edit_video(${video.id})`,
           sessionId: video.sessionId,
           sessionTitle: rowingSession.title,
           boatType: rowingSession.boatType,

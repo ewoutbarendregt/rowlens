@@ -24,6 +24,14 @@ test('lands on the sessions list, filters by rower, sorts by title, keeps it on 
       await lineup.getByLabel(/^(Boat|Boot)$/).selectOption('C1x');
       await lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ }).fill(`Mia ${tag}`);
       await page.getByRole('option', { name: new RegExp(`Mia ${tag}`) }).click();
+      // Adding the rower is asynchronous; wait for the chosen value before saving the lineup.
+      await expect(lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+      await expect(lineup.getByRole('combobox', { name: /^(Rower|Roeier)$/ })).toHaveValue(
+        `Mia ${tag}`,
+      );
       await lineup.getByRole('button', { name: /^(Save lineup|Opstelling opslaan)$/ }).click();
       await expect(lineup.getByRole('status')).toBeVisible();
     }

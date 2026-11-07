@@ -26,6 +26,11 @@ test('assign a note to the whole crew, remove one rower, filter by rower', async
   ] as const) {
     await lineup.getByRole('combobox', { name: seat }).fill(name);
     await page.getByRole('option', { name: new RegExp(name) }).click();
+    await expect(lineup.getByRole('combobox', { name: seat })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    await expect(lineup.getByRole('combobox', { name: seat })).toHaveValue(name);
   }
   await lineup.getByRole('button', { name: /^(Save lineup|Opstelling opslaan)$/ }).click();
   await expect(lineup.getByRole('status')).toBeVisible();

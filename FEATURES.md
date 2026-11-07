@@ -95,3 +95,12 @@ writes are denied by API guards and RLS. Training-scoped crew names remain avail
 capabilities are additive. Account preferences synchronize across devices; explicit legacy import
 fills only uninitialized fields, revisions prevent stale overwrites, and administrative edits are
 audited atomically. Local checks pass, including full local/edge E2E and the iPhone WebKit/1000×540 matrix. PR [#152](https://github.com/ewoutbarendregt/rowlens/pull/152) is open; not merged or deployed.
+
+## Club training browsing and editing (#154)
+
+Implemented locally after approval: all club trainings visible to rowers, coaches and
+admins. Foreign trainings are fully read-only for rower-only users, including their own previously
+authored feedback. Coaches/admins may edit others' trainings; combined roles retain those rights.
+Separate read/write UI/API/RLS permissions and pre-media guards, with no cross-club widening.
+Migration 0019 and API/UI implementation are verified locally, including iPhone WebKit/1000×540.
+Ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155); see docs/plans/154-club-training-readonly.md and ADR-0020. Not merged/deployed.

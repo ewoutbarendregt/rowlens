@@ -119,7 +119,10 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     );
     const rows = await withTenant(db, t, async (tx) => {
       const [session] = await tx
-        .select({ id: rowingSession.id })
+        .select({
+          id: rowingSession.id,
+          writable: sql<boolean>`rowlens_can_edit_session(${rowingSession.id})`,
+        })
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
       if (session === undefined) return null;
@@ -135,7 +138,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
           userId: rower.userId,
         })
         .from(rower)
-        .where(manager ? isNull(rower.archivedAt) : inArray(rower.id, crew))
+        .where(manager || session.writable ? isNull(rower.archivedAt) : inArray(rower.id, crew))
         .orderBy(asc(rower.displayName));
     });
     return rows === null

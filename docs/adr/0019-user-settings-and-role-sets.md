@@ -66,3 +66,12 @@ person never applies that person's display preferences to the admin interface.
   device choices or overwrite a newer admin decision.
 - Add a second settings identity/table or real-time push dependency: unnecessary for five fields
   and focus/reload synchronization. Existing account and Postgres locks/revisions suffice.
+
+## Addendum 2026-11-06: club-wide training reading and staff editing (#154)
+
+ADR-0020 supersedes the earlier own/reachable-only training scope: every club member reads all club
+trainings; rower-only users edit self-created trainings, while coaches/admins edit all. Foreign
+trainings are fully read-only for rowers, including old own feedback, sharing and assignment.
+Private feedback visibility, club isolation, additive roles, standalone roster restrictions and
+admin-only account/creator administration remain. Migration 0019 separates resource read/write
+policies and media operations authorize before file effects.

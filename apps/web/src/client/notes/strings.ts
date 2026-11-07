@@ -2,6 +2,7 @@ import { lang } from '../i18n/language.ts';
 // Notes strings in NL and EN (moves into the i18n catalogs with #34).
 const en = {
   notes: 'Notes and drawings',
+  noneReadOnly: 'No notes to show.',
   draw: 'Draw',
   drawSave: 'Save',
   drawRedo: 'Start over',
@@ -67,6 +68,7 @@ const en = {
 
 const nl: typeof en = {
   notes: 'Notities en tekeningen',
+  noneReadOnly: 'Geen notities om te tonen.',
   draw: 'Tekenen',
   drawSave: 'Opslaan',
   drawRedo: 'Opnieuw',

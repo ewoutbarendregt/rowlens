@@ -3,6 +3,8 @@ import type { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastif
 import { z } from 'zod';
 import { withBasePath } from '../../shared/base-path.ts';
 import { job, perspective, rowingSession, video } from '../db/schema.ts';
+import type { Tx } from '../db/client.ts';
+import { lockEditableSession, lockEditableVideo } from '../repositories/training-access.ts';
 import { withTenant } from '../db/tenant.ts';
 import { originalKey, TooLarge, videoKey } from '../media/store.ts';
 import { looksLikeVideo, sniffContainer } from '../media/sniff.ts';
@@ -77,6 +79,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (await diskFull()) return reply.code(507).send({ error: 'disk_full' });
 
     const created = await withTenant(db, tenant, async (tx) => {
+      if (!(await lockEditableSession(tx, meta.data.sessionId))) return 'no_session' as const;
       // One creation at a time across all clubs, so two uploads can't both squeeze under the cap.
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext('rowlens_media_cap'))`);
       const used = await tx.execute<{ bytes: string }>(sql`select rowlens_media_bytes() as bytes`);
@@ -114,7 +117,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
       .send();
   });
 
-  const findUpload = async (req: FastifyRequest) => {
+  const findUpload = async (req: FastifyRequest, editable = false) => {
     const params = idParam.safeParse(req.params);
     if (!params.success) return null;
     const tenant = tenantOf(req);
@@ -127,7 +130,13 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
           uploadedBytes: video.uploadedBytes,
         })
         .from(video)
-        .where(and(eq(video.id, params.data.id), eq(video.clubId, tenant.clubId))),
+        .where(
+          and(
+            eq(video.id, params.data.id),
+            eq(video.clubId, tenant.clubId),
+            editable ? sql`rowlens_can_edit_video(${video.id})` : undefined,
+          ),
+        ),
     );
     return row ?? null;
   };
@@ -154,7 +163,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (chunk === null) return reply.code(411).send({ error: 'content_length' });
     if (chunk > MAX_CHUNK_BYTES) return reply.code(413).send({ error: 'chunk_too_large' });
 
-    const upload = await findUpload(req);
+    const upload = await findUpload(req, true);
     if (upload === null) return notFound(reply);
     if (busy.has(upload.id)) return reply.code(423).send({ error: 'upload_busy' });
     busy.add(upload.id);
@@ -171,43 +180,58 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     chunk: number,
   ): Promise<FastifyReply> => {
     const tenant = tenantOf(req);
-    const key = originalKey(tenant.clubId, upload.id);
-    // The file is the truth: after a crash the row may lag behind what reached the disk.
-    const stored = await media.size(key);
-    if (upload.status !== 'uploading' || offset !== stored) {
-      return reply
-        .code(409)
-        .header('upload-offset', String(stored))
-        .send({ error: 'offset_mismatch' });
-    }
-    if (offset + chunk > upload.sizeBytes) return reply.code(413).send({ error: 'too_large' });
-    if (await diskFull()) return reply.code(507).send({ error: 'disk_full' });
+    return withTenant(db, tenant, async (tx) => {
+      if (!(await lockEditableVideo(tx, upload.id))) return notFound(reply);
+      const key = originalKey(tenant.clubId, upload.id);
+      // The file is the truth: after a crash the row may lag behind what reached the disk.
+      const stored = await media.size(key);
+      if (upload.status !== 'uploading' || offset !== stored) {
+        return reply
+          .code(409)
+          .header('upload-offset', String(stored))
+          .send({ error: 'offset_mismatch' });
+      }
+      if (offset + chunk > upload.sizeBytes) return reply.code(413).send({ error: 'too_large' });
+      if (await diskFull()) return reply.code(507).send({ error: 'disk_full' });
 
-    const size = await media.append(key, req.raw, chunk).catch((err: unknown) => {
-      if (err instanceof TooLarge) return -1;
-      throw err;
-    });
-    if (size === -1) {
-      await setProgress(tenant, upload.id, await media.size(key));
-      return reply.code(413).send({ error: 'chunk_too_large' });
-    }
-    if (size < upload.sizeBytes) {
-      await setProgress(tenant, upload.id, size);
-      return reply.code(204).header('upload-offset', String(size)).send();
-    }
+      // Streaming can exceed the pool's 15 s idle-transaction limit. Keep the ownership lock,
+      // but bound each chunk to five minutes so a stalled client cannot hold it indefinitely.
+      await tx.execute(sql`set local idle_in_transaction_session_timeout = 0`);
+      const deadline = setTimeout(() => req.raw.destroy(), 5 * 60_000);
+      let size: number;
+      try {
+        size = await media.append(key, req.raw, chunk).catch((err: unknown) => {
+          if (err instanceof TooLarge) return -1;
+          throw err;
+        });
+      } finally {
+        clearTimeout(deadline);
+      }
+      if (size === -1) {
+        await setProgress(tx, upload.id, await media.size(key));
+        return reply.code(413).send({ error: 'chunk_too_large' });
+      }
+      if (size < upload.sizeBytes) {
+        await setProgress(tx, upload.id, size);
+        return reply.code(204).header('upload-offset', String(size)).send();
+      }
 
-    // Complete: is it a video at all? (ffprobe in the worker decides whether it decodes, #47.)
-    const container = sniffContainer(await media.head(key, 64));
-    if (container === null) {
-      await media.remove(videoKey(tenant.clubId, upload.id));
-      await setStatus(tenant, upload.id, size, 'rejected', 'not_a_video');
-      req.log.info({ videoId: upload.id }, 'upload rejected: not a video');
-      return reply.code(415).header('upload-offset', String(size)).send({ error: 'not_a_video' });
-    }
-    await withTenant(db, tenant, async (tx) => {
+      // Complete: is it a video at all? (ffprobe in the worker decides whether it decodes, #47.)
+      const container = sniffContainer(await media.head(key, 64));
+      if (container === null) {
+        await media.remove(videoKey(tenant.clubId, upload.id));
+        await setStatus(tx, upload.id, size, 'rejected', 'not_a_video');
+        req.log.info({ videoId: upload.id }, 'upload rejected: not a video');
+        return reply.code(415).header('upload-offset', String(size)).send({ error: 'not_a_video' });
+      }
       await tx
         .update(video)
-        .set({ uploadedBytes: size, status: 'uploaded', statusReason: null, updatedAt: new Date() })
+        .set({
+          uploadedBytes: size,
+          status: 'uploaded',
+          statusReason: null,
+          updatedAt: new Date(),
+        })
         .where(eq(video.id, upload.id));
       // Same transaction: a completed upload always has its processing job (#47, ADR-0008).
       await tx
@@ -219,44 +243,40 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
           idempotencyKey: `video.process:${upload.id}`,
         })
         .onConflictDoNothing();
+      req.log.info({ videoId: upload.id, bytes: size, container }, 'upload complete');
+      return reply.code(204).header('upload-offset', String(size)).send();
     });
-    req.log.info({ videoId: upload.id, bytes: size, container }, 'upload complete');
-    return reply.code(204).header('upload-offset', String(size)).send();
   };
 
   // tus termination: the client gives up on an upload.
   app.delete('/api/uploads/:id', { preHandler: guard }, async (req, reply) => {
     if (!tusVersionOk(req, reply)) return reply;
-    const upload = await findUpload(req);
+    const upload = await findUpload(req, true);
     if (upload === null) return notFound(reply);
     const tenant = tenantOf(req);
-    await withTenant(db, tenant, (tx) => tx.delete(video).where(eq(video.id, upload.id)));
+    if (busy.has(upload.id)) return reply.code(423).send({ error: 'upload_busy' });
+    const deleted = await withTenant(db, tenant, async (tx) => {
+      if (!(await lockEditableVideo(tx, upload.id))) return [];
+      return tx.delete(video).where(eq(video.id, upload.id)).returning({ id: video.id });
+    });
+    if (deleted.length === 0) return notFound(reply);
     await media.remove(videoKey(tenant.clubId, upload.id));
     return reply.code(204).send();
   });
 
-  const setProgress = (
-    tenant: { clubId: string; userId: string | null },
-    id: string,
-    bytes: number,
-  ) =>
-    withTenant(db, tenant, (tx) =>
-      tx.update(video).set({ uploadedBytes: bytes, updatedAt: new Date() }).where(eq(video.id, id)),
-    );
-
+  const setProgress = (tx: Tx, id: string, bytes: number) =>
+    tx.update(video).set({ uploadedBytes: bytes, updatedAt: new Date() }).where(eq(video.id, id));
   const setStatus = (
-    tenant: { clubId: string; userId: string | null },
+    tx: Tx,
     id: string,
     bytes: number,
     status: 'rejected',
     reason: string | null,
   ) =>
-    withTenant(db, tenant, (tx) =>
-      tx
-        .update(video)
-        .set({ uploadedBytes: bytes, status, statusReason: reason, updatedAt: new Date() })
-        .where(eq(video.id, id)),
-    );
+    tx
+      .update(video)
+      .set({ uploadedBytes: bytes, status, statusReason: reason, updatedAt: new Date() })
+      .where(eq(video.id, id));
 
   done();
 };

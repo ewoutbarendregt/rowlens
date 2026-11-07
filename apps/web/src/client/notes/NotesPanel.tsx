@@ -27,7 +27,7 @@ export interface Annotation {
   createdAt: string;
   /** Written by the viewer (#40). */
   mine?: boolean;
-  /** The viewer may change or delete it: coaches always, rowers their own (#40). */
+  /** Server-derived author/role permission, including writable training scope (ADR-0020). */
   canEdit?: boolean;
 }
 
@@ -46,6 +46,7 @@ export function describeDrawing(a: Pick<Annotation, 'kind' | 'shape'>, size: Siz
 }
 
 interface NotesPanelProps {
+  canEdit: boolean;
   videoId: string;
   fps: number;
   frame: number;
@@ -82,6 +83,7 @@ interface NotesPanelProps {
 export function NotesPanel(props: NotesPanelProps) {
   const { videoId, fps, frame, size, annotations } = props;
   const t = notesStrings();
+  const editableHere = (a: Annotation) => props.canEdit && editable(a);
   const id = useId();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -164,11 +166,11 @@ export function NotesPanel(props: NotesPanelProps) {
         )}
       </div>
 
-      {props.authorName !== undefined && (
+      {props.canEdit && props.authorName !== undefined && (
         <p className="notes__author">{t.writingAs(props.authorName)}</p>
       )}
 
-      {!hasSectionHere && (
+      {props.canEdit && !hasSectionHere && (
         <Explanation
           key={`new-${String(frame)}`}
           label={t.atFrame(frame, formatFrameTime(frame, fps))}
@@ -188,7 +190,9 @@ export function NotesPanel(props: NotesPanelProps) {
         </p>
       )}
 
-      {everything.length === 0 && <p className="muted">{t.none}</p>}
+      {everything.length === 0 && (
+        <p className="muted">{props.canEdit ? t.none : t.noneReadOnly}</p>
+      )}
       {filter !== null && all.length === 0 && (
         <p className="muted">
           {t.noneFor(withNotes.find((r) => r.id === filter)?.displayName ?? '')}
@@ -200,9 +204,9 @@ export function NotesPanel(props: NotesPanelProps) {
           const selected = at === frame;
           // The field is the viewer's to write in: a coach edits the frame's explanation, a rower
           // their own remark; the rest shows read-only (#40).
-          const explanation = notes.find(editable);
+          const explanation = notes.find(editableHere);
           const others = notes.filter((n) => n !== explanation);
-          const canDeleteAll = [...notes, ...drawings].every(editable);
+          const canDeleteAll = [...notes, ...drawings].every(editableHere);
           return (
             <li
               key={at}
@@ -249,7 +253,7 @@ export function NotesPanel(props: NotesPanelProps) {
                           ) : (
                             <>
                               <span>{what}</span>
-                              {editable(d) && (
+                              {editableHere(d) && (
                                 <button
                                   type="button"
                                   className="chip__remove"
@@ -271,6 +275,7 @@ export function NotesPanel(props: NotesPanelProps) {
                 )}
 
                 <Assignees
+                  readOnly={!props.canEdit}
                   videoId={videoId}
                   frame={at}
                   assigned={rowersAt.get(at) ?? []}
@@ -281,6 +286,7 @@ export function NotesPanel(props: NotesPanelProps) {
                 />
 
                 <Shares
+                  readOnly={!props.canEdit}
                   videoId={videoId}
                   frame={at}
                   shares={sharesAt.get(at)}
@@ -290,23 +296,25 @@ export function NotesPanel(props: NotesPanelProps) {
                   onRosterChanged={props.onRosterChanged}
                 />
 
-                <Explanation
-                  key={
-                    explanation === undefined
-                      ? `none-${String(at)}`
-                      : `${explanation.id}-${explanation.body}`
-                  }
-                  label={t.explanationAt(at)}
-                  hideLabel
-                  placeholder={t.explanationPlaceholder}
-                  initial={explanation?.body ?? ''}
-                  author={explanation?.authorName}
-                  canSave
-                  busy={busy}
-                  saveLabel={t.update}
-                  onFocus={props.onWriting}
-                  onSave={(text) => saveExplanation(at, explanation, text)}
-                />
+                {props.canEdit && (
+                  <Explanation
+                    key={
+                      explanation === undefined
+                        ? `none-${String(at)}`
+                        : `${explanation.id}-${explanation.body}`
+                    }
+                    label={t.explanationAt(at)}
+                    hideLabel
+                    placeholder={t.explanationPlaceholder}
+                    initial={explanation?.body ?? ''}
+                    author={explanation?.authorName}
+                    canSave
+                    busy={busy}
+                    saveLabel={t.update}
+                    onFocus={props.onWriting}
+                    onSave={(text) => saveExplanation(at, explanation, text)}
+                  />
+                )}
 
                 {others.length > 0 && (
                   <div className="moment__others">
@@ -364,6 +372,7 @@ export function NotesPanel(props: NotesPanelProps) {
  * chip with × and the picker. Every change is saved straight away, like deleting a drawing.
  */
 function Assignees(props: {
+  readOnly: boolean;
   videoId: string;
   frame: number;
   assigned: MomentRowers['rowers'];
@@ -399,6 +408,12 @@ function Assignees(props: {
       });
   };
 
+  if (props.readOnly)
+    return (
+      <p className="muted" data-testid="assignees">
+        {t.assignedTo}: {props.assigned.map((r) => r.displayName).join(', ')}
+      </p>
+    );
   return (
     <div className="assignees" data-testid="assignees">
       <span className="assignees__label">{t.assignedTo}:</span>
@@ -488,6 +503,7 @@ const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
  * see the note can share it; a share can be taken back by whoever made it, or by a coach.
  */
 function Shares(props: {
+  readOnly: boolean;
   videoId: string;
   frame: number;
   shares: MomentShares | undefined;
@@ -522,6 +538,18 @@ function Shares(props: {
       });
   };
 
+  if (props.readOnly)
+    return (
+      <div className="assignees shares" data-testid="shares">
+        <span>{t.sharedWith}:</span>
+        {crew !== null && <span data-testid="share">{t.wholeCrew}</span>}
+        {rowers.map((r) => (
+          <span key={r.id} data-testid="share">
+            {r.displayName}
+          </span>
+        ))}
+      </div>
+    );
   return (
     <div className="assignees shares" data-testid="shares">
       <span className="assignees__label">{t.sharedWith}:</span>

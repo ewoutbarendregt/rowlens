@@ -1,5 +1,6 @@
 import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { useAuth } from '../auth/useAuth.ts';
 import { api } from '../api.ts';
 import { appUrl } from '../env.ts';
 import {
@@ -13,7 +14,7 @@ import {
   type VideoStatus,
 } from './strings.ts';
 import type { BoatClass } from '../../shared/boats.ts';
-import { LineupCard, type LineupSeat } from '../lineup/LineupCard.tsx';
+import { LineupCard, LineupSummary, type LineupSeat } from '../lineup/LineupCard.tsx';
 import { lineupStrings } from '../lineup/strings.ts';
 import { Icon } from '../ui/icons.tsx';
 import { crewText } from './filter.ts';
@@ -53,8 +54,9 @@ interface SessionDetail {
   videos: SessionVideo[];
   /** Who made it (their name, else their e-mail address). */
   creatorName: string | null;
-  /** Its coaches, the admin and the maker may rename it (2026-11-03). */
+  /** The maker and all club coaches/admins may rename it (ADR-0020). */
   canRename: boolean;
+  canEdit: boolean;
   /** Admin only (#108): who made it, and the coaches it can be given to. */
   creatorUserId?: string | null;
   coaches?: { userId: string; email: string }[];
@@ -64,6 +66,8 @@ const PERSPECTIVES: Perspective[] = ['boat', 'bank', 'drone'];
 
 export function SessionPage() {
   const t = sessionStrings();
+  const { state: auth } = useAuth();
+  const rolesKey = auth.kind === 'open' ? auth.user.roles.join(',') : '';
   const navigate = useNavigate();
   const { id = '' } = useParams();
   const inputId = useId();
@@ -83,7 +87,7 @@ export function SessionPage() {
       .catch(() => {
         setFailed(true);
       });
-  }, [id]);
+  }, [id, rolesKey]);
   useEffect(load, [load]);
 
   const busy = session?.videos.some((v) => BUSY.includes(v.status)) ?? false;
@@ -162,7 +166,7 @@ export function SessionPage() {
       <nav className="page__nav">
         <Link to="/sessions">← {t.back}</Link>
       </nav>
-      {newTitle === null ? (
+      {newTitle === null || !session.canEdit ? (
         <div className="session-title">
           <h1>{session.title}</h1>
           {session.canRename && (
@@ -218,6 +222,11 @@ export function SessionPage() {
         {session.creatorName !== null && <> {t.createdBy(session.creatorName)}</>}
       </p>
 
+      {!session.canEdit && (
+        <p className="muted" data-testid="training-read-only">
+          {t.readOnly}
+        </p>
+      )}
       {session.coaches !== undefined && (
         <div className="form creator">
           <label htmlFor={`${inputId}-creator`}>{t.creator}</label>
@@ -304,105 +313,111 @@ export function SessionPage() {
                     </span>
                   )}
                 </div>
-                {confirming === v.id ? (
-                  <ConfirmInline
-                    question={t.confirmDelete(nameOf(v))}
-                    onConfirm={() => {
-                      remove(v);
-                    }}
-                    onCancel={() => {
-                      setConfirming(null);
-                    }}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    className="button--quiet"
-                    onClick={() => {
-                      setConfirmingSession(false);
-                      setConfirming(v.id);
-                    }}
-                  >
-                    {t.delete}
-                  </button>
-                )}
+                {session.canEdit &&
+                  (confirming === v.id ? (
+                    <ConfirmInline
+                      question={t.confirmDelete(nameOf(v))}
+                      onConfirm={() => {
+                        remove(v);
+                      }}
+                      onCancel={() => {
+                        setConfirming(null);
+                      }}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="button--quiet"
+                      onClick={() => {
+                        setConfirmingSession(false);
+                        setConfirming(v.id);
+                      }}
+                    >
+                      {t.delete}
+                    </button>
+                  ))}
               </li>
             );
           })}
         </ul>
-        <label className="file-pick" htmlFor={inputId}>
-          <Icon name="plus" />
-          {t.chooseFiles}
-        </label>
-        <input
-          id={inputId}
-          className="visually-hidden"
-          type="file"
-          accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
-          multiple
-          onChange={(e) => {
-            if (e.target.files !== null) uploads.add(e.target.files);
-            e.target.value = '';
-          }}
-        />
-        <p className="muted">{t.chooseHint}</p>
+        {session.canEdit && (
+          <>
+            <label className="file-pick" htmlFor={inputId}>
+              <Icon name="plus" />
+              {t.chooseFiles}
+            </label>
+            <input
+              id={inputId}
+              className="visually-hidden"
+              type="file"
+              accept="video/*,.mov,.mp4,.m4v,.webm,.mkv"
+              multiple
+              onChange={(e) => {
+                if (e.target.files !== null) uploads.add(e.target.files);
+                e.target.value = '';
+              }}
+            />
+            <p className="muted">{t.chooseHint}</p>
 
-        {uploads.queue.length > 0 && (
-          <ul className="list" data-testid="upload-queue">
-            {uploads.queue.map((f) => (
-              <li key={f.id} className="list__item upload">
-                <div>
-                  <strong>{f.file.name}</strong>
-                  <span className="muted">{formatBytes(f.file.size)}</span>
-                  {f.state === 'pending' && (
-                    <label>
-                      {t.perspective}{' '}
-                      <select
-                        value={f.perspective}
-                        onChange={(e) => {
-                          uploads.setPerspective(f.id, e.target.value as Perspective);
+            {uploads.queue.length > 0 && (
+              <ul className="list" data-testid="upload-queue">
+                {uploads.queue.map((f) => (
+                  <li key={f.id} className="list__item upload">
+                    <div>
+                      <strong>{f.file.name}</strong>
+                      <span className="muted">{formatBytes(f.file.size)}</span>
+                      {f.state === 'pending' && (
+                        <label>
+                          {t.perspective}{' '}
+                          <select
+                            value={f.perspective}
+                            onChange={(e) => {
+                              uploads.setPerspective(f.id, e.target.value as Perspective);
+                            }}
+                          >
+                            {PERSPECTIVES.map((p) => (
+                              <option key={p} value={p}>
+                                {t.perspectives[p]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {f.state !== 'pending' && (
+                        <progress max={100} value={f.progress} aria-label={f.file.name}>
+                          {t.progress(f.progress)}
+                        </progress>
+                      )}
+                      {f.state === 'uploading' && <span>{t.progress(f.progress)}</span>}
+                      {f.state === 'done' && <span data-testid="upload-done">{t.done}</span>}
+                      {f.state === 'error' && f.error !== undefined && (
+                        <span role="alert" className="error">
+                          {t.errors[f.error]}
+                        </span>
+                      )}
+                    </div>
+                    {f.state === 'pending' && (
+                      <button
+                        type="button"
+                        className="button--quiet"
+                        onClick={() => {
+                          uploads.remove(f.id);
                         }}
                       >
-                        {PERSPECTIVES.map((p) => (
-                          <option key={p} value={p}>
-                            {t.perspectives[p]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  )}
-                  {f.state !== 'pending' && (
-                    <progress max={100} value={f.progress} aria-label={f.file.name}>
-                      {t.progress(f.progress)}
-                    </progress>
-                  )}
-                  {f.state === 'uploading' && <span>{t.progress(f.progress)}</span>}
-                  {f.state === 'done' && <span data-testid="upload-done">{t.done}</span>}
-                  {f.state === 'error' && f.error !== undefined && (
-                    <span role="alert" className="error">
-                      {t.errors[f.error]}
-                    </span>
-                  )}
-                </div>
-                {f.state === 'pending' && (
-                  <button
-                    type="button"
-                    className="button--quiet"
-                    onClick={() => {
-                      uploads.remove(f.id);
-                    }}
-                  >
-                    {t.remove}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-        {uploads.queue.some((f) => f.state === 'pending' || retryable(f)) && !uploads.active && (
-          <button type="button" onClick={uploads.start}>
-            {t.start}
-          </button>
+                        {t.remove}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {uploads.queue.some((f) => f.state === 'pending' || retryable(f)) &&
+              !uploads.active && (
+                <button type="button" onClick={uploads.start}>
+                  {t.start}
+                </button>
+              )}
+          </>
         )}
       </section>
 
@@ -424,42 +439,48 @@ export function SessionPage() {
                   .join(' · ')}
           </span>
         </summary>
-        <LineupCard
-          sessionId={session.id}
-          boatType={session.boatType}
-          lineup={session.lineup}
-          onSaved={(boatType, lineup) => {
-            setSession((s) => (s === null ? s : { ...s, boatType, lineup }));
-          }}
-        />
-      </details>
-
-      <section className="card danger-zone" aria-labelledby={`${inputId}-delete-h`}>
-        <h2 id={`${inputId}-delete-h`}>{t.deleteSession}</h2>
-        <p className="muted">{t.deleteSessionHint}</p>
-        {deleteFailed && <p role="alert">{t.deleteSessionFailed}</p>}
-        {confirmingSession ? (
-          <ConfirmInline
-            question={t.confirmDeleteSession(session.title, t.videos(session.videos.length))}
-            onConfirm={removeSession}
-            onCancel={() => {
-              setConfirmingSession(false);
+        {session.canEdit ? (
+          <LineupCard
+            sessionId={session.id}
+            boatType={session.boatType}
+            lineup={session.lineup}
+            onSaved={(boatType, lineup) => {
+              setSession((s) => (s === null ? s : { ...s, boatType, lineup }));
             }}
           />
         ) : (
-          <button
-            type="button"
-            className="button--danger"
-            disabled={deletingSession}
-            onClick={() => {
-              setConfirming(null);
-              setConfirmingSession(true);
-            }}
-          >
-            {t.deleteSession}
-          </button>
+          <LineupSummary boatType={session.boatType} lineup={session.lineup} />
         )}
-      </section>
+      </details>
+
+      {session.canEdit && (
+        <section className="card danger-zone" aria-labelledby={`${inputId}-delete-h`}>
+          <h2 id={`${inputId}-delete-h`}>{t.deleteSession}</h2>
+          <p className="muted">{t.deleteSessionHint}</p>
+          {deleteFailed && <p role="alert">{t.deleteSessionFailed}</p>}
+          {confirmingSession ? (
+            <ConfirmInline
+              question={t.confirmDeleteSession(session.title, t.videos(session.videos.length))}
+              onConfirm={removeSession}
+              onCancel={() => {
+                setConfirmingSession(false);
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              className="button--danger"
+              disabled={deletingSession}
+              onClick={() => {
+                setConfirming(null);
+                setConfirmingSession(true);
+              }}
+            >
+              {t.deleteSession}
+            </button>
+          )}
+        </section>
+      )}
     </main>
   );
 }

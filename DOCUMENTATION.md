@@ -2,6 +2,55 @@
 
 Agent work log, newest first.
 
+## 2026-11-06 — Finish upgrade-compatible training permissions (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: TEST.md, BUGS.md, docs/HANDOFF.md, docs/plans/154-club-training-readonly.md, docs/adr/0020-club-training-permissions.md, DOCUMENTATION.md
+**Summary**: Final implementation in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) passes 522 web/DB tests (30 new permission cases), 50 worker tests, format/lint/typecheck/build, schema-generation consistency, 77 deploy-script tests and the repeated real local deploy/rollback rehearsal. After the compatibility fix, full local E2E again passes 49 (49 skipped), full edge 39 (10 skipped), local iPhone WebKit/1000×540 6/6 and edge 14/14; screenshots reviewed. Local dev is healthy with 20 migrations, edge is stopped, and CI status is on the PR. Production remains sha-b000ca4; no merge/deployment for #154.
+**Prompts used**: "voer het plan uit".
+
+## 2026-11-06 — Keep the permission migration compatible with the prior web image (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/src/server/db/{tenant.ts,schema.ts,migrations/0019_club_training_permissions.sql,migrations/meta/0019_snapshot.json}, apps/web/src/server/api/training-permissions.db.test.ts, docs/adr/0020-club-training-permissions.md, docs/plans/154-club-training-readonly.md, BUILD.md, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Final review found the migrate-before-web-replacement window and old-image rollback could combine broad reads with media handlers that assume visibility implies write access (BUG-034). New handlers now opt in through fixed transaction context; absent context preserves the old image's aligned scope and unknown modes fail closed. Still one migration, no table/dependency/server changes; 30 permission tests pass after a failing compatibility regression and schema generation reports no difference. Full retesting is in progress; prior 520-test/browser evidence applies before this final compatibility change, and production remains sha-b000ca4.
+**Prompts used**: "voer het plan uit".
+
+## 2026-11-06 — Complete club training permission verification (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: PLAN.md, FEATURES.md, TEST.md, BUGS.md, docs/plans/154-club-training-readonly.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Approved implementation is ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155): club-wide reads, creator-only rower writes, club-wide coach/admin writes, private-feedback/tenant/admin boundaries and one policy migration. Final checks: 520 web/DB, 50 worker, 49 local E2E (49 skipped), 39 edge E2E (10 skipped), 6 local and 14 edge iPhone WebKit/1000×540 cases, format/lint/typecheck/build, 77 deploy-script tests and local deploy/rollback rehearsal pass. Screenshots inspected; local dev is healthy with 20 migrations and edge is stopped. No merge/deployment for #154; production stays sha-b000ca4. CI status is attached to the PR.
+**Prompts used**: "voer het plan uit".
+
+## 2026-11-06 — Verify permissions and synchronize browser fixtures (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/e2e/{angles,assign,playback,sessions,share}.spec.ts, apps/web/src/client/notes/NotesPanel.tsx, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Full web/DB 520 and worker 50 tests pass, along with format/lint/typecheck/build, 77 deploy-script checks and the local deploy/rollback rehearsal. Full local browsers pass 49 (49 worker-only skipped); the local WebKit/1000×540 settings/permissions matrix passes 6. Edge diagnostics exposed test setup races: await completed inline rower selection before saving, and persisted drawing before trying to select it (an early tap otherwise starts the underlying video); edge final verification is in progress. No additional product/schema change or production action.
+**Prompts used**: "voer het plan uit".
+
+## 2026-11-06 — Implement approved club training permissions (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: apps/web/src/server/{api,db,repositories/training-access.ts}, apps/web/src/client/{sessions,notes}, apps/web/e2e/{helpers.ts,training-permissions.spec.ts}, docs/adr/{0013,0019,0020,README}.md, docs/plans/154-club-training-readonly.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Implemented club-wide training reading and creator/staff editing with separate restrictive RLS, one approved migration, API capabilities and fully read-only rower UI for foreign trainings. Private feedback and tenant/admin boundaries remain; pre-media locks plus a fresh ownership recheck fix the reproduced concurrent-transfer upload race (BUG-032); slow chunks retain the lock under a bounded deadline (BUG-033). Role refresh reloads feedback with stale-response protection, and NL/EN admin role explanations match the new scope. Initial full web/DB 518 and worker 50 tests pass; 27 permission tests and 2 local focused E2E pass, with remaining browser verification in progress. Production stays sha-b000ca4; no #154 merge/deploy authorization.
+**Prompts used**: "voer het plan uit"; "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen"; "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
+
+## 2026-11-06 — Revise training permissions for coaches and admins (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: docs/plans/154-club-training-readonly.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Recorded fully read-only foreign trainings for rower-only users, including all feedback mutations and previously authored feedback. Revised the proposal as Ewout requested: coaches/admins can view and edit all club trainings, including others', and combined roles retain those capabilities; the former own/reachable-only coach scope must change. Only the plan/logs changed; approval for the revised implementation and one policy migration is still pending, and production remains sha-b000ca4.
+**Prompts used**: "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
+
+## 2026-11-06 — Plan club-wide read-only training access for rowers (#154)
+
+**Session**: codex/feat/154-club-training-readonly
+**Changed**: docs/plans/154-club-training-readonly.md, PLAN.md, FEATURES.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected session visibility, mutation handlers and restrictive RLS: current FOR ALL policies reuse read access for writes, so broader visibility must ship with separate resource write rules and pre-filesystem API authorization. Recorded a concrete one-migration/no-new-table proposal and the pending feedback/architectural decisions; no application or database changes. Production is sha-b000ca4, verified after #152; its deployment log remains separate in #153.
+**Prompts used**: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen".
+
 ## 2026-11-06 — Implement central admin settings and additive roles (#151)
 
 **Session**: codex/feat/151-admin-user-settings
