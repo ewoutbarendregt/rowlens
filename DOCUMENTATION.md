@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Start the authorized registration release
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested merge/deploy. Merged green deployment-log PR #158 as ca0b7af while retaining its branch, retargeted #159 to main, and require fresh green CI on that base before its merge. Read-only production preflight: sha-dd71f78, 25 migrations, 6 accounts/memberships, 4 sessions, 5 videos, 13 compatibility people (7 unlinked), 10 seats, 8 angles, 1 platform administrator and 0 pending applications; no registration storage yet. Captured shared-container IDs/start times/images for exact post-deploy comparison. No production write or new admin bootstrap performed.
+**Prompts used**: "merge en deploy".
+
 ## 2026-11-07 — Preserve registration history and show the confirmed repeat choice
 
 **Session**: codex/feat/registration-onboarding

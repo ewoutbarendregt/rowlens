@@ -3,6 +3,22 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Authorized registration release — in progress
+
+- Ewout requested "merge en deploy" for the signup implementation. PR #158 passed all eight jobs
+  (run 42398940884) and is merged as ca0b7af; its branch is retained to protect the stack.
+- PR #159 is retargeted to main. A new documentation/authorization head triggers fresh CI against
+  this base. Wait for all checks, merge #159, wait for both main images and CI, then deploy only
+  that implementation merge tag. Do not deploy the intermediate docs-only merge.
+- Production preflight remains sha-dd71f78/25 migrations: 6 accounts, 6 memberships, 4 sessions,
+  5 videos, 13 compatibility identities (7 unlinked), 10 seats, 8 angles, 1 platform administrator,
+  0 pending club applications. No account-registration table exists before migration 0025.
+- Shared-container IDs/start times/images captured read-only. Compare after deployment; verify the
+  three neighbouring URLs, readiness/new tag, public minimal club directory and 26 migrations.
+- Existing global administrator must survive unchanged; no repeat bootstrap or server .env/compose
+  change is needed or authorized. This request supersedes earlier no-merge/deploy wording only for
+  this registration release. Log its completed deployment in a subsequent documentation PR.
+
 ## Current follow-up — explicit registration implemented locally
 
 - Ewout approved the full signup plan with "Ja, voer het volledige plan uit". Implemented on
