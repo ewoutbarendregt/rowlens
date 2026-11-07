@@ -3,6 +3,89 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Users directory
+
+With unified users enabled, `/users` is a distinct administrator navigation page. A persisted
+platform administrator receives all verified accounts, including accounts with no memberships;
+club administrators receive only the tenant-scoped member list. Selected-club role/admission
+controls reuse the existing guarded operations. Other accounts have global profile/preference
+editing without fabricated memberships or default club roles. Club administration holds Requests
+and Roles; Clubs has lifecycle management without an embedded user settings editor.
+
+The exact `/api/admin/users/:id/settings` route uses account context for persisted platform actors,
+with protected read/save UUID-only auditing in its repository transaction. Ordinary club admins
+still require a live selected-club context and target membership. No table or migration was needed;
+accounts already support zero or more memberships. Global role assignment is now a protected RowLens-admin operation (ADR-0023); operator bootstrap remains the initial/recovery path.
+
+## Full directory/editor and identity proof (ADR-0023)
+
+`UsersPage` uses an allowlisted 17-field shared schema for filters, sort and bounded paging. The SQL
+projection scopes members, memberships, activity and requests first; the server then filters/counts/
+sorts/pages and derives club choices. Client generation guards and account/club/authority keys
+prevent stale data or drafts crossing contexts. The table scrolls internally with sticky actions;
+column selection and sort controls stay usable at phone size. `UserEditor` groups profile/preferences,
+verified email changes, global authority and explicitly scoped club role/admission operations.
+
+Migration 0024 adds protected global identity-change state (`scope_club_id` is authorization metadata,
+not tenant ownership), hashed expiring attempt-limited proofs, owner-only proof views/confirmation,
+authorized projections and serialized global-role changes. Null SQL arguments fail closed. Email
+confirmation rechecks the initiator, identity revision and address reservations, locks affected clubs
+in order, preserves IDs/roles/history, synchronizes grants and revokes old sessions/codes. Admission
+forms bind the selected account ID; OTP verification, legacy adoption, provisioning, applications and
+initial-admin writers coordinate identity/mailbox/admission locks to prevent stale email grants. Club admins
+cannot confirm another account's change: its existing authenticated owner must use the mailed link.
+Global RowLens identity administrators can confirm through the editor. Configured login addresses
+cannot be renamed in the app; no server/local environment file was edited. Global directory/identity/
+authority audits contain actor/target UUIDs and no email or code values.
+
+No dependency was added. Paired unified-user flags retain feature-off compatibility. The local stack
+has 25 migrations; unreleased function definitions were refreshed locally as verification hardened
+them, without changing account data. Fresh database tests/rehearsal apply the migration directly.
+
+## Club administration and archival (ADR-0022)
+
+Club administration has member/role editing, pending-request decisions and historical mapping.
+Unified member lists contain actual memberships, not unused allowlist entries. Clubs shows the
+platform directory including archived clubs to RowLens administrators; ordinary accounts retain
+club selection and applications. Protected platform GET/lifecycle operations enforce persisted
+platform authority and audit archive/restore, with inline confirmation in NL/EN.
+
+Migration 0023 adds club.archived_at and an owner-scoped active-club predicate to shared tenant RLS.
+Account club selection/directory/applications and protected club-admin authorization also reject
+archived clubs. Global lifecycle management can restore them without a selected active club.
+Accounts, memberships, pending requests, media and history remain; existing background jobs may
+finish. The local stack has 24 migrations. No production change was made.
+
+## Unified-account transition (ADR-0021, local implementation)
+
+Global OTP creates an account only after verifying inbox ownership. Protected account sessions and
+pending membership applications are independent of a selected club; the existing OTP/IP limits,
+CSRF/origin rules, cookie security and legacy sessions remain. Migration 0020 adds global protected
+account tokens/codes/platform authority/audit and tenant-protected applications; 0021 adds canonical
+account references to all five sporting/history tables. Migration 0022 adds restrictive membership/access policies, synchronized legacy-session adoption/revocation and canonical name updates. Platform SQL roles recheck persisted authority rather than trusting a request snapshot. Rower IDs remain compatibility identifiers
+until every historical mapping is resolved; no historical people or references are deleted.
+
+The club guard validates live per-club roles (or persisted platform authority), using an explicit
+club UUID in API headers/media query parameters and captured upload headers. UI club selection is
+per tab and opening a club reloads the page. Club content requests without explicit context are rejected when multiple clubs are available; account-only operations still have no membership requirement. Account preferences stay global. Platform elevation
+uses protected persisted grants and the real actor; club administrators cannot grant it. The
+operator bootstrap is `bash scripts/admin/grant-platform-admin.sh` (hidden terminal email prompt,
+owner connection, already verified account, audited). Existing server admins remain club admins;
+no automatic global promotion is performed.
+
+The seeded pilot keeps its UUID/slug and is named WVIJburg. New clubs can be created/renamed and get
+an initial administrator. Club admins approve/reject requests or admit an existing verified account;
+approval and membership/grant updates are atomic. Rejected applications have a seven-day cooldown;
+applicants can cancel pending ones. Direct admission resolves pending requests; revocation retains the account/other clubs and starts the same seven-day reapplication cooldown. Names/selectors derive from accounts. New seats/measurements/
+assignment require rower role; direct sharing accepts any active verified club member. Legacy
+identity linking has inline confirmation and refuses collisions without losing seats or measures.
+
+Flags: server `UNIFIED_USERS=true`, client `VITE_FEATURE_UNIFIED_USERS=true`; the Docker build arg
+`VITE_FEATURE_UNIFIED_USERS` also sets the runtime flag, off by default. Local dev runs with the
+server flag; Vite development enables the UI. Production-image flag activation and platform
+bootstrap need the separately authorized rollout. Logos and club theme selection are deferred;
+existing theme tokens/global user preferences provide the later club-aware design boundary.
+
 ## Central user settings and role sets (2026-11-06, ADR-0019)
 
 Migration `0018_admin_user_settings.sql` extends `app_user` with nullable language/theme/video
@@ -604,3 +687,21 @@ Ewout: Actions → deploy → Run workflow (tag) ──▶ deploy.yml
 - Shared CPU: transcoding is limited to 2 vCPU at low priority.
 - trustable.nl's site-wide `Permissions-Policy` blocks the microphone and camera for RowLens (in-browser
   voice notes need the own host); Caddy's 64 MB body limit is only a backstop (ADR-0003).
+
+
+## Upload acknowledgement ordering (2026-11-07)
+
+Chunk processing returns a plain HTTP result from the tenant transaction. Only after COMMIT and
+release of the per-upload busy slot does the route send its reply. A 204 therefore guarantees
+committed progress and (for completion) the durable processing job, and permits an immediate next
+chunk/termination. Parent authorization locks still cover the entire bounded stream; API status,
+offset and error formats remain unchanged. A real deferred-commit regression enforces this order.
+
+## Authorized release activation (2026-11-07)
+
+On Ewout's merge/deploy request, images.yml explicitly builds VITE_FEATURE_UNIFIED_USERS=true,
+which also sets UNIFIED_USERS=true in the runtime image. CI image builds use the same flags and
+assert enabled unified account status. Dockerfile defaults remain off for optional feature-off
+builds. Production has no explicit UNIFIED_USERS override, so no server .env/compose edit is needed.
+Global authority remains a separate persisted grant; release activation never auto-promotes an
+allowlist or name. Operator bootstrap, if needed, is a separately approved database write.

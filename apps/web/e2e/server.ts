@@ -1,6 +1,7 @@
 // The server Playwright tests against (playwright.config.ts → webServer): a throwaway Postgres 16
 // (Testcontainers; removed when this process exits), migrated like production, then the built app
 // (`dist/server/main.js`) connected as rowlens_app. Needs Docker and `pnpm build`.
+import pg from 'pg';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -17,6 +18,20 @@ const db = await new PostgreSqlContainer('postgres:16-alpine')
   .start();
 const ownerUrl = db.getConnectionUri();
 await migrateDatabase({ ownerUrl, appPassword: APP_PASSWORD });
+if (process.env['E2E_UNIFIED'] === 'true') {
+  process.env['UNIFIED_USERS'] = 'true';
+  const owner = new pg.Client({ connectionString: ownerUrl });
+  await owner.connect();
+  try {
+    const u = await owner.query<{ id: string }>(
+      "insert into app_user(email,display_name,first_name,last_name,verified_at) values($1,'E2E Administrator','E2E','Administrator',now()) returning id",
+      [adminEmail],
+    );
+    await owner.query('insert into platform_admin(user_id) values($1)', [u.rows[0]?.id]);
+  } finally {
+    await owner.end();
+  }
+}
 
 const appUrl = new URL(ownerUrl);
 appUrl.username = 'rowlens_app';

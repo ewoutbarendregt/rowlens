@@ -19,6 +19,7 @@ import { rowerRoutes } from './api/rowers.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
 import { videoRoutes } from './api/videos.ts';
+import { createUnifiedGate } from './auth/unified-gate.ts';
 import { createAuthGate } from './auth/gate.ts';
 import type { DeliverInvite, DeliverLoginCode } from './auth/mail.ts';
 import { smtpDelivery, smtpInviteDelivery } from './auth/mail.ts';
@@ -152,7 +153,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
       const deliver =
         opts.deliverLoginCode ??
         (config.auth.smtp === null ? undefined : smtpDelivery(config.auth.smtp));
-      const authGate = createAuthGate({
+      const authGate = (config.unifiedUsers ? createUnifiedGate : createAuthGate)({
         db,
         auth: config.auth,
         basePath: base,
@@ -172,7 +173,14 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
         : config.media.dir === null
           ? null
           : new MediaStore(config.media.dir);
-    const clubOpts = { db, guard, media, limits: config.media, basePath: base };
+    const clubOpts = {
+      db,
+      guard,
+      media,
+      limits: config.media,
+      basePath: base,
+      unifiedUsers: config.unifiedUsers,
+    };
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
     await app.register(videoRoutes, { prefix: base, ...clubOpts });

@@ -9,8 +9,10 @@ import { ProfileForm } from '../ui/ProfileForm.tsx';
 export function RequireAuth({
   children,
   role,
+  accountOnly = false,
 }: {
   children: ReactNode;
+  accountOnly?: boolean;
   /** Admin-only pages send everyone else to the sessions list (#108). */
   role?: 'admin' | 'roster';
 }) {
@@ -18,6 +20,8 @@ export function RequireAuth({
   const t = authStrings();
   if (state.kind === 'loading') return null;
   if (state.kind !== 'open') return <Navigate to="/" replace />;
+  if (state.unified && role === 'roster') return <Navigate to="/sessions" replace />;
+  if (state.unified && !accountOnly && !state.club.id) return <Navigate to="/clubs" replace />;
   if (role === 'admin' && !state.user.roles.includes('admin'))
     return <Navigate to="/sessions" replace />;
   if (role === 'roster' && !state.user.roles.some((r) => r === 'coach' || r === 'admin'))

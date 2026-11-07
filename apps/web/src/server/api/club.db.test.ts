@@ -58,7 +58,7 @@ describe('GET /api/club behind the pilot gate', () => {
   it('returns the pilot club, read through RLS', async () => {
     const res = await app.inject({ url: `${BASE}/api/club`, headers: { cookie } });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ slug: 'pilot', name: 'Pilot' });
+    expect(res.json()).toEqual({ slug: 'pilot', name: 'WVIJburg' });
     expect(res.headers['cache-control']).toBe('private, no-store');
   });
 });

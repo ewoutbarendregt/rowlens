@@ -72,8 +72,8 @@ export function tenantPolicy(name: string, clubId: SQLWrapper) {
   return pgPolicy(name, {
     for: 'all',
     to: appRole,
-    using: sql`${clubId} = ${currentClubId}`,
-    withCheck: sql`${clubId} = ${currentClubId}`,
+    using: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
+    withCheck: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
   });
 }
 
@@ -83,6 +83,7 @@ export const club = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     slug: text('slug').notNull().unique(),
     name: text('name').notNull(),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   // The app may read its own club; clubs are created by migrations or admin tooling, not the app.
@@ -90,7 +91,7 @@ export const club = pgTable(
     pgPolicy('club_read_own', {
       for: 'select',
       to: appRole,
-      using: sql`${t.id} = ${currentClubId}`,
+      using: sql`${t.id} = ${currentClubId} and ${t.archivedAt} is null`,
     }),
   ],
 ).enableRLS();
@@ -101,6 +102,7 @@ export const appUser = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     email: text('email').notNull().unique(),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
     displayName: text('display_name').notNull(),
     locale: text('locale').notNull().default('nl'),
     /**
@@ -144,6 +146,24 @@ export const appUser = pgTable(
 );
 
 /** For the one-club pilot, allowlisted users get one membership in the pilot club. */
+/** Protected global identity-change proofs; accessed only by pinned account-management functions. */
+export const accountEmailChange = pgTable('account_email_change', {
+  id: uuid('id').primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => appUser.id),
+  actorUserId: uuid('actor_user_id')
+    .notNull()
+    .references(() => appUser.id),
+  scopeClubId: uuid('scope_club_id').references(() => club.id),
+  email: text('email').notNull(),
+  oldEmail: text('old_email').notNull(),
+  revision: integer('revision').notNull(),
+  codeHash: text('code_hash').notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
+
 export const membership = pgTable(
   'membership',
   {
@@ -164,6 +184,11 @@ export const membership = pgTable(
     index('membership_user_idx').on(t.userId),
     check('membership_roles_check', sql`rowlens_valid_roles(${t.roles})`),
     tenantPolicy('membership_tenant', t.clubId),
+    ...resourcePolicies(
+      'membership_role',
+      sql`${t.userId}=rowlens_user_id() or rowlens_admin_member() or rowlens_service()`,
+      sql`rowlens_admin_member() or rowlens_service()`,
+    ),
   ],
 ).enableRLS();
 
@@ -312,6 +337,7 @@ export const lineupSeat = pgTable(
     clubId: uuid('club_id').notNull(),
     sessionId: uuid('session_id').notNull(),
     seat: smallint('seat').notNull(),
+    accountUserId: uuid('account_user_id').references(() => appUser.id, { onDelete: 'restrict' }),
     rowerId: uuid('rower_id').notNull(),
   },
   (t) => [
@@ -564,6 +590,7 @@ export const angleMeasure = pgTable(
     clubId: uuid('club_id').notNull(),
     videoId: uuid('video_id').notNull(),
     frame: integer('frame').notNull(),
+    accountUserId: uuid('account_user_id').references(() => appUser.id, { onDelete: 'restrict' }),
     rowerId: uuid('rower_id').notNull(),
     joint: angleJoint('joint').notNull(),
     points: jsonb('points').notNull(),
@@ -740,6 +767,7 @@ export const momentRower = pgTable(
   {
     clubId: uuid('club_id').notNull(),
     momentId: uuid('moment_id').notNull(),
+    accountUserId: uuid('account_user_id').references(() => appUser.id, { onDelete: 'restrict' }),
     rowerId: uuid('rower_id').notNull(),
     assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
     /** null on the pilot-code rollback path, which has no user. */
@@ -781,6 +809,7 @@ export const momentShare = pgTable(
     momentId: uuid('moment_id').notNull(),
     scope: momentShareScope('scope').notNull(),
     /** Only for scope 'rower'. */
+    accountUserId: uuid('account_user_id').references(() => appUser.id, { onDelete: 'restrict' }),
     rowerId: uuid('rower_id'),
     sharedByUserId: uuid('shared_by_user_id'),
     sharedAt: timestamp('shared_at', { withTimezone: true }).notNull().defaultNow(),
@@ -827,6 +856,7 @@ export const momentRowerLog = pgTable(
     clubId: uuid('club_id').notNull(),
     momentId: uuid('moment_id').notNull(),
     /** null for a share with the whole crew (#112). */
+    accountUserId: uuid('account_user_id').references(() => appUser.id, { onDelete: 'restrict' }),
     rowerId: uuid('rower_id'),
     action: momentRowerAction('action').notNull(),
     byUserId: uuid('by_user_id'),
@@ -873,6 +903,7 @@ export const clubAccess = pgTable(
       sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`,
     ),
     tenantPolicy('club_access_tenant', t.clubId),
+    rolePolicy('club_access_admin', 'all', sql`rowlens_admin_member() or rowlens_service()`),
   ],
 ).enableRLS();
 
@@ -896,6 +927,7 @@ export const clubAccessLog = pgTable(
   (t) => [
     index('club_access_log_club_at_idx').on(t.clubId, t.at),
     tenantPolicy('club_access_log_tenant', t.clubId),
+    rolePolicy('club_access_log_admin', 'all', sql`rowlens_admin_member() or rowlens_service()`),
   ],
 ).enableRLS();
 
@@ -924,5 +956,68 @@ export const userSettingsAudit = pgTable(
     ),
     rolePolicy('user_settings_audit_edit', 'update', sql`false`),
     rolePolicy('user_settings_audit_delete', 'delete', sql`false`),
+  ],
+).enableRLS();
+
+/** Global authentication is independent of any club (ADR-0021). Access via pinned functions only. */
+export const accountSession = pgTable('account_session', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => appUser.id, { onDelete: 'cascade' }),
+  tokenHash: text('token_hash').notNull().unique(),
+  csrfHash: text('csrf_hash').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+});
+export const accountLoginCode = pgTable('account_login_code', {
+  email: text('email').primaryKey(),
+  codeHash: text('code_hash').notNull(),
+  locale: text('locale').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  usedAt: timestamp('used_at', { withTimezone: true }),
+});
+export const platformAdmin = pgTable('platform_admin', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => appUser.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+export const platformAudit = pgTable('platform_audit', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  actorUserId: uuid('actor_user_id').notNull(),
+  action: text('action').notNull(),
+  target: text('target').notNull(),
+  at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+});
+export const membershipApplication = pgTable(
+  'membership_application',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => appUser.id),
+    status: text('status').notNull().default('pending'),
+    decidedBy: uuid('decided_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('membership_application_club_user_unique').on(t.clubId, t.userId),
+    check(
+      'membership_application_status_check',
+      sql`${t.status} in ('pending','approved','rejected','cancelled')`,
+    ),
+    tenantPolicy('membership_application_tenant', t.clubId),
+    rolePolicy(
+      'membership_application_read',
+      'select',
+      sql`${t.userId}=rowlens_user_id() or rowlens_admin_member()`,
+    ),
+    rolePolicy('membership_application_write', 'all', sql`rowlens_admin_member()`),
   ],
 ).enableRLS();

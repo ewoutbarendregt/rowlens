@@ -1,3 +1,4 @@
+import { setActiveClub } from '../club-context.ts';
 import { useEffect, useSyncExternalStore } from 'react';
 import type { BoatClass } from '../../shared/boats.ts';
 import { api } from '../api.ts';
@@ -5,6 +6,7 @@ import { rolesSchema, type Role } from '../../shared/roles.ts';
 import { ownSettings } from '../settings/controller.ts';
 
 interface AuthUser {
+  platformAdmin?: boolean;
   id: string;
   roles: Role[];
   email: string;
@@ -25,8 +27,21 @@ interface AuthUser {
 export type AuthState =
   | { kind: 'loading' }
   | { kind: 'closed' }
-  | { kind: 'locked' }
-  | { kind: 'open'; user: AuthUser; club: { slug: string; name: string } };
+  | { kind: 'locked'; unified?: boolean }
+  | {
+      kind: 'open';
+      user: AuthUser;
+      unified?: boolean;
+      clubs?: ClubChoice[];
+      club: { id?: string; slug: string; name: string };
+    };
+export interface ClubChoice {
+  id: string;
+  slug: string;
+  name: string;
+  roles: Role[];
+  member: boolean;
+}
 
 let current: AuthState = { kind: 'loading' };
 let started = false;
@@ -43,6 +58,7 @@ export function forgetAuth(): void {
   sequence++;
   current = { kind: 'loading' };
   ownSettings.setUser(null);
+  setActiveClub(null);
   for (const listener of listeners) listener();
 }
 export function refreshAuth(): void {
@@ -80,6 +96,9 @@ async function loadState(): Promise<AuthState> {
     enabled: boolean;
     access: boolean;
     user?: AuthUser;
+    unified?: boolean;
+    clubs?: ClubChoice[];
+    club?: ClubChoice | null;
   };
   if (!status.enabled) return { kind: 'closed' };
   if (
@@ -88,7 +107,17 @@ async function loadState(): Promise<AuthState> {
     !rolesSchema.safeParse(status.user.roles).success ||
     typeof status.user.id !== 'string'
   )
-    return { kind: 'locked' };
+    return { kind: 'locked', ...(status.unified ? { unified: true } : {}) };
+  if (status.unified) {
+    setActiveClub(status.club?.id ?? null);
+    return {
+      kind: 'open',
+      user: status.user,
+      unified: true,
+      clubs: status.clubs ?? [],
+      club: status.club ?? { slug: '', name: '' },
+    };
+  }
   const club = await api('/api/club');
   if (!club.ok) throw new Error('club_unavailable');
   return {

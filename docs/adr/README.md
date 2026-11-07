@@ -24,4 +24,10 @@
 
 | [0020](0020-club-training-permissions.md) | Club-wide training reading with ownership and staff editing | accepted |
 
+| [0021](0021-unified-accounts-and-club-admission.md) | Unified accounts, club admission and full platform administration | accepted |
+
+| [0022](0022-club-archiving.md) | Reversible club archiving and separate administration screens | accepted |
+
+| [0023](0023-user-directory-and-identity-management.md) | Scoped user table, verified identity changes and global role management | accepted |
+
 New ADR: copy `0000-template.md` to the next number.

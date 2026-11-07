@@ -2,6 +2,144 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Release image authentication smoke (2026-11-07)
+
+- CI run 42390255322 passed web, worker, edge, policy, secrets and deploy checks, but the
+  web-image smoke failed at startup: unified authentication also requires production SMTP.
+- Added synthetic SMTP host/credentials/sender to the isolated image smoke alongside its OTP
+  pepper. No mail is sent by the health/status check; production validation remains unchanged.
+- Fresh CI on the corrected head must pass before merging or deploying.
+
+## Full account table/editor and verified identity changes (2026-11-07)
+
+- Full web/DB: **589/589**, then **591/591**, and final expanded suites **592/592** and **593/593** across 57 files.
+  Latest focused unified-account run: **29/29**, including configured/unverified address refusal,
+  direct null-proof/null-authority SQL refusal and owner confirmation. Directory unit cases cover
+  every one of **17 fields** for exact filtering and both sort directions, stable tie-breaking/pages,
+  unknown preferences and numeric/date ranges; mail/field focused run **45/45**.
+- New API cases cover tenant-scoped rows/details/counts/club choices/requests, zero/multiple clubs,
+  invalid query fields, authority assignment/revocation and concurrent withdrawal, pending email,
+  wrong/expired/exhausted/replayed/stale proofs, actor revocation, configured source/destination
+  addresses, protected proof storage, cross-club grant/role preservation and session revocation.
+  A club initiator cannot confirm for another account: its existing owner must authenticate and
+  confirm the new-mailbox code. The browser exercises this with a target holding another club's
+  administrator role. No real account, mailbox or production database was used.
+- Final admission race holds an actual identity advisory lock, observes confirmation and admission
+  queued in PostgreSQL, releases it and requires the stale admission to fail. Reusing the old email
+  for a different verified account cannot redirect a form's account-ID-bound role grant. OTP/session
+  adoption, account provisioning, applications and initial-club-admin writers follow the same
+  identity/mailbox/club order; existing expected-role conflicts and immutable grants remain.
+- New browser matrix: **16/16** on Chromium **1000×540** and iPhone 13 **WebKit**, repeated after
+  directory widening/sticky-column layout and owner-proof hardening. Includes table sort/filter,
+  full preference/name/email/global-role editing, verified email/session transition, cross-club
+  requests without switching and the dedicated owner confirmation page. Screenshots inspected;
+  document width stays within viewport and measured controls/labels >=44px. Physical iPhone untested.
+- Initial extended matrix was **10 passed/4 failed**: the harness expected a controlled confirmation
+  checkbox to change before confirming, parsed an empty 201 as JSON, and used mouse compatibility
+  clicks after horizontal scrolling in phone WebKit. Corrected fixture expectations, empty-body
+  parsing and native touch. Next focused run **3 passed/1 failed** exposed a premature unscoped-row
+  assertion while filtering; wait for the matching query response/aria-busy completion. Then full
+  **14/14**, and **16/16** after adding owner confirmation. No retries/sleeps weakened product checks.
+- Initial email integrations returned 500 for reserved empty arrays (BUG-048); bound text-array
+  construction fixes it. Early lint found null narrowing, numeric template conversions and an
+  awaited reply issue; corrected. Final lint/typecheck/format/build pass; schema generation reports
+  no changes. Server parameters and SQL null guards both refuse invalid identity/authority inputs.
+- Legacy local first run **46 passed/3 failed/63 skipped** while proxy E2E shared its output path:
+  trace ENOENT collisions plus the known intermittent inline lineup selection symptom. Isolated
+  lineup/settings repeat **6/6** passed. A later full run was stopped after a mismatched feature-on
+  build was scheduled concurrently (4 passed/1 lineup fail/19 skipped/90 not run); it is invalid
+  release evidence. Correct isolated feature-off/full run: **49 passed, 65 skipped**. Final auth/admin/profile/preferences/
+  permission compatibility after identity-lock hardening: **16/16**.
+- Full proxy regression with real worker: **39 passed, 17 skipped**. Worker **50/50**, Ruff lint/
+  format and mypy pass. Deployment-script **77/77**; real Docker first/upgrade/broken-release rollback/
+  explicit rollback rehearsal passed, including a repeat with the owner-confirmation functions.
+- Local migration 0024 applied: **25 total**. Its unreleased function bodies were refreshed locally
+  as guards hardened; fresh Testcontainers migrations test actual SQL. Readiness healthy; no
+  production mutation/deployment. Local edge is stopped with its data retained after verification.
+
+## Users directory and account-only administration (2026-11-07)
+
+- Regression first reproduces a platform administrator's settings request without club context
+  returning 404. After account-scope authorization, the new audit assertion exposed missing global
+  save auditing; account reads/saves now use protected UUID-only audit events in the same transaction.
+- Final full web/DB run: **546/546** across 56 files. Focused authorization/settings run: **38/38**.
+  The new case edits an account with zero memberships, leaves membership empty, rejects a stale
+  revision without another save event and denies the same target after platform authority removal.
+  Existing club-admin boundaries and tenant settings conflict coverage remain in the focused run.
+- Unified browser matrix: **10/10** at 1000×540 Chromium and iPhone 13 WebKit. The new flow edits an
+  account-only user with no selected club, later admits it as a club administrator and requires that
+  its Users list contains exactly its club's one member. A rower/account-only user has no Users nav;
+  club admins cannot request the global directory. Account editing is absent from Clubs.
+- Additional legacy feature-off admin/settings browsers: **6/6**, desktop/mobile Chromium.
+- Screenshots inspected; no document overflow, control/role-label targets >=44px. Admission is folded
+  on the Users page so the searchable member/account list stays visible. Late list responses use a
+  generation guard. Physical iPhone not checked. Final matrix after layout polish: **10/10**.
+- Lint initially rejected two void-return shorthand browser callbacks; corrected. Final format,
+  lint, typecheck and feature-on build pass. No migration/dependency; local database stays at 24.
+  Prior worker/proxy/deploy rehearsals were not rerun for this navigation/account-guard change.
+
+## Club administration and reversible archiving (2026-11-07)
+
+- Full web/DB: **544/544**, then **545/545** across 56 files after the member-list regression was
+  added. Unified integration suite now has 20 cases, including actual members and role assignment,
+  other-club/account-only exclusion, archive/restore audit, access denial to archived content via
+  API and direct tenant SQL, account/other-club continuity and retained training history.
+- Worker: **50/50**, Ruff lint/format and mypy pass. Generated schema check reports no changes.
+- Final local legacy browsers: **49 passed, 57 skipped** (desktop/mobile Chromium, flags off).
+- New account/admin lifecycle matrix: **8/8** on Chromium **1000×540** and iPhone 13 **WebKit**.
+  Includes admission from Club administration, member role editing, creating/renaming a club,
+  archiving the currently selected club and restoring the original membership. Screenshots inspected;
+  no document overflow and controls/role-label targets >=44px. Physical iPhone not checked.
+- A later browser rerun could not start Testcontainers' cleanup container (30s port-binding timeout
+  before any test). Repeating after startup load subsided passed all **8/8**, including additional
+  Club administration touch-target checks. Initial lint found two void-return shorthand handlers;
+  corrected; final lint, typecheck and repository formatting checks pass.
+- Deployment-script checks: **77/77**. Real Docker first deployment, migration upgrade, deliberately
+  broken-release rollback and explicit previous-release rollback rehearsal passed.
+- Local development database migration 0023 applied (24 total); readiness reports database healthy.
+  Full local proxy regression: **39 passed, 14 skipped**, using the real worker. Edge stopped after
+  verification with its data retained. No production mutation or deployment.
+
+## Platform bootstrap regression (2026-11-07)
+
+- Initial test fixtures omitted required display_name (2 failures); corrected synthetic fixtures.
+- The real CLI subprocess then reproduced PostgreSQL 42P08: verified bootstrap failed while the
+  unverified-account refusal passed. Explicit UUID typing fixes the failing audit insert.
+- Final focused run: **20/20** tests pass (2 CLI integration cases + 18 unified authorization cases).
+  Repeating bootstrap produces one grant and one matching audit event; no email appears in output.
+  Tests use a throwaway PostgreSQL database and synthetic accounts, never the operator account.
+- Lint initially rejected a void-return shorthand in the test helper; fixed with an explicit block.
+  Final lint, typecheck and repository formatting checks pass.
+
+## Unified accounts and multiple clubs (2026-11-07)
+
+- Initial full run: 524 passed/3 failed (config/schema expectations and an empty JSON test request).
+  After fixture corrections: 527/527. Expanded suite then passed 533, 535 and 538 as coverage grew;
+  final suite includes 18 unified integration cases (**540/540** final full run).
+- Security/lifecycle cases cover account-only/profile access, OTP single use/limits/expiry, duplicate
+  and atomic decisions, cancellation ownership/cooldown, account-first admission, private feedback,
+  two-club SQL/API isolation, conflicting context, forged platform flags, withdrawn global authority,
+  direct membership/grant self-escalation denial, historical canonical references, legacy-session
+  adoption/logout and account logout-others. Direct admission/revocation keeps applications aligned.
+- Worker: Ruff lint/format, mypy and **50/50** pytest pass. Schema generation reports no difference.
+  Deploy-script checks: **77 passed**; real Docker deploy/upgrade/failed-release/explicit rollback
+  rehearsal passed twice (three runs, including a final-source pass).
+- Full local legacy browsers: **49 passed, 53 skipped**, desktop + mobile Chromium. Early runs needed
+  updated club/role labels. Edge legacy: **38 passed, 1 failed, 12 skipped**; the inline-add lineup
+  case returned HTTP 201 but lost its selection under load and then passed its targeted repeat
+  (**1/1**). It remains a recorded intermittent regression, not a claimed product fix.
+- Unified account/club browsers: **6/6 local** (3 per device) pass on Chromium **1000×540** and iPhone
+  13 WebKit. Earlier proxy run passed 4/4 before the added long-name case; **6/6** final proxy cases pass as well. Screenshots inspected; no document overflow and controls >=44 px. BUG-035 fixed
+  native selector size/accessible name; BUG-036 first reproduced a long-name overflow, then passed.
+- CI now runs the unified browser matrix separately with paired feature flags. Dedicated output
+  directories prevent trace collisions; test artifacts, local env files and media are excluded from
+  Docker build contexts. No dependency was added.
+- Local dev is ready at :5174/API :3100 with UNIFIED_USERS=true and **23 migrations**. Development
+  function definitions were refreshed as unreleased SQL evolved; fresh Testcontainers/rehearsal
+  runs validate actual migration application, not only a locally patched database. Production was
+  inspected through aggregate read-only queries only (7 unlinked people, 10 seats, 8 measurements;
+  one seeded pilot club to rename). No production write/deploy or real invitation.
+
 ## Strategy
 
 | Layer | Tool | Scope |
@@ -189,3 +327,53 @@ nothing is served outside the base path."
 
 Finding while writing it: React Router with basename `/projects/rowlens` turned `<Link to="/">` into the
 non-canonical `/projects/rowlens`; fixed by giving the router basename `/projects/rowlens/`.
+
+
+## Final unified-user verification notes — 2026-11-07
+
+- `pnpm format:check`, lint, typecheck and the last full `pnpm test` pass: **540 tests, 55 files**.
+  This adds 18 integration cases to the prior 522, without a new runtime dependency.
+- `VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true pnpm build` passes. Paired flags are
+  also wired through the Docker build; production remains off by default. New browser config runs
+  3 flows per device: applicant/admission/club switching, platform management/old-route retirement,
+  and long-name header constraints. Local **6/6**, proxy **6/6** passed; screenshots inspected.
+- The final admin review added explicit account-first self/last-admin/server-managed protections and
+  tested an independent global admin holding an ordinary rower club membership. Platform elevation
+  uses persisted SQL checks and logs actual resource UUIDs with the real actor. Direct admission
+  does not report a failed invitation or claim to delete an account; activity with no club evidence
+  is explicitly unknown. No real invitation was sent.
+- Legacy local full: 49 passed/53 skipped. Legacy proxy first full: 38 passed/1 transient lineup
+  selection failure/12 skipped; targeted repeat passed 1/1. Final full proxy rerun: **39 passed, 13 skipped**, no failures. Browser startup collisions and fixture missing author metadata
+  during development were diagnostics, not concealed successful runs.
+- No physical iPhone gesture check was performed; WebKit simulation and screenshots were used.
+
+Final proxy regression rerun passed **39/39** (13 deliberately skipped) on the final feature-off image; the earlier transient lineup failure did not recur. The edge stack was stopped with data retained.
+
+PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) contains the verified implementation; CI status is attached to the PR. No merge or deployment is authorized.
+
+
+## PR #157 CI follow-up: durable upload acknowledgement
+
+Run **42367425246** failed its web unit/DB step: **538 passed, 2 failed**, both in uploads.
+The completion reply could arrive before its transaction committed (job query saw no row), and an
+immediate termination could still see the busy slot (423). These were actual scheduling races,
+not GitHub billing. Other early jobs (policy, secrets, worker) passed.
+
+A deferred PostgreSQL constraint trigger holds the actual processing-job COMMIT behind an advisory
+lock. The new regression failed before the fix because HTTP acknowledgement had already arrived;
+with the fix it remains pending until commit, then the job is visible and immediate termination
+succeeds. No sleep/retry was added to hide the response-order bug. Test cleanup removes only its
+own trigger/function from the disposable test database.
+
+Final local recheck: uploads **13/13**, full web/DB **541/541** (55 files), lint/typecheck and flagged
+build pass. Focused upload + training-permissions browser rerun: **6/6 desktop/mobile Chromium**.
+The 6 local + 6 proxy account/club WebKit/laptop results and worker/deployment checks above remain
+valid; no frontend, worker, permission policy or migration changed in this repair. A fresh CI run
+on PR #157 validates the correction on Linux.
+
+
+Final context hardening: explicit per-request club selection is required when more than one club
+is available; account operations and one-club compatibility remain unchanged. The 18 focused
+integration cases and all 6 unified laptop/iPhone browser cases pass after this guard change. The
+preceding CI run **42368018365** passed its web job (including the upload fix, legacy browser suite
+and new WebKit matrix) and deploy-script; the new PR head gets its own complete CI run.

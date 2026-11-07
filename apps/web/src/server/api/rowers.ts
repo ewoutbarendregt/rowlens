@@ -95,6 +95,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     req: import('fastify').FastifyRequest,
     reply: import('fastify').FastifyReply,
   ) => {
+    if (opts.unifiedUsers) return notFound(reply);
     const t = tenantOf(req);
     return can(
       { roles: t.roles, role: t.role ?? null, userId: t.userId },
@@ -130,6 +131,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         .select({ id: lineupSeat.rowerId })
         .from(lineupSeat)
         .where(eq(lineupSeat.sessionId, session.id));
+      if (opts.unifiedUsers) await tx.execute(sql`select rowlens_sync_account_targets()`);
       return tx
         .select({
           id: rower.id,
@@ -138,7 +140,15 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
           userId: rower.userId,
         })
         .from(rower)
-        .where(manager || session.writable ? isNull(rower.archivedAt) : inArray(rower.id, crew))
+        .where(
+          opts.unifiedUsers
+            ? z.object({ sharing: z.literal('true') }).safeParse(req.query).success
+              ? sql`rowlens_share_target(${rower.id})`
+              : sql`rowlens_account_target(${rower.id})`
+            : manager || session.writable
+              ? isNull(rower.archivedAt)
+              : inArray(rower.id, crew),
+        )
         .orderBy(asc(rower.displayName));
     });
     return rows === null
@@ -152,24 +162,45 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         };
   });
 
-  app.get('/api/rowers', { preHandler: [guard, requireManager] }, async (req) => {
-    const query = listQuery.safeParse(req.query);
-    const archived = query.success ? query.data.archived : undefined;
-    const rows = await withTenant(db, tenantOf(req), (tx) =>
-      tx
-        .select(rowerColumns)
-        .from(rower)
-        .where(
-          archived === 'include'
-            ? undefined
-            : archived === 'only'
-              ? isNotNull(rower.archivedAt)
-              : isNull(rower.archivedAt),
-        )
-        .orderBy(asc(rower.displayName)),
-    );
-    return { rowers: rows };
-  });
+  app.get(
+    '/api/rowers',
+    { preHandler: [guard, ...(opts.unifiedUsers ? [] : [requireManager])] },
+    async (req) => {
+      if (opts.unifiedUsers) {
+        const rows = await withTenant(db, tenantOf(req), async (tx) => {
+          await tx.execute(sql`select rowlens_sync_account_targets()`);
+          return tx
+            .select({
+              id: rower.id,
+              displayName: rower.displayName,
+              email: sql<null>`null`,
+              archivedAt: rower.archivedAt,
+              createdAt: rower.createdAt,
+            })
+            .from(rower)
+            .where(sql`rowlens_account_target(${rower.id})`)
+            .orderBy(asc(rower.displayName));
+        });
+        return { rowers: rows };
+      }
+      const query = listQuery.safeParse(req.query);
+      const archived = query.success ? query.data.archived : undefined;
+      const rows = await withTenant(db, tenantOf(req), (tx) =>
+        tx
+          .select(rowerColumns)
+          .from(rower)
+          .where(
+            archived === 'include'
+              ? undefined
+              : archived === 'only'
+                ? isNotNull(rower.archivedAt)
+                : isNull(rower.archivedAt),
+          )
+          .orderBy(asc(rower.displayName)),
+      );
+      return { rowers: rows };
+    },
+  );
 
   app.post('/api/rowers', { preHandler: [guard, requireManager] }, async (req, reply) => {
     const body = newRower.safeParse(req.body);

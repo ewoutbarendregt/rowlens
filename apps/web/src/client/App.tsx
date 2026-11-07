@@ -1,7 +1,10 @@
+import { ClubsPage } from './clubs/ClubsPage.tsx';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
 import { AccessPage } from './admin/AccessPage.tsx';
-import { PLAYER_DEMO } from './features.ts';
+import { EmailChangePage } from './admin/EmailChangePage.tsx';
+import { UsersPage } from './admin/UsersPage.tsx';
+import { PLAYER_DEMO, UNIFIED_USERS } from './features.ts';
 import { useLanguage } from './i18n/language.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
@@ -23,6 +26,27 @@ export function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
+      {UNIFIED_USERS && <Route path="email-change/:id" element={<EmailChangePage />} />}
+      {UNIFIED_USERS && (
+        <Route
+          path="clubs"
+          element={
+            <RequireAuth accountOnly>
+              <ClubsPage />
+            </RequireAuth>
+          }
+        />
+      )}
+      {UNIFIED_USERS && (
+        <Route
+          path="users"
+          element={
+            <RequireAuth accountOnly role="admin">
+              <UsersPage />
+            </RequireAuth>
+          }
+        />
+      )}
       <Route
         path="sessions"
         element={
@@ -43,7 +67,7 @@ export function App() {
         path="admin"
         element={
           <RequireAuth role="admin">
-            <AccessPage />
+            <AccessPage key="club-admin" />
           </RequireAuth>
         }
       />

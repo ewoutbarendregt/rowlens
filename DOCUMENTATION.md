@@ -2,6 +2,90 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Complete enabled-auth release smoke configuration
+
+**Session**: codex/feat/unified-club-users
+**Changed**: .github/workflows/ci.yml, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: CI caught missing SMTP fixtures after unified authentication was enabled in release images. Added synthetic mail configuration to the isolated smoke check without relaxing production validation or changing server settings; merge/deploy remains gated on fresh green CI. Ewout also explicitly approved the previously shown one-time production platform-admin bootstrap, with the account email entered only through a hidden terminal prompt after deployment.
+**Prompts used**: "ga verder"; "Ja, ook mijn productieaccount RowLens-beheerder maken".
+
+## 2026-11-07 — Enable unified accounts in the authorized production release
+
+**Session**: codex/feat/unified-club-users
+**Changed**: .github/workflows/images.yml, .github/workflows/ci.yml, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested merge/deploy after all eight CI jobs passed on ce6c014. Release images now explicitly enable the paired client/runtime unified-user flag; CI builds the same image and checks its enabled unauthenticated account status with a synthetic smoke-test pepper. Docker defaults remain off for optional local/legacy builds; no server environment/configuration change is needed. Await fresh green CI before the authorized merge/deploy.
+**Prompts used**: "merge en deploy".
+
+## 2026-11-07 — Implement the scoped user table and complete verified account editor
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/shared/user-directory{,.test}.ts, apps/web/src/client/{App.tsx,api.ts,env.ts,styles.css,admin/AccessPage.tsx,admin/UsersPage.tsx,admin/UserEditor.tsx,admin/EmailChangePage.tsx,admin/directory-strings.ts,admin/strings.ts}, apps/web/src/server/{api/access.ts,auth/account-management.ts,auth/unified-gate.ts,auth/unified-gate.db.test.ts,auth/mail.ts,auth/mail.test.ts,db/schema.ts,db/grant-platform-admin-cli.ts,db/migrations/0024_account_management.sql,db/migrations/meta}, docs/adr/{0023-user-directory-and-identity-management.md,0019-user-settings-and-role-sets.md,README.md}, docs/plans/user-directory-and-account-editor.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented a 17-field filterable/sortable paged user table, configurable columns and complete account/profile/preferences/club-role/global-role/email editor. Approved migration 0024 adds protected expiring identity proofs, scoped projections and serialized global authority; club-initiated email changes require the existing account owner to confirm, preventing other-club/global account takeover. Preserved history/grants, reserved identities, conflict checks, actual actor audit and feature-off compatibility. Account-ID-bound role grants and coordinated identity/mailbox/admission locks prevent a concurrently changed or recycled email from receiving another account's intended grant. Checks: 593 web/DB, latest 29 focused identity cases, 16 laptop/iPhone WebKit, 49 legacy local plus final 16 auth/permission compatibility cases, 39 proxy, 50 worker, 77 deploy-script and real Docker migration/rollback rehearsal pass; diagnostic failures are retained in TEST.md. Local stack has 25 migrations; no real account mutation, production action, merge or deployment.
+**Prompts used**: "Ja, voer het volledige plan uit" (approval of docs/plans/user-directory-and-account-editor.md). Original request: "de tab gebruikers geeft alle gebruikers in tabel/list view, filterbaar en sorteerbaar op alle velden. het editen van een gebruiker toon een form waar alle attributen van die gebruiker te beheren zijn(naam, email, rol, overige voorkeuren). de clubbeheerder ziet alleen gebruikers en aanvragen voor zijn club, de rowlens beheerder ziet alle gebruikers".
+
+## 2026-11-07 — Plan the sortable directory and full identity/role editor
+
+**Session**: codex/feat/unified-club-users
+**Changed**: docs/plans/user-directory-and-account-editor.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Inspected the current directory/settings boundaries and specified a scoped table/list with every field filterable/sortable and a complete editor. Proposed migration 0024 covers verified pending email changes, explicit persisted global role management and protected directory/detail projections; no code, account or database mutation was made. Await architecture approval under AGENTS.md before extending login identity/global-authority operations.
+**Prompts used**: "de tab gebruikers geeft alle gebruikers in tabel/list view, filterbaar en sorteerbaar op alle velden. het editen van een gebruiker toon een form waar alle attributen van die gebruiker te beheren zijn(naam, email, rol, overige voorkeuren). de clubbeheerder ziet alleen gebruikers en aanvragen voor zijn club, de rowlens beheerder ziet alle gebruikers".
+
+## 2026-11-07 — Give account management its own Users navigation tab
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/client/{App.tsx,admin/AccessPage.tsx,admin/strings.ts,clubs/ClubsPage.tsx,ui/AppHeader.tsx,styles.css}, apps/web/src/server/{auth/unified-gate.ts,auth/unified-gate.db.test.ts,repositories/user-settings.ts}, apps/web/e2e/unified-users.spec.ts, docs/adr/0021-unified-accounts-and-club-admission.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Users is a separate administrative navigation page: platform administrators see all verified accounts including those without memberships; club administrators receive only actual members of the selected club. Account settings moved out of Clubs; club roles/admission remain explicitly selected-club scoped, while Club administration holds Requests and Roles. A regression exposed global settings requiring a club; the narrow platform-only settings route now uses account context with atomic UUID-only read/save auditing, revision conflicts and persisted SQL authority intact. No migration or production change. Full 546 web/DB tests, 38 focused permission/settings cases, 10 laptop/iPhone WebKit cases and 6 legacy admin/settings browser cases pass; see TEST.md for final verification.
+**Prompts used**: "er moet inderdaad een tab 'gebruikers' komen waar alle gebruikers beheerd kunnen worden. rowlens admin ziet ze allemaal. de clubbeheerder ziet alleen de leden van zijn club. een gebruikers kan bij 0 of meer clubs aangesloten zijn".
+
+## 2026-11-07 — Separate club admission from platform club lifecycle management
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/client/{admin,clubs,styles.css}, apps/web/src/server/{api/access.ts,auth/unified-gate.ts,auth/unified-gate.db.test.ts,db/schema.ts,db/migrations/0023_club_archive.sql,db/migrations/meta}, apps/web/e2e/unified-users.spec.ts, docs/adr/{0022-club-archiving.md,README.md}, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Club administration now groups actual club members and role editing with a Requests tab for admission/rejection. RowLens administrators see a complete club directory with create/edit and inline-confirmed archive/restore; approved migration 0023 enforces archived-club denial in tenant RLS and account selection while retaining accounts, memberships and history. Full web/DB 545, worker 50, 8 laptop/iPhone WebKit cases, 49 legacy local cases, 39 proxy cases, 77 deploy checks and the local migration/rollback rehearsal pass. Details, proxy regression and diagnostic startup failures are in TEST.md; no production change or merge/deploy.
+**Prompts used**: "als clubbeheerder wil ik onder clubbeheer alle clubleden kunnen inzien en hun rollen kunnen toekennen. ik wil ook nieuwe aanmeldingen kunnen zien en kunnen goedkeuren. Onder Clubs wil ik als rowlens admin een lijst met bestaande clubs zien en clubs kunnen toevoegen, verwijderen, en wijzigen." Follow-up approval: "Ja, archiveren en kunnen herstellen".
+
+## 2026-11-07 — Fix operator bootstrap audit parameter typing
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/db/grant-platform-admin-cli.ts, apps/web/src/server/db/grant-platform-admin-cli.db.test.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Reproduced the operator-reported PostgreSQL 42P08 error with the actual CLI against a throwaway database, then fixed the audit parameter's explicit UUID/text conversion. All 20 focused CLI/authorization cases pass, including audited repeat-safe grants and unverified-account refusal without email disclosure. The failed original transaction rolled back; the operator can safely rerun the hidden prompt. No real account grant or production mutation was performed by the agent.
+**Prompts used**: "Verified account email (hidden):" / "error: inconsistent types deduced for parameter $1" / "detail: 'text versus uuid'" (user's reported terminal failure).
+
+## 2026-11-07 — Confirm green PR and local review readiness
+
+**Session**: codex/feat/unified-club-users
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: On “ga door”, confirmed PR #157 is open and mergeable with all eight CI jobs successful in run 42368522411; the local development readiness endpoint reports database health. Implementation is ready for local review. The operator must enter their verified account address into the hidden bootstrap terminal prompt; historical mappings require explicit real-account selection. No merge, production bootstrap or deployment was performed.
+**Prompts used**: "ga door".
+
+## 2026-11-07 — Require an explicit club when membership is ambiguous
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/auth/unified-gate.db.test.ts, BUGS.md, TEST.md, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Club content routes now reject a missing club identifier when multiple clubs are available, preventing an old tab/API client from writing into a newly changed implicit first club. Authentication/profile/application/platform operations remain global and single-club legacy requests still work; 18 focused integration cases and 6 laptop/iPhone cases pass. CI run 42368018365 passed web (including the fixed upload suite and both browser matrices) and deploy-script before this final context hardening; current CI is linked on PR #157.
+**Prompts used**: "ja uitvoeren".
+
+## 2026-11-07 — Fix the upload acknowledgement race exposed by PR CI
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/api/uploads.ts, apps/web/src/server/api/uploads.db.test.ts, BUGS.md, TEST.md, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: CI run 42367425246 exposed the existing reply-before-COMMIT upload race (538 passed, 2 failed): a completed response could precede its durable processing job and upload-slot release. A real deferred PostgreSQL commit gate reproduces premature acknowledgement before the fix; plain transaction results now commit and release the slot before sending the response. Focused uploads 13/13, full web/DB 541/541, lint/typecheck/build and 6 desktop/mobile upload/permissions browser cases pass; PR #157 awaits a new CI run. No migration, production change or deployment.
+**Prompts used**: "ja uitvoeren".
+
+## 2026-11-07 — Verify unified accounts, role boundaries and club interfaces
+
+**Session**: codex/feat/unified-club-users
+**Changed**: TEST.md, BUGS.md, FEATURES.md, BUILD.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0021-unified-accounts-and-club-admission.md, docs/plans/unified-users-impact.md
+**Summary**: Ready in [PR #157](https://github.com/ewoutbarendregt/rowlens/pull/157), with CI status on the PR. Final web/DB suite passes 540 tests (18 new integration cases), worker 50 plus Ruff/mypy, format/lint/typecheck/build and schema consistency; six new local and six proxy laptop/iPhone WebKit cases pass, with screenshots and >=44 px/no-overflow measurements. Legacy local passes 49; legacy proxy initially had one transient inline-add failure, then passed its targeted repeat and final full 39-case rerun (13 skipped). Deploy-script 77 and real Docker deploy/rollback rehearsal pass. No production mutation or deployment; 7 historical people still need real account mapping, and platform bootstrap remains an explicit hidden terminal prompt.
+**Prompts used**: "ja uitvoeren".
+
+## 2026-11-07 — Implement approved account requests and multi-club administration
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/{server,client}, apps/web/{e2e,playwright.unified.config.ts,tsconfig.json,package.json,Dockerfile}, scripts/admin/grant-platform-admin.sh, .github/workflows/ci.yml, .gitignore, .dockerignore, AGENTS.md, docs/adr/{0011,0013,0019,0020,0021,README}.md, docs/plans/unified-users-impact.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented feature-gated verified account requests, independent sessions, audited club applications/admission, live per-club roles/switching, separately bootstrapped full RowLens authority, WVIJburg club mapping and account-backed selectors without standalone roster creation. Three additive migrations preserve old IDs/history and add canonical user references with explicit admin mapping; read-only production preflight found all 7 old people unlinked, so contract removal waits for real account mappings. Initial checks passed; the final verification entry records the expanded 540 web/DB, 50 worker and browser/rollback results. No production writes, real invitation, merge or deployment.
+**Prompts used**: "ja uitvoeren" (approval of the unified-user/account request/multi-club/RowLens-admin plan; logos and club design remain later).
+
 ## 2026-11-06 — Finish upgrade-compatible training permissions (#154)
 
 **Session**: codex/feat/154-club-training-readonly

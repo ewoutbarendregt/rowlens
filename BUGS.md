@@ -2,6 +2,125 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-051] Enabled-auth release image smoke lacked SMTP fixtures — low
+**Location**: .github/workflows/ci.yml
+**Status**: fixed
+**Found**: 2026-11-07 (CI run 42390255322)
+**Description**: Enabling unified authentication in release images caused the isolated image smoke to fail production configuration validation because SMTP fixtures were absent.
+**Fix**: Supply synthetic SMTP configuration to the smoke container; keep production validation intact. CI checks ready status and enabled unified authentication without sending mail.
+
+### [BUG-050] Concurrent/recycled email could redirect a club admission — high
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (unreleased identity concurrency review)
+**Description**: Email-keyed provisioning/admission could read an address before its verified change and write a grant afterward; a later editor submission could target a different account that reused the old address.
+**Fix**: Bind editor grants to immutable account ID and expected membership state. Coordinate confirmation, OTP/provisioning/adoption, approval and initial-admin writers through identity/mailbox/admission locks and fresh email checks. A real queued-lock regression rejects stale admission and a recycled-address form, while the updated address grants only the intended account.
+
+### [BUG-047] Club-admin email confirmation could transfer other-club authority — high
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (during unreleased implementation review)
+**Description**: New-mailbox proof alone would allow a club administrator to change a member's login to a mailbox they control, inheriting that member's other-club/global authority.
+**Fix**: Club initiators cannot confirm for another user. The target must authenticate their existing account and enter the new-mailbox code on the owner confirmation page; requester authority is rechecked. SQL/API and laptop/iPhone browser regressions preserve other-club membership/roles and reject the initiator's confirmation.
+
+### [BUG-048] Empty reserved-address arrays produced invalid email-proof SQL — medium
+**Location**: apps/web/src/server/auth/account-management.ts
+**Status**: fixed
+**Found**: 2026-11-07 (new integration tests)
+**Description**: Direct Drizzle interpolation of an empty address array generated a SQL list rather than a typed text-array value; request tests returned 500.
+**Fix**: Build the bound array from JSON text through jsonb_array_elements_text. Tests cover empty and configured address lists, protected sources/destinations and duplicate addresses.
+
+### [BUG-049] Null SQL proof/authority inputs needed explicit refusal — medium
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (unreleased permission-layer review)
+**Description**: HTTP validation rejects null, but SQL three-valued comparisons alone would not reliably refuse a null hash or null role state in a direct protected-function call.
+**Fix**: Explicit null guards for hashes, expected/enabled authority and identity revision, plus a verified-target requirement. Direct app-role SQL regressions reject null proof/authority inputs and API tests reject unverified targets.
+
+### [BUG-046] Global account settings incorrectly required a selected club — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:168
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The global Users page could list accounts without memberships, but its settings API still required an explicit club when multiple clubs existed. A platform administrator with no selected club received 404.
+**Fix**: Scope only the exact administrative user-settings route to the global account for persisted platform actors. Tenant administrators retain live club/target-membership checks. Protected account read/save audits use UUIDs in the repository transaction; a regression verifies an account with zero memberships, revision conflict and withdrawn platform authority.
+
+### [BUG-045] Unified club member list included unused access addresses — medium
+**Location**: apps/web/src/server/api/access.ts:128
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The unified club member list inherited the legacy allowlist register and could show addresses without a club membership. A membership without a matching grant was also mislabeled server-managed, obscuring role editing.
+**Fix**: In unified mode, enumerate actual current-club memberships and mark membership-only entries editable unless explicitly server-managed. Integration coverage checks all members, exclusion of other-club/account-only users, role assignment and cross-club denial. Legacy feature-off behavior remains.
+
+### [BUG-044] Platform bootstrap fails on audit parameter type inference — medium
+**Location**: apps/web/src/server/db/grant-platform-admin-cli.ts:25
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The operator bootstrap reused one parameter in UUID and text contexts without first fixing its type. PostgreSQL rejected the audit insert with 42P08 and rolled back the administrator grant.
+**Fix**: Cast the parameter to UUID explicitly, then convert that UUID to audit text. Real CLI subprocess integration tests cover a verified grant, repeat invocation with exactly one audit event, unverified-account refusal and email non-disclosure.
+
+### [BUG-043] Missing club context could silently select a different membership — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:122
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: An old tab or API client without a club UUID could use the first available club after memberships changed. Both clubs were authorized, but a mutation could land in an unintended club.
+**Fix**: Require explicit context on club content routes whenever more than one club is available. Global account operations remain independent, and tests require 404 for ambiguous reads and training creation while explicit A/B requests keep their own roles.
+
+### [BUG-042] Upload responses could precede commit and busy-slot release — high
+**Location**: apps/web/src/server/api/uploads.ts:171
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: PR CI observed a completed upload before its processing job was visible and an immediate termination still returning 423. Reply.send inside the transaction acknowledged the request before COMMIT/final cleanup.
+**Fix**: Return plain transaction outcomes and send only after commit and slot release. A deferred PostgreSQL commit gate fails before the fix and passes after; 13 upload tests, 541 full web/DB tests and 6 upload/permissions browser cases pass locally.
+
+### [BUG-038] Account-first admission could bypass existing admin safeguards — high
+**Location**: apps/web/src/server/api/access.ts:160
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The new admission path needed the same immutable server-admin, self-demotion and last-club-admin protections as existing role updates. A global administrator's independent non-admin club role must remain editable.
+**Fix**: Check server-managed identities before the new path and enforce existing-member safeguards in the serialized SQL operation. An integration regression covers self, last-admin, server-admin and global-admin-as-rower cases.
+
+### [BUG-039] Legacy session adoption could revive a withdrawn proof — high
+**Location**: apps/web/src/server/auth/unified-gate.ts:86
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Fallback lookup must not accept a legacy bearer after its adopted account proof is revoked, and old logout must invalidate the adopted proof during an upgrade/rollback window.
+**Fix**: Lock before adoption, preserve token revocation on conflicts, synchronize legacy logout, and re-resolve the account proof without an independent permissive fallback. Tests verify legacy logout, membership revocation and account logout-others.
+
+### [BUG-040] Tenant-only account-access policies allowed role mutations without club-admin RLS — high
+**Location**: apps/web/src/server/db/schema.ts:169
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: API admin guards protected access management, but membership/access tables lacked restrictive policies rejecting role writes from ordinary same-club contexts.
+**Fix**: Add restrictive membership/access/access-log policies in migration 0022, with direct SQL self-escalation and two-club regressions.
+
+### [BUG-041] Account-only routing considered query text — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:153
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Checking the entire request URL for the own-profile prefix could let an account-only session reach a protected club handler by putting that prefix in a query. Tenant RLS still denied actual club data.
+**Fix**: Match the server's registered route prefix, with a regression requiring a plain 404 for the crafted query.
+
+### [BUG-036] Long club names could push the header outside a laptop viewport — low
+**Location**: apps/web/src/client/styles.css:3446
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: A valid 76-character unbroken club name widened the header beyond a 1000 px window. A browser regression reproduced document overflow before the fix.
+**Fix**: Constrain the brand container and ellipsize the club label; preserve the full accessible name/title. Test on laptop and iPhone WebKit.
+
+### [BUG-037] A pending invitation could restore a broader role after admission — high
+**Location**: apps/web/src/server/db/migrations/0020_unified_accounts.sql:169
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Approving a new member as rower must not retain an older coach grant that provisioning could restore on a later login. Direct admission and subsequent revocation must also keep application state consistent.
+**Fix**: Commit matching membership/access roles and application decisions atomically; revocation preserves the account and applies the reapplication cooldown. Integration regressions cover both paths.
+
+### [BUG-035] Native club selectors were undersized on iPhone WebKit — low
+**Location**: apps/web/src/client/styles.css:3441
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The new club-management selectors could render below the 44 px touch target on WebKit even with min-height. The browser layout check caught it.
+**Fix**: Set explicit selector height alongside minimum height and verify on iPhone WebKit and low laptop. Administrator selector also receives an explicit accessible name for stable label-based interaction.
+
 ### [BUG-034] Permission migration could broaden old web handlers before their replacement — high
 **Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql, apps/web/src/server/db/tenant.ts
 **Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)

@@ -8,8 +8,10 @@ test('an admin gives a rower access; the rower signs in without admin rights', a
 }, info) => {
   const rower = `rower.${info.project.name.replace(/\W/g, '')}.${String(Date.now())}@example.com`;
   await signIn(page, adminEmail);
-  await page.getByRole('link', { name: /^(Admin|Beheer)$/ }).click();
-  await expect(page.getByRole('heading', { level: 1, name: /^(Admin|Beheer)$/ })).toBeVisible();
+  await page.getByRole('link', { name: /^(Club administration|Clubbeheer)$/ }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: /^(Club administration|Clubbeheer)$/ }),
+  ).toBeVisible();
   await expect(page.getByTestId('access-list')).toContainText(adminEmail);
   await page.getByRole('tab', { name: /^(Roles|Rollen)$/ }).click();
   await expect(page.getByTestId('roles')).toContainText(
@@ -29,7 +31,9 @@ test('an admin gives a rower access; the rower signs in without admin rights', a
 
   await signOut(page);
   await signIn(page, rower);
-  await expect(page.getByRole('link', { name: /^(Admin|Beheer)$/ })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /^(Club administration|Clubbeheer)$/ })).toHaveCount(
+    0,
+  );
   await expect(page.getByRole('link', { name: /^(Rowers|Roeiers)$/ })).toHaveCount(0);
   await page.goto('./rowers');
   await expect(page).toHaveURL(/\/sessions$/);

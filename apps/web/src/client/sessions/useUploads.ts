@@ -1,3 +1,4 @@
+import { activeClub } from '../club-context.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type DetailedError, Upload } from 'tus-js-client';
 import { csrfToken } from '../api.ts';
@@ -74,7 +75,10 @@ export function useUploads(sessionId: string, onFinished: () => void) {
       update(next.id, { state: 'uploading', error: undefined });
       const upload = new Upload(next.file, {
         endpoint: appUrl('/api/uploads'),
-        headers: { 'x-csrf-token': csrfToken() ?? '' },
+        headers: {
+          'x-csrf-token': csrfToken() ?? '',
+          ...(activeClub() ? { 'x-rowlens-club': activeClub() ?? '' } : {}),
+        },
         chunkSize: CHUNK_BYTES,
         retryDelays: [0, 3_000, 10_000, 30_000, 60_000],
         removeFingerprintOnSuccess: true,

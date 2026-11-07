@@ -14,6 +14,7 @@
     "pilot:code": "node --experimental-strip-types src/server/pilot/code-cli.ts",
     "dev:client": "vite",
     "e2e": "playwright test",
+    "e2e:unified": "E2E_UNIFIED=true playwright test --config=playwright.unified.config.ts",
     "e2e:edge": "E2E_EDGE_URL=http://localhost:${EDGE_PORT:-8080} playwright test --project desktop-chromium",
     "e2e:editing": "E2E_EDGE_URL=http://localhost:${EDGE_PORT:-8080} playwright test --config=playwright.editing.config.ts"
   },

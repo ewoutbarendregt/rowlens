@@ -141,6 +141,41 @@
       "when": 1793992099181,
       "tag": "0019_club_training_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794046789784,
+      "tag": "0020_unified_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794047460159,
+      "tag": "0021_user_reference_backfill",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1794048176541,
+      "tag": "0022_admission_role_boundaries",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794057437176,
+      "tag": "0023_club_archive",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794061441602,
+      "tag": "0024_account_management",
+      "breakpoints": true
     }
   ]
 }

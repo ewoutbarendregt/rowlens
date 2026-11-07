@@ -72,6 +72,11 @@ jobs:
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
       - name: E2E smoke + player (desktop + mobile Chromium)
         run: pnpm --filter @rowlens/web e2e
+      - name: Unified accounts (laptop Chromium and iPhone WebKit)
+        run: |
+          pnpm --filter @rowlens/web exec playwright install --with-deps webkit
+          VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true pnpm build
+          pnpm --filter @rowlens/web e2e:unified
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4
@@ -187,8 +192,10 @@ jobs:
           push: false
           load: true
           tags: rowlens-${{ matrix.name }}:ci
-          # Same as main's images (images.yml): player demo on.
-          build-args: VITE_FEATURE_PLAYER_DEMO=true
+          # Same as main's release images: demo and unified accounts enabled together.
+          build-args: |
+            VITE_FEATURE_PLAYER_DEMO=true
+            VITE_FEATURE_UNIFIED_USERS=true
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
       - name: Smoke test web image
@@ -204,9 +211,13 @@ jobs:
             -e DATABASE_OWNER_URL=postgres://rowlens_owner:smoke_owner_only@db:5432/rowlens \
             rowlens-web:ci node dist/server/db/migrate-cli.js
           docker run -d --name web --network smoke -p 3000:3000 -e PUBLIC_ORIGIN=http://127.0.0.1:3000 \
+            -e OTP_PEPPER=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee \
+            -e SMTP_HOST=smtp.invalid -e SMTP_USER=smoke -e SMTP_PASSWORD=smoke_only \
+            -e MAIL_FROM=smoke@example.test \
             -e DATABASE_URL=postgres://rowlens_app:smoke_app_password_only@db:5432/rowlens rowlens-web:ci
           for _ in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/ready; then
+              curl -fsS http://127.0.0.1:3000/projects/rowlens/api/auth/status | jq -e '.unified == true and .enabled == true and .access == false'
               curl -fsS -H 'accept: text/html' http://127.0.0.1:3000/projects/rowlens/ | grep -q '<div id="root">'
               curl -fsS http://127.0.0.1:3000/projects/rowlens/demo-media/manifest.json | jq -e 'length > 0'
               exit 0

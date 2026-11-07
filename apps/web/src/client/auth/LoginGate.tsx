@@ -1,3 +1,4 @@
+import { clubStrings } from '../clubs/strings.ts';
 import { type SubmitEvent, useId, useState } from 'react';
 import { lang } from '../i18n/language.ts';
 import { api } from '../api.ts';
@@ -6,7 +7,13 @@ import { authStrings } from './strings.ts';
 
 type Problem = 'invalid' | 'tooMany' | 'failed' | null;
 
-export function LoginGate({ onAccess }: { onAccess: () => void }) {
+export function LoginGate({
+  onAccess,
+  unified = false,
+}: {
+  onAccess: () => void;
+  unified?: boolean;
+}) {
   const t = authStrings();
   const id = useId();
   const [step, setStep] = useState<'email' | 'code'>('email');
@@ -56,10 +63,11 @@ export function LoginGate({ onAccess }: { onAccess: () => void }) {
     <section className="gate" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`}>{step === 'email' ? t.title : t.codeTitle}</h3>
       {step === 'email' ? (
-        <p className="gate__text">{t.intro}</p>
+        <p className="gate__text">{unified ? clubStrings().loginIntro : t.intro}</p>
       ) : (
         <p className="gate__text">
-          {t.codeSentIf} <strong>{email}</strong> {t.codeSentRest}
+          {unified ? clubStrings().mailIf : t.codeSentIf} <strong>{email}</strong>{' '}
+          {unified ? clubStrings().mailRest : t.codeSentRest}
         </p>
       )}
       {step === 'email' ? (
@@ -134,6 +142,13 @@ export function LoginGate({ onAccess }: { onAccess: () => void }) {
           <Icon name="alert" />
           {t[problem]}
         </p>
+      )}
+      {unified && (
+        <>
+          <h4>{clubStrings().accountRequest}</h4>
+          <p>{clubStrings().signupIntro}</p>
+          <p>{clubStrings().access}</p>
+        </>
       )}
       <h4 className="gate__notice-title">{t.noticeTitle}</h4>
       <ol className="gate__notice">

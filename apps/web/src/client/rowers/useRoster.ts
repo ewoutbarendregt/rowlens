@@ -39,7 +39,11 @@ export async function addRower(
 }
 
 /** The club roster (#104), loaded once per page; `reload` after a change. */
-export function useRoster(archived?: 'include' | 'only', sessionId?: string | null) {
+export function useRoster(
+  archived?: 'include' | 'only',
+  sessionId?: string | null,
+  sharing = false,
+) {
   const [rowers, setRowers] = useState<Rower[] | null>(null);
   const [failed, setFailed] = useState(false);
 
@@ -53,7 +57,7 @@ export function useRoster(archived?: 'include' | 'only', sessionId?: string | nu
       const res = await api(
         sessionId === undefined
           ? `/api/rowers${archived === undefined ? '' : `?archived=${archived}`}`
-          : `/api/sessions/${sessionId}/rowers`,
+          : `/api/sessions/${sessionId}/rowers${sharing ? '?sharing=true' : ''}`,
       );
       if (!res.ok) throw new Error();
       setRowers(((await res.json()) as { rowers: Rower[] }).rowers);
@@ -61,7 +65,7 @@ export function useRoster(archived?: 'include' | 'only', sessionId?: string | nu
     } catch {
       setFailed(true);
     }
-  }, [archived, sessionId]);
+  }, [archived, sessionId, sharing]);
 
   useEffect(() => {
     void reload();

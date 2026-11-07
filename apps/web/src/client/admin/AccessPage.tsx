@@ -8,6 +8,7 @@ import { settingsStrings } from '../settings/strings.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { UserSettingsEditor } from './UserSettingsEditor.tsx';
 import { adminStrings } from './strings.ts';
+import { ClubApplications } from './ClubApplications.tsx';
 
 interface Entry {
   id: string | null;
@@ -21,17 +22,19 @@ interface Entry {
   lastSeenAt: string | null;
 }
 const errorText = (t: ReturnType<typeof adminStrings>, error: string | undefined) =>
-  error === 'exists'
-    ? t.exists
-    : error === 'server_managed'
-      ? t.serverManaged
-      : error === 'self'
-        ? t.self
-        : error === 'last_admin'
-          ? t.lastAdmin
-          : error === 'access_changed'
-            ? settingsStrings().conflict
-            : t.failed;
+  error === 'account_required'
+    ? t.accountRequired
+    : error === 'exists'
+      ? t.exists
+      : error === 'server_managed'
+        ? t.serverManaged
+        : error === 'self'
+          ? t.self
+          : error === 'last_admin'
+            ? t.lastAdmin
+            : error === 'access_changed'
+              ? settingsStrings().conflict
+              : t.failed;
 const formatWhen = (iso: string) =>
   new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
     new Date(iso),
@@ -82,7 +85,9 @@ export function AccessPage() {
   const [roles, setRoles] = useState<Role[]>(['rower']);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; alert: boolean } | null>(null);
-  const [tab, setTab] = useState<'users' | 'roles'>('users');
+  const [tab, setTab] = useState<'users' | 'roles' | 'applications'>(
+    state.kind === 'open' && state.unified ? 'applications' : 'users',
+  );
   const [search, setSearch] = useState('');
   const load = useCallback(async () => {
     try {
@@ -94,6 +99,7 @@ export function AccessPage() {
       setFailed(true);
     }
   }, []);
+  const unified = state.kind === 'open' && state.unified === true;
   const admin = state.kind === 'open' && state.user.roles.includes('admin');
   useEffect(() => {
     if (admin) void load();
@@ -113,8 +119,12 @@ export function AccessPage() {
     if (response?.status === 201) {
       const { invited } = (await response.json()) as { invited: boolean };
       setMessage({
-        text: invited ? t.admitted(address) : t.admittedNoMail(address),
-        alert: !invited,
+        text: unified
+          ? t.admittedClub(address)
+          : invited
+            ? t.admitted(address)
+            : t.admittedNoMail(address),
+        alert: !unified && !invited,
       });
       setEmail('');
       await load();
@@ -127,27 +137,37 @@ export function AccessPage() {
     setMessage({ text: errorText(t, error), alert: true });
   };
   return (
-    <main className="page">
+    <main className="page club-admin-page">
       <h1>{t.admin}</h1>
       <div className="tabs" role="tablist" aria-label={t.admin}>
-        {(['users', 'roles'] as const).map((name) => (
-          <button
-            key={name}
-            type="button"
-            role="tab"
-            id={`${formId}-tab-${name}`}
-            aria-selected={tab === name}
-            aria-controls={`${formId}-panel-${name}`}
-            className="tabs__tab"
-            onClick={() => {
-              setTab(name);
-            }}
-          >
-            {t.tabs[name]}
-          </button>
-        ))}
+        {(unified ? (['applications', 'roles'] as const) : (['users', 'roles'] as const)).map(
+          (name) => (
+            <button
+              key={name}
+              type="button"
+              role="tab"
+              id={`${formId}-tab-${name}`}
+              aria-selected={tab === name}
+              aria-controls={`${formId}-panel-${name}`}
+              className="tabs__tab"
+              onClick={() => {
+                setTab(name);
+              }}
+            >
+              {unified && name === 'users' ? t.members : t.tabs[name]}
+            </button>
+          ),
+        )}
       </div>
-      {tab === 'roles' ? (
+      {tab === 'applications' ? (
+        <section
+          role="tabpanel"
+          id={`${formId}-panel-applications`}
+          aria-labelledby={`${formId}-tab-applications`}
+        >
+          <ClubApplications onChanged={load} />
+        </section>
+      ) : tab === 'roles' ? (
         <section
           role="tabpanel"
           id={`${formId}-panel-roles`}
@@ -155,6 +175,7 @@ export function AccessPage() {
           data-testid="roles"
         >
           <p className="muted">{t.rolesIntro}</p>
+          {unified && <p>{t.platformRoleHint}</p>}
           <div className="table-wrap">
             <table className="roles-table">
               <thead>
@@ -168,14 +189,16 @@ export function AccessPage() {
                 </tr>
               </thead>
               <tbody>
-                {t.rights.map((right) => (
-                  <tr key={right.what}>
-                    <th scope="row">{right.what}</th>
-                    {ROLES.map((r) => (
-                      <td key={r}>{right[r]}</td>
-                    ))}
-                  </tr>
-                ))}
+                {t.rights
+                  .filter((r) => !unified || !('legacyRoster' in r))
+                  .map((right) => (
+                    <tr key={right.what}>
+                      <th scope="row">{right.what}</th>
+                      {ROLES.map((r) => (
+                        <td key={r}>{right[r]}</td>
+                      ))}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -186,7 +209,7 @@ export function AccessPage() {
           id={`${formId}-panel-users`}
           aria-labelledby={`${formId}-tab-users`}
         >
-          <p className="muted">{t.intro}</p>
+          <p className="muted">{unified ? t.unifiedIntro : t.intro}</p>
           {failed && <p role="alert">{t.loadFailed}</p>}
           <form
             className="card form"
@@ -212,7 +235,7 @@ export function AccessPage() {
             {roles.length === 0 && <p>{s.needRole}</p>}
             {message && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
           </form>
-          <h2>{t.people}</h2>
+          <h2>{unified ? t.members : t.people}</h2>
           <div className="form">
             <label htmlFor={`${formId}-search`}>{s.search}</label>
             <input
@@ -232,7 +255,13 @@ export function AccessPage() {
                   .includes(search.trim().toLocaleLowerCase()),
               )
               .map((entry) => (
-                <AccessRow key={entry.email} entry={entry} onChanged={load} ownId={state.user.id} />
+                <AccessRow
+                  key={entry.email}
+                  entry={entry}
+                  onChanged={load}
+                  ownId={state.user.id}
+                  unified={unified}
+                />
               ))}
           </ul>
         </section>
@@ -244,10 +273,12 @@ function AccessRow({
   entry,
   onChanged,
   ownId,
+  unified,
 }: {
   entry: Entry;
   onChanged: () => Promise<void>;
   ownId: string;
+  unified: boolean;
 }) {
   const t = adminStrings();
   const s = settingsStrings();
@@ -297,7 +328,11 @@ function AccessRow({
         <span className="muted">
           {[
             entry.source === 'server' ? t.server : null,
-            entry.lastSeenAt === null ? t.notYet : t.lastSeen(formatWhen(entry.lastSeenAt)),
+            entry.lastSeenAt === null
+              ? unified && entry.userId !== null
+                ? t.activityUnknown
+                : t.notYet
+              : t.lastSeen(formatWhen(entry.lastSeenAt)),
           ]
             .filter(Boolean)
             .join(' · ')}
@@ -325,7 +360,7 @@ function AccessRow({
           entry.id !== null &&
           (confirming ? (
             <ConfirmInline
-              question={t.confirmRemove(entry.email)}
+              question={unified ? t.confirmRemoveClub(entry.email) : t.confirmRemove(entry.email)}
               yesLabel={t.removeYes}
               onConfirm={() => {
                 setConfirming(false);

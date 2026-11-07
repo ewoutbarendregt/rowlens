@@ -62,3 +62,16 @@ describe('inviteMessage', () => {
     expect(message.html).not.toContain('<Test>');
   });
 });
+
+it.each(['nl', 'en'] as const)('uses a distinct identity-verification message in %s', (locale) => {
+  const m = loginMessage({
+    email: 'new@example.test',
+    code: '012345',
+    locale,
+    loginUrl: 'https://example.test/projects/rowlens/users',
+    purpose: 'email-change',
+  });
+  expect(m.subject).toContain(locale === 'nl' ? 'e-mailadres' : 'email');
+  expect(m.text).toContain('012345');
+  expect(m.text).toContain(locale === 'nl' ? 'bestaande' : 'existing');
+});

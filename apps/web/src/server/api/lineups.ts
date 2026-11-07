@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull, ne } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, ne, sql } from 'drizzle-orm';
 import type { FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { BOAT_CLASS_NAMES, seatsOf } from '../../shared/boats.ts';
@@ -121,6 +121,14 @@ export const lineupRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
                 .from(rower)
                 .where(inArray(rower.id, [...rowerIds]));
         if (found.length !== rowerIds.size) return 'unknown_rower';
+        if (opts.unifiedUsers)
+          for (const id of rowerIds) {
+            if (before.has(id)) continue;
+            const valid = await tx.execute<{ ok: boolean }>(
+              sql`select rowlens_account_target(${id}) as ok`,
+            );
+            if (!valid.rows[0]?.ok) return 'unknown_rower';
+          }
         // An archived rower may stay where they sat, but can't be put in a seat anew.
         if (found.some((r) => r.archivedAt !== null && !before.has(r.id))) return 'archived_rower';
 

@@ -1,7 +1,128 @@
-# RowLens handoff — 2026-11-06
+# RowLens handoff — 2026-11-07
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
+
+## Authorized merge/deploy — 2026-11-07
+
+- Ewout explicitly requested "merge en deploy" for PR #157. Head ce6c014 passed all eight CI jobs.
+- Release and CI images now explicitly enable paired unified-user flags; the smoke check verifies
+  unified account status with synthetic OTP and SMTP configuration. Run 42390255322 caught the
+  missing SMTP fixture; corrected before merge, with production validation unchanged. Production has no override, so no .env
+  or installed compose edit is required. Wait for new CI, then merge and deploy the merge SHA.
+- Global grants remain separately bootstrapped; do not infer authority from names/allowlists. Ewout approved
+  the exact one-time production bootstrap command. After deployment, obtain the verified account
+  address only through the hidden terminal prompt; never infer it or put it in chat/arguments.
+- No production write/deployment has happened yet in this release turn. Older "no merge/deploy"
+  statements below are superseded only for this explicitly requested RowLens release.
+
+## Current task — full user table and account/identity editor
+
+- Ewout approved the full plan with "Ja, voer het volledige plan uit". Implemented on
+  `codex/feat/unified-club-users`, in PR #157; ADR-0023 records the final permission/identity model.
+- Users is now a 17-field server-filtered/sorted/paged table, with column selection and an editor
+  covering names/preferences, verified email, selected-club membership/roles and global authority.
+  RowLens admins see every verified account, including zero clubs, and all pending requests. Club
+  admins receive only current-club members, metadata/memberships and requests; scope precedes counts,
+  choices and filters. Account/club/authority keys and late-response guards isolate UI data/drafts.
+- Migration 0024: protected global pending proofs, explicit null/type/permission/revision checks,
+  UUID-only audits, ordered admission locks and email-keyed grant sync, old session/code revocation.
+  A club admin cannot confirm another account's change: its existing authenticated owner must use
+  the mailed new-mailbox code/link, preventing other-club/global takeover. Configured source and
+  destination addresses cannot be changed in the app. Global role changes require a persisted
+  RowLens admin, expected state, inline confirmation and serialized self/last-admin protection.
+  The hidden operator bootstrap remains first-admin/recovery and uses the same authority lock.
+  Account-ID-bound admissions and identity/mailbox locks also coordinate OTP verification, legacy
+  adoption, allowlist provisioning, approval and initial-admin writers. A real lock-wait regression
+  proves a changed/recycled email cannot redirect a role grant.
+- Checks: **593** web/DB, latest **29** focused identity/permission cases, **16** laptop/iPhone WebKit,
+  legacy local **49 pass/65 skipped**, final auth/permission compatibility **16/16**, proxy
+  **39 pass/17 skipped**, worker **50** + Ruff/mypy,
+  **77** deploy checks and real Docker migration/rollback rehearsal pass. Format/lint/typecheck/build
+  and generated-schema consistency pass. TEST.md records all diagnostic/mixed-build/trace failures
+  and isolated successful reruns; do not describe them as product fixes. Physical iPhone untested.
+- Local dev :5174/API :3100 is healthy, **25 migrations**. Unreleased function definitions were
+  refreshed as verification hardened them; fresh DB tests/rehearsal validate full SQL application.
+  Edge stopped with data retained. Feature-on build restored after legacy checks (local Vite dev
+  remains feature-on independently). No real identity/mailbox or production mutation was performed.
+- Next: Ewout reviews `/users` locally. Latest CI is on PR #157; no merge/deploy is authorized.
+
+## Current follow-up — Users page and zero-or-more club memberships
+
+- Included in PR #157 on `codex/feat/unified-club-users`. Ewout requested a Users tab: all accounts
+  for RowLens admins, only current-club members for club admins; accounts may have zero or more clubs.
+- `/users` is now separate navigation, protected for administrators. Platform mode uses the existing
+  protected global verified-account directory, optionally combined with selected-club role controls.
+  Club mode uses only the tenant member API. Users outside the selected club get account settings,
+  without invented club roles; explicit admission is available when a club is selected.
+- Clubs no longer embeds a global user-settings selector; its verified-user dropdown remains only
+  for appointing a club administrator. Club administration now holds Requests and Roles. Legacy
+  feature-off administration remains compatible. No new table, migration or dependency.
+- BUG-046 fixed: global account settings no longer require a selected club for platform actors.
+  Only the exact administrative settings route gets this account scope; club admins retain tenant
+  validation and SQL membership checks. Read/save audits contain actor/target UUIDs and commit with
+  settings work; revision conflicts do not create a successful-save event.
+- Checks: 546 full web/DB tests, 38 focused authorization/settings tests, 10 laptop/iPhone WebKit
+  cases, 6 legacy admin/settings browser cases and lint/typecheck/format/build pass. Prior proxy,
+  worker and migration/rollback evidence belongs to the preceding archive change; not rerun here.
+  Local :5174 remains healthy with 24 migrations. Refresh `/users` to review. No production change,
+  merge or deployment authorization; CI for the new head is on PR #157.
+
+## Current follow-up — club administration and reversible club archiving
+
+- On branch `codex/feat/unified-club-users`, included in PR #157. Ewout requested members/roles and
+  admission under Club administration, full club management under Clubs, and approved archiving
+  with restoration: "Ja, archiveren en kunnen herstellen" (ADR-0022; migration 0023).
+- Club administration has Club members, Requests and Roles tabs. Unified member lists exclude
+  unused allowlist addresses; all actual memberships are listed and membership-only roles editable.
+  The platform Clubs directory includes archived clubs and inline-confirmed archive/restore.
+- Archive denies new club content/API/direct tenant SQL and applications; accounts, other club
+  memberships, pending requests and history remain. Restore re-enables the same club and memberships.
+  Background jobs can finish; no permanent deletion or branding was added.
+- Latest checks: 545 web/DB, 50 worker + Ruff/mypy, 8 laptop/iPhone WebKit cases, 49 legacy local
+  browsers (57 skipped), 39 proxy browsers (14 skipped), 77 deploy checks and real local migration/rollback rehearsal pass. Edge stopped with data retained. Schema
+  consistency passes. TEST.md records a Testcontainers startup timeout followed by an 8/8 rerun.
+- Local dev readiness is healthy, now **24 migrations**. Refresh `/admin` and `/clubs` for review.
+  No real club was archived by the agent; lifecycle tests use synthetic clubs. Production remains
+  unchanged. No merge/deploy authorization; latest CI status is on PR #157.
+
+## Current task — unified users and multi-club admission (2026-11-07)
+
+- Operator bootstrap BUG-044 is fixed: audit parameter explicitly typed UUID before conversion to
+  text. The real CLI reproduced 42P08 before the fix; 20 focused CLI/authorization tests pass after.
+  Operator should rerun `bash scripts/admin/grant-platform-admin.sh` with hidden verified email;
+  the original failed transaction rolled back. No real account was granted by the agent.
+
+- PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) is open and mergeable. All eight jobs in CI run 42368522411 succeeded, confirmed on 2026-11-07 after “ga door”. Local readiness reports database health. Next is operator local review/bootstrap with the hidden terminal prompt below; historical mappings require real account selection. No merge/deploy authorization.
+- Ewout approved with "ja uitvoeren". Branch `codex/feat/unified-club-users`, from main 799dfbe;
+  planning docs copied without incorporating separate deployment-log PR #156. Production remains
+  sha-799dfbe, as previously explicitly deployed; no new merge/deploy is authorized.
+- Implemented paired-feature-flag account requests/verification, account-only sessions/settings,
+  club applications/admission, multi-club context and UI, separate global RowLens authority/full
+  private-content access, club create/rename/initial admin, and WVIJburg display name with old IDs.
+- Migration 0020 adds protected global auth/platform storage and tenant applications; 0021 adds
+  canonical account refs with same-club derivation/backfill. Existing IDs, sessions and history are
+  preserved. Production read-only preflight: 7 roster people, all unlinked; 10 seats, 1 assignment,
+  0 shares, 1 historical log and 8 angle measures. Admin explicit mapping UI waits for real verified
+  accounts/admission and refuses collisions. Do not invent accounts, infer matches or drop history.
+- Platform bootstrap is `bash scripts/admin/grant-platform-admin.sh`: hidden terminal email prompt,
+  owner connection and existing verified account. Existing server admins are not auto-promoted.
+  Logos/club interface design remain deferred. Flags default off for production; local dev runs on.
+- Final guard hardening rejects content reads/writes without an explicit club when several clubs are available; account-only operations and single-club compatibility remain. Focused 18 integrations + 6 laptop/iPhone cases pass. CI status for the new head is on PR #157.
+- PR CI run 42367425246 exposed an upload reply-before-COMMIT race (BUG-042; web 538 pass/2 fail). Fixed with a deterministic deferred-commit test; local uploads 13/13, full suite 541/541 and 6 upload/permissions browser cases pass. The next CI run 42368018365 passed web and deploy-script; do not use the earlier failed run as release evidence. Check the latest PR head for current status.
+- Final checks: **541 web/DB** (18 unified cases + upload commit regression), **50 worker** with Ruff/mypy, format/lint/typecheck,
+  feature-on build and schema consistency pass. Local unified **6/6** and proxy **6/6** (1000×540
+  Chromium + iPhone WebKit) pass; screenshots and >=44 px/no-overflow checks inspected. Legacy
+  local **49 pass/53 skipped**. Legacy proxy first run **38 pass/1 transient lineup fail/12 skipped**;
+  targeted repeat **1/1** passed, followed by final full **39 pass/13 skipped**, no failures. Deploy-script **77** and real
+  Docker deploy/rollback rehearsal pass. See TEST.md for failed diagnostic iterations as well.
+- Local dev :5174/API :3100 is healthy, UNIFIED_USERS=true, **23 migrations**. Unreleased function
+  definitions were refreshed locally as SQL evolved; fresh DB tests/rehearsal validate migration
+  application. Edge is stopped after final regression, with data retained.
+- Global bootstrap: existing server admins remain club admins. The local operator runs
+  `bash scripts/admin/grant-platform-admin.sh` after signing in once; hidden input and protected
+  owner connection keep the address out of chat/arguments. No production bootstrap was run.
+- Older task snapshots below are historical and do not authorize another release.
 
 ## Current task — #154, club-wide reading and role-based editing
 

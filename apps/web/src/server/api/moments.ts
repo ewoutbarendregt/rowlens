@@ -310,7 +310,7 @@ export const momentRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
             ? []
             : (
                 await tx.execute<{ id: string; archivedAt: Date | null }>(
-                  sql`select id, archived_at as "archivedAt" from rowlens_rower_targets(${`{${[...wanted].join(',')}}`}::uuid[])`,
+                  sql`select id, archived_at as "archivedAt" from rowlens_share_targets(${`{${[...wanted].join(',')}}`}::uuid[])`,
                 )
               ).rows;
         if (found.length !== wanted.size) return 'unknown_rower';

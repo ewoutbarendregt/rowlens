@@ -470,7 +470,11 @@ describe('what a rower sees (#40)', () => {
     expect(rows.map((r) => r.tablename)).toEqual([
       'angle_measure',
       'annotation',
+      'club_access',
+      'club_access_log',
       'lineup_seat',
+      'membership',
+      'membership_application',
       'moment',
       'moment_rower',
       'moment_rower_log',

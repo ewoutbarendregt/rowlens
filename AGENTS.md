@@ -204,7 +204,8 @@ Caddy (trustable compose) ── /projects/rowlens/* (prefix kept) ──▶ row
 - Own Compose project `rowlens` in `/opt/rowlens`; only `web` joins `trustable_proxy` (ADR-0002).
 - Monorepo: `apps/web` (TypeScript: Fastify 5, React 19, Vite, Drizzle; `src/shared` holds code
   shared by server and client), `worker/` (Python 3.12, uv), `infra/`, `docs/`, `scripts/`.
-- Roles: rower, coach, admin (ADR-0013). `can()` in `apps/web/src/server/auth/can.ts` plus
+- Roles: rower, coach, club admin (`admin`), plus separate global RowLens admin (ADR-0021,
+  feature-enabled account/club flow). `can()` in `apps/web/src/server/auth/can.ts` plus
   restrictive RLS role policies underneath.
 - Analysis: every metric is a value **with evidence** or a **refusal with a reason** (ADR-0009);
   perspective rules in `docs/analysis/perspective-rules.md`. Stroke marks (ADR-0016), angles per

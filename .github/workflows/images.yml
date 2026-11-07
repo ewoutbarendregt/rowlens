@@ -47,6 +47,7 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.tag.outputs.tag }}
             VITE_FEATURE_PLAYER_DEMO=true
+            VITE_FEATURE_UNIFIED_USERS=true
           labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}

@@ -1,5 +1,43 @@
 # PLAN
 
+## Unified users and multi-club membership — approved 2026-11-07
+
+Ewout approved the expanded implementation with "ja uitvoeren": account requests, real verified
+accounts first, additive club memberships/roles, club-admin admission and global RowLens-admin club
+management/full access, including private feedback. First club is **WVIJburg**; logo/design selection
+is a later change. This supersedes earlier no-account roster/name-claim goals and deferral of
+multi-club work. See `docs/plans/unified-users-impact.md` and ADR-0021.
+
+Implementation is on `codex/feat/unified-club-users`, based on main 799dfbe, behind paired
+`UNIFIED_USERS=true` / `VITE_FEATURE_UNIFIED_USERS=true` flags. Existing history is retained in a
+compatibility mapping while canonical account references backfill. All seven production roster
+entries are unlinked (read-only aggregate inspection); administrators must explicitly map these to
+verified accounts/admitted club members before a later contract migration removes old identifiers.
+No production write, invitation, merge or deployment is authorized.
+
+## Club administration follow-up — approved 2026-11-07
+
+Members, additive club roles and membership decisions belong under Club administration. The RowLens
+administrator sees all clubs under Clubs and can create, rename, archive and restore them. Ewout
+approved the reversible archive model and migration 0023 with "Ja, archiveren en kunnen herstellen".
+See ADR-0022. Accounts, other club memberships and historical references remain intact; permanent
+deletion and club branding are outside this change.
+
+## Users navigation — requested 2026-11-07
+
+A separate Users page shows all accounts to RowLens administrators, including accounts with zero
+memberships. Club administrators see only members of the selected club. Profile/preferences remain
+global; club admission/roles remain scoped to one selected club. Existing storage supports zero or
+more memberships, so this follow-up requires no migration. Requests stay under Club administration.
+
+## Full user directory/editor — approved and implemented locally 2026-11-07
+
+Ewout requests a table/list with field-level filtering/sorting and a complete account editor.
+`docs/plans/user-directory-and-account-editor.md` makes the UI, tenant scope, verified email-change
+flow and global-role management concrete. Ewout approved with "Ja, voer het volledige plan uit". Migration 0024 implements protected email
+proofs, owner confirmation for club-initiated changes, global role controls and the scoped directory.
+The local stack has 25 migrations. No production action is authorized; see ADR-0023 and TEST.md.
+
 ## What we're building
 
 RowLens: a multi-tenant web platform where rowing clubs upload video of rowing sessions, play them back
@@ -36,7 +74,7 @@ analysis of rowing technique.
 ## Delivery order (updated 2026-11-05)
 
 1. Finish and harden the complete product flow for the first club, **centred on the coach and the
-   rower** (epic #102): a roster of rowers (also without an account) and per-session lineups; notes
+   rower** (epic #102): one real account per person, club memberships/roles and per-session lineups; notes
    assigned to rowers, shown in the video and shared with a teammate or the crew; a rower's own
    sessions and notes; plus authentication, stroke marking, notifications, auditability, quota and
    real-device checks.
@@ -44,8 +82,8 @@ analysis of rowing technique.
    moving and saving lines, angles and boat lines, including zoom, fullscreen and a low laptop
    window (~1000×540). Oar arcs and stern-camera work are deferred (Ewout, 2026-11-05).
 3. Add automated analysis only where results stay traceable to source frames.
-4. Move invitations, multiple clubs and self-service onboarding behind that one-club product work;
-   the data model remains tenant-safe, but growth features do not drive the current UI.
+4. Updated 2026-11-07: account requests, club-admin admission and multiple club memberships are
+   included in the unified-user change. Club-specific logos and interface design follow later.
 
 ## Club training visibility and editing by role (#154)
 

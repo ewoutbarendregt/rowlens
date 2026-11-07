@@ -1,3 +1,4 @@
+import { clubStrings } from '../clubs/strings.ts';
 import { AccountPreferences } from '../settings/AccountPreferences.tsx';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
@@ -47,7 +48,7 @@ export function AppHeader({
       <div className="app-header__inner">
         <span className="app-header__brand">
           RowLens{' '}
-          <span className="app-header__club" data-testid="club-name">
+          <span className="app-header__club" data-testid="club-name" title={state.club.name}>
             {state.club.name}
           </span>
         </span>
@@ -55,12 +56,17 @@ export function AppHeader({
           <NavLink to="/sessions" end={false}>
             {sessionStrings().sessions}
           </NavLink>
-          {(state.user.roles.includes('coach') || state.user.roles.includes('admin')) && (
-            <NavLink to="/rowers">{rowerStrings().rowers}</NavLink>
-          )}
+          {!state.unified &&
+            (state.user.roles.includes('coach') || state.user.roles.includes('admin')) && (
+              <NavLink to="/rowers">{rowerStrings().rowers}</NavLink>
+            )}
           {state.user.roles.includes('admin') && (
             <NavLink to="/admin">{adminStrings().admin}</NavLink>
           )}
+          {state.unified && state.user.roles.includes('admin') && (
+            <NavLink to="/users">{adminStrings().users}</NavLink>
+          )}
+          {state.unified && <NavLink to="/clubs">{clubStrings().clubs}</NavLink>}
         </nav>
         <details className="account" data-testid="account-menu">
           <summary aria-label={t.account}>
