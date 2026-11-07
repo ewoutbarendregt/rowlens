@@ -4,21 +4,21 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-034] Permission migration could broaden old web handlers before their replacement — high
 **Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql, apps/web/src/server/db/tenant.ts
-**Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)
+**Status**: fixed — deployed `sha-799dfbe` in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155), 2026-11-07
 **Found**: 2026-11-06, final release-order review before any production action
 **Description**: Deployment migrates before replacing the web container; the prior image's media handlers assume visible trainings are writable. Broad new reads plus strict new writes could let those old handlers touch files after a zero-row deletion. Rolling back to the old image would recreate that mismatch.
 **Fix**: The new server sets a fixed per-transaction permission capability, never from request input. Migration 0019 uses the new read/write split only for that capability; missing context keeps the old image's existing visibility/write scope aligned. Unknown capabilities deny training access. A regression first exposed an extra legacy-visible ownerless training, then verifies old and new role semantics together; no extra migration/table/dependency or server reconfiguration.
 
 ### [BUG-033] Slow upload chunks could exceed the parent-lock transaction timeout — high
 **Location**: apps/web/src/server/api/uploads.ts (`appendChunk`)
-**Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)
+**Status**: fixed — deployed `sha-799dfbe` in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155), 2026-11-07
 **Found**: 2026-11-06, slow-stream regression during #154 implementation
 **Description**: Holding a parent lock during streaming exposed the connection's normal 15-second idle-transaction timeout. A slow phone upload could lose its authorization lock and fail when saving progress.
 **Fix**: Disable that idle limit only within the authorized upload transaction; bound each chunk stream to five minutes, destroying a stalled source and releasing its lock. A 16-second stream regression first reproduced the disconnected transaction, then requires successful upload and persisted progress.
 
 ### [BUG-032] Upload could retain stale ownership after a concurrent creator transfer — high
 **Location**: apps/web/src/server/repositories/training-access.ts (`lockEditableSession`)
-**Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)
+**Status**: fixed — deployed `sha-799dfbe` in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155), 2026-11-07
 **Found**: 2026-11-06, concurrency regression during #154 implementation
 **Description**: An upload waiting on a locked session used a pre-transfer authorization snapshot. After an admin transferred the creator, the old owner could still append bytes and receive 204.
 **Fix**: Hold the parent row lock and recheck edit permission in a fresh SQL statement before any media effect. Integration test waits for an actual database lock, commits the transfer and requires refusal with the original bytes intact; it failed with 204 before the fix and passes afterward.

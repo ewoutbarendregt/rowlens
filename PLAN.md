@@ -49,14 +49,16 @@ analysis of rowing technique.
 
 ## Club training visibility and editing by role (#154)
 
-Approved and implemented locally: all members can view all trainings in their current club. Rower-only users keep
+Approved and live: all members can view all trainings in their current club. Rower-only users keep
 existing editing rights in their own (self-created) trainings; foreign trainings are fully read-only,
 including no feedback mutations. Coaches/admins may edit every club training, including those
 created by others; combinations retain those elevated rights. Keep private notes private to rowers
 and preserve cross-club/account-administration boundaries. One permission-policy migration, no
 new table/dependency. Ewout approved the revised plan with "voer het plan uit". See
 docs/plans/154-club-training-readonly.md and ADR-0020. All local checks and the WebKit/low-laptop
-matrix pass; implementation is ready in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155). No merge/deployment is authorized for #154.
+matrix pass. PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) is merged and deployed as
+`sha-799dfbe` (2026-11-07), explicitly authorized with "Merge en deploy"; production verification
+passes with 20 migrations. See docs/HANDOFF.md and the deployment runbook.
 
 ## Admin user settings (#151, approved 2026-11-06)
 
@@ -65,7 +67,8 @@ multiple simultaneous roles/access and five currently device-local preferences. 
 register/profile/settings set per person (Ewout's clarification); role combinations grant permissions.
 Rower-only users see Trainings and their own settings, without Rowers navigation or standalone
 roster access; rower+coach retains coach rights. See
-[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Local/edge checks and the phone/laptop regression matrix pass; PR review is next. Production remains unchanged.
+[the accepted plan](docs/plans/151-admin-user-settings.md) and ADR-0019. Implemented locally: central account settings, additive role sets, tenant-scoped audit and protected admin/profile operations. Local/edge checks and the phone/laptop regression matrix pass; released in #152 (sha-b000ca4) and
+included in current production sha-799dfbe.
 
 ## Out of scope (for now)
 
