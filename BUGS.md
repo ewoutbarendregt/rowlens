@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-042] Upload responses could precede commit and busy-slot release — high
+**Location**: apps/web/src/server/api/uploads.ts:171
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: PR CI observed a completed upload before its processing job was visible and an immediate termination still returning 423. Reply.send inside the transaction acknowledged the request before COMMIT/final cleanup.
+**Fix**: Return plain transaction outcomes and send only after commit and slot release. A deferred PostgreSQL commit gate fails before the fix and passes after; 13 upload tests, 541 full web/DB tests and 6 upload/permissions browser cases pass locally.
+
 ### [BUG-038] Account-first admission could bypass existing admin safeguards — high
 **Location**: apps/web/src/server/api/access.ts:160
 **Status**: fixed

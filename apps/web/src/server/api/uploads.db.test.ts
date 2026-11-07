@@ -1,3 +1,4 @@
+import pg from 'pg';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -160,6 +161,56 @@ describe('sessions', () => {
 });
 
 describe('tus upload', () => {
+  it('commits completion and releases the upload slot before acknowledging the final chunk', async () => {
+    const session = await newSession();
+    const location = String((await create(session, MP4.length)).headers['location']);
+    const id = location.split('/').at(-1) ?? '';
+    const owner = new pg.Client({ connectionString: inject('ownerUrl') });
+    await owner.connect();
+    const key = 1947157;
+    let acknowledged = false;
+    await owner.query(`CREATE FUNCTION upload_test_commit_gate() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.idempotency_key=TG_ARGV[0] THEN PERFORM pg_advisory_xact_lock(1947157,1); END IF; RETURN NEW; END $$`);
+    await owner.query(
+      `CREATE CONSTRAINT TRIGGER upload_test_commit_gate AFTER INSERT ON job DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION upload_test_commit_gate(${owner.escapeLiteral(`video.process:${id}`)})`,
+    );
+    await owner.query('select pg_advisory_lock($1,1)', [key]);
+    const pending = patch(location, 0, MP4).then((response) => {
+      acknowledged = true;
+      return response;
+    });
+    try {
+      // A deferred trigger holds the REAL commit, after all upload writes have run.
+      await expect
+        .poll(async () =>
+          Number(
+            (
+              await asOwner<{ n: string }>(
+                "select count(*) n from pg_locks where locktype='advisory' and classid=$1::oid and objid=1 and not granted",
+                [key],
+              )
+            )[0]?.n ?? 0,
+          ),
+        )
+        .toBe(1);
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(acknowledged).toBe(false);
+    } finally {
+      await owner.query('select pg_advisory_unlock($1,1)', [key]);
+      await pending;
+      await owner.query('DROP TRIGGER upload_test_commit_gate ON job');
+      await owner.query('DROP FUNCTION upload_test_commit_gate()');
+      await owner.end();
+    }
+    expect((await pending).statusCode).toBe(204);
+    expect(
+      await asOwner('select status from job where idempotency_key=$1', [`video.process:${id}`]),
+    ).toEqual([{ status: 'queued' }]);
+    expect(
+      (await app.inject({ method: 'DELETE', url: location, headers: headers() })).statusCode,
+    ).toBe(204);
+  });
+
   it('creates, resumes after a broken chunk, completes and lists the video', async () => {
     const sessionId = await newSession();
     const created = await create(sessionId, MP4.length);

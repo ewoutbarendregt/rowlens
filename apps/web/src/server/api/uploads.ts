@@ -168,31 +168,32 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (busy.has(upload.id)) return reply.code(423).send({ error: 'upload_busy' });
     busy.add(upload.id);
     const done = () => busy.delete(upload.id);
-    return appendChunk(req, reply, upload, offset, chunk).finally(done);
+    const result = await appendChunk(req, upload, offset, chunk).finally(done);
+    if (result.status === 404) return notFound(reply);
+    if (result.offset !== undefined) void reply.header('upload-offset', String(result.offset));
+    return reply
+      .code(result.status)
+      .send(result.error === undefined ? undefined : { error: result.error });
   });
 
   // One PATCH per upload at a time (the caller holds the `busy` slot).
   const appendChunk = async (
     req: FastifyRequest,
-    reply: FastifyReply,
     upload: { id: string; status: string; sizeBytes: number },
     offset: number,
     chunk: number,
-  ): Promise<FastifyReply> => {
+  ): Promise<{ status: number; offset?: number; error?: string }> => {
     const tenant = tenantOf(req);
     return withTenant(db, tenant, async (tx) => {
-      if (!(await lockEditableVideo(tx, upload.id))) return notFound(reply);
+      if (!(await lockEditableVideo(tx, upload.id))) return { status: 404 };
       const key = originalKey(tenant.clubId, upload.id);
       // The file is the truth: after a crash the row may lag behind what reached the disk.
       const stored = await media.size(key);
       if (upload.status !== 'uploading' || offset !== stored) {
-        return reply
-          .code(409)
-          .header('upload-offset', String(stored))
-          .send({ error: 'offset_mismatch' });
+        return { status: 409, offset: stored, error: 'offset_mismatch' };
       }
-      if (offset + chunk > upload.sizeBytes) return reply.code(413).send({ error: 'too_large' });
-      if (await diskFull()) return reply.code(507).send({ error: 'disk_full' });
+      if (offset + chunk > upload.sizeBytes) return { status: 413, error: 'too_large' };
+      if (await diskFull()) return { status: 507, error: 'disk_full' };
 
       // Streaming can exceed the pool's 15 s idle-transaction limit. Keep the ownership lock,
       // but bound each chunk to five minutes so a stalled client cannot hold it indefinitely.
@@ -209,11 +210,11 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
       }
       if (size === -1) {
         await setProgress(tx, upload.id, await media.size(key));
-        return reply.code(413).send({ error: 'chunk_too_large' });
+        return { status: 413, error: 'chunk_too_large' };
       }
       if (size < upload.sizeBytes) {
         await setProgress(tx, upload.id, size);
-        return reply.code(204).header('upload-offset', String(size)).send();
+        return { status: 204, offset: size };
       }
 
       // Complete: is it a video at all? (ffprobe in the worker decides whether it decodes, #47.)
@@ -222,7 +223,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
         await media.remove(videoKey(tenant.clubId, upload.id));
         await setStatus(tx, upload.id, size, 'rejected', 'not_a_video');
         req.log.info({ videoId: upload.id }, 'upload rejected: not a video');
-        return reply.code(415).header('upload-offset', String(size)).send({ error: 'not_a_video' });
+        return { status: 415, offset: size, error: 'not_a_video' };
       }
       await tx
         .update(video)
@@ -244,7 +245,7 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
         })
         .onConflictDoNothing();
       req.log.info({ videoId: upload.id, bytes: size, container }, 'upload complete');
-      return reply.code(204).header('upload-offset', String(size)).send();
+      return { status: 204, offset: size };
     });
   };
 

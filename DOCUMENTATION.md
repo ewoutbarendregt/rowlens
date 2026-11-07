@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Fix the upload acknowledgement race exposed by PR CI
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/api/uploads.ts, apps/web/src/server/api/uploads.db.test.ts, BUGS.md, TEST.md, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: CI run 42367425246 exposed the existing reply-before-COMMIT upload race (538 passed, 2 failed): a completed response could precede its durable processing job and upload-slot release. A real deferred PostgreSQL commit gate reproduces premature acknowledgement before the fix; plain transaction results now commit and release the slot before sending the response. Focused uploads 13/13, full web/DB 541/541, lint/typecheck/build and 6 desktop/mobile upload/permissions browser cases pass; PR #157 awaits a new CI run. No migration, production change or deployment.
+**Prompts used**: "ja uitvoeren".
+
 ## 2026-11-07 — Verify unified accounts, role boundaries and club interfaces
 
 **Session**: codex/feat/unified-club-users

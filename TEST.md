@@ -241,3 +241,23 @@ non-canonical `/projects/rowlens`; fixed by giving the router basename `/project
 Final proxy regression rerun passed **39/39** (13 deliberately skipped) on the final feature-off image; the earlier transient lineup failure did not recur. The edge stack was stopped with data retained.
 
 PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) contains the verified implementation; CI status is attached to the PR. No merge or deployment is authorized.
+
+
+## PR #157 CI follow-up: durable upload acknowledgement
+
+Run **42367425246** failed its web unit/DB step: **538 passed, 2 failed**, both in uploads.
+The completion reply could arrive before its transaction committed (job query saw no row), and an
+immediate termination could still see the busy slot (423). These were actual scheduling races,
+not GitHub billing. Other early jobs (policy, secrets, worker) passed.
+
+A deferred PostgreSQL constraint trigger holds the actual processing-job COMMIT behind an advisory
+lock. The new regression failed before the fix because HTTP acknowledgement had already arrived;
+with the fix it remains pending until commit, then the job is visible and immediate termination
+succeeds. No sleep/retry was added to hide the response-order bug. Test cleanup removes only its
+own trigger/function from the disposable test database.
+
+Final local recheck: uploads **13/13**, full web/DB **541/541** (55 files), lint/typecheck and flagged
+build pass. Focused upload + training-permissions browser rerun: **6/6 desktop/mobile Chromium**.
+The 6 local + 6 proxy account/club WebKit/laptop results and worker/deployment checks above remain
+valid; no frontend, worker, permission policy or migration changed in this repair. A fresh CI run
+on PR #157 validates the correction on Linux.

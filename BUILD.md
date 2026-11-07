@@ -634,3 +634,12 @@ Ewout: Actions → deploy → Run workflow (tag) ──▶ deploy.yml
 - Shared CPU: transcoding is limited to 2 vCPU at low priority.
 - trustable.nl's site-wide `Permissions-Policy` blocks the microphone and camera for RowLens (in-browser
   voice notes need the own host); Caddy's 64 MB body limit is only a backstop (ADR-0003).
+
+
+## Upload acknowledgement ordering (2026-11-07)
+
+Chunk processing returns a plain HTTP result from the tenant transaction. Only after COMMIT and
+release of the per-upload busy slot does the route send its reply. A 204 therefore guarantees
+committed progress and (for completion) the durable processing job, and permits an immediate next
+chunk/termination. Parent authorization locks still cover the entire bounded stream; API status,
+offset and error formats remain unchanged. A real deferred-commit regression enforces this order.

@@ -20,7 +20,8 @@ newest-first detailed log. Update this file at the end of a session.
 - Platform bootstrap is `bash scripts/admin/grant-platform-admin.sh`: hidden terminal email prompt,
   owner connection and existing verified account. Existing server admins are not auto-promoted.
   Logos/club interface design remain deferred. Flags default off for production; local dev runs on.
-- Final checks: **540 web/DB** (18 new cases), **50 worker** with Ruff/mypy, format/lint/typecheck,
+- PR CI run 42367425246 exposed an upload reply-before-COMMIT race (BUG-042; web 538 pass/2 fail). Fixed with a deterministic deferred-commit test; local uploads 13/13, full suite 541/541 and 6 upload/permissions browser cases pass. Fresh PR CI is pending; do not treat the earlier failed run as green.
+- Final checks: **541 web/DB** (18 unified cases + upload commit regression), **50 worker** with Ruff/mypy, format/lint/typecheck,
   feature-on build and schema consistency pass. Local unified **6/6** and proxy **6/6** (1000×540
   Chromium + iPhone WebKit) pass; screenshots and >=44 px/no-overflow checks inspected. Legacy
   local **49 pass/53 skipped**. Legacy proxy first run **38 pass/1 transient lineup fail/12 skipped**;
