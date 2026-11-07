@@ -2,6 +2,59 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Repeat-signup confirmation hardening (2026-11-07)
+
+- Review found BUG-053: correct club requests could be paired with an initial-choice banner.
+  Own projection now reads the latest confirmed intent, including explicit no-club, while global
+  signup history stays immutable. No proof secret is exposed and no club role is changed.
+- Final fresh database/migration regression: **42/42** registration/unified-account cases pass.
+  Additional assertions cover both a new club and a later explicit no-club choice, retaining the
+  first registration, names, memberships and history. Initial targeted repeat/login browser run:
+  **4/4** across laptop/iPhone WebKit. Final full browser suite: **28/28**, including the
+  repeat-choice regression and updated clubless confirmation copy, passes on both platforms.
+- Local unreleased function refreshed with the same final definition; schema remains **26**.
+  The prior Docker migration/rollback rehearsal passed before this read-projection adjustment;
+  final fresh DB tests apply the entire final migration. Static/build/schema checks remain valid.
+
+## Explicit registration and optional club choice (2026-11-07)
+
+- Full unit/database suite: **607/607** across **58 files**, expanded with a deterministic
+  concurrent resend/verify regression to **608/608**. Includes **13 registration DB/API cases**
+  plus **29 existing unified-account cases** and NL/EN registration-mail checks.
+- Coverage: minimal active public club projection, origin/rate controls, verified proof before any
+  account/application, expired/wrong/exhausted/replayed/cross-purpose/challenge-swapped codes,
+  proof-bound club selection, archived choice recovery, idempotency and preserved account/roles.
+  Registration/application/session/proof consumption roll back together on actual SQL failure.
+  A real mailbox-lock wait queues resend before old verification and proves only the new club
+  intent is used. Clubless registrations stay global; club actors cannot see another club's rows.
+  Approval/rejection/cooldown/current status, archived global visibility and direct app-role
+  table/private-helper denials are covered.
+- Browser: **26/26**, laptop **1000x540** and **iPhone 13 WebKit**. Covers registration with/without
+  club, result before name completion, global review/admission and retained status, directory load
+  retry, explicit required choice, archive-between-code-and-confirm recovery and existing login.
+  Existing users/editor/email-change/club-isolation flows also pass. Form/result/review screenshots
+  inspected; document width does not overflow and visible targeted controls measure at least
+  **44 CSS pixels**. No physical iPhone or authenticated production verification performed.
+- Diagnostic runs retained: first account suite **28 pass/1 fail** expected the former name gate;
+  next expanded run **37 pass/1 fail** needed a named profile before sporting selectors, followed
+  by **38/38**. Initial browser run **16 pass/6 fail**: a synthetic preparation helper overwrote
+  an edited name, an old selector matched both signup and later club request, and expected status
+  text differed. Fixed fixtures/assertions; final **26/26** passes. No unrelated product fix claimed.
+- Legacy feature-off full browser run: **47 pass, 75 skipped, 2 fail** in the previously documented
+  lineup-selection timing symptom; isolated desktop/mobile lineup rerun **2/2** passes. Edge uses
+  a separate output directory to avoid artifact collisions. Initial edge launch wrappers were
+  stopped before tests while correcting output isolation/origin; the final edge run is recorded
+  below. Final proxy/real-worker run: **39 passed, 23 skipped**. No server or shared production
+  component was touched.
+- Worker: **50/50**, Ruff lint/format and mypy pass. Deployment-script checks **77/77** plus real
+  Docker first deploy, upgrade, broken-image rollback, explicit rollback and status rehearsal pass.
+- Final format/lint/typecheck, feature-on build and Drizzle schema/journal checks pass. Initial static
+  checks caught formatting/callback style, an optional club-header type and a redundant promise
+  truthiness guard; corrected. Synthetic E2E media generation passes. Local dev migration applies
+  successfully (**26 total**, direct app-role registration SELECT denied); production remains **25**,
+  sha-dd71f78. The local aggregate probe was rerun from the web package after root-level package
+  resolution failed. No real mailbox was used.
+
 ## Production rollout verification (2026-11-07)
 
 - Corrected PR head f88fdab: CI **42396990030**, all **8** jobs pass. Main merge dd71f78:

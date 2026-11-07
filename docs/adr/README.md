@@ -30,4 +30,6 @@
 
 | [0023](0023-user-directory-and-identity-management.md) | Scoped user table, verified identity changes and global role management | accepted |
 
+| [0024](0024-explicit-registration-and-club-choice.md) | Explicit verified registration with optional club choice and scoped review | accepted |
+
 New ADR: copy `0000-template.md` to the next number.

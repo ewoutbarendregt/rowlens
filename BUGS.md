@@ -2,6 +2,20 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-053] Repeat signup confirmation showed the first club choice — low
+**Location**: apps/web/src/server/db/migrations/0025_explicit_registration.sql (rowlens_my_registration)
+**Status**: fixed (unreleased)
+**Found**: 2026-11-07 (final review of PR #159)
+**Description**: The immutable first signup record was also used for the confirmation banner, so a repeat signup for another club could show the original choice even though its actual application was correct. Clubless copy also described current membership rather than the submitted choice.
+**Fix**: The own confirmation projection uses the latest successfully verified signup intent, including explicit no-club, without exposing proof secrets or mutating history. Copy describes the signup choice. Focused database and laptop/iPhone regressions preserve existing identity/memberships and initial registration history.
+
+### [BUG-052] Registration has no club choice or clubless request record — medium
+**Location**: apps/web/src/client/auth/LoginGate.tsx; apps/web/src/client/sessions/RequireAuth.tsx; apps/web/src/server/auth/unified-gate.ts
+**Status**: fixed (local implementation; production unchanged)
+**Found**: 2026-11-07 (production feedback after PR #157)
+**Description**: Email entry only requests a login code. Club choice requires later verification and name completion, and the Requests view includes only explicitly submitted club applications. There is no distinct registration form or administrator-visible clubless registration record.
+**Fix**: Approved ADR-0024/migration 0025 separates login/signup, binds optional club choice to email proof and atomically records registration/application. Global Requests includes clubless signup and decided statuses; club administrators see only their selected club. Account club/status pages no longer require names first. Verified with 608 web/DB tests, final focused 42/42 and 28 laptop/iPhone WebKit cases.
+
 ### [BUG-051] Enabled-auth release image smoke lacked SMTP fixtures — low
 **Location**: .github/workflows/ci.yml
 **Status**: fixed

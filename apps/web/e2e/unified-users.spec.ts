@@ -1,8 +1,53 @@
 import { expect, test, devices, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { withBasePath } from '../src/shared/base-path.ts';
-import { signIn } from './helpers.ts';
+import { signIn as existingSignIn } from './helpers.ts';
 import { adminEmail, authCode } from './env.ts';
+
+async function registerThroughForm(page: Page, email: string, club: string = 'none') {
+  await page.goto('./');
+  await page.getByRole('button', { name: 'Account aanmaken', exact: true }).click();
+  await page.getByLabel('E-mailadres', { exact: true }).fill(email);
+  await expect(page.getByLabel('Club', { exact: true })).toBeEnabled();
+  await page.getByLabel('Club', { exact: true }).selectOption(club);
+  await page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Bevestig je e-mailadres', exact: true }),
+  ).toBeVisible();
+  await page.getByLabel('Inlogcode', { exact: true }).fill(authCode);
+  await page.getByRole('button', { name: 'Bevestigen en aanmelden', exact: true }).click();
+  await expect(page.getByTestId('registration-result')).toBeVisible();
+}
+// Existing editor scenarios need a named synthetic account; onboarding tests below deliberately
+// leave names empty and verify that signup/status remain accessible before profile completion.
+async function signIn(page: Page, email: string) {
+  if (email === adminEmail) return existingSignIn(page, email);
+  await registerThroughForm(page, email);
+  await page.evaluate(
+    async ({ profileUrl, statusUrl }) => {
+      const status = (await (await fetch(statusUrl)).json()) as {
+        user: { firstName: string | null; lastName: string | null };
+      };
+      if (status.user.firstName !== null && status.user.lastName !== null) return;
+      const csrf =
+        document.cookie
+          .split('; ')
+          .find((p) => p.startsWith('rowlens_csrf='))
+          ?.slice(13) ?? '';
+      const r = await fetch(profileUrl, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
+        body: JSON.stringify({ firstName: 'E2E', lastName: 'Member', defaultBoatType: null }),
+      });
+      if (!r.ok) throw new Error('Synthetic profile preparation failed');
+    },
+    {
+      profileUrl: withBasePath('/projects/rowlens', '/api/me/profile'),
+      statusUrl: withBasePath('/projects/rowlens', '/api/auth/status'),
+    },
+  );
+  await page.reload();
+}
 
 // This suite runs only through the dedicated unified-users server, not the legacy feature-off stack.
 test.skip(process.env['E2E_UNIFIED'] !== 'true', 'Requires the unified account stack');
@@ -51,7 +96,7 @@ async function layout(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const small = await page
     .locator(
-      ':is(.clubs-page,.club-admin-page) button,:is(.clubs-page,.club-admin-page) select,:is(.clubs-page,.club-admin-page) input:not([type=checkbox]),.club-admin-page .role-choices label,.users-admission > summary,.user-columns > summary,.user-toggle',
+      '.registration button,.registration input,.registration select,:is(.clubs-page,.club-admin-page) button,:is(.clubs-page,.club-admin-page) select,:is(.clubs-page,.club-admin-page) input:not([type=checkbox]),.club-admin-page .role-choices label,.users-admission > summary,.user-columns > summary,.user-toggle',
     )
     .evaluateAll((nodes) =>
       nodes.flatMap((n) => {
@@ -385,10 +430,14 @@ test('RowLens admin sees pending requests from other clubs and can admit without
   expect((await json(member, '/api/account/applications', { clubId })).status).toBe(201);
   await page.getByRole('link', { name: 'Gebruikers', exact: true }).click();
   await page.getByRole('tab', { name: 'Aanmeldingen', exact: true }).click();
-  const request = page.locator('article').filter({ hasText: email });
+  const request = page
+    .getByTestId('registration-request')
+    .filter({ hasText: email })
+    .filter({ hasText: name });
   await expect(request).toContainText(name);
   await request.getByRole('button', { name: 'Toelaten als roeier', exact: true }).click();
-  await expect(request).toHaveCount(0);
+  await expect(request).toContainText('Goedgekeurd');
+  await expect(request.getByRole('button')).toHaveCount(0);
   await member.reload();
   expect(
     ((await json(member, '/api/auth/status')).data as { clubs: { id: string }[] }).clubs.some(
@@ -480,4 +529,197 @@ test('club administrator email changes require confirmation by the existing acco
   expect(((await json(owner, '/api/auth/status')).data as { access: boolean }).access).toBe(false);
   await context.close();
   await ownerContext.close();
+});
+
+test('registration with a club shows its result before names and reaches global approval', async ({
+  page,
+  browser,
+}, testInfo) => {
+  const address = `onboarding-${randomUUID()}@example.test`;
+  await page.goto('./');
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() });
+  const admin = await context.newPage();
+  await existingSignIn(admin, adminEmail);
+  const directory = await json(admin, '/api/platform/clubs');
+  const club = (directory.data as { id: string; name: string }[]).find(
+    (c) => c.name === 'WVIJburg',
+  );
+  if (!club) throw new Error('No pilot club');
+  await registerThroughForm(page, address, club.id);
+  await expect(page.getByTestId('welcome')).toHaveCount(0);
+  await expect(page.getByTestId('registration-result')).toContainText('WVIJburg');
+  const pending = page
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) });
+  await expect(pending).toContainText('Wacht op toelating');
+  await layout(page);
+  await page.screenshot({
+    path: testInfo.outputPath('registration-with-club.png'),
+    fullPage: true,
+  });
+  await admin.getByRole('link', { name: 'Gebruikers', exact: true }).click();
+  await admin.getByRole('tab', { name: 'Aanmeldingen', exact: true }).click();
+  const application = admin.getByTestId('registration-request').filter({ hasText: address });
+  await expect(application).toContainText('WVIJburg');
+  await expect(application).toContainText('Wacht op toelating');
+  await application.getByRole('button', { name: 'Toelaten als roeier', exact: true }).click();
+  await expect(application).toContainText('Goedgekeurd');
+  await expect(application.getByRole('button')).toHaveCount(0);
+  await layout(admin);
+  await admin.screenshot({ path: testInfo.outputPath('registration-review.png'), fullPage: true });
+  await page.reload();
+  await pending.getByRole('button', { name: /^(Club openen|Huidige club)$/ }).click();
+  await expect(page.getByTestId('welcome')).toBeVisible();
+  await context.close();
+});
+
+test('registration without a club appears globally with no approval action and supports later club requests', async ({
+  page,
+  browser,
+}, testInfo) => {
+  const address = `no-club-${randomUUID()}@example.test`;
+  await registerThroughForm(page, address);
+  await expect(page.getByTestId('registration-result')).toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
+  await expect(page.getByTestId('welcome')).toHaveCount(0);
+  await layout(page);
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    admin = await context.newPage();
+  await existingSignIn(admin, adminEmail);
+  await admin.getByRole('link', { name: 'Gebruikers', exact: true }).click();
+  await admin.getByRole('tab', { name: 'Aanmeldingen', exact: true }).click();
+  const row = admin.getByTestId('registration-request').filter({ hasText: address });
+  await expect(row).toContainText('Voorlopig geen club');
+  await expect(row).toContainText('E-mailadres bevestigd');
+  await expect(row.getByRole('button')).toHaveCount(0);
+  await layout(admin);
+  await admin.screenshot({
+    path: testInfo.outputPath('registration-without-club-review.png'),
+    fullPage: true,
+  });
+  const club = page
+    .locator('article')
+    .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) });
+  await club.getByRole('button', { name: 'Lidmaatschap aanvragen', exact: true }).click();
+  await expect(club).toContainText('Wacht op toelating');
+  await context.close();
+});
+
+test('registration form loads clubs, requires an explicit choice and recovers a failed directory load', async ({
+  page,
+}, testInfo) => {
+  await page.goto('./');
+  await page.route('**/api/auth/registration/clubs', (route) =>
+    route.fulfill({ status: 503, body: '{}' }),
+  );
+  await page.getByRole('button', { name: 'Account aanmaken', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('De clubs konden niet worden geladen');
+  await expect(
+    page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }),
+  ).toBeDisabled();
+  await page.unroute('**/api/auth/registration/clubs');
+  await page.getByRole('button', { name: 'Opnieuw proberen', exact: true }).click();
+  await expect(page.getByLabel('Club', { exact: true })).toBeEnabled();
+  await page.getByLabel('E-mailadres', { exact: true }).fill(`choice-${randomUUID()}@example.test`);
+  await expect(
+    page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel('Club', { exact: true }).selectOption('none');
+  await expect(
+    page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }),
+  ).toBeEnabled();
+  await layout(page);
+  await page.screenshot({ path: testInfo.outputPath('registration-form.png'), fullPage: true });
+});
+
+test('an archived registration choice can be replaced without creating a partial account', async ({
+  page,
+  browser,
+}) => {
+  await page.goto('./');
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    admin = await context.newPage();
+  await existingSignIn(admin, adminEmail);
+  const created = await json(admin, '/api/platform/clubs', {
+    slug: `registration-${randomUUID()}`,
+    name: 'Temporary signup club',
+    adminId: null,
+  });
+  const clubId = (created.data as { id: string }).id;
+  const address = `archived-signup-${randomUUID()}@example.test`;
+  await page.getByRole('button', { name: 'Account aanmaken', exact: true }).click();
+  await page.getByLabel('E-mailadres', { exact: true }).fill(address);
+  await expect(page.getByLabel('Club', { exact: true })).toBeEnabled();
+  await page.getByLabel('Club', { exact: true }).selectOption(clubId);
+  await page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }).click();
+  await expect(page.getByLabel('Inlogcode', { exact: true })).toBeVisible();
+  expect(
+    (await json(admin, `/api/platform/clubs/${clubId}/archive`, { archived: true })).status,
+  ).toBe(204);
+  await page.getByLabel('Inlogcode', { exact: true }).fill(authCode);
+  await page.getByRole('button', { name: 'Bevestigen en aanmelden', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Deze club is niet meer beschikbaar');
+  expect(
+    ((await json(admin, '/api/platform/users')).data as { email: string }[]).some(
+      (u) => u.email === address,
+    ),
+  ).toBe(false);
+  await page.getByRole('button', { name: 'E-mailadres of club wijzigen', exact: true }).click();
+  await expect(page.getByLabel('Club', { exact: true })).toBeEnabled();
+  await expect(
+    page.getByRole('option', { name: 'Temporary signup club', exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel('Club', { exact: true }).selectOption('none');
+  await page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }).click();
+  await page.getByLabel('Inlogcode', { exact: true }).fill(authCode);
+  await page.getByRole('button', { name: 'Bevestigen en aanmelden', exact: true }).click();
+  await expect(page.getByTestId('registration-result')).toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
+  await context.close();
+});
+
+test('an existing registered account signs in again without another registration', async ({
+  page,
+}) => {
+  const address = `returning-${randomUUID()}@example.test`;
+  await registerThroughForm(page, address);
+  const before = (await json(page, '/api/auth/status')).data as { user: { id: string } };
+  await json(page, '/api/auth/logout', {});
+  await page.goto('./');
+  await page.getByLabel('E-mailadres', { exact: true }).fill(address);
+  await page.getByRole('button', { name: 'Stuur code', exact: true }).click();
+  await page.getByLabel('Inlogcode', { exact: true }).fill(authCode);
+  await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
+  await expect(page.getByTestId('registration-result')).toBeVisible();
+  const after = (await json(page, '/api/auth/status')).data as { user: { id: string } };
+  expect(after.user.id).toBe(before.user.id);
+  await expect(page.getByTestId('welcome')).toHaveCount(0);
+});
+
+test('repeated registration shows the confirmed new club instead of the first no-club choice', async ({
+  page,
+}) => {
+  const address = `repeat-choice-${randomUUID()}@example.test`;
+  await registerThroughForm(page, address);
+  const directory = (await json(page, '/api/account/clubs')).data as {
+    clubs: { id: string; name: string }[];
+  };
+  const club = directory.clubs.find((c) => c.name === 'WVIJburg');
+  if (!club) throw new Error('No pilot club');
+  await json(page, '/api/auth/logout', {});
+  await registerThroughForm(page, address, club.id);
+  await expect(page.getByTestId('registration-result')).toContainText('WVIJburg');
+  await expect(page.getByTestId('registration-result')).not.toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
+  await expect(
+    page
+      .locator('article')
+      .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) }),
+  ).toContainText('Wacht op toelating');
 });

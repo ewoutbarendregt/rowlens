@@ -971,12 +971,22 @@ export const accountSession = pgTable('account_session', {
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
 });
 export const accountLoginCode = pgTable('account_login_code', {
+  registrationId: uuid('registration_id'),
+  requestedClubId: uuid('requested_club_id').references(() => club.id),
   email: text('email').primaryKey(),
   codeHash: text('code_hash').notNull(),
   locale: text('locale').notNull(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   attempts: integer('attempts').notNull().default(0),
   usedAt: timestamp('used_at', { withTimezone: true }),
+});
+/** Explicit verified signup; global auth state, never directly exposed to the app role. */
+export const accountRegistration = pgTable('account_registration', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => appUser.id, { onDelete: 'restrict' }),
+  requestedClubId: uuid('requested_club_id').references(() => club.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 export const platformAdmin = pgTable('platform_admin', {
   userId: uuid('user_id')

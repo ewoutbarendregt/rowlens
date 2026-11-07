@@ -1,5 +1,14 @@
 # PLAN
 
+## Explicit registration and optional club request — approved/implemented 2026-11-07
+
+Ewout approved `docs/plans/registration-onboarding.md` with "Ja, voer het volledige plan uit".
+ADR-0024/migration 0025 adds distinct registration, email-proof-bound optional club intent,
+atomic registration/application and global versus club-scoped request review. Clubless accounts
+need no platform admission; club access waits for the existing audited club approval. Local stack
+has 26 migrations; 608 web/DB plus final focused 42/42 and 28 laptop/iPhone WebKit checks pass. Production stays sha-dd71f78
+with 25 migrations; no new merge/deploy is authorized. Deployment-log PR #158 is the stack base.
+
 ## Unified users and multi-club membership — approved 2026-11-07
 
 Ewout approved the expanded implementation with "ja uitvoeren": account requests, real verified

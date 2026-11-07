@@ -2,6 +2,34 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Start the authorized registration release
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested merge/deploy. Merged green deployment-log PR #158 as ca0b7af while retaining its branch, retargeted #159 to main, and require fresh green CI on that base before its merge. Read-only production preflight: sha-dd71f78, 25 migrations, 6 accounts/memberships, 4 sessions, 5 videos, 13 compatibility people (7 unlinked), 10 seats, 8 angles, 1 platform administrator and 0 pending applications; no registration storage yet. Captured shared-container IDs/start times/images for exact post-deploy comparison. No production write or new admin bootstrap performed.
+**Prompts used**: "merge en deploy".
+
+## 2026-11-07 — Preserve registration history and show the confirmed repeat choice
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: apps/web/src/server/db/migrations/0025_explicit_registration.sql, apps/web/src/server/auth/registration.db.test.ts, apps/web/src/client/auth/registration-strings.ts, apps/web/e2e/unified-users.spec.ts, BUGS.md, TEST.md, PLAN.md, FEATURES.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0024-explicit-registration-and-club-choice.md
+**Summary**: Final review of PR #159 found BUG-053: repeat signup applied to the correct club but its banner could show the initial signup choice. The own projection now uses confirmed proof intent while preserving immutable history; clubless copy describes the choice without claiming existing memberships are absent. Fresh migration/account tests pass 42/42; the targeted laptop/iPhone repeat/login checks pass 4/4 and the final full browser suite passes 28/28. The earlier full web/DB run passed 608 cases; TEST.md preserves diagnostic failures and reruns. The local unreleased view was refreshed; no production change. PR #159 is stacked on #158 and final-head CI remains pending.
+**Prompts used**: "Ja, voer het volledige plan uit" (same approved registration plan).
+
+## 2026-11-07 — Implement explicit signup and optional club applications
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: apps/web/src/client/auth/{RegistrationForm.tsx,registration-strings.ts,LoginGate.tsx}, apps/web/src/client/{clubs/ClubsPage.tsx,sessions/RequireAuth.tsx,admin/UsersPage.tsx,admin/ClubApplications.tsx,styles.css}, apps/web/src/server/auth/{unified-gate.ts,unified-gate.db.test.ts,registration.db.test.ts,mail.ts,mail.test.ts}, apps/web/src/server/db/{schema.ts,migrations/0025_explicit_registration.sql,migrations/meta}, apps/web/e2e/unified-users.spec.ts, docs/adr/{0024-explicit-registration-and-club-choice.md,README.md}, docs/plans/registration-onboarding.md, BUILD.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented approved ADR-0024/migration 0025: separate signup with optional club, purpose/challenge-bound proof, atomic recorded registration/application/session, and scoped administrator review including clubless and decided requests. Club/status navigation is available before name entry; approval remains tenant-scoped/audited and existing identities/roles survive retries. Checks: 608 web/DB, 26 laptop/iPhone WebKit, proxy/real worker 39 (23 skipped), worker 50, deploy scripts 77 and real Docker migration/rollback rehearsal pass; initial static/fixture failures and legacy lineup timing symptoms/reruns are documented in TEST.md. Local stack has 26 migrations; no production write/mail/merge/deploy and no real address/code stored. Implementation is stacked on deployment-log PR #158.
+**Prompts used**: "Ja, voer het volledige plan uit" (approval of docs/plans/registration-onboarding.md).
+
+## 2026-11-07 — Diagnose registration gap and propose explicit signup
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: docs/plans/registration-onboarding.md, BUGS.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Traced BUG-052: the combined OTP login creates no club request; club choice is delayed behind verification/name completion, while request views omit clubless registration. Read-only production aggregates show 6 verified member accounts and no pending applications. Prepared a concrete signup/optional-club/verified-registration plan with an additive protected auth migration and global versus club-scoped review; awaiting architectural approval. No application code, production data or mail was changed; no tests run for this analysis-only change.
+**Prompts used**: "ik heb een nieuw email adres ingevuld op productie: [personal email omitted], maar ik zie geen nieuwe aanvraag als ik inlog als rowlens beheerder. ook kan ik geen club kiezen als nieuwe gebruiker. ik denk dat er een apart formulier nodig is voor nieuwe gebruikers waar zij een email adres invullen en kiezen voor welke bestaande club zij zich aanmelden (of geen enkele club). de aanvraag gaat dan naar de clubbeheerder. de rowlens beheerder ziet sowieso alle aanvragen". Personal email omitted to comply with the repository's prohibition on committed personal data.
+
 ## 2026-11-07 — Merge and deploy unified users; bootstrap production administrator
 
 **Session**: codex/docs/157-unified-users-release

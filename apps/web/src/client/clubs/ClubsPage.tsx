@@ -1,3 +1,4 @@
+import { registrationStrings } from '../auth/registration-strings.ts';
 import { useEffect, useState } from 'react';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { api } from '../api.ts';
@@ -24,7 +25,12 @@ interface User {
 }
 export function ClubsPage() {
   const { state, refresh } = useAuth();
-  const t = clubStrings();
+  const t = clubStrings(),
+    r = registrationStrings();
+  const [registration, setRegistration] = useState<{
+    clubId: string | null;
+    clubName: string | null;
+  } | null>(null);
   const [directory, setDirectory] = useState<Club[]>([]),
     [applications, setApplications] = useState<Application[]>([]),
     [users, setUsers] = useState<User[]>([]);
@@ -52,7 +58,12 @@ export function ClubsPage() {
         if (responses.some((r) => !r.ok)) throw new Error('unavailable');
         const data = (await Promise.all(responses.map((r) => r.json()))) as unknown[];
         if (stale) return;
-        const own = data[0] as { clubs: Club[]; applications: Application[] };
+        const own = data[0] as {
+          clubs: Club[];
+          applications: Application[];
+          registration: typeof registration;
+        };
+        setRegistration(platform ? null : own.registration);
         setDirectory(platform ? (data[0] as Club[]) : own.clubs);
         setApplications(platform ? [] : own.applications);
         setUsers(platform ? (data[1] as User[]) : []);
@@ -93,6 +104,21 @@ export function ClubsPage() {
       <h1>{t.clubs}</h1>
       {failed && <p role="alert">{t.failed}</p>}
       {!loaded && !failed && <p role="status">{t.loading}</p>}
+      {registration && (
+        <section className="card" role="status" data-testid="registration-result">
+          <h2>{r.registered}</h2>
+          {registration.clubId ? (
+            <>
+              <p>
+                {r.registeredWithClub} <strong>{registration.clubName}</strong>.
+              </p>
+              <p>{r.admissionHint}</p>
+            </>
+          ) : (
+            <p>{r.registeredWithoutClub}</p>
+          )}
+        </section>
+      )}
       <p>{t.switchHint}</p>
       {!platform && !state.clubs?.length && <p>{t.none}</p>}
       <section className="card">

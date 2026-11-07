@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { FastifyReply, FastifyRequest, FastifyPluginCallback } from 'fastify';
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -209,58 +210,103 @@ export function createUnifiedGate(opts: {
         },
       };
     });
-    app.post('/api/auth/otp', async (req, reply) => {
-      const b = emailBody.safeParse(req.body);
-      if (!b.success || !(await hit('otp-ip', req.ip, 3600, auth.limits.otpPerIpHour)))
-        return reply.code(202).send({ accepted: true });
-      if (!(await hit('otp-email', b.data.email, 900, auth.limits.otpPerEmail15m)))
-        return reply.code(202).send({ accepted: true });
-      const code = opts.generateCode?.() ?? newCode();
-      const locale = b.data.language ?? 'nl';
-      await db.execute(
-        sql`select rowlens_account_issue(${b.data.email},${hmac(auth.otpPepper, `account-otp:${b.data.email}`, code)},${locale})`,
-      );
-      if (opts.deliver)
-        await opts
-          .deliver({
-            email: b.data.email,
-            code,
-            locale,
-            loginUrl: absoluteUrl(opts.publicOrigin, opts.basePath, '/'),
-          })
-          .catch((error: unknown) => {
-            req.log.error({ error }, 'OTP mail failed');
-          });
-      else req.log.info({ email: b.data.email, code }, 'development OTP code');
-      return reply.code(202).send({ accepted: true });
+    app.get('/api/auth/registration/clubs', async (req, reply) => {
+      if (!(await hit('registration-directory-ip', req.ip, 60, 30)))
+        return reply.code(429).send({ error: 'too_many' });
+      return value(sql`select rowlens_registration_clubs() as value`);
     });
-    app.post('/api/auth/verify', async (req, reply) => {
-      const b = verifyBody.safeParse(req.body);
-      if (!b.success) return reply.code(400).send({ error: 'invalid_code' });
-      if (!(await hit('verify-ip', req.ip, 900, auth.limits.verifyPerIp15m)))
-        return reply.code(429).send({ error: 'invalid_code' });
-      const token = newToken(),
-        csrf = newToken();
-      const ok = await value<boolean>(
-        sql`select rowlens_account_verify(${b.data.email},${hmac(auth.otpPepper, `account-otp:${b.data.email}`, b.data.code)},${sha256(token)},${sha256(csrf)}) as value`,
-      );
-      if (!ok) return reply.code(403).send({ error: 'invalid_code' });
-      // Honor existing pilot invitations/allowlists only after proving ownership of the address.
-      const server = auth.adminEmails.has(b.data.email)
-        ? ['admin']
-        : auth.allowedEmails.has(b.data.email)
-          ? ['coach']
-          : [];
-      const grant = await db.execute<{ roles: string[] | null }>(
-        sql`select rowlens_auth_access(${b.data.email},${auth.clubSlug}) as roles`,
-      );
-      if (server.length || grant.rows[0]?.roles)
-        await db.execute(
-          sql`select * from rowlens_auth_ensure_user(${b.data.email},${''},${'nl'},${auth.clubSlug},${`{${server.join(',')}}`}::text[])`,
+    for (const [registration, otpPath, verifyPath] of [
+      [false, '/api/auth/otp', '/api/auth/verify'],
+      [true, '/api/auth/registration/otp', '/api/auth/registration/verify'],
+    ] as const) {
+      app.post(otpPath, async (req, reply) => {
+        const requestId = randomUUID();
+        const accepted = { accepted: true, ...(registration ? { requestId } : {}) };
+        const b = (
+          registration ? emailBody.extend({ clubId: z.uuid().nullable() }).strict() : emailBody
+        ).safeParse(req.body);
+        if (!b.success || !(await hit('otp-ip', req.ip, 3600, auth.limits.otpPerIpHour)))
+          return reply.code(202).send(accepted);
+        if (!(await hit('otp-email', b.data.email, 900, auth.limits.otpPerEmail15m)))
+          return reply.code(202).send(accepted);
+        const code = opts.generateCode?.() ?? newCode();
+        const locale = b.data.language ?? 'nl';
+        const hash = hmac(
+          auth.otpPepper,
+          registration
+            ? `registration-otp:${b.data.email}:${requestId}`
+            : `account-otp:${b.data.email}`,
+          code,
         );
-      cookies(reply, token, csrf);
-      return reply.code(204).send();
-    });
+        const issued = await value<boolean>(
+          registration
+            ? sql`select rowlens_registration_issue(${b.data.email},${hash},${locale},${requestId}::uuid,${'clubId' in b.data ? b.data.clubId : null}::uuid) as value`
+            : sql`select rowlens_login_issue(${b.data.email},${hash},${locale}) as value`,
+        );
+        if (!issued)
+          return registration
+            ? reply.code(409).send({ error: 'club_unavailable' })
+            : reply.code(202).send(accepted);
+        if (opts.deliver)
+          await opts
+            .deliver({
+              email: b.data.email,
+              code,
+              locale,
+              loginUrl: absoluteUrl(opts.publicOrigin, opts.basePath, '/'),
+              ...(registration ? { purpose: 'registration' as const } : {}),
+            })
+            .catch((error: unknown) => {
+              req.log.error({ error }, 'OTP mail failed');
+            });
+        else req.log.info({ email: b.data.email, code }, 'development OTP code');
+        return reply.code(202).send(accepted);
+      });
+      app.post(verifyPath, async (req, reply) => {
+        const b = (
+          registration ? verifyBody.extend({ requestId: z.uuid() }).strict() : verifyBody
+        ).safeParse(req.body);
+        if (!b.success) return reply.code(400).send({ error: 'invalid_code' });
+        if (!(await hit('verify-ip', req.ip, 900, auth.limits.verifyPerIp15m)))
+          return reply.code(429).send({ error: 'invalid_code' });
+        const token = newToken(),
+          csrf = newToken();
+        const requestId = 'requestId' in b.data ? b.data.requestId : null;
+        const hash = hmac(
+          auth.otpPepper,
+          registration
+            ? `registration-otp:${b.data.email}:${String(requestId)}`
+            : `account-otp:${b.data.email}`,
+          b.data.code,
+        );
+        const result = registration
+          ? await value<string>(
+              sql`select rowlens_registration_verify(${b.data.email},${hash},${requestId}::uuid,${sha256(token)},${sha256(csrf)}) as value`,
+            )
+          : (await value<boolean>(
+                sql`select rowlens_account_verify(${b.data.email},${hash},${sha256(token)},${sha256(csrf)}) as value`,
+              ))
+            ? 'ok'
+            : 'invalid';
+        if (result !== 'ok')
+          return reply.code(result === 'club_unavailable' ? 409 : 403).send({ error: result });
+        // Honor existing pilot invitations/allowlists only after proving ownership of the address.
+        const server = auth.adminEmails.has(b.data.email)
+          ? ['admin']
+          : auth.allowedEmails.has(b.data.email)
+            ? ['coach']
+            : [];
+        const grant = await db.execute<{ roles: string[] | null }>(
+          sql`select rowlens_auth_access(${b.data.email},${auth.clubSlug}) as roles`,
+        );
+        if (server.length || grant.rows[0]?.roles)
+          await db.execute(
+            sql`select * from rowlens_auth_ensure_user(${b.data.email},${''},${'nl'},${auth.clubSlug},${`{${server.join(',')}}`}::text[])`,
+          );
+        cookies(reply, token, csrf);
+        return reply.code(204).send();
+      });
+    }
     for (const others of [false, true])
       app.post(
         others ? '/api/auth/logout-others' : '/api/auth/logout',
@@ -277,7 +323,7 @@ export function createUnifiedGate(opts: {
     app.get('/api/account/clubs', { preHandler: accountGuard }, (req) =>
       run(
         req,
-        sql`select jsonb_build_object('clubs',rowlens_club_directory(),'applications',rowlens_my_applications()) as value`,
+        sql`select jsonb_build_object('clubs',rowlens_club_directory(),'applications',rowlens_my_applications(),'registration',rowlens_my_registration()) as value`,
       ),
     );
     app.post('/api/account/applications', { preHandler: accountGuard }, async (req, reply) => {

@@ -3,6 +3,52 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Authorized registration release — in progress
+
+- Ewout requested "merge en deploy" for the signup implementation. PR #158 passed all eight jobs
+  (run 42398940884) and is merged as ca0b7af; its branch is retained to protect the stack.
+- PR #159 is retargeted to main. A new documentation/authorization head triggers fresh CI against
+  this base. Wait for all checks, merge #159, wait for both main images and CI, then deploy only
+  that implementation merge tag. Do not deploy the intermediate docs-only merge.
+- Production preflight remains sha-dd71f78/25 migrations: 6 accounts, 6 memberships, 4 sessions,
+  5 videos, 13 compatibility identities (7 unlinked), 10 seats, 8 angles, 1 platform administrator,
+  0 pending club applications. No account-registration table exists before migration 0025.
+- Shared-container IDs/start times/images captured read-only. Compare after deployment; verify the
+  three neighbouring URLs, readiness/new tag, public minimal club directory and 26 migrations.
+- Existing global administrator must survive unchanged; no repeat bootstrap or server .env/compose
+  change is needed or authorized. This request supersedes earlier no-merge/deploy wording only for
+  this registration release. Log its completed deployment in a subsequent documentation PR.
+
+## Current follow-up — explicit registration implemented locally
+
+- Ewout approved the full signup plan with "Ja, voer het volledige plan uit". Implemented on
+  `codex/feat/registration-onboarding`, in PR [#159](https://github.com/ewoutbarendregt/rowlens/pull/159),
+  stacked on deployment-log PR #158 (all eight CI jobs green).
+  Implementation CI is pending on the final head. Do not merge either without a request. If merging the stack later, keep #158's branch alive,
+  retarget this implementation to main, and wait for new green CI before its merge/deploy.
+- ADR-0024/migration 0025: separate existing-account login and explicit signup, optional club
+  choice bound to purpose/challenge/email HMAC; proof creates account/registration/request/session
+  atomically. New global auth table has no direct app-role access; tenant applications retain RLS.
+  A private shared submission helper keeps verified users, pending decisions and rejection cooldown.
+  Real mailbox-lock concurrency and rollback tests cover proof replacement and failed application.
+  Final review fixed BUG-053: own confirmation prefers the latest verified choice; initial signup
+  history remains immutable. Local unreleased function definition refreshed; fresh DB migration
+  tests validate the final SQL. Local SMTP is unset: confirmation codes are in dev server output.
+- New Registration form has explicit No club; own club/status page works before names. Global
+  Requests sees clubless registrations and all application statuses across clubs; club admins see
+  only their active selected club. Only pending live-club rows offer admit/reject. No platform
+  approval for clubless accounts, fabricated old signups, auto membership or new admin mail.
+- Checks: full 608 web/DB plus final focused 42/42, **28** laptop 1000x540/iPhone 13 WebKit, worker 50 + Ruff/mypy, deploy scripts 77
+  and actual Docker migration/rollback rehearsal pass. Format/lint/typecheck/feature-on build/schema
+  journal pass. TEST.md retains initial fixture/static failures and legacy full 47 pass/75 skip/2
+  lineup timing failures; isolated desktop/mobile lineup rerun passes 2/2. Edge/real worker passes
+  **39 cases, 23 skipped**, with isolated output artifacts.
+- Local :5174/API :3100 uses 26 migrations and enabled unified flags. Dev stack remains available;
+  feature-on build restored after legacy testing. E2E uses throwaway synthetic accounts/mail only.
+  Physical iPhone and production signup are not tested; no actual mailbox/address/code captured.
+- Production remains sha-dd71f78 with 25 migrations; no new production action, merge or deploy is
+  authorized. The reported personal email is excluded from repository logs.
+
 ## Current production — deployed 2026-11-07
 
 - PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) merged as **dd71f78** after

@@ -31,7 +31,7 @@ export function RequireAuth({
   return (
     <>
       <AppHeader state={state} onProfileSaved={refresh} />
-      {named ? (
+      {named || accountOnly ? (
         children
       ) : (
         <main className="page">

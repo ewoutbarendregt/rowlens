@@ -3,6 +3,23 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Explicit registration (ADR-0024)
+
+Unified authentication separates existing-account login from registration. Public
+`GET /api/auth/registration/clubs` exposes only active club IDs/names with an IP limit.
+Registration OTP/verify endpoints bind email + purpose + challenge ID to the stored optional club
+choice. Login and signup share existing OTP limits. Only verification creates a registration and
+optional pending application, atomically with the account/session; no automatic club membership.
+An archived choice can be replaced without a partial account. Existing identities/roles remain.
+
+Migration 0025 adds protected global `account_registration` (account-ID link, initial optional club,
+time) and challenge/club fields to `account_login_code`. Narrow definer functions expose own/global
+registration data; the app role cannot read/write the new table or execute the private submission
+helper. Actual applications retain tenant RLS and protected audited admission. Account club/status
+pages are accessible before name completion. Global Requests includes clubless registration and
+all decision statuses; club actors see only their selected active club's applications. No historical
+signup backfill, additional processor, dependency or server configuration is needed.
+
 ## Users directory
 
 With unified users enabled, `/users` is a distinct administrator navigation page. A persisted
