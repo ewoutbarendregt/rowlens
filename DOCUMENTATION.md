@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Enable unified accounts in the authorized production release
+
+**Session**: codex/feat/unified-club-users
+**Changed**: .github/workflows/images.yml, .github/workflows/ci.yml, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested merge/deploy after all eight CI jobs passed on ce6c014. Release images now explicitly enable the paired client/runtime unified-user flag; CI builds the same image and checks its enabled unauthenticated account status with a synthetic smoke-test pepper. Docker defaults remain off for optional local/legacy builds; no server environment/configuration change is needed. Await fresh green CI before the authorized merge/deploy.
+**Prompts used**: "merge en deploy".
+
 ## 2026-11-07 — Implement the scoped user table and complete verified account editor
 
 **Session**: codex/feat/unified-club-users

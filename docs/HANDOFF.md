@@ -3,6 +3,17 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Authorized merge/deploy — 2026-11-07
+
+- Ewout explicitly requested "merge en deploy" for PR #157. Head ce6c014 passed all eight CI jobs.
+- Release and CI images now explicitly enable paired unified-user flags; the smoke check verifies
+  unified account status with synthetic OTP configuration. Production has no override, so no .env
+  or installed compose edit is required. Wait for new CI, then merge and deploy the merge SHA.
+- Global grants remain separately bootstrapped; do not infer authority from names/allowlists. A
+  production bootstrap must be shown as an exact operator command and approved before execution.
+- No production write/deployment has happened yet in this release turn. Older "no merge/deploy"
+  statements below are superseded only for this explicitly requested RowLens release.
+
 ## Current task — full user table and account/identity editor
 
 - Ewout approved the full plan with "Ja, voer het volledige plan uit". Implemented on

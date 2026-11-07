@@ -696,3 +696,12 @@ release of the per-upload busy slot does the route send its reply. A 204 therefo
 committed progress and (for completion) the durable processing job, and permits an immediate next
 chunk/termination. Parent authorization locks still cover the entire bounded stream; API status,
 offset and error formats remain unchanged. A real deferred-commit regression enforces this order.
+
+## Authorized release activation (2026-11-07)
+
+On Ewout's merge/deploy request, images.yml explicitly builds VITE_FEATURE_UNIFIED_USERS=true,
+which also sets UNIFIED_USERS=true in the runtime image. CI image builds use the same flags and
+assert enabled unified account status. Dockerfile defaults remain off for optional feature-off
+builds. Production has no explicit UNIFIED_USERS override, so no server .env/compose edit is needed.
+Global authority remains a separate persisted grant; release activation never auto-promotes an
+allowlist or name. Operator bootstrap, if needed, is a separately approved database write.
