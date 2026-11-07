@@ -185,6 +185,17 @@ describe('unified accounts and club admission', () => {
         user: { roles: string[] };
       }>().user.roles,
     ).toEqual(['coach']);
+    expect((await call('GET', '/api/sessions', undefined, u.cookies)).statusCode).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/sessions',
+          { title: 'Ambiguous club', date: '2026-11-07' },
+          u.cookies,
+        )
+      ).statusCode,
+    ).toBe(404);
     await asOwner('delete from membership where user_id=$1 and club_id=$2', [u.id, clubs.a]);
     expect((await call('GET', '/api/sessions', undefined, u.cookies, clubs.a)).statusCode).toBe(
       404,

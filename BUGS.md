@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-043] Missing club context could silently select a different membership — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:122
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: An old tab or API client without a club UUID could use the first available club after memberships changed. Both clubs were authorized, but a mutation could land in an unintended club.
+**Fix**: Require explicit context on club content routes whenever more than one club is available. Global account operations remain independent, and tests require 404 for ambiguous reads and training creation while explicit A/B requests keep their own roles.
+
 ### [BUG-042] Upload responses could precede commit and busy-slot release — high
 **Location**: apps/web/src/server/api/uploads.ts:171
 **Status**: fixed

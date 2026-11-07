@@ -14,7 +14,7 @@ until every historical mapping is resolved; no historical people or references a
 
 The club guard validates live per-club roles (or persisted platform authority), using an explicit
 club UUID in API headers/media query parameters and captured upload headers. UI club selection is
-per tab and opening a club reloads the page. Account preferences stay global. Platform elevation
+per tab and opening a club reloads the page. Club content requests without explicit context are rejected when multiple clubs are available; account-only operations still have no membership requirement. Account preferences stay global. Platform elevation
 uses protected persisted grants and the real actor; club administrators cannot grant it. The
 operator bootstrap is `bash scripts/admin/grant-platform-admin.sh` (hidden terminal email prompt,
 owner connection, already verified account, audited). Existing server admins remain club admins;

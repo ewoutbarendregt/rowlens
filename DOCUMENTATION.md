@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Require an explicit club when membership is ambiguous
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/auth/unified-gate.db.test.ts, BUGS.md, TEST.md, BUILD.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Club content routes now reject a missing club identifier when multiple clubs are available, preventing an old tab/API client from writing into a newly changed implicit first club. Authentication/profile/application/platform operations remain global and single-club legacy requests still work; 18 focused integration cases and 6 laptop/iPhone cases pass. CI run 42368018365 passed web (including the fixed upload suite and both browser matrices) and deploy-script before this final context hardening; current CI is linked on PR #157.
+**Prompts used**: "ja uitvoeren".
+
 ## 2026-11-07 — Fix the upload acknowledgement race exposed by PR CI
 
 **Session**: codex/feat/unified-club-users

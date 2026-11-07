@@ -20,7 +20,8 @@ newest-first detailed log. Update this file at the end of a session.
 - Platform bootstrap is `bash scripts/admin/grant-platform-admin.sh`: hidden terminal email prompt,
   owner connection and existing verified account. Existing server admins are not auto-promoted.
   Logos/club interface design remain deferred. Flags default off for production; local dev runs on.
-- PR CI run 42367425246 exposed an upload reply-before-COMMIT race (BUG-042; web 538 pass/2 fail). Fixed with a deterministic deferred-commit test; local uploads 13/13, full suite 541/541 and 6 upload/permissions browser cases pass. Fresh PR CI is pending; do not treat the earlier failed run as green.
+- Final guard hardening rejects content reads/writes without an explicit club when several clubs are available; account-only operations and single-club compatibility remain. Focused 18 integrations + 6 laptop/iPhone cases pass. CI status for the new head is on PR #157.
+- PR CI run 42367425246 exposed an upload reply-before-COMMIT race (BUG-042; web 538 pass/2 fail). Fixed with a deterministic deferred-commit test; local uploads 13/13, full suite 541/541 and 6 upload/permissions browser cases pass. The next CI run 42368018365 passed web and deploy-script; do not use the earlier failed run as release evidence. Check the latest PR head for current status.
 - Final checks: **541 web/DB** (18 unified cases + upload commit regression), **50 worker** with Ruff/mypy, format/lint/typecheck,
   feature-on build and schema consistency pass. Local unified **6/6** and proxy **6/6** (1000×540
   Chromium + iPhone WebKit) pass; screenshots and >=44 px/no-overflow checks inspected. Legacy

@@ -261,3 +261,10 @@ build pass. Focused upload + training-permissions browser rerun: **6/6 desktop/m
 The 6 local + 6 proxy account/club WebKit/laptop results and worker/deployment checks above remain
 valid; no frontend, worker, permission policy or migration changed in this repair. A fresh CI run
 on PR #157 validates the correction on Linux.
+
+
+Final context hardening: explicit per-request club selection is required when more than one club
+is available; account operations and one-club compatibility remain unchanged. The 18 focused
+integration cases and all 6 unified laptop/iPhone browser cases pass after this guard change. The
+preceding CI run **42368018365** passed its web job (including the upload fix, legacy browser suite
+and new WebKit matrix) and deploy-script; the new PR head gets its own complete CI run.

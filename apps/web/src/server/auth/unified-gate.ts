@@ -108,13 +108,18 @@ export function createUnifiedGate(opts: {
         return r.rows[0]?.value;
       }),
     );
-  const selected = async (req: FastifyRequest, a: Account): Promise<Club | undefined> => {
+  const selected = async (
+    req: FastifyRequest,
+    a: Account,
+    requireChoice = false,
+  ): Promise<Club | undefined> => {
     const all = await clubs(a);
     const q = z.object({ club: z.uuid().optional() }).safeParse(req.query);
     const header = req.headers['x-rowlens-club'];
     if (!q.success || (typeof header === 'string' && q.data.club && q.data.club !== header))
       return undefined;
     const id = typeof header === 'string' ? header : q.data.club;
+    if (id === undefined && requireChoice && all.length > 1) return undefined;
     return id === undefined ? all[0] : all.find((c) => c.id === id);
   };
   const authenticate = async (req: FastifyRequest, reply: FastifyReply, accountOnly = false) => {
@@ -125,7 +130,7 @@ export function createUnifiedGate(opts: {
     }
     if (unsafe.has(req.method) && req.headers['x-csrf-token'] !== cookie(req, 'rowlens_csrf'))
       return reply.code(403).send({ error: 'invalid_csrf' });
-    const c = await selected(req, a);
+    const c = await selected(req, a, !accountOnly);
     if (!accountOnly && !c) {
       reply.callNotFound();
       return reply;
