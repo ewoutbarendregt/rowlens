@@ -1,42 +1,42 @@
-# RowLens handoff — 2026-11-06
+# RowLens handoff — 2026-11-07
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Current task — #154, club-wide reading and role-based editing
+## Current state — #155 merged and deployed
 
-- Ewout approved the revised plan and its one policy migration: "voer het plan uit".
-  Branch `codex/feat/154-club-training-readonly`, based on main `b000ca4`; implementation local.
-- All roles read all current-club trainings. Rower-only writes remain creator-owned, not crew-owned;
-  foreign trainings are fully read-only, including old own feedback, assignment and sharing.
-  Coaches/admins edit every club training; combined roles retain elevated rights. Private feedback
-  stays private to rowers, and creator/account administration stays admin-only. See ADR-0020.
-- Migration 0019 (20 total locally) separates read/write RLS. APIs return resource capabilities and
-  pre-authorize media effects under a parent lock with a fresh ownership recheck after lock waits.
-  BUG-032 regression reproduces a concurrent creator-transfer/upload race, then passes after fix.
-- Ready in PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155). Final code is 44b4062 plus
-  verification documentation; check current CI on the PR. No merge/deploy authorization.
-- BUG-034 compatibility is included in the same migration: new `withTenant` transactions set fixed
-  `app.training_permissions=owner-or-staff`. Absent context keeps the prior role-set-aware image's
-  aligned legacy read/write scope during upgrade/authorized rollback; unknown modes deny training
-  access. No second migration/table/dependency, server reconfiguration or coordinated stop is needed.
-  Scalar-role images remain incompatible with ADR-0019. Legacy/new contract tests pass together.
-- Final verification after that change: 522 web/DB (30 new permission cases), 50 worker with Ruff/mypy,
-  format/lint/typecheck/build, schema-generation consistency, 77 deploy-script tests and repeated
-  real local deploy/rollback rehearsal pass. Full local E2E 49 passed/49 skipped; full edge 39 passed/
-  10 skipped. Local phone/1000×540 matrix 6/6; edge matrix 14/14 (permissions/live roles/private
-  feedback, angle measurements, line movement, 0.25×/0.5×, pause and inline stroke tools).
-  Screenshots inspected; no document overflow. Earlier diagnostic runs are retained in TEST.md.
-- Local dev :5174/API :3100 is healthy with 20 migrations. Its already-applied 0019 helpers/policy
-  were updated non-destructively with data retained; edge bootstrapped the revised migration on a
-  fresh test database and is stopped after verification. No local check is running; dev stays on.
-  Next: Ewout tries the local stack. Merge/deploy require new explicit requests.
-- Production is **sha-b000ca4**, #152 merged/deployed 2026-11-06 18:18 UTC, verified healthy with
-  19 migrations and retained accounts/sessions. Deployment log PR **#153** is separate and open;
-  older #148/#150 and the OWASP review branch remain untouched. No merge/deploy authorization
-  carries over to #154. No production changes were made.
-- The sections below are earlier snapshots from main. This current section supersedes their older
-  production/task status; deployment evidence is in #153. Do not repeat that deployment.
+- Ewout explicitly authorized "Merge en deploy" on 2026-11-07. PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) merged at 07:02 UTC
+  as **799dfbee9d117ab7960bbe5e109dec57b5228e90**, now `main`; its tree matches tested fa7f892.
+  PR CI 42285357142, main CI 42349540301 and published-images run 42349540085 passed.
+- Production is **sha-799dfbe**, ready at **2026-11-07 07:11:58 UTC**;
+  [deploy 42350220520](https://github.com/ewoutbarendregt/rowlens/actions/runs/42350220520) succeeded (public URL check included). Previous release sha-b000ca4.
+  Pre-deploy DB backup written before migration. This consumes the current deployment authorization;
+  later merge/deploy actions need a new explicit request.
+- Migration 0019 is live: **20 migrations**. Production retains **5 users, 5 memberships, 3 grants,
+  7 active sessions, 4 trainings, 5 videos and 58 annotations**. No backfill was introduced.
+  A read-only transaction under the app role verified strict rower/coach/admin permissions, legacy
+  read/write alignment and unknown-context denial with zero mismatches; no real account roles changed.
+- All members read all club trainings; rower-only users edit self-created trainings, and other
+  trainings are fully read-only, including old own feedback, assignment and sharing. Coaches/admins
+  edit all club trainings. Private rower feedback and tenant/admin boundaries remain (ADR-0020).
+- New transactions set fixed `app.training_permissions=owner-or-staff`. Missing context preserves
+  the prior role-set-aware image's aligned scope during upgrade/authorized rollback; unknown modes
+  deny training access. Scalar-role images remain incompatible (ADR-0019). No server config changed.
+- Verification: new web/worker tag, ready/DB ok; RowLens DB container 1046d782e5a5 remains healthy;
+  **5/5 public URLs 200** and **5/5 shared container IDs/start times unchanged** (trustable/Caddy/
+  AudioScribe). No shared service restart, environment/compose change or persistent one-off DB write.
+- Source verification remains 522 web/DB +50 worker, 77 deploy-script tests, real Docker rehearsal,
+  49 local E2E (49 skipped), 39 edge E2E (10 skipped), 6 local +14 edge iPhone WebKit/1000×540 cases.
+  Logs and diagnostic iterations are in TEST.md. Known release-please run 42349540067 failed only
+  because GitHub Actions may not create PRs; it does not affect CI, images or deployment.
+- Workspace: [deployment-log PR #156](https://github.com/ewoutbarendregt/rowlens/pull/156)
+  (`codex/docs/155-deploy`) is open for review, not merged. Local dev :5174/
+  API :3100 is healthy with 20 migrations; edge is stopped and no verification job is running.
+  Feature branch codex/feat/154-club-training-readonly was deleted after merge; older deployment-log
+  PRs #148/#150/#153 and the OWASP review branch remain untouched. Do not merge them implicitly.
+  Oar arc/stern camera remain deferred; basic editing remains the product priority.
+- Older snapshots below describe earlier releases; this current section supersedes their
+  production/task status. Do not redeploy the previous tags or repeat this rollout.
 
 ## Admin user settings implementation — #151
 

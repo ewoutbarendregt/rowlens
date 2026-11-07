@@ -1,6 +1,6 @@
 # Club training visibility and editing by role (#154)
 
-Status: approved by Ewout ("voer het plan uit", 2026-11-06); implemented and verified, including upgrade compatibility, in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155).
+Status: approved by Ewout ("voer het plan uit", 2026-11-06); merged [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) and deployed `sha-799dfbe` on 2026-11-07 with explicit "Merge en deploy" authorization.
 Requests: "als roeier moet je wel de trainingen van de andere roeiers kunnen zien, maar je mag ze niet aanpassen";
 "Volledig alleen-lezen"; "eerst plan aanpassen. coaches en beheerders mogen overigens wel trainingen van anderen aanpassen".
 Issue: https://github.com/ewoutbarendregt/rowlens/issues/154
@@ -73,8 +73,10 @@ client session/video/lineup/upload/notes controls and NL/EN strings.
 Implementation uses migration 0019 (20 migrations total locally), separate resource read/write policies,
 server-derived capabilities and pre-media parent locks. Permissions are rechecked in a fresh statement
 after a lock wait, so a concurrent creator transfer cannot authorize an upload with stale ownership.
-ADR-0020 records the accepted decision. No merge/deployment for #154; production stays sha-b000ca4
-and deployment log #153 remains a separate PR.
+ADR-0020 records the accepted decision. Merged/deployed as sha-799dfbe on 2026-11-07 after
+explicit authorization. Production has 20
+migrations and passes read-only permission, readiness/data-retention/shared-service checks;
+see docs/HANDOFF.md and docs/runbooks/server-setup.md. Earlier deployment-log #153 remains separate.
 
 ## Upgrade and rollback compatibility
 
@@ -83,6 +85,6 @@ image's file handlers assume visible trainings are writable. New code therefore 
 fixed per-transaction server capability; absent context retains the old image's matching legacy
 read/write scope and unknown capability values fail closed. The approved migration remains 0019,
 with no extra table/dependency or server change. Regression coverage checks both image contracts,
-including participant rowers, unrelated coaches, admins and ownerless trainings. No production
-migration has run; the already-applied local dev 0019 definitions are updated non-destructively, and edge tests
-bootstrap the revised migration on a fresh local test database.
+including participant rowers, unrelated coaches, admins and ownerless trainings. Production
+migration 0019 ran successfully on 2026-11-07. Local dev definitions were updated non-destructively;
+edge tests bootstrapped the revised migration on a fresh local test database.

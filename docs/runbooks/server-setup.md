@@ -16,7 +16,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `AUTH_ADMIN_EMAILS` (first admin, added before `sha-96a0202` with a backup), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587` (465 is blocked outbound on trustable-prod, BUG-010; changed 2026-11-02 07:34 UTC, backup `.env.bak-20261102b`), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the e-mail change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
-| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-ee73740` (deployed 2026-11-02 20:51 UTC), `web` on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; web and DB healthy. Previous release: `sha-96a0202` (pilot-code release for rollback: `sha-c15cb47`) | Codex, 2026-11-02, approved |
+| RowLens containers (project `rowlens`) | ✅ web + worker `sha-799dfbe`, deployed 2026-11-07 07:11:58 UTC (#155); web and DB healthy, 20 migrations. Web alone joins `trustable_proxy`; previous release `sha-b000ca4`. Five shared containers unchanged. | Codex, 2026-11-07, approved |
 | Resend sender domain | ✅ `trustable.nl` verified (DKIM `resend._domainkey`, bounce MX on `send.trustable.nl`, SPF includes resend.com); AudioScribe already sends from it | checked 2026-11-02 |
 
 Nothing under `/opt/trustable` has been changed.
@@ -39,7 +39,7 @@ From #45 (upload): nothing new on the server. `/opt/rowlens/media` exists, owned
 it into `web`. Disk then: 150 GB, 47 % used; uploads pause at 85 %.
 
 The app database password is configured. The deploy script creates or updates the `rowlens_app` role,
-applies migrations before starting the app (through 0012 in `sha-ee73740`) and starts `web` with that
+applies migrations before starting the app (through 0019 in `sha-799dfbe`) and starts `web` with that
 role.
 
 ## Verified restrictions of the CI key (2026-11-01)
@@ -56,6 +56,23 @@ role.
 - Pre-deploy database dumps: `/opt/rowlens/backups/pre-deploy-*.dump` (newest 10 kept).
 
 ## Recent deployments
+
+- **2026-11-07 07:11:58 UTC — `sha-799dfbe`** (PR [#155](https://github.com/ewoutbarendregt/rowlens/pull/155), club training permissions).
+  Ewout: "Merge en deploy". Squash commit `799dfbee9d117ab7960bbe5e109dec57b5228e90` is tree-identical
+  to tested `fa7f892`; main [CI 42349540301](https://github.com/ewoutbarendregt/rowlens/actions/runs/42349540301)
+  and [images 42349540085](https://github.com/ewoutbarendregt/rowlens/actions/runs/42349540085) passed.
+  [Deploy 42350220520](https://github.com/ewoutbarendregt/rowlens/actions/runs/42350220520) succeeded with the public version check; the standard pre-deploy backup
+  was written at 07:11:49 UTC. Migration **0019** brings the total to **20**, with no backfill.
+  Ready reports the expected version and DB ok; RowLens web/worker run the tag, DB remains healthy
+  in the same container. Data counts before/after: 5 users, 5 memberships, 3 grants, 7 active sessions,
+  4 trainings, 5 videos and 58 annotations. A read-only app-role transaction checked strict rower/
+  coach/admin permissions, legacy alignment and unknown-capability refusal (zero mismatches).
+  All five URLs (RowLens, readiness, trustable.nl, API health, AudioScribe) return 200. The exact IDs
+  and start times of the five shared containers are unchanged. No `.env`, compose, shared-service
+  or persistent one-off data changes; previous tag is `sha-b000ca4`. Migration's fixed transaction
+  capability keeps that prior role-set-aware image compatible with upgrade/authorized rollback;
+  older scalar-role images remain unsupported (ADR-0019/0020). The separate release-please workflow
+  has its known Actions-PR-permission failure; CI, published images and deploy all succeeded.
 
 - **2026-11-05 14:55 UTC — `sha-5ef325b`** (#142: move a saved drawing on the picture, the rower in
   the picture). Images run
