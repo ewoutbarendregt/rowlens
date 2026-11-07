@@ -3,21 +3,21 @@
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).
 
-## Unified accounts and club admission — local implementation (2026-11-07)
+## Unified accounts and club admission — deployed sha-dd71f78 (2026-11-07)
 
 | Feature | Status |
 | --- | --- |
-| Account requests and email verification, account-only profile/status | implemented locally; checks pass, pending PR review |
-| Several clubs per account; roles and access per club; club choice | implemented locally; checks pass, pending PR review |
-| User table: 17-field filtering/sorting, column selection, paging and full editor | implemented locally; verification in TEST.md |
-| Verified email changes with owner confirmation and protected global role controls | implemented locally; migration 0024, no production change |
-| Users navigation: all accounts for platform admins, own-club members for club admins | implemented locally; zero-membership editing covered |
-| Club administration: all members, role assignment and Requests tab | implemented locally; verification in TEST.md |
-| RowLens-admin club directory with create/edit/archive/restore | implemented locally; verification in TEST.md |
-| Club-admin admission and rejection of applications | implemented locally; checks pass, pending PR review |
-| RowLens-admin club management and full content/user settings access | implemented locally; checks pass, pending PR review |
-| Retire Rowers UI/CRUD/inline creation; account-backed selectors | implemented locally behind unified-user flag |
-| Explicit historical identity mapping and canonical account backfill | implemented locally; real production mappings await administrator action |
+| Account requests and email verification, account-only profile/status | done; PR #157, deployed |
+| Several clubs per account; roles and access per club; club choice | done; PR #157, deployed |
+| User table: 17-field filtering/sorting, column selection, paging and full editor | done; deployed, verification in TEST.md |
+| Verified email changes with owner confirmation and protected global role controls | done; deployed, migration 0024 applied |
+| Users navigation: all accounts for platform admins, own-club members for club admins | done; deployed, zero-membership editing covered |
+| Club administration: all members, role assignment and Requests tab | done; deployed, verification in TEST.md |
+| RowLens-admin club directory with create/edit/archive/restore | done; deployed, verification in TEST.md |
+| Club-admin admission and rejection of applications | done; PR #157, deployed |
+| RowLens-admin club management and full content/user settings access | done; PR #157, deployed |
+| Retire Rowers UI/CRUD/inline creation; account-backed selectors | done; unified-user flag enabled in production |
+| Explicit historical identity mapping and canonical account backfill | done; 7 real production mappings await administrator action |
 | Club logos and chosen interface design | planned later, not implemented |
 
 This direction supersedes the earlier no-account roster and name-only claiming goals below.

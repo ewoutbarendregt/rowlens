@@ -16,7 +16,7 @@ component is approved by Ewout first (CLAUDE.md). Newest changes first.
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `AUTH_ADMIN_EMAILS` (first admin, added before `sha-96a0202` with a backup), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587` (465 is blocked outbound on trustable-prod, BUG-010; changed 2026-11-02 07:34 UTC, backup `.env.bak-20261102b`), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the e-mail change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
-| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-ee73740` (deployed 2026-11-02 20:51 UTC), `web` on `rowlens_internal` + `trustable_proxy` (alias `rowlens-web`), `db` (postgres:16-alpine) on `rowlens_internal` only; web and DB healthy. Previous release: `sha-96a0202` (pilot-code release for rollback: `sha-c15cb47`) | Codex, 2026-11-02, approved |
+| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-dd71f78` (2026-11-07), unified accounts enabled, 25 migrations; web and DB healthy. Previous release: `sha-799dfbe`. Networks unchanged. | Codex, 2026-11-07, approved |
 | Resend sender domain | ✅ `trustable.nl` verified (DKIM `resend._domainkey`, bounce MX on `send.trustable.nl`, SPF includes resend.com); AudioScribe already sends from it | checked 2026-11-02 |
 
 Nothing under `/opt/trustable` has been changed.
@@ -56,6 +56,20 @@ role.
 - Pre-deploy database dumps: `/opt/rowlens/backups/pre-deploy-*.dump` (newest 10 kept).
 
 ## Recent deployments
+
+- **2026-11-07 17:56 UTC — `sha-dd71f78`** ([#157](https://github.com/ewoutbarendregt/rowlens/pull/157):
+  unified accounts, scoped Users table/editor and club lifecycle). Main CI
+  [42397829809](https://github.com/ewoutbarendregt/rowlens/actions/runs/42397829809) and images
+  [42397829884](https://github.com/ewoutbarendregt/rowlens/actions/runs/42397829884) passed; deploy
+  [42398709787](https://github.com/ewoutbarendregt/rowlens/actions/runs/42398709787) succeeded.
+  Both release-image feature flags are enabled; no installed compose/.env edit. Migrations
+  **0020–0024**, **25 total**. Readiness reports the new tag/DB ok; auth status unified/enabled.
+  Existing 6 accounts, 6 memberships, 4 sessions, 5 videos, 7 historical identities, 10 seats and
+  8 angles preserved. All 7 historical identities await explicit account mapping. The separately
+  shown/approved image-bound operator bootstrap completed with hidden terminal input: **1 global
+  administrator and 1 bootstrap audit**, no address recorded. Shared-container IDs/start times/
+  images unchanged; neighbouring three public URLs return 200. Authenticated production browser
+  and physical iPhone verification remain manual follow-up.
 
 - **2026-11-05 14:55 UTC — `sha-5ef325b`** (#142: move a saved drawing on the picture, the rower in
   the picture). Images run

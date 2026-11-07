@@ -2,13 +2,31 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Production rollout verification (2026-11-07)
+
+- Corrected PR head f88fdab: CI **42396990030**, all **8** jobs pass. Main merge dd71f78:
+  CI **42397829809** passes (policy intentionally skipped on main), images **42397829884** pass.
+- Deploy **42398709787** succeeds. Public readiness: **sha-dd71f78**, DB ok; auth status:
+  enabled/unified true, anonymous access false. Both RowLens web/worker run the new tag.
+- Schema: **25 migrations**, up from **20**. Before/after aggregate counts match:
+  **6 accounts, 6 memberships, 4 sessions, 5 videos, 7 historical people, 10 seats, 8 angles**.
+  WVIJburg name confirmed; **7** historical identities remain explicitly unlinked.
+- Approved hidden-input production bootstrap exits **0**; aggregate **1 platform administrator**
+  and **1 bootstrap audit**, with record counts unchanged.
+- All **5** shared-container IDs/start times/images match preflight exactly; trustable website,
+  trustable API health and AudioScribe return **200**. No server configuration changed.
+- Config tests **12/12** pass. Direct synthetic-production config probe initially omitted the
+  existing required PUBLIC_ORIGIN; corrected probe matches the smoke environment and passes.
+- Known release-please run **42397829796** fails due to Actions PR-creation permissions only.
+  Authenticated production UI and physical iPhone were not manually verified.
+
 ## Release image authentication smoke (2026-11-07)
 
 - CI run 42390255322 passed web, worker, edge, policy, secrets and deploy checks, but the
   web-image smoke failed at startup: unified authentication also requires production SMTP.
 - Added synthetic SMTP host/credentials/sender to the isolated image smoke alongside its OTP
   pepper. No mail is sent by the health/status check; production validation remains unchanged.
-- Fresh CI on the corrected head must pass before merging or deploying.
+- Corrected-head CI 42396990030 passed all eight jobs before merge; see rollout above.
 
 ## Full account table/editor and verified identity changes (2026-11-07)
 
