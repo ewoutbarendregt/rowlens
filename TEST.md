@@ -2,6 +2,19 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## BUG-054 kernel repair preparation (2026-11-07)
+
+- Fresh Canonical amd64 archive and production mirror both offer **6.8.0-149.149** in
+  **noble-updates**, without proposed. Extracted downloaded modules changelog contains the exact
+  relevant IPv4/RCU fix. Earlier CVE-page-only no-fix wording is superseded by this evidence.
+- Production read-only solver/helper check: **2 new, 2 upgraded, 0 removed**, only the four
+  pinned kernel packages; **63 untouched**. Docker/UFW enabled; all **8** running containers have
+  unless-stopped policies. Current kernel remains **147** and no livepatch is active.
+- Real canonical payload verification **4/4 SHA-256**. **10/10** parser safety checks, Bash syntax
+  and ShellCheck pass locally in isolated Ubuntu. No local-container kernel boot test is claimed.
+- Installer changes are approval-gated; no production apt update/install, firewall/boot mutation
+  or reboot. Only helper `check` ran over SSH stdin; no script was copied to production yet.
+
 ## Registration production release and read-only security review (2026-11-07)
 
 - Final PR CI 42403762182: all eight checks pass. Merge a47111c main CI 42404700506 and images

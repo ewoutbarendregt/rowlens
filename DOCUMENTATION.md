@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Prepare a verified pinned kernel repair for BUG-054
+
+**Session**: codex/fix/054-kernel-remediation
+**Changed**: scripts/admin/fix-production-kernel-054.sh, scripts/admin/test/fix-production-kernel-054.test.sh, .github/workflows/ci.yml, docs/security/bug-054-kernel-remediation.md, docs/security/2026-11-07-production-dependabot-review.md, BUGS.md, TEST.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Follow-up corrects the earlier CVE-page-only availability statement: fresh Canonical and production mirror metadata offer signed 6.8.0-149.149 in noble-updates, and the downloaded modules changelog contains the IPv4/TCP fix. Prepared an operator-only helper pinned to four package payloads, preserving kernel 147 and validating APT scope, SHA-256s, boot files and GRUB before scheduling a shared-host reboot. Ten parser safety cases, ShellCheck, Bash syntax, four real payload hashes and a read-only production dry run pass. No host package/cache/firewall/boot mutation or reboot; awaiting the separate exact-change approval required by AGENTS.md.
+**Prompts used**: "kun je dit issue oplossen?".
+
 ## 2026-11-07 — Deploy our registration release and audit Dependabot exposure
 
 **Session**: codex/docs/159-registration-release

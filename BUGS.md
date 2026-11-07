@@ -4,10 +4,10 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-054] Active production kernel has a critical vendor IPv4/TCP advisory — critical
 **Location**: docs/security/2026-11-07-production-dependabot-review.md; trustable-prod kernel 6.8.0-147-generic
-**Status**: open
+**Status**: in-progress (verified repair prepared; awaiting exact host-change approval)
 **Found**: 2026-11-07 (read-only production security review)
 **Description**: Canonical identifies CVE-2026-98432 as critical with potential remote code execution in IPv4 TCP handling; Ubuntu Noble's fix is still in progress. Production's kernel is in that affected family and has public TCP services. Independent of Dependabot; no exploit or compromise was demonstrated. Additional current-kernel advisories require review.
-**Fix**: Pending owner-directed response: assess Canonical's partial packet-filter mitigation against the active firewall/Docker setup, and track a supported kernel fix. Shared firewall/kernel changes require a separately shown exact command/diff and Ewout's approval; none applied in this audit.
+**Fix**: Follow-up verifies 6.8.0-149.149 in ordinary noble-updates and its downloaded changelog contains the fix. The pinned four-package helper and full-server reboot plan are tested/prepared in docs/security/bug-054-kernel-remediation.md; exact host-change approval is pending. Do not mark fixed before 149 is running and shared services are verified. No production installation/reboot performed yet.
 
 ### [BUG-055] Existing container and shared-runtime security maintenance backlog — high
 **Location**: apps/web/Dockerfile; worker/Dockerfile; docs/security/2026-11-07-production-dependabot-review.md

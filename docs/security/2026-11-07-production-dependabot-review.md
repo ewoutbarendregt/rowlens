@@ -1,5 +1,12 @@
 # Production deployment and Dependabot security review — 2026-11-07
 
+## Subsequent package-level correction
+
+The audit's CVE-page status was incomplete: follow-up verifies signed **6.8.0-149.149** packages
+in ordinary noble-updates, with the relevant fix in the downloaded modules changelog. The server
+still runs 147 until an approved install/reboot. See [the concrete remediation plan](bug-054-kernel-remediation.md).
+Do not treat the historical in-progress wording below as proof that an updates repair is unavailable.
+
 ## Outcome
 
 Our registration release is deployed as **sha-a47111c**. No Dependabot PR was merged into it.

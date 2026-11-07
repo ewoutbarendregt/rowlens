@@ -3,6 +3,29 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Active task — BUG-054 verified kernel repair awaits approval
+
+- Ewout asked "kun je dit issue oplossen?". Prepared on `codex/fix/054-kernel-remediation`, based
+  on the still-open audit/policy docs PR #160. No host mutation/reboot authorized/applied yet;
+  show exact action and obtain the separate approval AGENTS.md requires for shared components.
+- **Correction**: the earlier CVE-page WIP status is stale/incomplete. Fresh signed Canonical
+  metadata and the production mirror offer **6.8.0-149.149 in noble-updates**. Downloaded module
+  changelog contains `ipv4: free inet_opt and ireq_opt after an RCU grace period` in that release.
+  No proposed source, firewall workaround or distro/kernel-family switch is needed.
+- `scripts/admin/fix-production-kernel-054.sh`: check is read-only; apply needs hidden root su
+  access, pins four reviewed packages/payload hashes, rejects unrelated/removal/version drift,
+  retains 147, backs up GRUB/inventory and validates boot entries before reboot in one minute.
+  Exact scope, commands and recovery plan: docs/security/bug-054-kernel-remediation.md.
+- Checks: **10 parser**, ShellCheck/Bash syntax, **4 real payload hashes**, production read-only
+  APT/helper check (2 new/2 upgraded/0 removed, 63 untouched). All eight containers restart
+  unless-stopped; Docker/UFW enabled, GRUB default 0, >75 GB free. No VM kernel boot test run.
+- Root password must be entered by Ewout in native Terminal, never chat/argv/env. After approval,
+  verify uploaded helper checksum before su; collect pre-reboot boot/service/data baselines,
+  execute only the reviewed helper, wait for fresh SSH + kernel149 and all app health checks.
+  Provider console should be available for manual old-kernel recovery if SSH does not return.
+- Production still sha-a47111c/26 migrations/kernel147. Do not mark BUG-054 fixed until the new
+  kernel is running; BUG-055 and other unrelated maintenance findings remain separate.
+
 ## Current production and security follow-up — 2026-11-07
 
 - Our registration PR #159 is merged as **a47111c**; lower docs #158 merged as ca0b7af with its

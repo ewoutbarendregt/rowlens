@@ -1,5 +1,13 @@
 # PLAN
 
+## BUG-054 kernel fix — ready for exact host-change approval
+
+The verified stable-channel kernel 6.8.0-149.149 contains the fix despite stale CVE-page status.
+See docs/security/bug-054-kernel-remediation.md for the pinned four-package helper, exact commands,
+old-kernel preservation, shared-server reboot impact, post-boot checks and recovery boundaries.
+Ten safety tests, four real package hashes and read-only production simulation pass. No change
+has been applied; AGENTS.md requires separate approval of this exact shared kernel/reboot action.
+
 ## Production security review — open maintenance findings 2026-11-07
 
 Our registration release is deployed as sha-a47111c with 26 migrations. Ewout rejects unsolicited
