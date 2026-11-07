@@ -1,4 +1,4 @@
-import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
+import { type SubmitEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Navigate } from 'react-router';
 import { ROLES, type Role } from '../../shared/roles.ts';
 import { api } from '../api.ts';
@@ -74,33 +74,58 @@ function RoleChoices({
   );
 }
 
-export function AccessPage() {
+export function AccessPage({ directory = false }: { directory?: boolean }) {
   const t = adminStrings();
   const s = settingsStrings();
   const { state } = useAuth();
   const formId = useId();
   const [entries, setEntries] = useState<Entry[] | null>(null);
+  const [accounts, setAccounts] = useState<{ id: string; name: string; email: string }[]>([]);
+  const unified = state.kind === 'open' && state.unified === true;
+  const platform = directory && state.kind === 'open' && state.user.platformAdmin === true;
+  const clubId = state.kind === 'open' ? state.club.id : null;
+  const actor = state.kind === 'open' ? state.user.id : null;
   const [failed, setFailed] = useState(false);
   const [email, setEmail] = useState('');
   const [roles, setRoles] = useState<Role[]>(['rower']);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; alert: boolean } | null>(null);
-  const [tab, setTab] = useState<'users' | 'roles' | 'applications'>('users');
+  const [tab, setTab] = useState<'users' | 'roles' | 'applications'>(
+    directory || !unified ? 'users' : 'applications',
+  );
   const [search, setSearch] = useState('');
+  const loadGeneration = useRef(0);
   const load = useCallback(async () => {
+    const generation = ++loadGeneration.current;
     try {
-      const response = await api('/api/admin/users');
-      if (!response.ok) throw new Error();
-      setEntries(((await response.json()) as { entries: Entry[] }).entries);
+      const [response, globalResponse] = await Promise.all([
+        !unified || clubId ? api('/api/admin/users') : Promise.resolve(null),
+        platform ? api('/api/platform/users') : Promise.resolve(null),
+      ]);
+      if ((response && !response.ok) || (globalResponse && !globalResponse.ok)) throw new Error();
+      const [members, global] = await Promise.all([
+        response
+          ? (response.json() as Promise<{ entries: Entry[] }>)
+          : Promise.resolve({ entries: [] }),
+        globalResponse
+          ? (globalResponse.json() as Promise<{ id: string; name: string; email: string }[]>)
+          : Promise.resolve([]),
+      ]);
+      if (generation !== loadGeneration.current) return;
+      setEntries(members.entries);
+      setAccounts(global);
       setFailed(false);
     } catch {
-      setFailed(true);
+      if (generation === loadGeneration.current) setFailed(true);
     }
-  }, []);
-  const unified = state.kind === 'open' && state.unified === true;
+  }, [platform, clubId, unified, actor]);
   const admin = state.kind === 'open' && state.user.roles.includes('admin');
+  const AdmissionContainer = directory ? 'details' : 'div';
   useEffect(() => {
     if (admin) void load();
+    return () => {
+      loadGeneration.current++;
+    };
   }, [admin, load]);
   if (state.kind === 'loading') return null;
   if (!admin) return <Navigate to="/" replace />;
@@ -136,28 +161,29 @@ export function AccessPage() {
   };
   return (
     <main className="page club-admin-page">
-      <h1>{t.admin}</h1>
-      <div className="tabs" role="tablist" aria-label={t.admin}>
-        {(unified
-          ? (['users', 'applications', 'roles'] as const)
-          : (['users', 'roles'] as const)
-        ).map((name) => (
-          <button
-            key={name}
-            type="button"
-            role="tab"
-            id={`${formId}-tab-${name}`}
-            aria-selected={tab === name}
-            aria-controls={`${formId}-panel-${name}`}
-            className="tabs__tab"
-            onClick={() => {
-              setTab(name);
-            }}
-          >
-            {unified && name === 'users' ? t.members : t.tabs[name]}
-          </button>
-        ))}
-      </div>
+      <h1>{directory ? t.users : t.admin}</h1>
+      {!directory && (
+        <div className="tabs" role="tablist" aria-label={t.admin}>
+          {(unified ? (['applications', 'roles'] as const) : (['users', 'roles'] as const)).map(
+            (name) => (
+              <button
+                key={name}
+                type="button"
+                role="tab"
+                id={`${formId}-tab-${name}`}
+                aria-selected={tab === name}
+                aria-controls={`${formId}-panel-${name}`}
+                className="tabs__tab"
+                onClick={() => {
+                  setTab(name);
+                }}
+              >
+                {unified && name === 'users' ? t.members : t.tabs[name]}
+              </button>
+            ),
+          )}
+        </div>
+      )}
       {tab === 'applications' ? (
         <section
           role="tabpanel"
@@ -204,37 +230,52 @@ export function AccessPage() {
         </section>
       ) : (
         <section
-          role="tabpanel"
+          role={directory ? undefined : 'tabpanel'}
           id={`${formId}-panel-users`}
-          aria-labelledby={`${formId}-tab-users`}
+          aria-labelledby={directory ? undefined : `${formId}-tab-users`}
         >
-          <p className="muted">{unified ? t.unifiedIntro : t.intro}</p>
+          <p className="muted">
+            {directory
+              ? platform
+                ? t.allAccounts
+                : t.clubAccounts
+              : unified
+                ? t.unifiedIntro
+                : t.intro}
+          </p>
+          {directory && clubId && <p>{t.roleScope(state.club.name)}</p>}
           {failed && <p role="alert">{t.loadFailed}</p>}
-          <form
-            className="card form"
-            onSubmit={(event) => void admit(event)}
-            aria-labelledby={`${formId}-h`}
-          >
-            <h2 id={`${formId}-h`}>{t.admit}</h2>
-            <label htmlFor={`${formId}-email`}>{t.email}</label>
-            <input
-              id={`${formId}-email`}
-              type="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-              }}
-              autoComplete="off"
-              required
-            />
-            <RoleChoices value={roles} onChange={setRoles} disabled={busy} />
-            <button type="submit" disabled={busy || email.trim() === '' || roles.length === 0}>
-              {t.admit}
-            </button>
-            {roles.length === 0 && <p>{s.needRole}</p>}
-            {message && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
-          </form>
-          <h2>{unified ? t.members : t.people}</h2>
+          {entries === null && !failed && <p role="status">{t.loadingUsers}</p>}
+          {(!unified || clubId) && (
+            <AdmissionContainer className={directory ? 'card users-admission' : undefined}>
+              {directory && <summary>{t.admit}</summary>}
+              <form
+                className={directory ? 'form' : 'card form'}
+                onSubmit={(event) => void admit(event)}
+                aria-labelledby={`${formId}-h`}
+              >
+                <h2 id={`${formId}-h`}>{t.admit}</h2>
+                <label htmlFor={`${formId}-email`}>{t.email}</label>
+                <input
+                  id={`${formId}-email`}
+                  type="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                  }}
+                  autoComplete="off"
+                  required
+                />
+                <RoleChoices value={roles} onChange={setRoles} disabled={busy} />
+                <button type="submit" disabled={busy || email.trim() === '' || roles.length === 0}>
+                  {t.admit}
+                </button>
+                {roles.length === 0 && <p>{s.needRole}</p>}
+                {message && <p role={message.alert ? 'alert' : 'status'}>{message.text}</p>}
+              </form>
+            </AdmissionContainer>
+          )}
+          {!directory && <h2>{unified ? t.members : t.people}</h2>}
           <div className="form">
             <label htmlFor={`${formId}-search`}>{s.search}</label>
             <input
@@ -247,21 +288,43 @@ export function AccessPage() {
             />
           </div>
           <ul className="list" data-testid="access-list">
-            {(entries ?? [])
-              .filter((entry) =>
-                `${entry.email} ${entry.firstName ?? ''} ${entry.lastName ?? ''}`
+            {(platform
+              ? accounts.map((account) => ({
+                  account,
+                  member: entries?.find((e) => e.userId === account.id),
+                }))
+              : (entries ?? []).map((member) => ({
+                  account: {
+                    id: member.userId ?? member.email,
+                    name: [member.firstName, member.lastName].filter(Boolean).join(' '),
+                    email: member.email,
+                  },
+                  member,
+                }))
+            )
+              .filter(({ account }) =>
+                `${account.email} ${account.name}`
                   .toLocaleLowerCase()
                   .includes(search.trim().toLocaleLowerCase()),
               )
-              .map((entry) => (
-                <AccessRow
-                  key={entry.email}
-                  entry={entry}
-                  onChanged={load}
-                  ownId={state.user.id}
-                  unified={unified}
-                />
-              ))}
+              .map(({ account, member }) =>
+                member ? (
+                  <AccessRow
+                    key={account.id}
+                    entry={member}
+                    onChanged={load}
+                    ownId={state.user.id}
+                    unified={unified}
+                  />
+                ) : (
+                  <AccountRow
+                    key={account.id}
+                    account={account}
+                    onChanged={load}
+                    hasClub={!!clubId}
+                  />
+                ),
+              )}
           </ul>
         </section>
       )}
@@ -445,6 +508,52 @@ function AccessRow({
             {s.reload}
           </button>
         </p>
+      )}
+    </li>
+  );
+}
+
+function AccountRow({
+  account,
+  onChanged,
+  hasClub,
+}: {
+  account: { id: string; name: string; email: string };
+  onChanged: () => Promise<void>;
+  hasClub: boolean;
+}) {
+  const t = adminStrings();
+  const s = settingsStrings();
+  const [open, setOpen] = useState(false);
+  return (
+    <li className="list__item access" data-testid="access">
+      <div className="access__identity">
+        <strong>{account.name || account.email}</strong>
+        <span>{account.email}</span>
+        <span className="muted">{hasClub ? t.outsideClub : t.accountOnly}</span>
+      </div>
+      <div className="access__actions">
+        <button
+          type="button"
+          className="button--quiet"
+          aria-expanded={open}
+          onClick={() => {
+            setOpen(!open);
+          }}
+        >
+          {s.settings}
+        </button>
+      </div>
+      {open && (
+        <div className="access__settings">
+          <UserSettingsEditor
+            userId={account.id}
+            name={account.name || account.email}
+            onSaved={() => {
+              void onChanged();
+            }}
+          />
+        </div>
       )}
     </li>
   );

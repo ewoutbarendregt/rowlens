@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-046] Global account settings incorrectly required a selected club — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:168
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The global Users page could list accounts without memberships, but its settings API still required an explicit club when multiple clubs existed. A platform administrator with no selected club received 404.
+**Fix**: Scope only the exact administrative user-settings route to the global account for persisted platform actors. Tenant administrators retain live club/target-membership checks. Protected account read/save audits use UUIDs in the repository transaction; a regression verifies an account with zero memberships, revision conflict and withdrawn platform authority.
+
 ### [BUG-045] Unified club member list included unused access addresses — medium
 **Location**: apps/web/src/server/api/access.ts:128
 **Status**: fixed

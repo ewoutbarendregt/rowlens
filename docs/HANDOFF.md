@@ -3,6 +3,27 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Current follow-up — Users page and zero-or-more club memberships
+
+- Included in PR #157 on `codex/feat/unified-club-users`. Ewout requested a Users tab: all accounts
+  for RowLens admins, only current-club members for club admins; accounts may have zero or more clubs.
+- `/users` is now separate navigation, protected for administrators. Platform mode uses the existing
+  protected global verified-account directory, optionally combined with selected-club role controls.
+  Club mode uses only the tenant member API. Users outside the selected club get account settings,
+  without invented club roles; explicit admission is available when a club is selected.
+- Clubs no longer embeds a global user-settings selector; its verified-user dropdown remains only
+  for appointing a club administrator. Club administration now holds Requests and Roles. Legacy
+  feature-off administration remains compatible. No new table, migration or dependency.
+- BUG-046 fixed: global account settings no longer require a selected club for platform actors.
+  Only the exact administrative settings route gets this account scope; club admins retain tenant
+  validation and SQL membership checks. Read/save audits contain actor/target UUIDs and commit with
+  settings work; revision conflicts do not create a successful-save event.
+- Checks: 546 full web/DB tests, 38 focused authorization/settings tests, 10 laptop/iPhone WebKit
+  cases, 6 legacy admin/settings browser cases and lint/typecheck/format/build pass. Prior proxy,
+  worker and migration/rollback evidence belongs to the preceding archive change; not rerun here.
+  Local :5174 remains healthy with 24 migrations. Refresh `/users` to review. No production change,
+  merge or deployment authorization; CI for the new head is on PR #157.
+
 ## Current follow-up — club administration and reversible club archiving
 
 - On branch `codex/feat/unified-club-users`, included in PR #157. Ewout requested members/roles and

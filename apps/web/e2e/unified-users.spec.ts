@@ -33,7 +33,7 @@ async function layout(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const small = await page
     .locator(
-      ':is(.clubs-page,.club-admin-page) button,:is(.clubs-page,.club-admin-page) select,:is(.clubs-page,.club-admin-page) input:not([type=checkbox]),.club-admin-page .role-choices label',
+      ':is(.clubs-page,.club-admin-page) button,:is(.clubs-page,.club-admin-page) select,:is(.clubs-page,.club-admin-page) input:not([type=checkbox]),.club-admin-page .role-choices label,.users-admission > summary',
     )
     .evaluateAll((nodes) =>
       nodes.flatMap((n) => {
@@ -80,7 +80,7 @@ test('account request, admission, history-free user selection and club switching
   const request = admin.locator('article').filter({ hasText: email });
   await request.getByRole('button', { name: 'Toelaten als roeier', exact: true }).click();
   await expect(request).toHaveCount(0);
-  await admin.getByRole('tab', { name: 'Clubleden', exact: true }).click();
+  await admin.getByRole('link', { name: 'Gebruikers', exact: true }).click();
   const memberRow = admin.getByTestId('access').filter({ hasText: email });
   await expect(memberRow).toBeVisible();
   await memberRow.getByRole('button', { name: 'Instellingen', exact: true }).click();
@@ -199,7 +199,68 @@ test('platform club edit, archive and restore preserve a club administrator memb
   await expect(edited).not.toContainText('Gearchiveerd');
   await edited.getByRole('button', { name: /^(Club openen|Huidige club)$/ }).click();
   await page.getByRole('link', { name: 'Clubbeheer', exact: true }).click();
-  await expect(page.getByRole('tab', { name: 'Clubleden', exact: true })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Aanmeldingen', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Gebruikers', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Gebruikers', exact: true }),
+  ).toBeVisible();
   await expect(page.getByTestId('access').filter({ hasText: adminEmail })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('Users includes account-only users for platform admins and only own-club members for club admins', async ({
+  page,
+  browser,
+}, info) => {
+  const email = `accountonly-${randomUUID()}@example.test`;
+  await signIn(page, email);
+  await expect(page.getByRole('link', { name: 'Gebruikers', exact: true })).toHaveCount(0);
+  const account = (await json(page, '/api/auth/status')).data as {
+    user: { id: string };
+    clubs: unknown[];
+  };
+  expect(account.clubs).toEqual([]);
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() });
+  const operator = await context.newPage();
+  await signIn(operator, adminEmail);
+  await operator.getByRole('link', { name: 'Gebruikers', exact: true }).click();
+  // A global directory and its settings do not require an active club, even in an old tab.
+  await operator.evaluate((id) => {
+    sessionStorage.setItem('rowlens.activeClub', id);
+  }, randomUUID());
+  await operator.reload();
+  await operator.getByLabel('Zoek gebruikers op naam of e-mail').fill(email);
+  const row = operator.getByTestId('access').filter({ hasText: email });
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: 'Instellingen', exact: true }).click();
+  const editor = row.getByTestId('admin-user-settings');
+  await editor.getByLabel('Voornaam', { exact: true }).fill('Account');
+  await editor.getByLabel('Achternaam', { exact: true }).fill('Without club');
+  await editor.getByRole('button', { name: 'Opslaan', exact: true }).click();
+  await expect(editor.getByRole('status')).toContainText('Opgeslagen');
+  await layout(operator);
+  await operator.screenshot({ path: info.outputPath('users-without-club.png'), fullPage: true });
+  expect(((await json(page, '/api/auth/status')).data as { clubs: unknown[] }).clubs).toEqual([]);
+  const created = await json(operator, '/api/platform/clubs', {
+    slug: `users-${randomUUID()}`,
+    name: `Users club ${randomUUID().slice(0, 8)}`,
+    adminId: account.user.id,
+  });
+  expect(created.status).toBe(200);
+  const clubId = (created.data as { id: string }).id;
+  await page.evaluate((id) => {
+    sessionStorage.setItem('rowlens.activeClub', id);
+  }, clubId);
+  await page.goto('./users');
+  await expect(
+    page.getByRole('heading', { name: 'Gebruikers', level: 1, exact: true }),
+  ).toBeVisible();
+  await expect(page.getByTestId('access')).toHaveCount(1);
+  await expect(page.getByTestId('access')).toContainText(email);
+  expect((await json(page, '/api/platform/users')).status).toBe(404);
+  await layout(page);
+  await page.screenshot({ path: info.outputPath('users-club-admin.png'), fullPage: true });
+  await operator.goto('./clubs');
+  await expect(operator.getByLabel('Gebruikersinstellingen', { exact: true })).toHaveCount(0);
+  await context.close();
 });

@@ -2,6 +2,27 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Users directory and account-only administration (2026-11-07)
+
+- Regression first reproduces a platform administrator's settings request without club context
+  returning 404. After account-scope authorization, the new audit assertion exposed missing global
+  save auditing; account reads/saves now use protected UUID-only audit events in the same transaction.
+- Final full web/DB run: **546/546** across 56 files. Focused authorization/settings run: **38/38**.
+  The new case edits an account with zero memberships, leaves membership empty, rejects a stale
+  revision without another save event and denies the same target after platform authority removal.
+  Existing club-admin boundaries and tenant settings conflict coverage remain in the focused run.
+- Unified browser matrix: **10/10** at 1000×540 Chromium and iPhone 13 WebKit. The new flow edits an
+  account-only user with no selected club, later admits it as a club administrator and requires that
+  its Users list contains exactly its club's one member. A rower/account-only user has no Users nav;
+  club admins cannot request the global directory. Account editing is absent from Clubs.
+- Additional legacy feature-off admin/settings browsers: **6/6**, desktop/mobile Chromium.
+- Screenshots inspected; no document overflow, control/role-label targets >=44px. Admission is folded
+  on the Users page so the searchable member/account list stays visible. Late list responses use a
+  generation guard. Physical iPhone not checked. Final matrix after layout polish: **10/10**.
+- Lint initially rejected two void-return shorthand browser callbacks; corrected. Final format,
+  lint, typecheck and feature-on build pass. No migration/dependency; local database stays at 24.
+  Prior worker/proxy/deploy rehearsals were not rerun for this navigation/account-guard change.
+
 ## Club administration and reversible archiving (2026-11-07)
 
 - Full web/DB: **544/544**, then **545/545** across 56 files after the member-list regression was

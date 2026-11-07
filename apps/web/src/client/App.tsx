@@ -34,6 +34,16 @@ export function App() {
           }
         />
       )}
+      {UNIFIED_USERS && (
+        <Route
+          path="users"
+          element={
+            <RequireAuth accountOnly role="admin">
+              <AccessPage key="users" directory />
+            </RequireAuth>
+          }
+        />
+      )}
       <Route
         path="sessions"
         element={
@@ -54,7 +64,7 @@ export function App() {
         path="admin"
         element={
           <RequireAuth role="admin">
-            <AccessPage />
+            <AccessPage key="club-admin" />
           </RequireAuth>
         }
       />

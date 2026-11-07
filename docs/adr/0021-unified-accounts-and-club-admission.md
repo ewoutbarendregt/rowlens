@@ -85,3 +85,14 @@ proof and revokes other account/legacy sessions. Old images cannot resolve newly
 tokens, so a rollback may require signing in again; old session format remains supported by the new
 image. Platform content contexts retain effective API roles but install no trusted role snapshot in
 SQL: the protected persisted grant is rechecked at statement time, including after withdrawal.
+
+## Users navigation follow-up (2026-11-07)
+
+Ewout requested a distinct Users tab: RowLens administrators manage all accounts, club administrators
+only the selected club's members. Accounts can belong to zero or more clubs. This reuses the global
+account directory and tenant member/settings functions without schema changes. The global Users
+page does not invent membership or roles for an account outside the selected club. Club roles and
+explicit admission stay scoped to that club. Requests remain under Club administration; account
+editing moves out of Clubs. Only platform actors may access administrative settings without club
+context; ordinary administrators retain the same tenant membership checks. Protected account
+reads/saves are audited by actor/target UUID, with a successful-save event in the same transaction.

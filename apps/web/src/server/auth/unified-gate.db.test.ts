@@ -74,6 +74,42 @@ afterAll(async () => {
   await h.close();
 });
 describe('unified accounts and club admission', () => {
+  it('lets a persisted platform administrator manage an account with zero clubs without a club context', async () => {
+    const operator = await signIn(),
+      target = await signIn();
+    await asOwner('insert into platform_admin(user_id) values($1)', [operator.id]);
+    const users = (await call('GET', '/api/platform/users', undefined, operator.cookies)).json<
+      { id: string }[]
+    >();
+    expect(users.some((u) => u.id === target.id)).toBe(true);
+    const path = `/api/admin/users/${target.id}/settings`;
+    const initial = await call('GET', path, undefined, operator.cookies);
+    expect(initial.statusCode).toBe(200);
+    const revision = initial.json<{ revision: number }>().revision;
+    const saved = await call(
+      'PATCH',
+      path,
+      { revision, changes: { firstName: 'Global', lastName: 'Account' } },
+      operator.cookies,
+    );
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json<{ firstName: string }>().firstName).toBe('Global');
+    expect(
+      (await call('PATCH', path, { revision, changes: { firstName: 'Stale' } }, operator.cookies))
+        .statusCode,
+    ).toBe(409);
+    expect(await asOwner('select club_id from membership where user_id=$1', [target.id])).toEqual(
+      [],
+    );
+    expect(
+      await asOwner(
+        "select action from platform_audit where actor_user_id=$1 and action='user.settings.saved'",
+        [operator.id],
+      ),
+    ).toHaveLength(1);
+    await asOwner('delete from platform_admin where user_id=$1', [operator.id]);
+    expect((await call('GET', path, undefined, operator.cookies)).statusCode).toBe(404);
+  });
   it('lists every current-club member, excludes account-only users and edits membership-only roles', async () => {
     const local = await createTwoClubs();
     const admin = await signIn(),

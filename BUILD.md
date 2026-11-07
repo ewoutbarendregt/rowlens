@@ -3,6 +3,20 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Users directory
+
+With unified users enabled, `/users` is a distinct administrator navigation page. A persisted
+platform administrator receives all verified accounts, including accounts with no memberships;
+club administrators receive only the tenant-scoped member list. Selected-club role/admission
+controls reuse the existing guarded operations. Other accounts have global profile/preference
+editing without fabricated memberships or default club roles. Club administration holds Requests
+and Roles; Clubs has lifecycle management without an embedded user settings editor.
+
+The exact `/api/admin/users/:id/settings` route uses account context for persisted platform actors,
+with protected read/save UUID-only auditing in its repository transaction. Ordinary club admins
+still require a live selected-club context and target membership. No table or migration was needed;
+accounts already support zero or more memberships. Global role assignment remains operator-only.
+
 ## Club administration and archival (ADR-0022)
 
 Club administration has member/role editing, pending-request decisions and historical mapping.

@@ -2,6 +2,15 @@ import { lang } from '../i18n/language.ts';
 
 // Admin strings in NL and EN (move into the i18n catalogs with #34).
 const en = {
+  loadingUsers: 'Loading users…',
+  users: 'Users',
+  allAccounts:
+    'All RowLens accounts, including users without club membership. Account settings apply across clubs.',
+  clubAccounts:
+    'Members of the selected club. Account settings apply across clubs; roles apply only to this club.',
+  roleScope: (name: string) => `Club roles and admission below apply to ${name}.`,
+  outsideClub: 'Not a member of the selected club. Use Give access to admit this account.',
+  accountOnly: 'Global account settings; no club is selected.',
   members: 'Club members',
   activityUnknown: 'No club activity recorded',
   unifiedIntro:
@@ -80,6 +89,15 @@ const en = {
 };
 
 const nl: typeof en = {
+  loadingUsers: 'Gebruikers laden…',
+  users: 'Gebruikers',
+  allAccounts:
+    'Alle RowLens-accounts, ook gebruikers zonder clublidmaatschap. Accountinstellingen gelden voor alle clubs.',
+  clubAccounts:
+    'Leden van de gekozen club. Accountinstellingen gelden voor alle clubs; rollen gelden alleen voor deze club.',
+  roleScope: (name: string) => `Clubrollen en toelating hieronder gelden voor ${name}.`,
+  outsideClub: 'Geen lid van de gekozen club. Gebruik Toegang geven om dit account toe te laten.',
+  accountOnly: 'Globale accountinstellingen; er is geen club gekozen.',
   members: 'Clubleden',
   activityUnknown: 'Geen clubactiviteit vastgelegd',
   unifiedIntro:

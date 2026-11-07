@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Give account management its own Users navigation tab
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/client/{App.tsx,admin/AccessPage.tsx,admin/strings.ts,clubs/ClubsPage.tsx,ui/AppHeader.tsx,styles.css}, apps/web/src/server/{auth/unified-gate.ts,auth/unified-gate.db.test.ts,repositories/user-settings.ts}, apps/web/e2e/unified-users.spec.ts, docs/adr/0021-unified-accounts-and-club-admission.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Users is a separate administrative navigation page: platform administrators see all verified accounts including those without memberships; club administrators receive only actual members of the selected club. Account settings moved out of Clubs; club roles/admission remain explicitly selected-club scoped, while Club administration holds Requests and Roles. A regression exposed global settings requiring a club; the narrow platform-only settings route now uses account context with atomic UUID-only read/save auditing, revision conflicts and persisted SQL authority intact. No migration or production change. Full 546 web/DB tests, 38 focused permission/settings cases, 10 laptop/iPhone WebKit cases and 6 legacy admin/settings browser cases pass; see TEST.md for final verification.
+**Prompts used**: "er moet inderdaad een tab 'gebruikers' komen waar alle gebruikers beheerd kunnen worden. rowlens admin ziet ze allemaal. de clubbeheerder ziet alleen de leden van zijn club. een gebruikers kan bij 0 of meer clubs aangesloten zijn".
+
 ## 2026-11-07 — Separate club admission from platform club lifecycle management
 
 **Session**: codex/feat/unified-club-users

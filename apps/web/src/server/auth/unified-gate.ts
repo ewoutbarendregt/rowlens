@@ -122,7 +122,12 @@ export function createUnifiedGate(opts: {
     if (id === undefined && requireChoice && all.length > 1) return undefined;
     return id === undefined ? all[0] : all.find((c) => c.id === id);
   };
-  const authenticate = async (req: FastifyRequest, reply: FastifyReply, accountOnly = false) => {
+  const authenticate = async (
+    req: FastifyRequest,
+    reply: FastifyReply,
+    accountOnly = false,
+    platformAccount = false,
+  ) => {
     const a = await session(req);
     if (!a) {
       reply.callNotFound();
@@ -130,7 +135,9 @@ export function createUnifiedGate(opts: {
     }
     if (unsafe.has(req.method) && req.headers['x-csrf-token'] !== cookie(req, 'rowlens_csrf'))
       return reply.code(403).send({ error: 'invalid_csrf' });
-    const c = await selected(req, a, !accountOnly);
+    const globalSettings = platformAccount && a.platformAdmin;
+    accountOnly ||= globalSettings;
+    const c = globalSettings ? undefined : await selected(req, a, !accountOnly);
     if (!accountOnly && !c) {
       reply.callNotFound();
       return reply;
@@ -156,6 +163,7 @@ export function createUnifiedGate(opts: {
       req,
       reply,
       (req.routeOptions.url ?? '').startsWith(withBasePath(opts.basePath, '/api/me/')),
+      req.routeOptions.url === withBasePath(opts.basePath, '/api/admin/users/:id/settings'),
     );
   const run = async <T>(req: FastifyRequest, query: Parameters<Database['execute']>[0]) =>
     withTenant(db, tenantOf(req), async (tx) => {

@@ -63,6 +63,9 @@ export function AppHeader({
           {state.user.roles.includes('admin') && (
             <NavLink to="/admin">{adminStrings().admin}</NavLink>
           )}
+          {state.unified && state.user.roles.includes('admin') && (
+            <NavLink to="/users">{adminStrings().users}</NavLink>
+          )}
           {state.unified && <NavLink to="/clubs">{clubStrings().clubs}</NavLink>}
         </nav>
         <details className="account" data-testid="account-menu">

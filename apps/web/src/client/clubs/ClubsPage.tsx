@@ -4,7 +4,6 @@ import { api } from '../api.ts';
 import { setActiveClub } from '../club-context.ts';
 import { appUrl } from '../env.ts';
 import { useAuth } from '../auth/useAuth.ts';
-import { UserSettingsEditor } from '../admin/UserSettingsEditor.tsx';
 import { clubStrings } from './strings.ts';
 interface Club {
   id: string;
@@ -36,8 +35,7 @@ export function ClubsPage() {
   const [edit, setEdit] = useState<Club | null>(null),
     [name, setName] = useState(''),
     [slug, setSlug] = useState(''),
-    [adminId, setAdminId] = useState(''),
-    [selectedUser, setSelectedUser] = useState<User | null>(null);
+    [adminId, setAdminId] = useState('');
   const [archiveConfirm, setArchiveConfirm] = useState<Club | null>(null);
   const actor = state.kind === 'open' ? state.user.id : null;
   const platform = state.kind === 'open' && state.user.platformAdmin === true;
@@ -262,33 +260,6 @@ export function ClubsPage() {
               </button>
             )}
           </form>
-          <h3>{t.users}</h3>
-          <label>
-            {t.profile}
-            <select
-              aria-label={t.profile}
-              value={selectedUser?.id ?? ''}
-              onChange={(e) => {
-                setSelectedUser(users.find((u) => u.id === e.target.value) ?? null);
-              }}
-            >
-              <option value="">{t.choose}</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name || u.email}
-                </option>
-              ))}
-            </select>
-          </label>
-          {selectedUser && (
-            <UserSettingsEditor
-              userId={selectedUser.id}
-              name={selectedUser.name || selectedUser.email}
-              onSaved={() => {
-                setRevision((v) => v + 1);
-              }}
-            />
-          )}
         </section>
       )}
     </main>

@@ -23,6 +23,13 @@ approved the reversible archive model and migration 0023 with "Ja, archiveren en
 See ADR-0022. Accounts, other club memberships and historical references remain intact; permanent
 deletion and club branding are outside this change.
 
+## Users navigation — requested 2026-11-07
+
+A separate Users page shows all accounts to RowLens administrators, including accounts with zero
+memberships. Club administrators see only members of the selected club. Profile/preferences remain
+global; club admission/roles remain scoped to one selected club. Existing storage supports zero or
+more memberships, so this follow-up requires no migration. Requests stay under Club administration.
+
 ## What we're building
 
 RowLens: a multi-tenant web platform where rowing clubs upload video of rowing sessions, play them back
