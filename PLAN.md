@@ -30,6 +30,14 @@ memberships. Club administrators see only members of the selected club. Profile/
 global; club admission/roles remain scoped to one selected club. Existing storage supports zero or
 more memberships, so this follow-up requires no migration. Requests stay under Club administration.
 
+## Full user directory/editor — proposal 2026-11-07
+
+Ewout requests a table/list with field-level filtering/sorting and a complete account editor.
+`docs/plans/user-directory-and-account-editor.md` makes the UI, tenant scope, verified email-change
+flow and global-role management concrete. Existing immutable email/operator-only authority rules
+require a new protected-operation migration; architectural approval is pending before implementing
+that expansion. Existing local functionality and 24 migrations remain unchanged.
+
 ## What we're building
 
 RowLens: a multi-tenant web platform where rowing clubs upload video of rowing sessions, play them back

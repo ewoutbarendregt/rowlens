@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Plan the sortable directory and full identity/role editor
+
+**Session**: codex/feat/unified-club-users
+**Changed**: docs/plans/user-directory-and-account-editor.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Inspected the current directory/settings boundaries and specified a scoped table/list with every field filterable/sortable and a complete editor. Proposed migration 0024 covers verified pending email changes, explicit persisted global role management and protected directory/detail projections; no code, account or database mutation was made. Await architecture approval under AGENTS.md before extending login identity/global-authority operations.
+**Prompts used**: "de tab gebruikers geeft alle gebruikers in tabel/list view, filterbaar en sorteerbaar op alle velden. het editen van een gebruiker toon een form waar alle attributen van die gebruiker te beheren zijn(naam, email, rol, overige voorkeuren). de clubbeheerder ziet alleen gebruikers en aanvragen voor zijn club, de rowlens beheerder ziet alle gebruikers".
+
 ## 2026-11-07 — Give account management its own Users navigation tab
 
 **Session**: codex/feat/unified-club-users

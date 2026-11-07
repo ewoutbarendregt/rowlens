@@ -3,6 +3,17 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Pending proposal — complete user directory and identity editor
+
+- Ewout now requests table/list users, per-field filtering/sorting, full name/email/role/preference
+  editing and own-club users/requests for club admins versus all users for RowLens admins.
+- Concrete proposal: `docs/plans/user-directory-and-account-editor.md`. Email is currently immutable
+  and global-role assignment operator-only. Proposed migration 0024 adds protected pending verified
+  email changes, global-role safeguards and scoped directory/detail fields; no new dependency.
+- Await architecture approval before implementing that expansion (AGENTS.md). No application,
+  database, account or production changes were made in the planning turn. Existing implementation
+  below remains locally available; no merge/deploy authorization.
+
 ## Current follow-up — Users page and zero-or-more club memberships
 
 - Included in PR #157 on `codex/feat/unified-club-users`. Ewout requested a Users tab: all accounts
