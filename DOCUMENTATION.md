@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Confirm green PR and local review readiness
+
+**Session**: codex/feat/unified-club-users
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: On “ga door”, confirmed PR #157 is open and mergeable with all eight CI jobs successful in run 42368522411; the local development readiness endpoint reports database health. Implementation is ready for local review. The operator must enter their verified account address into the hidden bootstrap terminal prompt; historical mappings require explicit real-account selection. No merge, production bootstrap or deployment was performed.
+**Prompts used**: "ga door".
+
 ## 2026-11-07 — Require an explicit club when membership is ambiguous
 
 **Session**: codex/feat/unified-club-users

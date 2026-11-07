@@ -5,7 +5,7 @@ newest-first detailed log. Update this file at the end of a session.
 
 ## Current task — unified users and multi-club admission (2026-11-07)
 
-- PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) is open for review; CI status is on the PR. No merge/deploy authorization.
+- PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) is open and mergeable. All eight jobs in CI run 42368522411 succeeded, confirmed on 2026-11-07 after “ga door”. Local readiness reports database health. Next is operator local review/bootstrap with the hidden terminal prompt below; historical mappings require real account selection. No merge/deploy authorization.
 - Ewout approved with "ja uitvoeren". Branch `codex/feat/unified-club-users`, from main 799dfbe;
   planning docs copied without incorporating separate deployment-log PR #156. Production remains
   sha-799dfbe, as previously explicitly deployed; no new merge/deploy is authorized.
