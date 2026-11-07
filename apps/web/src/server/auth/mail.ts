@@ -4,7 +4,7 @@ export interface LoginMail {
   email: string;
   code: string;
   locale: 'nl' | 'en';
-  purpose?: 'email-change';
+  purpose?: 'email-change' | 'registration';
   loginUrl: string;
 }
 
@@ -51,17 +51,25 @@ export function loginMessage({ code, locale, loginUrl, purpose }: LoginMail): {
       ? nl
         ? 'Bevestig je nieuwe RowLens-e-mailadres'
         : 'Confirm your new RowLens email'
-      : nl
-        ? 'Je RowLens-inlogcode'
-        : 'Your RowLens login code';
+      : purpose === 'registration'
+        ? nl
+          ? 'Bevestig je RowLens-aanmelding'
+          : 'Confirm your RowLens registration'
+        : nl
+          ? 'Je RowLens-inlogcode'
+          : 'Your RowLens login code';
   const intro =
     purpose === 'email-change'
       ? nl
         ? 'Log in op je bestaande RowLens-account en open de link hieronder om je nieuwe e-mailadres met deze code te bevestigen:'
         : 'Sign in to your existing RowLens account and open the link below to confirm your new email with this code:'
-      : nl
-        ? 'Je inlogcode is:'
-        : 'Your login code is:';
+      : purpose === 'registration'
+        ? nl
+          ? 'Bevestig je e-mailadres met deze code in het aanmeldformulier. Daarna wordt je aanmelding ingediend:'
+          : 'Confirm your email with this code in the registration form. Your registration is submitted after confirmation:'
+        : nl
+          ? 'Je inlogcode is:'
+          : 'Your login code is:';
   const expiry = nl
     ? 'De code is 10 minuten geldig en kan één keer worden gebruikt.'
     : 'The code is valid for 10 minutes and can be used once.';

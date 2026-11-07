@@ -41,9 +41,14 @@ const call = (
   });
 async function signIn() {
   const email = `account-${randomUUID()}@example.test`;
-  expect((await call('POST', '/api/auth/otp', { email })).statusCode).toBe(202);
+  const issued = await call('POST', '/api/auth/registration/otp', { email, clubId: null });
+  expect(issued.statusCode).toBe(202);
   const code = mails.at(-1)?.code ?? '';
-  const r = await call('POST', '/api/auth/verify', { email, code });
+  const r = await call('POST', '/api/auth/registration/verify', {
+    email,
+    code,
+    requestId: issued.json<{ requestId: string }>().requestId,
+  });
   expect(r.statusCode).toBe(204);
   const cookies = r.cookies.map((c) => `${c.name}=${c.value}`).join('; ');
   const status = (await call('GET', '/api/auth/status', undefined, cookies)).json<{
@@ -856,17 +861,8 @@ describe('unified accounts and club admission', () => {
     ).toBe(200);
     expect((await call('GET', '/api/me/settings', undefined, u.cookies)).statusCode).toBe(200);
   });
-  it('requires a completed profile and admin admission, serializes duplicates, and isolates clubs', async () => {
+  it('allows verified applications before profile completion, requires admission, serializes duplicates, and isolates clubs', async () => {
     const u = await signIn();
-    expect(
-      (await call('POST', '/api/account/applications', { clubId: clubs.a }, u.cookies)).statusCode,
-    ).toBe(409);
-    await call(
-      'PUT',
-      '/api/me/profile',
-      { firstName: 'New', lastName: 'Member', defaultBoatType: null },
-      u.cookies,
-    );
     const results = await Promise.all([
       call('POST', '/api/account/applications', { clubId: clubs.a }, u.cookies),
       call('POST', '/api/account/applications', { clubId: clubs.a }, u.cookies),
@@ -909,6 +905,12 @@ describe('unified accounts and club admission', () => {
     );
     expect((await call('GET', '/api/sessions', undefined, u.cookies, clubs.b)).statusCode).toBe(
       404,
+    );
+    await call(
+      'PUT',
+      '/api/me/profile',
+      { firstName: 'New', lastName: 'Member', defaultBoatType: null },
+      u.cookies,
     );
     const accounts = (await call('GET', '/api/rowers', undefined, u.cookies, clubs.a)).json<{
       club: unknown;
@@ -1017,7 +1019,7 @@ describe('unified accounts and club admission', () => {
     ).toBe(false);
   });
   it('limits wrong codes to five attempts and rejects expired codes', async () => {
-    const email = `limited-${randomUUID()}@example.test`;
+    const { email } = await signIn();
     await call('POST', '/api/auth/otp', { email });
     const code = mails.at(-1)?.code ?? '';
     for (let i = 0; i < 5; i++)

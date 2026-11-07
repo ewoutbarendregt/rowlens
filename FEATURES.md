@@ -3,6 +3,18 @@
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).
 
+## Explicit signup and optional club choice — local follow-up (2026-11-07)
+
+- Separate Sign in/Create account forms; signup chooses an active club or No club before email
+  confirmation. Proof binds the choice; verification creates registration and optional request
+  atomically. Existing accounts/roles survive retries; no automatic membership for new applicants.
+- Registration result and club requests are accessible before names. Global Requests includes
+  clubless registration and decided/archived club requests; club admins see their selected club's
+  requests. Existing admission/role editing remains scoped and audited.
+- Implemented locally with approved migration 0025 (26 total), ADR-0024; 608 web/DB and
+  26 laptop/iPhone WebKit checks pass. Not yet merged or deployed. Admin email notifications,
+  historical signup reconstruction and branding remain outside this follow-up.
+
 ## Unified accounts and club admission — deployed sha-dd71f78 (2026-11-07)
 
 | Feature | Status |

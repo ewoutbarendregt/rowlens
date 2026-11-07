@@ -176,6 +176,13 @@
       "when": 1794061441602,
       "tag": "0024_account_management",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794075313038,
+      "tag": "0025_explicit_registration",
+      "breakpoints": true
     }
   ]
 }

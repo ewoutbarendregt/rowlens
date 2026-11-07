@@ -3566,3 +3566,16 @@ a.list__item {
   max-width: 44rem;
   margin-inline: auto;
 }
+
+/* Registration has the same forgiving controls on narrow phone screens. */
+.registration :is(button, input, select) {
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+}
+.registration select {
+  width: 100%;
+}
+.registration .gate__text {
+  overflow-wrap: anywhere;
+}

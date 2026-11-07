@@ -1,3 +1,5 @@
+import { registrationStrings } from '../auth/registration-strings.ts';
+import { lang } from '../i18n/language.ts';
 import { useEffect, useRef, useState } from 'react';
 import {
   DIRECTORY_FIELDS,
@@ -59,7 +61,17 @@ function UsersDirectory() {
   const [selected, setSelected] = useState<DirectoryRow | null>(null),
     [tab, setTab] = useState<'users' | 'requests'>('users');
   const [requests, setRequests] = useState<
-      { id: string; clubId: string; clubName: string; name: string; email: string }[]
+      {
+        id: string;
+        kind: 'club' | 'registration';
+        clubId: string | null;
+        clubName: string | null;
+        name: string;
+        email: string;
+        createdAt: string;
+        status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'registered';
+        archived: boolean;
+      }[]
     >([]),
     [requestBusy, setRequestBusy] = useState(false);
   const generation = useRef(0);
@@ -229,39 +241,61 @@ function UsersDirectory() {
               <h2>{t.requests}</h2>
               {!loading && !requests.length && <p>{c.empty}</p>}
               {requests.map((r) => (
-                <article key={r.id} className="card">
-                  <h3>{r.name}</h3>
+                <article
+                  key={`${r.kind}:${r.id}`}
+                  className="card"
+                  data-testid="registration-request"
+                >
+                  <h3>{r.name || r.email}</h3>
                   <p>
-                    {r.email} · {r.clubName}
+                    {r.email} · {r.clubName ?? registrationStrings().noClub}
                   </p>
-                  <div className="club-actions">
-                    {[true, false].map((approve) => (
-                      <button
-                        key={String(approve)}
-                        disabled={requestBusy}
-                        onClick={() => {
-                          setRequestBusy(true);
-                          void api(`/api/admin/applications/${r.id}`, {
-                            method: 'POST',
-                            body: { approve },
-                            clubId: r.clubId,
-                          })
-                            .then((response) => {
-                              if (!response.ok) throw new Error();
-                              setVersion((v) => v + 1);
+                  <p>
+                    {r.kind === 'club'
+                      ? registrationStrings().clubApplication
+                      : registrationStrings().accountRegistration}{' '}
+                    ·{' '}
+                    {r.status === 'registered'
+                      ? registrationStrings().registeredStatus
+                      : c[r.status]}
+                    {r.archived ? ` · ${c.archived}` : ''}
+                  </p>
+                  <p>
+                    {registrationStrings().date}:{' '}
+                    <time dateTime={r.createdAt}>
+                      {new Date(r.createdAt).toLocaleString(lang() === 'en' ? 'en-GB' : 'nl-NL')}
+                    </time>
+                  </p>
+                  {r.kind === 'club' && r.status === 'pending' && !r.archived && r.clubId && (
+                    <div className="club-actions">
+                      {[true, false].map((approve) => (
+                        <button
+                          key={String(approve)}
+                          disabled={requestBusy}
+                          onClick={() => {
+                            setRequestBusy(true);
+                            void api(`/api/admin/applications/${r.id}`, {
+                              method: 'POST',
+                              body: { approve },
+                              clubId: r.clubId,
                             })
-                            .catch(() => {
-                              setFailed(true);
-                            })
-                            .finally(() => {
-                              setRequestBusy(false);
-                            });
-                        }}
-                      >
-                        {approve ? c.approve : c.reject}
-                      </button>
-                    ))}
-                  </div>
+                              .then((response) => {
+                                if (!response.ok) throw new Error();
+                                setVersion((v) => v + 1);
+                              })
+                              .catch(() => {
+                                setFailed(true);
+                              })
+                              .finally(() => {
+                                setRequestBusy(false);
+                              });
+                          }}
+                        >
+                          {approve ? c.approve : c.reject}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </article>
               ))}
             </section>

@@ -1,4 +1,5 @@
-import { clubStrings } from '../clubs/strings.ts';
+import { RegistrationForm } from './RegistrationForm.tsx';
+import { registrationStrings } from './registration-strings.ts';
 import { type SubmitEvent, useId, useState } from 'react';
 import { lang } from '../i18n/language.ts';
 import { api } from '../api.ts';
@@ -15,6 +16,7 @@ export function LoginGate({
   unified?: boolean;
 }) {
   const t = authStrings();
+  const [register, setRegister] = useState(false);
   const id = useId();
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
@@ -59,15 +61,23 @@ export function LoginGate({
       });
   };
 
+  if (unified && register)
+    return (
+      <RegistrationForm
+        onCancel={() => {
+          setRegister(false);
+        }}
+      />
+    );
   return (
     <section className="gate" aria-labelledby={`${id}-title`}>
       <h3 id={`${id}-title`}>{step === 'email' ? t.title : t.codeTitle}</h3>
       {step === 'email' ? (
-        <p className="gate__text">{unified ? clubStrings().loginIntro : t.intro}</p>
+        <p className="gate__text">{unified ? registrationStrings().loginIntro : t.intro}</p>
       ) : (
         <p className="gate__text">
-          {unified ? clubStrings().mailIf : t.codeSentIf} <strong>{email}</strong>{' '}
-          {unified ? clubStrings().mailRest : t.codeSentRest}
+          {unified ? registrationStrings().loginMailIf : t.codeSentIf} <strong>{email}</strong>{' '}
+          {unified ? registrationStrings().loginMailRest : t.codeSentRest}
         </p>
       )}
       {step === 'email' ? (
@@ -145,9 +155,16 @@ export function LoginGate({
       )}
       {unified && (
         <>
-          <h4>{clubStrings().accountRequest}</h4>
-          <p>{clubStrings().signupIntro}</p>
-          <p>{clubStrings().access}</p>
+          <button
+            type="button"
+            className="button--ghost"
+            disabled={busy}
+            onClick={() => {
+              setRegister(true);
+            }}
+          >
+            {registrationStrings().create}
+          </button>
         </>
       )}
       <h4 className="gate__notice-title">{t.noticeTitle}</h4>

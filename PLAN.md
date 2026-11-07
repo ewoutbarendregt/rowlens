@@ -1,12 +1,13 @@
 # PLAN
 
-## Explicit registration and optional club request — proposed 2026-11-07
+## Explicit registration and optional club request — approved/implemented 2026-11-07
 
-Production feedback identified BUG-052: login/email entry does not submit a club application, club
-choice is delayed behind name completion, and clubless registrations have no request record.
-`docs/plans/registration-onboarding.md` proposes a separate signup form, verified optional club
-choice, atomic recorded registration/application and scoped global/club review. New protected auth
-storage/migration requires architectural approval. No implementation or new deploy has started.
+Ewout approved `docs/plans/registration-onboarding.md` with "Ja, voer het volledige plan uit".
+ADR-0024/migration 0025 adds distinct registration, email-proof-bound optional club intent,
+atomic registration/application and global versus club-scoped request review. Clubless accounts
+need no platform admission; club access waits for the existing audited club approval. Local stack
+has 26 migrations; 608 web/DB and 26 laptop/iPhone WebKit checks pass. Production stays sha-dd71f78
+with 25 migrations; no new merge/deploy is authorized. Deployment-log PR #158 is the stack base.
 
 ## Unified users and multi-club membership — approved 2026-11-07
 

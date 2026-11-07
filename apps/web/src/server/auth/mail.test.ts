@@ -75,3 +75,16 @@ it.each(['nl', 'en'] as const)('uses a distinct identity-verification message in
   expect(m.text).toContain('012345');
   expect(m.text).toContain(locale === 'nl' ? 'bestaande' : 'existing');
 });
+
+it.each(['nl', 'en'] as const)('explains registration confirmation in %s', (locale) => {
+  const m = loginMessage({
+    email: 'signup@example.test',
+    code: '012345',
+    locale,
+    loginUrl: 'https://example.test/projects/rowlens/',
+    purpose: 'registration',
+  });
+  expect(m.subject).toContain(locale === 'nl' ? 'aanmelding' : 'registration');
+  expect(m.text).toContain(locale === 'nl' ? 'aanmeldformulier' : 'registration form');
+  expect(m.text).toContain('012345');
+});

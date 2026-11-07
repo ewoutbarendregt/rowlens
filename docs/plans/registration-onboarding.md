@@ -1,6 +1,6 @@
 # Explicit registration with optional club application
 
-Status: proposed, awaiting Ewout's architectural approval (2026-11-07).
+Status: approved by Ewout, "Ja, voer het volledige plan uit" (2026-11-07); implemented locally.
 Branch: `codex/feat/registration-onboarding`, based on the deployment-log branch for PR #158.
 Production remains `sha-dd71f78`; this plan does not authorize a further deployment.
 

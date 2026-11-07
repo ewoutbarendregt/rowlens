@@ -4,10 +4,10 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-052] Registration has no club choice or clubless request record — medium
 **Location**: apps/web/src/client/auth/LoginGate.tsx; apps/web/src/client/sessions/RequireAuth.tsx; apps/web/src/server/auth/unified-gate.ts
-**Status**: open
+**Status**: fixed (local implementation; production unchanged)
 **Found**: 2026-11-07 (production feedback after PR #157)
 **Description**: Email entry only requests a login code. Club choice requires later verification and name completion, and the Requests view includes only explicitly submitted club applications. There is no distinct registration form or administrator-visible clubless registration record.
-**Fix**: Proposed explicit registration/optional club choice, OTP-bound intent and scoped registration/application views; see docs/plans/registration-onboarding.md. Await architectural approval before a migration or auth changes.
+**Fix**: Approved ADR-0024/migration 0025 separates login/signup, binds optional club choice to email proof and atomically records registration/application. Global Requests includes clubless signup and decided statuses; club administrators see only their selected club. Account club/status pages no longer require names first. Verified with 608 web/DB tests and 26 laptop/iPhone WebKit cases.
 
 ### [BUG-051] Enabled-auth release image smoke lacked SMTP fixtures — low
 **Location**: .github/workflows/ci.yml

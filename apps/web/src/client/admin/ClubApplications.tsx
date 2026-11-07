@@ -1,3 +1,5 @@
+import { registrationStrings } from '../auth/registration-strings.ts';
+import { lang } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 import { api } from '../api.ts';
 import { refreshAuth } from '../auth/useAuth.ts';
@@ -7,6 +9,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  createdAt?: string;
 }
 export function ClubApplications({ onChanged }: { onChanged: () => Promise<void> }) {
   const t = clubStrings();
@@ -75,8 +78,16 @@ export function ClubApplications({ onChanged }: { onChanged: () => Promise<void>
         {loaded && !admissions.length && <p>{t.empty}</p>}
         {admissions.map((a) => (
           <article key={a.id} className="club-list__item">
-            <h3>{a.name}</h3>
+            <h3>{a.name || a.email}</h3>
             <p>{a.email}</p>
+            {a.createdAt && (
+              <p>
+                {registrationStrings().date}:{' '}
+                <time dateTime={a.createdAt}>
+                  {new Date(a.createdAt).toLocaleString(lang() === 'en' ? 'en-GB' : 'nl-NL')}
+                </time>
+              </p>
+            )}
             <div className="club-actions">
               <button
                 disabled={busy}

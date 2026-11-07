@@ -3,22 +3,31 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Current follow-up — explicit registration proposal
+## Current follow-up — explicit registration implemented locally
 
-- Ewout reports a new email entry does not appear in requests and wants a separate signup form:
-  email + existing club or no club; club admins see their requests, platform admins see all.
-- Confirmed BUG-052 in code: OTP entry creates no application, club choice follows verification
-  and mandatory name entry; request projection contains only pending club applications.
-- Read-only production aggregates: 6 verified accounts, all members, 0 pending club applications.
-  No individual mailbox/code was read and no production write/send was made.
-- Plan: `docs/plans/registration-onboarding.md`. Registration with/without club is recorded only
-  after email verification; optional club application is atomic, with no automatic membership.
-  Clubless verified account requires no platform approval but appears in the global overview.
-- Architectural approval is pending for additive protected registration/OTP-intent storage and
-  permission changes. Branch `codex/feat/registration-onboarding` is based on deployment-log PR
-  #158; preserve/retarget that dependency when opening the implementation PR. No code changed.
-- Production remains sha-dd71f78. The previous deployment/bootstrap is complete; a future deploy
-  needs a new explicit request. Never put the reported personal email into repository logs.
+- Ewout approved the full signup plan with "Ja, voer het volledige plan uit". Implemented on
+  `codex/feat/registration-onboarding`, stacked on deployment-log PR #158 (all eight CI jobs green).
+  Do not merge either without a request. If merging the stack later, keep #158's branch alive,
+  retarget this implementation to main, and wait for new green CI before its merge/deploy.
+- ADR-0024/migration 0025: separate existing-account login and explicit signup, optional club
+  choice bound to purpose/challenge/email HMAC; proof creates account/registration/request/session
+  atomically. New global auth table has no direct app-role access; tenant applications retain RLS.
+  A private shared submission helper keeps verified users, pending decisions and rejection cooldown.
+  Real mailbox-lock concurrency and rollback tests cover proof replacement and failed application.
+- New Registration form has explicit No club; own club/status page works before names. Global
+  Requests sees clubless registrations and all application statuses across clubs; club admins see
+  only their active selected club. Only pending live-club rows offer admit/reject. No platform
+  approval for clubless accounts, fabricated old signups, auto membership or new admin mail.
+- Checks: 608 web/DB, 26 laptop 1000x540/iPhone 13 WebKit, worker 50 + Ruff/mypy, deploy scripts 77
+  and actual Docker migration/rollback rehearsal pass. Format/lint/typecheck/feature-on build/schema
+  journal pass. TEST.md retains initial fixture/static failures and legacy full 47 pass/75 skip/2
+  lineup timing failures; isolated desktop/mobile lineup rerun passes 2/2. Edge/real worker passes
+  **39 cases, 23 skipped**, with isolated output artifacts.
+- Local :5174/API :3100 uses 26 migrations and enabled unified flags. Dev stack remains available;
+  feature-on build restored after legacy testing. E2E uses throwaway synthetic accounts/mail only.
+  Physical iPhone and production signup are not tested; no actual mailbox/address/code captured.
+- Production remains sha-dd71f78 with 25 migrations; no new production action, merge or deploy is
+  authorized. The reported personal email is excluded from repository logs.
 
 ## Current production — deployed 2026-11-07
 

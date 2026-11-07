@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Implement explicit signup and optional club applications
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: apps/web/src/client/auth/{RegistrationForm.tsx,registration-strings.ts,LoginGate.tsx}, apps/web/src/client/{clubs/ClubsPage.tsx,sessions/RequireAuth.tsx,admin/UsersPage.tsx,admin/ClubApplications.tsx,styles.css}, apps/web/src/server/auth/{unified-gate.ts,unified-gate.db.test.ts,registration.db.test.ts,mail.ts,mail.test.ts}, apps/web/src/server/db/{schema.ts,migrations/0025_explicit_registration.sql,migrations/meta}, apps/web/e2e/unified-users.spec.ts, docs/adr/{0024-explicit-registration-and-club-choice.md,README.md}, docs/plans/registration-onboarding.md, BUILD.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented approved ADR-0024/migration 0025: separate signup with optional club, purpose/challenge-bound proof, atomic recorded registration/application/session, and scoped administrator review including clubless and decided requests. Club/status navigation is available before name entry; approval remains tenant-scoped/audited and existing identities/roles survive retries. Checks: 608 web/DB, 26 laptop/iPhone WebKit, proxy/real worker 39 (23 skipped), worker 50, deploy scripts 77 and real Docker migration/rollback rehearsal pass; initial static/fixture failures and legacy lineup timing symptoms/reruns are documented in TEST.md. Local stack has 26 migrations; no production write/mail/merge/deploy and no real address/code stored. Implementation is stacked on deployment-log PR #158.
+**Prompts used**: "Ja, voer het volledige plan uit" (approval of docs/plans/registration-onboarding.md).
+
 ## 2026-11-07 — Diagnose registration gap and propose explicit signup
 
 **Session**: codex/feat/registration-onboarding
