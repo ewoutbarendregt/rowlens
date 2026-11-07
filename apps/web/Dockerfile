@@ -12,7 +12,7 @@ RUN if [ "$VITE_FEATURE_PLAYER_DEMO" = "true" ]; then \
       && rm -rf /var/lib/apt/lists/*; \
     else mkdir -p /out; fi
 
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 WORKDIR /repo
 RUN corepack enable
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -33,7 +33,7 @@ ENV BASE_PATH=${BASE_PATH} VITE_FEATURE_PLAYER_DEMO=${VITE_FEATURE_PLAYER_DEMO} 
 RUN pnpm --filter @rowlens/web build \
  && pnpm --filter @rowlens/web deploy --prod --legacy /out
 
-FROM node:22-alpine
+FROM node:25-alpine
 LABEL org.opencontainers.image.source="https://github.com/ewoutbarendregt/rowlens" \
       org.opencontainers.image.title="rowlens-web"
 ARG BASE_PATH=/projects/rowlens
