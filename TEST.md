@@ -2,6 +2,30 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Registration production release and read-only security review (2026-11-07)
+
+- Final PR CI 42403762182: all eight checks pass. Merge a47111c main CI 42404700506 and images
+  42404700521 pass. Deploy 42405660947 succeeds; readiness sha-a47111c/DB ok, 26 migrations.
+- Public production form **2/2** at laptop 1000x540 and iPhone 13 WebKit: account CTA, WVIJburg,
+  No club, incomplete form disabled and no document overflow. No real signup/OTP mail sent.
+- Preserved 6 accounts/memberships, 4 sessions, 5 videos, 13 compatibility people (7 unlinked),
+  10 seats, 8 angles, 1 global administrator. New registration/helper direct privileges denied.
+  All five shared-container identities/start times/images unchanged; neighbour URLs **3/3 HTTP 200**.
+- Provenance review: eight bot PRs never merged, now closed; auto-merge false, Dependabot secrets 0.
+  No manifest/lock/Dockerfile change between old/new own releases; worker filesystem layers equal.
+- npm production audit: 131 dependencies, 2 moderate, zero high/critical; Python production audit:
+  5 dependencies, no known vulnerabilities. These checks alone miss system/global-tool advisories.
+- Exact image/host inventory scanned **locally** with Grype v0.121.2 and valid 2026-11-07 database,
+  offline, no Docker socket/privileged scanner or production installation. Raw/triaged results and
+  vendor references are in docs/security/2026-11-07-production-dependabot-review.md.
+  Confirmed kernel advisory BUG-054 remains open; package findings BUG-055 need manual review.
+- Diagnostic scan attempts started before database download finished and failed with missing DB;
+  retried successfully after update. Initial host scan included removed/inactive kernels; filtered
+  to installed/current-kernel inventory. No blanket safety or compromise conclusion is claimed.
+  Initial image metadata template lacked DB-image labels; versions were obtained separately.
+- No firewall/system update, reboot, exploit, actual mailbox/account mutation or extra bootstrap.
+  Known release-please run 42404700571 fails on GitHub PR-creation permission only.
+
 ## Repeat-signup confirmation hardening (2026-11-07)
 
 - Review found BUG-053: correct club requests could be paired with an initial-choice banner.

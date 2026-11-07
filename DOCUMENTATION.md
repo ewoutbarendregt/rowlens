@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Deploy our registration release and audit Dependabot exposure
+
+**Session**: codex/docs/159-registration-release
+**Changed**: AGENTS.md, BUGS.md, DOCUMENTATION.md, TEST.md, PLAN.md, FEATURES.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, docs/security/2026-11-07-production-dependabot-review.md
+**Summary**: Merged #158/#159 through green checks and deployed our a47111c release (run 42405660947) with 26 migrations, preserved counts/global authority, two public laptop/iPhone form checks and unchanged shared containers/three HTTP 200 neighbours. At Ewout's steering, reviewed Dependabot provenance and closed all eight unmerged bot PRs without accepting/deleting branches; auto-merge remains off and no Dependabot secrets exist. Read-only local image/host inventory scans identify an existing critical Canonical IPv4/TCP kernel advisory (BUG-054), plus a manually triaged image/shared-runtime maintenance backlog (BUG-055), independent of bot changes. No host/firewall upgrade, service reconfiguration, exploit or production email/account test was performed. Detailed evidence, scanner limits and remediation boundaries are in the security report; policy rejects unsolicited external changes.
+**Prompts used**: "merge en deploy"; "wat is dependabot en wat heeft die in de repo gedaan?"; "ik wil geen enkele externe wijzigingen accepteren in de repo"; "check de productie server op cyber kwetsbaarheden als gevolg van whatever dependabot heeft gedaan"; "merge en deploy onze laatste wijzigingen".
+
 ## 2026-11-07 — Start the authorized registration release
 
 **Session**: codex/feat/registration-onboarding

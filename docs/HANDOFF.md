@@ -3,6 +3,39 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Current production and security follow-up — 2026-11-07
+
+- Our registration PR #159 is merged as **a47111c**; lower docs #158 merged as ca0b7af with its
+  branch retained. PR CI **42403762182**, main CI **42404700506** and images **42404700521** pass.
+  Deploy **42405660947** succeeded at 19:20 UTC: **sha-a47111c**, **26 migrations**, web/worker
+  running with zero restarts. Earlier in-progress/no-new-deploy wording below is historical.
+- Before/after retained: 6 accounts/memberships, 4 sessions, 5 videos, 13 compatibility people
+  (7 unlinked), 10 seats, 8 angles, 1 platform administrator. Registration count and pending application count zero;
+  no fabricated backfill. New private table/helper direct privileges denied. No repeat bootstrap.
+- Production public signup form passes laptop 1000x540/iPhone WebKit checks (WVIJburg/No club,
+  disabled incomplete submit, no overflow). No OTP sent or actual email/signup round-trip tested.
+  All five shared container identities/start times/images are unchanged; three neighbour URLs 200.
+- Ewout rejects all unsolicited external/bot changes. All Dependabot PRs #72–79 were unmerged
+  and are now closed (branches retained). Auto-merge false; Dependabot secrets 0. Version-update
+  proposal scheduling remains configured; do not claim the bot itself was disabled. AGENTS.md
+  records no acceptance of external proposals; generic own-release approval does not cover bots.
+- **URGENT BUG-054**: Canonical confirms critical CVE-2026-98432 in IPv4/TCP for the running
+  Noble kernel family (6.8.0-147). A supported Noble fix is still in progress. No exploit tested.
+  XFRM/kernel advisories and shared Docker maintenance also need owner-directed review. Nothing
+  was changed to firewall, kernel, shared Docker/other apps. Any mitigation/update needs exact
+  command/diff and separate approval per AGENTS.md. Do not execute vendor firewall text blindly:
+  UFW is active and nftables service inactive; preserve that manager and Docker forwarding/
+  container namespaces.
+- Audit: `docs/security/2026-11-07-production-dependabot-review.md`. Exact local image scans,
+  no production scanner installation or secret/media export. Raw matches are not confirmed exploits:
+  current web 29 (1 critical/10 high), worker 853 (11 critical/326 high, repeated library matches),
+  DB 5 (1 critical), current-kernel host inventory 7342 (30 critical matches/15 IDs). Vendor review
+  reduces several apparent critical paths (e.g. missing tiffcrop, runc advisory not exploitable
+  through Docker); do not downplay the separately confirmed core IPv4 kernel advisory.
+- Review/remediation is open in BUGS.md, not fixed by this deployment. No evidence attributes it
+  to Dependabot. Local scanner files: /tmp/rowlens-security-audit; Grype v0.121.2 DB 2026-11-07.
+  Local dev :5174/API :3100 remains available; prod is not declared free of vulnerabilities.
+
 ## Authorized registration release — in progress
 
 - Ewout requested "merge en deploy" for the signup implementation. PR #158 passed all eight jobs

@@ -30,6 +30,10 @@ The product owner is **Ewout**; the head coach of the pilot club gives the rowin
 - **Never push, commit or merge to `main` on your own.** `main` is not technically protected (private
   repo, free plan). Everything goes through a PR; merge only when Ewout says so ("merge", "merge
   and deploy").
+- **Do not accept unsolicited external/bot changes** (Ewout, 2026-11-07). Do not approve, merge
+  or copy bot/third-party PR changes; keep auto-merge off. A generic "merge and deploy our changes"
+  never authorizes bot updates. Dependency/security maintenance must be our own concrete reviewed
+  change, explicitly approved by Ewout; no automatic acceptance of update proposals.
 - **Deploy to production only when Ewout explicitly asks, each time.** One "deploy" doesn't make
   later work deployable. The default is: build it and try it on the local stack.
 - **There is no staging, and none is planned.** Environments: local development and production.
