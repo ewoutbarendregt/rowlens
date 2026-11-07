@@ -1,10 +1,22 @@
 # Production deployment and Dependabot security review — 2026-11-07
 
+## Completed production repair — 2026-11-07 20:17 UTC
+
+Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
+unsuccessful authentication attempt, the retried native Terminal operation exited 0 and scheduled
+the reboot. Fresh SSH confirms **6.8.0-149-generic**, a changed boot ID, all four packages at
+**6.8.0-149.149**, retained 147 image/initrd and an empty dpkg audit. All **8** containers returned
+on their same images; Docker/UFW are active. RowLens readiness is **sha-a47111c**, DB ok; all
+aggregate counts and permission checks match the pre-reboot baseline, including **26 migrations**.
+Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe and signup club
+listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
+and other maintenance findings remain open. No staging host was checked or modified.
+
 ## Subsequent package-level correction
 
 The audit's CVE-page status was incomplete: follow-up verifies signed **6.8.0-149.149** packages
 in ordinary noble-updates, with the relevant fix in the downloaded modules changelog. The server
-still runs 147 until an approved install/reboot. See [the concrete remediation plan](bug-054-kernel-remediation.md).
+ran 147 during the audit; the approved repair above now runs 149. See [the concrete remediation plan](bug-054-kernel-remediation.md).
 Do not treat the historical in-progress wording below as proof that an updates repair is unavailable.
 
 ## Outcome

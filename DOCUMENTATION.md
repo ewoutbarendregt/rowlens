@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Complete the approved production kernel repair and reboot
+
+**Session**: codex/fix/054-kernel-remediation
+**Changed**: BUGS.md, PLAN.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, docs/security/bug-054-kernel-remediation.md, docs/security/2026-11-07-production-dependabot-review.md
+**Summary**: Executed the explicitly approved four-package kernel repair through native Terminal hidden root authentication after restarting a failed authentication session. Command exited 0; the whole shared host rebooted and fresh SSH at 20:17 UTC confirms kernel 6.8.0-149-generic and a new boot ID. All four pinned versions are installed, old 147 boot files retained, dpkg audit clean, eight containers use the same images and Docker/UFW are active. Five HTTP checks return 200, readiness stays sha-a47111c/DB ok, and all pre/post database aggregates/permission checks match (26 migrations). Marked BUG-054 fixed; BUG-055 remains open. No staging host inspected/modified; no app merge/deploy or production signup/email test.
+**Prompts used**: "Herstart de server maar"; "Ja, voer de kernelupdate en volledige serverherstart uit"; "ik zie de terminal sessie niet"; "het is niet geluk, laat de terminal sessie nog eens zien"; "ok de update loopt"; "is deze update ook van toepassing op de staging server?".
+
 ## 2026-11-07 — Authorize and launch the reviewed kernel repair
 
 **Session**: codex/fix/054-kernel-remediation

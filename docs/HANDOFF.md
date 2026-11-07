@@ -3,18 +3,21 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Active task — BUG-054 approved, awaiting hidden root authentication
+## Completed production repair — 2026-11-07 20:17 UTC
 
-- Ewout approved the exact prepared update and shared-host reboot: "Herstart de server maar".
-  Reviewed helper uploaded to /opt/rowlens/fix-production-kernel-054.sh, remote SHA-256 matches
-  bee5a5fe794a08b60be5b085ebdd6541143b0296df461711a7cedd249323c4d1.
-- Native Terminal runs /tmp/rowlens-kernel-054.command and is waiting at the hidden su prompt.
-  Its numeric result is written to /tmp/rowlens-kernel-054.status. No need to request approval
-  again. Never solicit or capture the password. Before launching any second attempt, inspect
-  this command/status and current server state to avoid duplicate execution.
-- Pre-reboot baselines: /tmp/rowlens-kernel-review/preboot-services.txt and preboot-data.json.
-  Initial boot ID c3cfaa7d-3ba5-486d-b6ef-8f420808bf82. Still kernel147 at checkpoint; no scheduled
-  reboot. Continue monitoring the approved operation and perform all post-boot checks below.
+Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
+unsuccessful authentication attempt, the retried native Terminal operation exited 0 and scheduled
+the reboot. Fresh SSH confirms **6.8.0-149-generic**, a changed boot ID, all four packages at
+**6.8.0-149.149**, retained 147 image/initrd and an empty dpkg audit. All **8** containers returned
+on their same images; Docker/UFW are active. RowLens readiness is **sha-a47111c**, DB ok; all
+aggregate counts and permission checks match the pre-reboot baseline, including **26 migrations**.
+Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe and signup club
+listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
+and other maintenance findings remain open. No staging host was checked or modified.
+
+The operation is complete; do not re-run the Terminal helper. Logs/baselines remain under
+/tmp/rowlens-kernel-review locally. PR #161 records the repair; it is not merged. Historical
+preparation and pending-approval text below describes earlier checkpoints.
 
 ## Earlier preparation — BUG-054 verified kernel repair
 
