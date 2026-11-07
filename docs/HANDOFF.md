@@ -3,6 +3,23 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Current follow-up — explicit registration proposal
+
+- Ewout reports a new email entry does not appear in requests and wants a separate signup form:
+  email + existing club or no club; club admins see their requests, platform admins see all.
+- Confirmed BUG-052 in code: OTP entry creates no application, club choice follows verification
+  and mandatory name entry; request projection contains only pending club applications.
+- Read-only production aggregates: 6 verified accounts, all members, 0 pending club applications.
+  No individual mailbox/code was read and no production write/send was made.
+- Plan: `docs/plans/registration-onboarding.md`. Registration with/without club is recorded only
+  after email verification; optional club application is atomic, with no automatic membership.
+  Clubless verified account requires no platform approval but appears in the global overview.
+- Architectural approval is pending for additive protected registration/OTP-intent storage and
+  permission changes. Branch `codex/feat/registration-onboarding` is based on deployment-log PR
+  #158; preserve/retarget that dependency when opening the implementation PR. No code changed.
+- Production remains sha-dd71f78. The previous deployment/bootstrap is complete; a future deploy
+  needs a new explicit request. Never put the reported personal email into repository logs.
+
 ## Current production — deployed 2026-11-07
 
 - PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) merged as **dd71f78** after

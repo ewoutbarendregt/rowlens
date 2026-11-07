@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Diagnose registration gap and propose explicit signup
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: docs/plans/registration-onboarding.md, BUGS.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Traced BUG-052: the combined OTP login creates no club request; club choice is delayed behind verification/name completion, while request views omit clubless registration. Read-only production aggregates show 6 verified member accounts and no pending applications. Prepared a concrete signup/optional-club/verified-registration plan with an additive protected auth migration and global versus club-scoped review; awaiting architectural approval. No application code, production data or mail was changed; no tests run for this analysis-only change.
+**Prompts used**: "ik heb een nieuw email adres ingevuld op productie: [personal email omitted], maar ik zie geen nieuwe aanvraag als ik inlog als rowlens beheerder. ook kan ik geen club kiezen als nieuwe gebruiker. ik denk dat er een apart formulier nodig is voor nieuwe gebruikers waar zij een email adres invullen en kiezen voor welke bestaande club zij zich aanmelden (of geen enkele club). de aanvraag gaat dan naar de clubbeheerder. de rowlens beheerder ziet sowieso alle aanvragen". Personal email omitted to comply with the repository's prohibition on committed personal data.
+
 ## 2026-11-07 — Merge and deploy unified users; bootstrap production administrator
 
 **Session**: codex/docs/157-unified-users-release

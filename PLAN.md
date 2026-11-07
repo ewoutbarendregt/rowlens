@@ -1,5 +1,13 @@
 # PLAN
 
+## Explicit registration and optional club request — proposed 2026-11-07
+
+Production feedback identified BUG-052: login/email entry does not submit a club application, club
+choice is delayed behind name completion, and clubless registrations have no request record.
+`docs/plans/registration-onboarding.md` proposes a separate signup form, verified optional club
+choice, atomic recorded registration/application and scoped global/club review. New protected auth
+storage/migration requires architectural approval. No implementation or new deploy has started.
+
 ## Unified users and multi-club membership — approved 2026-11-07
 
 Ewout approved the expanded implementation with "ja uitvoeren": account requests, real verified
