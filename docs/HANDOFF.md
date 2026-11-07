@@ -3,18 +3,31 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Authorized merge/deploy — 2026-11-07
+## Current production — deployed 2026-11-07
 
-- Ewout explicitly requested "merge en deploy" for PR #157. Head ce6c014 passed all eight CI jobs.
-- Release and CI images now explicitly enable paired unified-user flags; the smoke check verifies
-  unified account status with synthetic OTP and SMTP configuration. Run 42390255322 caught the
-  missing SMTP fixture; corrected before merge, with production validation unchanged. Production has no override, so no .env
-  or installed compose edit is required. Wait for new CI, then merge and deploy the merge SHA.
-- Global grants remain separately bootstrapped; do not infer authority from names/allowlists. Ewout approved
-  the exact one-time production bootstrap command. After deployment, obtain the verified account
-  address only through the hidden terminal prompt; never infer it or put it in chat/arguments.
-- No production write/deployment has happened yet in this release turn. Older "no merge/deploy"
-  statements below are superseded only for this explicitly requested RowLens release.
+- PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) merged as **dd71f78** after
+  corrected-head CI **42396990030** passed all eight jobs. Main CI **42397829809** and release
+  images **42397829884** passed; deploy **42398709787** released **sha-dd71f78**.
+- Unified accounts are enabled in client/runtime release images. Readiness reports the expected
+  version with DB ok; anonymous auth status reports unified/enabled true and access false.
+  Production has **25 migrations**. No .env or installed compose edit was needed.
+- Preserved **6 accounts, 6 memberships, 4 sessions, 5 videos, 7 historical people, 10 seats,
+  8 angles**. WVIJburg retains the pilot UUID/slug. All **7** historical identities remain unlinked:
+  an administrator must explicitly map them to real verified admitted accounts before any future
+  compatibility contraction; no identity is guessed from a name/email.
+- Ewout explicitly approved the image-bound one-time production bootstrap and entered the
+  verified address through a hidden native Terminal prompt, then said "done". Script exit **0**;
+  aggregate verification: **1 platform administrator, 1 operator-bootstrap audit**. No email/secret
+  was put in commands/chat/repository. Global authority is separate from club roles/allowlists.
+- Shared trustable/Caddy/AudioScribe container IDs, start times and images exactly match preflight;
+  their three public URLs return **200**. No shared component was changed/restarted.
+- The known release-please job **42397829796** failed only because Actions cannot create PRs;
+  this is unrelated to the successful images/CI/deploy. Original missing-SMTP smoke failure
+  **42390255322** was corrected before merge without weakening production validation.
+- Next: Ewout verifies Users/Clubs while authenticated on production. No manual authenticated
+  production browser or physical iPhone verification was performed. Further deploys require a
+  fresh request; the completed authorization applies only to this release/bootstrap.
+- Deployment records are in the follow-up documentation branch/PR, not committed directly to main.
 
 ## Current task — full user table and account/identity editor
 
@@ -45,7 +58,7 @@ newest-first detailed log. Update this file at the end of a session.
   refreshed as verification hardened them; fresh DB tests/rehearsal validate full SQL application.
   Edge stopped with data retained. Feature-on build restored after legacy checks (local Vite dev
   remains feature-on independently). No real identity/mailbox or production mutation was performed.
-- Next: Ewout reviews `/users` locally. Latest CI is on PR #157; no merge/deploy is authorized.
+- Implementation notes below describe the pre-release verification; the completed release above supersedes their earlier no-production-action status.
 
 ## Current follow-up — Users page and zero-or-more club memberships
 

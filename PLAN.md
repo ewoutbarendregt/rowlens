@@ -13,7 +13,7 @@ Implementation is on `codex/feat/unified-club-users`, based on main 799dfbe, beh
 compatibility mapping while canonical account references backfill. All seven production roster
 entries are unlinked (read-only aggregate inspection); administrators must explicitly map these to
 verified accounts/admitted club members before a later contract migration removes old identifiers.
-No production write, invitation, merge or deployment is authorized.
+PR #157 is merged and deployed as sha-dd71f78 (2026-11-07), with 25 migrations and both unified-user flags enabled. The separately approved production bootstrap completed; further production actions require fresh authorization.
 
 ## Club administration follow-up — approved 2026-11-07
 

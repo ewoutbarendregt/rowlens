@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Merge and deploy unified users; bootstrap production administrator
+
+**Session**: codex/docs/157-unified-users-release
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, TEST.md, PLAN.md, FEATURES.md
+**Summary**: Merged PR #157 after corrected-head CI 42396990030 passed all eight jobs. Merge dd71f78 passed main CI 42397829809 and images 42397829884; deploy 42398709787 successfully released sha-dd71f78 with unified accounts enabled and migrations 0020–0024 (25 total). Readiness/database/auth status passed; all 6 accounts, 6 memberships, 4 sessions, 5 videos, 7 historical people, 10 seats and 8 angles were preserved. Seven historical identities remain deliberately unlinked pending explicit real-account mapping. Shared-container IDs/start times/images were unchanged and all three neighbouring public services returned 200. With Ewout's explicit approval, executed the shown image-bound operator bootstrap using only his hidden terminal email input: exit 0, one platform administrator and one bootstrap audit; no email, secret or server configuration was recorded/changed. Authenticated production UI and physical iPhone were not manually verified.
+**Prompts used**: "merge en deploy"; "Ja, ook mijn productieaccount RowLens-beheerder maken"; "ga verder"; "done".
+
 ## 2026-11-07 — Complete enabled-auth release smoke configuration
 
 **Session**: codex/feat/unified-club-users
