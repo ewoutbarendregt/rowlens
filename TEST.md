@@ -2,6 +2,17 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Platform bootstrap regression (2026-11-07)
+
+- Initial test fixtures omitted required display_name (2 failures); corrected synthetic fixtures.
+- The real CLI subprocess then reproduced PostgreSQL 42P08: verified bootstrap failed while the
+  unverified-account refusal passed. Explicit UUID typing fixes the failing audit insert.
+- Final focused run: **20/20** tests pass (2 CLI integration cases + 18 unified authorization cases).
+  Repeating bootstrap produces one grant and one matching audit event; no email appears in output.
+  Tests use a throwaway PostgreSQL database and synthetic accounts, never the operator account.
+- Lint initially rejected a void-return shorthand in the test helper; fixed with an explicit block.
+  Final lint, typecheck and repository formatting checks pass.
+
 ## Unified accounts and multiple clubs (2026-11-07)
 
 - Initial full run: 524 passed/3 failed (config/schema expectations and an empty JSON test request).

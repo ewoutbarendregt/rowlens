@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-044] Platform bootstrap fails on audit parameter type inference — medium
+**Location**: apps/web/src/server/db/grant-platform-admin-cli.ts:25
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The operator bootstrap reused one parameter in UUID and text contexts without first fixing its type. PostgreSQL rejected the audit insert with 42P08 and rolled back the administrator grant.
+**Fix**: Cast the parameter to UUID explicitly, then convert that UUID to audit text. Real CLI subprocess integration tests cover a verified grant, repeat invocation with exactly one audit event, unverified-account refusal and email non-disclosure.
+
 ### [BUG-043] Missing club context could silently select a different membership — medium
 **Location**: apps/web/src/server/auth/unified-gate.ts:122
 **Status**: fixed

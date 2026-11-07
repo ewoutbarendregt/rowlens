@@ -5,6 +5,11 @@ newest-first detailed log. Update this file at the end of a session.
 
 ## Current task — unified users and multi-club admission (2026-11-07)
 
+- Operator bootstrap BUG-044 is fixed: audit parameter explicitly typed UUID before conversion to
+  text. The real CLI reproduced 42P08 before the fix; 20 focused CLI/authorization tests pass after.
+  Operator should rerun `bash scripts/admin/grant-platform-admin.sh` with hidden verified email;
+  the original failed transaction rolled back. No real account was granted by the agent.
+
 - PR [#157](https://github.com/ewoutbarendregt/rowlens/pull/157) is open and mergeable. All eight jobs in CI run 42368522411 succeeded, confirmed on 2026-11-07 after “ga door”. Local readiness reports database health. Next is operator local review/bootstrap with the hidden terminal prompt below; historical mappings require real account selection. No merge/deploy authorization.
 - Ewout approved with "ja uitvoeren". Branch `codex/feat/unified-club-users`, from main 799dfbe;
   planning docs copied without incorporating separate deployment-log PR #156. Production remains

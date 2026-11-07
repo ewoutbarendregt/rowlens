@@ -22,7 +22,7 @@ try {
   );
   if (added.rowCount)
     await client.query(
-      "INSERT INTO platform_audit(actor_user_id,action,target) VALUES($1,'platform.operator_bootstrap',$1::text)",
+      "INSERT INTO platform_audit(actor_user_id,action,target) VALUES($1::uuid,'platform.operator_bootstrap',$1::uuid::text)",
       [id],
     );
   await client.query('COMMIT');

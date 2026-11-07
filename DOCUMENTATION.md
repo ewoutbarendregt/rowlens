@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Fix operator bootstrap audit parameter typing
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/server/db/grant-platform-admin-cli.ts, apps/web/src/server/db/grant-platform-admin-cli.db.test.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Reproduced the operator-reported PostgreSQL 42P08 error with the actual CLI against a throwaway database, then fixed the audit parameter's explicit UUID/text conversion. All 20 focused CLI/authorization cases pass, including audited repeat-safe grants and unverified-account refusal without email disclosure. The failed original transaction rolled back; the operator can safely rerun the hidden prompt. No real account grant or production mutation was performed by the agent.
+**Prompts used**: "Verified account email (hidden):" / "error: inconsistent types deduced for parameter $1" / "detail: 'text versus uuid'" (user's reported terminal failure).
+
 ## 2026-11-07 — Confirm green PR and local review readiness
 
 **Session**: codex/feat/unified-club-users
