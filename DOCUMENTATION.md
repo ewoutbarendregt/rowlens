@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Authorize and launch the reviewed kernel repair
+
+**Session**: codex/fix/054-kernel-remediation
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout explicitly authorized the prepared shared-host update and reboot. Captured the current boot ID, eight service image tags and RowLens aggregate counts (26 migrations); copied the exact reviewed helper to /opt/rowlens and verified its SHA-256. Opened the native Terminal SSH/su prompt for the root password. At this checkpoint it is awaiting hidden operator authentication, with kernel 147 still running and no reboot scheduled; do not claim the vulnerability repaired until post-boot verification succeeds.
+**Prompts used**: "Herstart de server maar".
+
 ## 2026-11-07 — Prepare a verified pinned kernel repair for BUG-054
 
 **Session**: codex/fix/054-kernel-remediation
