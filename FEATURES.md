@@ -12,7 +12,7 @@ Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deploye
   clubless registration and decided/archived club requests; club admins see their selected club's
   requests. Existing admission/role editing remains scoped and audited.
 - Implemented locally with approved migration 0025 (26 total), ADR-0024; 608 web/DB and
-  26 laptop/iPhone WebKit checks pass. Not yet merged or deployed. Admin email notifications,
+  28 laptop/iPhone WebKit checks pass (plus final focused 42/42 account checks). Not yet merged or deployed. Admin email notifications,
   historical signup reconstruction and branding remain outside this follow-up.
 
 ## Unified accounts and club admission — deployed sha-dd71f78 (2026-11-07)

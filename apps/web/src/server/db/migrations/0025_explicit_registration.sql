@@ -120,8 +120,15 @@ END $$;
 --> statement-breakpoint
 CREATE FUNCTION rowlens_my_registration() RETURNS jsonb
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
- SELECT jsonb_build_object('clubId',r.requested_club_id,'clubName',c.name,'createdAt',r.created_at)
- FROM account_registration r LEFT JOIN club c ON c.id=r.requested_club_id WHERE r.user_id=rowlens_user_id()
+ -- Show the just-confirmed choice (including explicit no-club) on a repeated signup.
+ -- The immutable first registration remains available in global history. No proof secrets escape.
+ SELECT jsonb_build_object('clubId',c.id,'clubName',c.name,'createdAt',
+ CASE WHEN p.registration_id IS NOT NULL AND p.used_at IS NOT NULL THEN p.used_at ELSE r.created_at END)
+ FROM account_registration r JOIN app_user u ON u.id=r.user_id
+ LEFT JOIN account_login_code p ON p.email=u.email
+ LEFT JOIN club c ON c.id=CASE WHEN p.registration_id IS NOT NULL AND p.used_at IS NOT NULL
+ THEN p.requested_club_id ELSE r.requested_club_id END
+ WHERE r.user_id=rowlens_user_id()
 $$;
 --> statement-breakpoint
 CREATE OR REPLACE FUNCTION rowlens_manage_applications() RETURNS jsonb

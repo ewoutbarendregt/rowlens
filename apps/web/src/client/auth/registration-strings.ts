@@ -26,7 +26,7 @@ const en = {
   clubUnavailable: 'That club is no longer available. Go back and choose another club or no club.',
   registered: 'Your registration is complete',
   registeredWithoutClub:
-    'Your account has no club. You can request membership below whenever you like.',
+    'You did not choose a club for this registration. Open a club or request membership below.',
   registeredWithClub: 'Your registration is recorded for',
   admissionHint:
     'Your application status appears below. Club access starts after admission by an administrator.',
@@ -62,7 +62,7 @@ const nl: typeof en = {
     'Deze club is niet meer beschikbaar. Ga terug en kies een andere club of geen club.',
   registered: 'Je aanmelding is afgerond',
   registeredWithoutClub:
-    'Je account heeft geen club. Je kunt hieronder op elk moment een lidmaatschap aanvragen.',
+    'Je hebt bij deze aanmelding geen club gekozen. Hieronder kun je een club openen of een lidmaatschap aanvragen.',
   registeredWithClub: 'Je aanmelding is vastgelegd voor',
   admissionHint:
     'Hieronder zie je de status van je aanvraag. Je krijgt clubtoegang na toelating door een beheerder.',

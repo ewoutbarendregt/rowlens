@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Preserve registration history and show the confirmed repeat choice
+
+**Session**: codex/feat/registration-onboarding
+**Changed**: apps/web/src/server/db/migrations/0025_explicit_registration.sql, apps/web/src/server/auth/registration.db.test.ts, apps/web/src/client/auth/registration-strings.ts, apps/web/e2e/unified-users.spec.ts, BUGS.md, TEST.md, PLAN.md, FEATURES.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0024-explicit-registration-and-club-choice.md
+**Summary**: Final review of PR #159 found BUG-053: repeat signup applied to the correct club but its banner could show the initial signup choice. The own projection now uses confirmed proof intent while preserving immutable history; clubless copy describes the choice without claiming existing memberships are absent. Fresh migration/account tests pass 42/42; the targeted laptop/iPhone repeat/login checks pass 4/4 and the final full browser suite passes 28/28. The earlier full web/DB run passed 608 cases; TEST.md preserves diagnostic failures and reruns. The local unreleased view was refreshed; no production change. PR #159 is stacked on #158 and final-head CI remains pending.
+**Prompts used**: "Ja, voer het volledige plan uit" (same approved registration plan).
+
 ## 2026-11-07 — Implement explicit signup and optional club applications
 
 **Session**: codex/feat/registration-onboarding

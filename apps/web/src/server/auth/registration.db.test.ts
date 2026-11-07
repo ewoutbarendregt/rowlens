@@ -275,6 +275,10 @@ describe('explicit verified registration', () => {
     ]);
     const repeated = await register(clubs.b, proof.email);
     expect(repeated.id).toBe(id);
+    expect(
+      (await call('GET', '/api/account/clubs', undefined, repeated.cookies)).json(),
+    ).toMatchObject({ registration: { clubId: clubs.b } });
+
     expect(await asOwner('select first_name,last_name from app_user where id=$1', [id])).toEqual([
       { first_name: 'Preserved', last_name: 'Person' },
     ]);
@@ -284,6 +288,14 @@ describe('explicit verified registration', () => {
     expect(
       await asOwner('select user_id from account_registration where user_id=$1', [id]),
     ).toHaveLength(1);
+    const withoutClub = await register(null, proof.email);
+    expect(
+      (await call('GET', '/api/account/clubs', undefined, withoutClub.cookies)).json(),
+    ).toMatchObject({ registration: { clubId: null } });
+    expect(
+      await asOwner('select requested_club_id from account_registration where user_id=$1', [id]),
+    ).toEqual([{ requested_club_id: clubs.a }]);
+
     expect(
       await asOwner('select id from membership_application where user_id=$1 and club_id=$2', [
         id,

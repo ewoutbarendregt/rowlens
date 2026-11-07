@@ -2,6 +2,20 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Repeat-signup confirmation hardening (2026-11-07)
+
+- Review found BUG-053: correct club requests could be paired with an initial-choice banner.
+  Own projection now reads the latest confirmed intent, including explicit no-club, while global
+  signup history stays immutable. No proof secret is exposed and no club role is changed.
+- Final fresh database/migration regression: **42/42** registration/unified-account cases pass.
+  Additional assertions cover both a new club and a later explicit no-club choice, retaining the
+  first registration, names, memberships and history. Initial targeted repeat/login browser run:
+  **4/4** across laptop/iPhone WebKit. Final full browser suite: **28/28**, including the
+  repeat-choice regression and updated clubless confirmation copy, passes on both platforms.
+- Local unreleased function refreshed with the same final definition; schema remains **26**.
+  The prior Docker migration/rollback rehearsal passed before this read-projection adjustment;
+  final fresh DB tests apply the entire final migration. Static/build/schema checks remain valid.
+
 ## Explicit registration and optional club choice (2026-11-07)
 
 - Full unit/database suite: **607/607** across **58 files**, expanded with a deterministic

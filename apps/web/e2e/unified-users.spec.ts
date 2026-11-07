@@ -579,7 +579,9 @@ test('registration without a club appears globally with no approval action and s
 }, testInfo) => {
   const address = `no-club-${randomUUID()}@example.test`;
   await registerThroughForm(page, address);
-  await expect(page.getByTestId('registration-result')).toContainText('Je account heeft geen club');
+  await expect(page.getByTestId('registration-result')).toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
   await expect(page.getByTestId('welcome')).toHaveCount(0);
   await layout(page);
   const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
@@ -675,7 +677,9 @@ test('an archived registration choice can be replaced without creating a partial
   await page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }).click();
   await page.getByLabel('Inlogcode', { exact: true }).fill(authCode);
   await page.getByRole('button', { name: 'Bevestigen en aanmelden', exact: true }).click();
-  await expect(page.getByTestId('registration-result')).toContainText('Je account heeft geen club');
+  await expect(page.getByTestId('registration-result')).toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
   await context.close();
 });
 
@@ -695,4 +699,27 @@ test('an existing registered account signs in again without another registration
   const after = (await json(page, '/api/auth/status')).data as { user: { id: string } };
   expect(after.user.id).toBe(before.user.id);
   await expect(page.getByTestId('welcome')).toHaveCount(0);
+});
+
+test('repeated registration shows the confirmed new club instead of the first no-club choice', async ({
+  page,
+}) => {
+  const address = `repeat-choice-${randomUUID()}@example.test`;
+  await registerThroughForm(page, address);
+  const directory = (await json(page, '/api/account/clubs')).data as {
+    clubs: { id: string; name: string }[];
+  };
+  const club = directory.clubs.find((c) => c.name === 'WVIJburg');
+  if (!club) throw new Error('No pilot club');
+  await json(page, '/api/auth/logout', {});
+  await registerThroughForm(page, address, club.id);
+  await expect(page.getByTestId('registration-result')).toContainText('WVIJburg');
+  await expect(page.getByTestId('registration-result')).not.toContainText(
+    'Je hebt bij deze aanmelding geen club gekozen',
+  );
+  await expect(
+    page
+      .locator('article')
+      .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) }),
+  ).toContainText('Wacht op toelating');
 });

@@ -6,19 +6,23 @@ newest-first detailed log. Update this file at the end of a session.
 ## Current follow-up — explicit registration implemented locally
 
 - Ewout approved the full signup plan with "Ja, voer het volledige plan uit". Implemented on
-  `codex/feat/registration-onboarding`, stacked on deployment-log PR #158 (all eight CI jobs green).
-  Do not merge either without a request. If merging the stack later, keep #158's branch alive,
+  `codex/feat/registration-onboarding`, in PR [#159](https://github.com/ewoutbarendregt/rowlens/pull/159),
+  stacked on deployment-log PR #158 (all eight CI jobs green).
+  Implementation CI is pending on the final head. Do not merge either without a request. If merging the stack later, keep #158's branch alive,
   retarget this implementation to main, and wait for new green CI before its merge/deploy.
 - ADR-0024/migration 0025: separate existing-account login and explicit signup, optional club
   choice bound to purpose/challenge/email HMAC; proof creates account/registration/request/session
   atomically. New global auth table has no direct app-role access; tenant applications retain RLS.
   A private shared submission helper keeps verified users, pending decisions and rejection cooldown.
   Real mailbox-lock concurrency and rollback tests cover proof replacement and failed application.
+  Final review fixed BUG-053: own confirmation prefers the latest verified choice; initial signup
+  history remains immutable. Local unreleased function definition refreshed; fresh DB migration
+  tests validate the final SQL. Local SMTP is unset: confirmation codes are in dev server output.
 - New Registration form has explicit No club; own club/status page works before names. Global
   Requests sees clubless registrations and all application statuses across clubs; club admins see
   only their active selected club. Only pending live-club rows offer admit/reject. No platform
   approval for clubless accounts, fabricated old signups, auto membership or new admin mail.
-- Checks: 608 web/DB, 26 laptop 1000x540/iPhone 13 WebKit, worker 50 + Ruff/mypy, deploy scripts 77
+- Checks: full 608 web/DB plus final focused 42/42, **28** laptop 1000x540/iPhone 13 WebKit, worker 50 + Ruff/mypy, deploy scripts 77
   and actual Docker migration/rollback rehearsal pass. Format/lint/typecheck/feature-on build/schema
   journal pass. TEST.md retains initial fixture/static failures and legacy full 47 pass/75 skip/2
   lineup timing failures; isolated desktop/mobile lineup rerun passes 2/2. Edge/real worker passes

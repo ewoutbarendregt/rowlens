@@ -41,7 +41,11 @@ club and time; it contains no copied email. Like account proofs/sessions, it has
 privileges. Fixed-search-path definer functions expose only the caller's own record or records
 visible to persisted platform authority. This is not tenant content: no fake tenant is created
 for a clubless signup. Actual club requests remain in `membership_application`, retaining club_id,
-RLS and protected approval. Email changes preserve the registration's account link.
+RLS and protected approval. Email changes preserve the registration's account link. The own confirmation view prefers the
+latest used registration proof's club choice, including explicit no-club, so a repeat signup does
+not display an older choice. Only choice/time are returned, never code/hash/challenge. If that
+proof is replaced/cleared, the original registration remains the historical fallback. Banner copy
+describes the signup choice, not an assertion that an existing account has no memberships.
 
 Global Requests shows all current club request statuses, including archived-club records, and
 explicit account registrations without a club. A registration whose initial club already has an
