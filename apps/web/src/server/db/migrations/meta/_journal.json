@@ -169,6 +169,13 @@
       "when": 1794057437176,
       "tag": "0023_club_archive",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794061441602,
+      "tag": "0024_account_management",
+      "breakpoints": true
     }
   ]
 }

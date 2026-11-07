@@ -9,6 +9,8 @@ Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deploye
 | --- | --- |
 | Account requests and email verification, account-only profile/status | implemented locally; checks pass, pending PR review |
 | Several clubs per account; roles and access per club; club choice | implemented locally; checks pass, pending PR review |
+| User table: 17-field filtering/sorting, column selection, paging and full editor | implemented locally; verification in TEST.md |
+| Verified email changes with owner confirmation and protected global role controls | implemented locally; migration 0024, no production change |
 | Users navigation: all accounts for platform admins, own-club members for club admins | implemented locally; zero-membership editing covered |
 | Club administration: all members, role assignment and Requests tab | implemented locally; verification in TEST.md |
 | RowLens-admin club directory with create/edit/archive/restore | implemented locally; verification in TEST.md |

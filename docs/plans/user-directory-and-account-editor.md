@@ -1,6 +1,6 @@
 # User directory and full account editor — proposal
 
-Status: awaiting Ewout's approval of identity/authority changes and migration 0024.
+Status: approved by Ewout: "Ja, voer het volledige plan uit" (2026-11-07); implemented locally in PR #157.
 Date: 2026-11-07. Continues PR #157; no merge/deploy approval.
 
 ## Requested outcome
@@ -60,7 +60,10 @@ No new dependency is needed.
    ownership using an expiring, attempt-limited code (10 minutes, consistent with login OTP).
    Normalize/validate email, reject duplicates, bind the proof to target ID/revision and rate-limit.
    Provide NL/EN messages and mail templates, using the existing mail provider/test seam.
-3. Confirmation rechecks actor/target authorization and revision; preserve target ID, history and
+3. Club-initiated changes additionally require the existing authenticated account owner to confirm
+   the new-mailbox code through the mailed link; the club administrator cannot confirm for someone
+   else and acquire their other-club/global authority. Global identity administrators can confirm
+   their own initiated change in the editor. Confirmation rechecks actor/target authorization and revision; preserve target ID, history and
    memberships. Synchronize email-keyed club access without changing roles, under the existing
    ordered admission locks. Revoke old sessions/codes when the identity change commits. Never
    merge accounts or inherit an unrelated grant at the new address. No real mail is sent in tests.
@@ -87,3 +90,11 @@ No new dependency is needed.
 - Run repository checks and local migration/rollback rehearsal. Update documentation and the PR
   security note. Local stack is the review target; production, real account mutation and real
   notification delivery remain untouched during implementation.
+
+## Implementation result
+
+Migration 0024 and ADR-0023 implement the approved scope. The 17-field server query and selectable
+columns cover business attributes and read-only metadata; zero/multiple memberships and global
+authority remain distinct. The full editor reports profile, role/membership and identity results
+separately. Local database has 25 migrations; fresh database tests validate the migration itself.
+Verification and diagnostic iterations are recorded in TEST.md. No production action was taken.

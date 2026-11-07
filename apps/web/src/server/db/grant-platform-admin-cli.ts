@@ -10,6 +10,9 @@ const client = new pg.Client({ connectionString: ownerUrl });
 await client.connect();
 try {
   await client.query('BEGIN');
+  await client.query(
+    "select pg_advisory_xact_lock(hashtextextended('rowlens-platform-authority',0))",
+  );
   const r = await client.query<{ id: string }>(
     'SELECT id FROM app_user WHERE email=$1 AND verified_at IS NOT NULL',
     [email],

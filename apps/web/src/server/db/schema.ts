@@ -146,6 +146,24 @@ export const appUser = pgTable(
 );
 
 /** For the one-club pilot, allowlisted users get one membership in the pilot club. */
+/** Protected global identity-change proofs; accessed only by pinned account-management functions. */
+export const accountEmailChange = pgTable('account_email_change', {
+  id: uuid('id').primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => appUser.id),
+  actorUserId: uuid('actor_user_id')
+    .notNull()
+    .references(() => appUser.id),
+  scopeClubId: uuid('scope_club_id').references(() => club.id),
+  email: text('email').notNull(),
+  oldEmail: text('old_email').notNull(),
+  revision: integer('revision').notNull(),
+  codeHash: text('code_hash').notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
+
 export const membership = pgTable(
   'membership',
   {

@@ -17,8 +17,20 @@ const email = z
   .max(254)
   .transform((v) => v.toLowerCase())
   .pipe(z.email());
-const addBody = z.object({ email, roles: rolesSchema }).strict();
-const roleBody = z.object({ roles: rolesSchema, expectedRoles: rolesSchema.optional() }).strict();
+const addBody = z
+  .object({
+    email,
+    roles: rolesSchema,
+    expectedRoles: rolesSchema.optional(),
+    userId: z.uuid().optional(),
+  })
+  .strict();
+const roleBody = z
+  .object({
+    roles: rolesSchema,
+    expectedRoles: rolesSchema.optional(),
+  })
+  .strict();
 export interface AccessEntry {
   id: string | null;
   userId: string | null;
@@ -165,7 +177,7 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
     if (opts.unifiedUsers) {
       const result = await withTenant(db, tenantOf(req), async (tx) => {
         const r = await tx.execute<{ value: string }>(
-          sql`select rowlens_admit_account(${address},${`{${roles.join(',')}}`}::text[]) as value`,
+          sql`select rowlens_admit_account_bound(${body.data.userId ?? null}::uuid,${address},${`{${roles.join(',')}}`}::text[],${body.data.expectedRoles ? `{${body.data.expectedRoles.join(',')}}` : null}::text[]) as value`,
         );
         return r.rows[0]?.value;
       });

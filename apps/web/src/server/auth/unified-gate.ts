@@ -11,6 +11,7 @@ import { hmac, newCode, newToken, safeEqual, sha256 } from './crypto.ts';
 import type { DeliverLoginCode } from './mail.ts';
 import { notFound, tenantOf } from '../api/route-helpers.ts';
 import type { AuthGate } from './gate.ts';
+import { accountManagement, managementRoutes } from './account-management.ts';
 
 /** Account-only context cannot match an actual club; protected self-profile functions still work. */
 const NO_CLUB = '00000000-0000-0000-0000-000000000000';
@@ -163,7 +164,8 @@ export function createUnifiedGate(opts: {
       req,
       reply,
       (req.routeOptions.url ?? '').startsWith(withBasePath(opts.basePath, '/api/me/')),
-      req.routeOptions.url === withBasePath(opts.basePath, '/api/admin/users/:id/settings'),
+      req.routeOptions.url === withBasePath(opts.basePath, '/api/admin/users/:id/settings') ||
+        managementRoutes.some((path) => req.routeOptions.url === withBasePath(opts.basePath, path)),
     );
   const run = async <T>(req: FastifyRequest, query: Parameters<Database['execute']>[0]) =>
     withTenant(db, tenantOf(req), async (tx) => {
@@ -371,6 +373,18 @@ export function createUnifiedGate(opts: {
         sql`select rowlens_manage_club(${b.data.id},${b.data.slug},${b.data.name},${b.data.adminId}) as value`,
       );
       return id ? { id } : reply.code(404).send();
+    });
+    accountManagement(app, {
+      db,
+      guard,
+      pepper: auth.otpPepper,
+      reserved: [...new Set([...auth.adminEmails, ...auth.allowedEmails])],
+      ...(opts.deliver ? { deliver: opts.deliver } : {}),
+      ...(opts.generateCode ? { generateCode: opts.generateCode } : {}),
+      origin: opts.publicOrigin,
+      basePath: opts.basePath,
+      accountGuard,
+      hit,
     });
     done();
   };

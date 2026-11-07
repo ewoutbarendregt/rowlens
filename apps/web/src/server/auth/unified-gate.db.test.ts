@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import pg from 'pg';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
 import { sql } from 'drizzle-orm';
@@ -19,8 +20,9 @@ const call = (
   body?: unknown,
   cookies = '',
   club?: string,
+  server: FastifyInstance = app,
 ) =>
-  app.inject({
+  server.inject({
     method,
     url: BASE + path,
     headers: {
@@ -74,6 +76,585 @@ afterAll(async () => {
   await h.close();
 });
 describe('unified accounts and club admission', () => {
+  it('serializes admission behind an email change and binds later form submissions to the selected account ID', async () => {
+    const admin = await signIn(),
+      target = await signIn(),
+      local = await createTwoClubs();
+    await asOwner('insert into platform_admin(user_id) values($1)', [admin.id]);
+    const next = `race-${randomUUID()}@example.test`;
+    const request = await call(
+      'POST',
+      `/api/manage/users/${target.id}/email-change`,
+      { email: next, revision: 0, language: 'en' },
+      admin.cookies,
+    );
+    expect(request.statusCode, request.body).toBe(200);
+    const id = request.json<{ id: string }>().id,
+      code = mails.at(-1)?.code ?? '';
+    const blocker = new pg.Client({ connectionString: inject('ownerUrl') });
+    await blocker.connect();
+    const waiting = async (pattern: string) => {
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        const rows = await asOwner<{ waiting: boolean }>(
+          "select exists(select 1 from pg_stat_activity where wait_event_type='Lock' and query like $1) as waiting",
+          [`%${pattern}%`],
+        );
+        if (rows[0]?.waiting) return;
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      throw new Error('The intended database operation did not wait for the identity lock');
+    };
+    let confirmation: ReturnType<typeof call> | undefined,
+      admission: ReturnType<typeof call> | undefined;
+    try {
+      await blocker.query('BEGIN');
+      await blocker.query(
+        "select pg_advisory_xact_lock(hashtextextended('rowlens-identity:'||$1::text,0))",
+        [target.id],
+      );
+      confirmation = call(
+        'POST',
+        `/api/manage/email-changes/${id}/confirm`,
+        { code },
+        admin.cookies,
+      );
+      await waiting('rowlens_confirm_email_change');
+      admission = call(
+        'POST',
+        '/api/admin/access',
+        { email: target.email, roles: ['coach'] },
+        admin.cookies,
+        local.a,
+      );
+      await waiting('rowlens_admit_account_bound');
+    } finally {
+      await blocker.query('ROLLBACK');
+      await blocker.end();
+      await Promise.allSettled([confirmation, admission]);
+    }
+    expect((await confirmation).statusCode).toBe(204);
+    expect((await admission).statusCode).toBe(404);
+    expect(await asOwner('select email from club_access where club_id=$1', [local.a])).toEqual([]);
+    const recycled = randomUUID();
+    await asOwner(
+      "insert into app_user(id,email,display_name,verified_at) values($1,$2,'Recycled address',now())",
+      [recycled, target.email],
+    );
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/admin/access',
+          { email: target.email, userId: target.id, roles: ['coach'] },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/admin/access',
+          { email: next, userId: target.id, roles: ['coach'] },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(201);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/admin/access',
+          { email: next, userId: target.id, roles: ['rower'] },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(409);
+    expect(
+      await asOwner('select user_id,roles from membership where club_id=$1', [local.a]),
+    ).toEqual([{ user_id: target.id, roles: ['coach'] }]);
+  });
+  it('rejects operator-configured source and destination addresses before issuing a change proof', async () => {
+    const admin = await signIn(),
+      target = await signIn(),
+      ordinary = await signIn();
+    await asOwner('insert into platform_admin(user_id) values($1)', [admin.id]);
+    const reserved = 'reserved-destination@example.test';
+    const configured = await buildApp({
+      config: loadConfig({
+        UNIFIED_USERS: 'true',
+        OTP_PEPPER: 'a'.repeat(64),
+        PUBLIC_ORIGIN: ORIGIN,
+        AUTH_ADMIN_EMAILS: target.email,
+        AUTH_ALLOWED_EMAILS: reserved,
+      }),
+      clientDir: null,
+      database: h.db,
+      logger: false,
+      deliverLoginCode: () => Promise.resolve(),
+    });
+    try {
+      for (const [id, email] of [
+        [target.id, `unreserved-${randomUUID()}@example.test`],
+        [ordinary.id, reserved],
+      ]) {
+        const r = await call(
+          'POST',
+          `/api/manage/users/${id ?? ''}/email-change`,
+          { email, revision: 0, language: 'nl' },
+          admin.cookies,
+          undefined,
+          configured,
+        );
+        expect(r.statusCode).toBe(409);
+        expect(r.json<{ error: string }>().error).toBe('server_managed');
+      }
+      expect(
+        await asOwner('select id from account_email_change where user_id in ($1,$2)', [
+          target.id,
+          ordinary.id,
+        ]),
+      ).toEqual([]);
+      const unverified = randomUUID();
+      await asOwner("insert into app_user(id,email,display_name) values($1,$2,'Unverified')", [
+        unverified,
+        `unverified-${unverified}@example.test`,
+      ]);
+      expect(
+        (
+          await call(
+            'POST',
+            `/api/manage/users/${unverified}/email-change`,
+            { email: `new-${randomUUID()}@example.test`, revision: 0, language: 'nl' },
+            admin.cookies,
+          )
+        ).statusCode,
+      ).toBe(404);
+    } finally {
+      await configured.close();
+    }
+  });
+  it('requires the existing account owner to confirm a club-admin email change, preventing cross-club account takeover', async () => {
+    const local = await createTwoClubs(),
+      admin = await signIn(),
+      target = await signIn();
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin']),($1,$3,ARRAY['rower']),($4,$3,ARRAY['admin'])",
+      [local.a, admin.id, target.id, local.b],
+    );
+    const next = `owner-confirmed-${randomUUID()}@example.test`;
+    const requested = await call(
+      'POST',
+      `/api/manage/users/${target.id}/email-change`,
+      { email: next, revision: 0, language: 'nl' },
+      admin.cookies,
+      local.a,
+    );
+    expect(requested.statusCode, requested.body).toBe(200);
+    const id = requested.json<{ id: string }>().id,
+      code = mails.at(-1)?.code ?? '';
+    expect(mails.at(-1)?.loginUrl).toContain(`/email-change/${id}`);
+    const nullProof = await withTenant(
+      h.db,
+      { clubId: local.a, userId: target.id, roles: ['rower'] },
+      (tx) =>
+        tx.execute<{ value: string }>(
+          sql`select rowlens_confirm_email_change(${id},NULL,ARRAY[]::text[]) as value`,
+        ),
+    );
+    expect(nullProof.rows[0]?.value).toBe('invalid');
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/email-changes/${id}/confirm`,
+          { code },
+          admin.cookies,
+          local.a,
+        )
+      ).json<{ error: string }>().error,
+    ).toBe('owner_confirmation_required');
+    expect(
+      (await call('GET', `/api/account/email-changes/${id}`, undefined, admin.cookies, local.a))
+        .statusCode,
+    ).toBe(404);
+    const view = await call('GET', `/api/account/email-changes/${id}`, undefined, target.cookies);
+    expect(view.json<{ email: string }>().email).toBe(next);
+    expect(view.body).not.toContain('code_hash');
+    expect(
+      (await call('POST', `/api/account/email-changes/${id}/confirm`, { code }, target.cookies))
+        .statusCode,
+    ).toBe(204);
+    expect(
+      await asOwner('select roles from membership where club_id=$1 and user_id=$2', [
+        local.b,
+        target.id,
+      ]),
+    ).toEqual([{ roles: ['admin'] }]);
+    expect(
+      (await call('GET', '/api/auth/status', undefined, target.cookies)).json<{ access: boolean }>()
+        .access,
+    ).toBe(false);
+  });
+  it('serializes concurrent global revocations and never lets a withdrawn actor revoke the survivor', async () => {
+    const a = await signIn(),
+      b = await signIn();
+    await asOwner('insert into platform_admin(user_id) values($1),($2)', [a.id, b.id]);
+    const attempts = await Promise.all([
+      call(
+        'POST',
+        `/api/manage/users/${b.id}/authority`,
+        { enabled: false, expected: true },
+        a.cookies,
+      ),
+      call(
+        'POST',
+        `/api/manage/users/${a.id}/authority`,
+        { enabled: false, expected: true },
+        b.cookies,
+      ),
+    ]);
+    expect(attempts.map((r) => r.statusCode).sort()).toEqual([204, 404]);
+    expect(
+      await asOwner('select count(*)::int n from platform_admin where user_id in ($1,$2)', [
+        a.id,
+        b.id,
+      ]),
+    ).toEqual([{ n: 1 }]);
+  });
+  it('scopes the complete directory, filters/counts, requests and target details before returning them', async () => {
+    const local = await createTwoClubs(),
+      admin = await signIn(),
+      member = await signIn(),
+      outsider = await signIn();
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin']),($1,$3,ARRAY['rower']),($4,$3,ARRAY['coach']),($4,$5,ARRAY['rower'])",
+      [local.a, admin.id, member.id, local.b, outsider.id],
+    );
+    await asOwner('insert into membership_application(club_id,user_id) values($1,$3),($2,$4)', [
+      local.a,
+      local.b,
+      outsider.id,
+      admin.id,
+    ]);
+    const q = await call(
+      'POST',
+      '/api/manage/users/query',
+      { sort: 'email', pageSize: 1 },
+      admin.cookies,
+      local.a,
+    );
+    expect(q.statusCode).toBe(200);
+    expect(q.json<{ total: number }>().total).toBe(2);
+    const details = await call(
+      'GET',
+      `/api/manage/users/${member.id}`,
+      undefined,
+      admin.cookies,
+      local.a,
+    );
+    expect(details.statusCode).toBe(200);
+    expect(details.json<{ memberships: unknown[] }>().memberships).toHaveLength(1);
+    expect(details.body).not.toContain(local.b);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/users/${member.id}/authority`,
+          { enabled: true, expected: false },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (await call('GET', `/api/manage/users/${outsider.id}`, undefined, admin.cookies, local.a))
+        .statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/manage/users/query',
+          { filters: [{ field: 'email', op: 'eq', value: outsider.email }] },
+          admin.cookies,
+          local.a,
+        )
+      ).json<{ total: number }>().total,
+    ).toBe(0);
+    expect(
+      (
+        await call(
+          'POST',
+          '/api/manage/users/query',
+          { sort: 'email;drop table app_user' },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(400);
+    const requests = (
+      await call('GET', '/api/manage/applications', undefined, admin.cookies, local.a)
+    ).json<{ clubId: string }[]>();
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.clubId).toBe(local.a);
+    expect(
+      (await call('POST', '/api/manage/users/query', {}, member.cookies, local.a)).statusCode,
+    ).toBe(404);
+    await asOwner('insert into platform_admin(user_id) values($1)', [admin.id]);
+    const global = await call(
+      'POST',
+      '/api/manage/users/query',
+      { filters: [{ field: 'id', op: 'eq', value: member.id }] },
+      admin.cookies,
+    );
+    expect(global.json<{ rows: { memberships: unknown[] }[] }>().rows[0]?.memberships).toHaveLength(
+      2,
+    );
+    expect(
+      (await call('GET', '/api/manage/applications', undefined, admin.cookies)).body,
+    ).toContain(local.b);
+  });
+  it('keeps email changes pending until proof, synchronizes grants across clubs and revokes old sessions', async () => {
+    const admin = await signIn(),
+      target = await signIn(),
+      local = await createTwoClubs();
+    await asOwner('insert into platform_admin(user_id) values($1)', [admin.id]);
+    for (const cid of [local.a, local.b]) {
+      expect(
+        (
+          await call(
+            'POST',
+            '/api/admin/access',
+            { email: target.email, roles: ['rower', 'coach'] },
+            admin.cookies,
+            cid,
+          )
+        ).statusCode,
+      ).toBe(201);
+    }
+    const next = `changed-${randomUUID()}@example.test`;
+    const request = await call(
+      'POST',
+      `/api/manage/users/${target.id}/email-change`,
+      { email: next, revision: 0, language: 'nl' },
+      admin.cookies,
+    );
+    expect(request.statusCode, request.body).toBe(200);
+    const id = request.json<{ id: string }>().id,
+      code = mails.at(-1)?.code ?? '';
+    expect(mails.at(-1)?.purpose).toBe('email-change');
+    expect(await asOwner('select email from app_user where id=$1', [target.id])).toEqual([
+      { email: target.email },
+    ]);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/email-changes/${id}/confirm`,
+          { code: 'wrong' },
+          admin.cookies,
+        )
+      ).statusCode,
+    ).toBe(400);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/email-changes/${id}/confirm`,
+          { code },
+          target.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(404);
+    const confirmation = await call(
+      'POST',
+      `/api/manage/email-changes/${id}/confirm`,
+      { code },
+      admin.cookies,
+    );
+    expect(confirmation.statusCode, confirmation.body).toBe(204);
+    expect(
+      (await call('POST', `/api/manage/email-changes/${id}/confirm`, { code }, admin.cookies))
+        .statusCode,
+    ).toBe(409);
+    expect(await asOwner('select email from app_user where id=$1', [target.id])).toEqual([
+      { email: next },
+    ]);
+    expect(
+      await asOwner(
+        'select email,roles from club_access where club_id in ($1,$2) order by club_id',
+        [local.a, local.b],
+      ),
+    ).toEqual([
+      { email: next, roles: ['rower', 'coach'] },
+      { email: next, roles: ['rower', 'coach'] },
+    ]);
+    expect(
+      (await call('GET', '/api/auth/status', undefined, target.cookies)).json<{ access: boolean }>()
+        .access,
+    ).toBe(false);
+    expect(
+      await asOwner('select count(*)::int n from membership where user_id=$1', [target.id]),
+    ).toEqual([{ n: 2 }]);
+    await expect(h.db.execute(sql`select * from account_email_change`)).rejects.toThrow();
+  });
+  it('refuses duplicate, expired, exhausted and stale email proofs and rechecks club authority', async () => {
+    const local = await createTwoClubs(),
+      admin = await signIn(),
+      target = await signIn(),
+      other = await signIn();
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin']),($1,$3,ARRAY['rower']),($4,$3,ARRAY['coach'])",
+      [local.a, admin.id, target.id, local.b],
+    );
+    const path = `/api/manage/users/${target.id}/email-change`;
+    expect(
+      (
+        await call(
+          'POST',
+          path,
+          { email: other.email, revision: 0, language: 'en' },
+          admin.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(409);
+    const request = async () => {
+      const r = await call(
+        'POST',
+        path,
+        { email: `new-${randomUUID()}@example.test`, revision: 0, language: 'en' },
+        admin.cookies,
+        local.a,
+      );
+      expect(r.statusCode, r.body).toBe(200);
+      return { id: r.json<{ id: string }>().id, code: mails.at(-1)?.code ?? '' };
+    };
+    let proof = await request();
+    const wrong = proof.code === '000000' ? '111111' : '000000';
+    for (let i = 0; i < 5; i++)
+      expect(
+        (
+          await call(
+            'POST',
+            `/api/account/email-changes/${proof.id}/confirm`,
+            { code: wrong },
+            target.cookies,
+            local.a,
+          )
+        ).statusCode,
+      ).toBe(409);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/email-changes/${proof.id}/confirm`,
+          { code: proof.code },
+          target.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(409);
+    proof = await request();
+    await asOwner(
+      "update account_email_change set expires_at=now()-interval '1 second' where id=$1",
+      [proof.id],
+    );
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/email-changes/${proof.id}/confirm`,
+          { code: proof.code },
+          target.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(409);
+    proof = await request();
+    await asOwner('update app_user set settings_revision=1 where id=$1', [target.id]);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/email-changes/${proof.id}/confirm`,
+          { code: proof.code },
+          target.cookies,
+          local.a,
+        )
+      ).json<{ error: string }>().error,
+    ).toBe('conflict');
+    await asOwner('delete from membership where club_id=$1 and user_id=$2', [local.a, admin.id]);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/email-changes/${proof.id}/confirm`,
+          { code: proof.code },
+          target.cookies,
+          local.a,
+        )
+      ).statusCode,
+    ).toBe(404);
+  });
+  it('shows and changes global authority only for persisted platform actors, with self and stale-role guards', async () => {
+    const admin = await signIn(),
+      target = await signIn();
+    await asOwner('insert into platform_admin(user_id) values($1)', [admin.id]);
+    const path = `/api/manage/users/${target.id}/authority`;
+    const nullRole = await withTenant(
+      h.db,
+      { clubId: clubs.a, userId: admin.id, platformAdmin: true },
+      (tx) =>
+        tx.execute<{ value: string }>(
+          sql`select rowlens_set_platform_authority(${admin.id},NULL,NULL) as value`,
+        ),
+    );
+    expect(nullRole.rows[0]?.value).toBe('invalid');
+    expect(
+      (await call('POST', path, { enabled: true, expected: false }, target.cookies)).statusCode,
+    ).toBe(404);
+    expect(
+      (await call('POST', path, { enabled: true, expected: false }, admin.cookies)).statusCode,
+    ).toBe(204);
+    expect(
+      (await call('GET', `/api/manage/users/${target.id}`, undefined, admin.cookies)).json<{
+        platformAdmin: boolean;
+      }>().platformAdmin,
+    ).toBe(true);
+    expect(
+      (await call('POST', path, { enabled: false, expected: false }, admin.cookies)).statusCode,
+    ).toBe(409);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/users/${admin.id}/authority`,
+          { enabled: false, expected: true },
+          admin.cookies,
+        )
+      ).json<{ error: string }>().error,
+    ).toBe('self');
+    expect(
+      (await call('POST', path, { enabled: false, expected: true }, admin.cookies)).statusCode,
+    ).toBe(204);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/manage/users/${admin.id}/authority`,
+          { enabled: false, expected: true },
+          target.cookies,
+        )
+      ).statusCode,
+    ).toBe(404);
+  });
   it('lets a persisted platform administrator manage an account with zero clubs without a club context', async () => {
     const operator = await signIn(),
       target = await signIn();

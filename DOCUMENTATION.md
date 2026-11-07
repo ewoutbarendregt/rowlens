@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Implement the scoped user table and complete verified account editor
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/shared/user-directory{,.test}.ts, apps/web/src/client/{App.tsx,api.ts,env.ts,styles.css,admin/AccessPage.tsx,admin/UsersPage.tsx,admin/UserEditor.tsx,admin/EmailChangePage.tsx,admin/directory-strings.ts,admin/strings.ts}, apps/web/src/server/{api/access.ts,auth/account-management.ts,auth/unified-gate.ts,auth/unified-gate.db.test.ts,auth/mail.ts,auth/mail.test.ts,db/schema.ts,db/grant-platform-admin-cli.ts,db/migrations/0024_account_management.sql,db/migrations/meta}, docs/adr/{0023-user-directory-and-identity-management.md,0019-user-settings-and-role-sets.md,README.md}, docs/plans/user-directory-and-account-editor.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented a 17-field filterable/sortable paged user table, configurable columns and complete account/profile/preferences/club-role/global-role/email editor. Approved migration 0024 adds protected expiring identity proofs, scoped projections and serialized global authority; club-initiated email changes require the existing account owner to confirm, preventing other-club/global account takeover. Preserved history/grants, reserved identities, conflict checks, actual actor audit and feature-off compatibility. Account-ID-bound role grants and coordinated identity/mailbox/admission locks prevent a concurrently changed or recycled email from receiving another account's intended grant. Checks: 593 web/DB, latest 29 focused identity cases, 16 laptop/iPhone WebKit, 49 legacy local plus final 16 auth/permission compatibility cases, 39 proxy, 50 worker, 77 deploy-script and real Docker migration/rollback rehearsal pass; diagnostic failures are retained in TEST.md. Local stack has 25 migrations; no real account mutation, production action, merge or deployment.
+**Prompts used**: "Ja, voer het volledige plan uit" (approval of docs/plans/user-directory-and-account-editor.md). Original request: "de tab gebruikers geeft alle gebruikers in tabel/list view, filterbaar en sorteerbaar op alle velden. het editen van een gebruiker toon een form waar alle attributen van die gebruiker te beheren zijn(naam, email, rol, overige voorkeuren). de clubbeheerder ziet alleen gebruikers en aanvragen voor zijn club, de rowlens beheerder ziet alle gebruikers".
+
 ## 2026-11-07 — Plan the sortable directory and full identity/role editor
 
 **Session**: codex/feat/unified-club-users

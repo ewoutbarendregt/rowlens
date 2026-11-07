@@ -86,3 +86,12 @@ content access, including private feedback. New auth does not silently elevate e
 admins. Historical roster IDs are compatibility references during explicit account mapping; the
 standalone Rowers register/UI is retired in this flow. The paired feature flags are off by default
 in production builds; this addendum does not authorize deployment.
+
+## Full identity editor follow-up (2026-11-07)
+
+ADR-0023 supersedes read-only login email and operator-only routine global authority management.
+Email changes use expiring new-mailbox proofs, existing-owner confirmation for club initiators,
+revision/permission rechecks and session revocation. Server-configured identities remain protected.
+Only persisted RowLens administrators grant/revoke global roles, with serialized self/last-admin
+checks and explicit audit. Profile preferences and each club's additive roles retain their existing
+separate permission/conflict boundaries.

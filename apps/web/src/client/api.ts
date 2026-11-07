@@ -6,12 +6,12 @@ const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** Same-origin JSON call under the base path; the browser adds the Origin the server checks. */
 export async function api(
   path: string,
-  init: { method?: string; body?: unknown } = {},
+  init: { method?: string; body?: unknown; clubId?: string | null } = {},
 ): Promise<Response> {
-  const club = activeClub();
+  const club = init.clubId === undefined ? activeClub() : init.clubId;
   const method = init.method ?? 'GET';
   const csrf = UNSAFE.has(method) ? csrfToken() : null;
-  return fetch(appUrl(path), {
+  return fetch(appUrl(path, club), {
     method,
     credentials: 'same-origin',
     headers: {

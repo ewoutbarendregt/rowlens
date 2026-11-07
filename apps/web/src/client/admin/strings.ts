@@ -16,7 +16,7 @@ const en = {
   unifiedIntro:
     'Admit an existing verified account to this club and assign its club roles. Review membership requests under Requests.',
   platformRoleHint:
-    'RowLens administrators manage clubs and have full access to all clubs and their content, including private feedback. This global role is granted by the platform operator.',
+    'RowLens administrators manage clubs and have full access to all clubs and their content, including private feedback. Only RowLens administrators can grant this global role.',
   admittedClub: (email: string) => `${email} now has access to this club.`,
   confirmRemoveClub: (email: string) =>
     `Remove club access for ${email}? Their account and other club memberships remain available.`,
@@ -103,7 +103,7 @@ const nl: typeof en = {
   unifiedIntro:
     'Laat een bestaand geverifieerd account toe tot deze club en kies de clubrollen. Beoordeel nieuwe aanmeldingen onder Aanmeldingen.',
   platformRoleHint:
-    'RowLens-beheerders beheren clubs en hebben volledige toegang tot alle clubs en hun inhoud, inclusief afgeschermde feedback. De platformbeheerder kent deze globale rol toe.',
+    'RowLens-beheerders beheren clubs en hebben volledige toegang tot alle clubs en hun inhoud, inclusief afgeschermde feedback. Alleen RowLens-beheerders kunnen deze globale rol toekennen.',
   admittedClub: (email: string) => `${email} heeft nu toegang tot deze club.`,
   confirmRemoveClub: (email: string) =>
     `Clubtoegang van ${email} intrekken? Het account en lidmaatschappen bij andere clubs blijven beschikbaar.`,

@@ -15,7 +15,32 @@ and Roles; Clubs has lifecycle management without an embedded user settings edit
 The exact `/api/admin/users/:id/settings` route uses account context for persisted platform actors,
 with protected read/save UUID-only auditing in its repository transaction. Ordinary club admins
 still require a live selected-club context and target membership. No table or migration was needed;
-accounts already support zero or more memberships. Global role assignment remains operator-only.
+accounts already support zero or more memberships. Global role assignment is now a protected RowLens-admin operation (ADR-0023); operator bootstrap remains the initial/recovery path.
+
+## Full directory/editor and identity proof (ADR-0023)
+
+`UsersPage` uses an allowlisted 17-field shared schema for filters, sort and bounded paging. The SQL
+projection scopes members, memberships, activity and requests first; the server then filters/counts/
+sorts/pages and derives club choices. Client generation guards and account/club/authority keys
+prevent stale data or drafts crossing contexts. The table scrolls internally with sticky actions;
+column selection and sort controls stay usable at phone size. `UserEditor` groups profile/preferences,
+verified email changes, global authority and explicitly scoped club role/admission operations.
+
+Migration 0024 adds protected global identity-change state (`scope_club_id` is authorization metadata,
+not tenant ownership), hashed expiring attempt-limited proofs, owner-only proof views/confirmation,
+authorized projections and serialized global-role changes. Null SQL arguments fail closed. Email
+confirmation rechecks the initiator, identity revision and address reservations, locks affected clubs
+in order, preserves IDs/roles/history, synchronizes grants and revokes old sessions/codes. Admission
+forms bind the selected account ID; OTP verification, legacy adoption, provisioning, applications and
+initial-admin writers coordinate identity/mailbox/admission locks to prevent stale email grants. Club admins
+cannot confirm another account's change: its existing authenticated owner must use the mailed link.
+Global RowLens identity administrators can confirm through the editor. Configured login addresses
+cannot be renamed in the app; no server/local environment file was edited. Global directory/identity/
+authority audits contain actor/target UUIDs and no email or code values.
+
+No dependency was added. Paired unified-user flags retain feature-off compatibility. The local stack
+has 25 migrations; unreleased function definitions were refreshed locally as verification hardened
+them, without changing account data. Fresh database tests/rehearsal apply the migration directly.
 
 ## Club administration and archival (ADR-0022)
 

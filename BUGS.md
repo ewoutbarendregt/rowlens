@@ -2,6 +2,34 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-050] Concurrent/recycled email could redirect a club admission — high
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (unreleased identity concurrency review)
+**Description**: Email-keyed provisioning/admission could read an address before its verified change and write a grant afterward; a later editor submission could target a different account that reused the old address.
+**Fix**: Bind editor grants to immutable account ID and expected membership state. Coordinate confirmation, OTP/provisioning/adoption, approval and initial-admin writers through identity/mailbox/admission locks and fresh email checks. A real queued-lock regression rejects stale admission and a recycled-address form, while the updated address grants only the intended account.
+
+### [BUG-047] Club-admin email confirmation could transfer other-club authority — high
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (during unreleased implementation review)
+**Description**: New-mailbox proof alone would allow a club administrator to change a member's login to a mailbox they control, inheriting that member's other-club/global authority.
+**Fix**: Club initiators cannot confirm for another user. The target must authenticate their existing account and enter the new-mailbox code on the owner confirmation page; requester authority is rechecked. SQL/API and laptop/iPhone browser regressions preserve other-club membership/roles and reject the initiator's confirmation.
+
+### [BUG-048] Empty reserved-address arrays produced invalid email-proof SQL — medium
+**Location**: apps/web/src/server/auth/account-management.ts
+**Status**: fixed
+**Found**: 2026-11-07 (new integration tests)
+**Description**: Direct Drizzle interpolation of an empty address array generated a SQL list rather than a typed text-array value; request tests returned 500.
+**Fix**: Build the bound array from JSON text through jsonb_array_elements_text. Tests cover empty and configured address lists, protected sources/destinations and duplicate addresses.
+
+### [BUG-049] Null SQL proof/authority inputs needed explicit refusal — medium
+**Location**: apps/web/src/server/db/migrations/0024_account_management.sql
+**Status**: fixed
+**Found**: 2026-11-07 (unreleased permission-layer review)
+**Description**: HTTP validation rejects null, but SQL three-valued comparisons alone would not reliably refuse a null hash or null role state in a direct protected-function call.
+**Fix**: Explicit null guards for hashes, expected/enabled authority and identity revision, plus a verified-target requirement. Direct app-role SQL regressions reject null proof/authority inputs and API tests reject unverified targets.
+
 ### [BUG-046] Global account settings incorrectly required a selected club — medium
 **Location**: apps/web/src/server/auth/unified-gate.ts:168
 **Status**: fixed

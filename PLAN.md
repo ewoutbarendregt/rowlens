@@ -30,13 +30,13 @@ memberships. Club administrators see only members of the selected club. Profile/
 global; club admission/roles remain scoped to one selected club. Existing storage supports zero or
 more memberships, so this follow-up requires no migration. Requests stay under Club administration.
 
-## Full user directory/editor — proposal 2026-11-07
+## Full user directory/editor — approved and implemented locally 2026-11-07
 
 Ewout requests a table/list with field-level filtering/sorting and a complete account editor.
 `docs/plans/user-directory-and-account-editor.md` makes the UI, tenant scope, verified email-change
-flow and global-role management concrete. Existing immutable email/operator-only authority rules
-require a new protected-operation migration; architectural approval is pending before implementing
-that expansion. Existing local functionality and 24 migrations remain unchanged.
+flow and global-role management concrete. Ewout approved with "Ja, voer het volledige plan uit". Migration 0024 implements protected email
+proofs, owner confirmation for club-initiated changes, global role controls and the scoped directory.
+The local stack has 25 migrations. No production action is authorized; see ADR-0023 and TEST.md.
 
 ## What we're building
 

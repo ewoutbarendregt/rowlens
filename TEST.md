@@ -2,6 +2,53 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Full account table/editor and verified identity changes (2026-11-07)
+
+- Full web/DB: **589/589**, then **591/591**, and final expanded suites **592/592** and **593/593** across 57 files.
+  Latest focused unified-account run: **29/29**, including configured/unverified address refusal,
+  direct null-proof/null-authority SQL refusal and owner confirmation. Directory unit cases cover
+  every one of **17 fields** for exact filtering and both sort directions, stable tie-breaking/pages,
+  unknown preferences and numeric/date ranges; mail/field focused run **45/45**.
+- New API cases cover tenant-scoped rows/details/counts/club choices/requests, zero/multiple clubs,
+  invalid query fields, authority assignment/revocation and concurrent withdrawal, pending email,
+  wrong/expired/exhausted/replayed/stale proofs, actor revocation, configured source/destination
+  addresses, protected proof storage, cross-club grant/role preservation and session revocation.
+  A club initiator cannot confirm for another account: its existing owner must authenticate and
+  confirm the new-mailbox code. The browser exercises this with a target holding another club's
+  administrator role. No real account, mailbox or production database was used.
+- Final admission race holds an actual identity advisory lock, observes confirmation and admission
+  queued in PostgreSQL, releases it and requires the stale admission to fail. Reusing the old email
+  for a different verified account cannot redirect a form's account-ID-bound role grant. OTP/session
+  adoption, account provisioning, applications and initial-club-admin writers follow the same
+  identity/mailbox/club order; existing expected-role conflicts and immutable grants remain.
+- New browser matrix: **16/16** on Chromium **1000×540** and iPhone 13 **WebKit**, repeated after
+  directory widening/sticky-column layout and owner-proof hardening. Includes table sort/filter,
+  full preference/name/email/global-role editing, verified email/session transition, cross-club
+  requests without switching and the dedicated owner confirmation page. Screenshots inspected;
+  document width stays within viewport and measured controls/labels >=44px. Physical iPhone untested.
+- Initial extended matrix was **10 passed/4 failed**: the harness expected a controlled confirmation
+  checkbox to change before confirming, parsed an empty 201 as JSON, and used mouse compatibility
+  clicks after horizontal scrolling in phone WebKit. Corrected fixture expectations, empty-body
+  parsing and native touch. Next focused run **3 passed/1 failed** exposed a premature unscoped-row
+  assertion while filtering; wait for the matching query response/aria-busy completion. Then full
+  **14/14**, and **16/16** after adding owner confirmation. No retries/sleeps weakened product checks.
+- Initial email integrations returned 500 for reserved empty arrays (BUG-048); bound text-array
+  construction fixes it. Early lint found null narrowing, numeric template conversions and an
+  awaited reply issue; corrected. Final lint/typecheck/format/build pass; schema generation reports
+  no changes. Server parameters and SQL null guards both refuse invalid identity/authority inputs.
+- Legacy local first run **46 passed/3 failed/63 skipped** while proxy E2E shared its output path:
+  trace ENOENT collisions plus the known intermittent inline lineup selection symptom. Isolated
+  lineup/settings repeat **6/6** passed. A later full run was stopped after a mismatched feature-on
+  build was scheduled concurrently (4 passed/1 lineup fail/19 skipped/90 not run); it is invalid
+  release evidence. Correct isolated feature-off/full run: **49 passed, 65 skipped**. Final auth/admin/profile/preferences/
+  permission compatibility after identity-lock hardening: **16/16**.
+- Full proxy regression with real worker: **39 passed, 17 skipped**. Worker **50/50**, Ruff lint/
+  format and mypy pass. Deployment-script **77/77**; real Docker first/upgrade/broken-release rollback/
+  explicit rollback rehearsal passed, including a repeat with the owner-confirmation functions.
+- Local migration 0024 applied: **25 total**. Its unreleased function bodies were refreshed locally
+  as guards hardened; fresh Testcontainers migrations test actual SQL. Readiness healthy; no
+  production mutation/deployment. Local edge is stopped with its data retained after verification.
+
 ## Users directory and account-only administration (2026-11-07)
 
 - Regression first reproduces a platform administrator's settings request without club context

@@ -3,16 +3,36 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Pending proposal — complete user directory and identity editor
+## Current task — full user table and account/identity editor
 
-- Ewout now requests table/list users, per-field filtering/sorting, full name/email/role/preference
-  editing and own-club users/requests for club admins versus all users for RowLens admins.
-- Concrete proposal: `docs/plans/user-directory-and-account-editor.md`. Email is currently immutable
-  and global-role assignment operator-only. Proposed migration 0024 adds protected pending verified
-  email changes, global-role safeguards and scoped directory/detail fields; no new dependency.
-- Await architecture approval before implementing that expansion (AGENTS.md). No application,
-  database, account or production changes were made in the planning turn. Existing implementation
-  below remains locally available; no merge/deploy authorization.
+- Ewout approved the full plan with "Ja, voer het volledige plan uit". Implemented on
+  `codex/feat/unified-club-users`, in PR #157; ADR-0023 records the final permission/identity model.
+- Users is now a 17-field server-filtered/sorted/paged table, with column selection and an editor
+  covering names/preferences, verified email, selected-club membership/roles and global authority.
+  RowLens admins see every verified account, including zero clubs, and all pending requests. Club
+  admins receive only current-club members, metadata/memberships and requests; scope precedes counts,
+  choices and filters. Account/club/authority keys and late-response guards isolate UI data/drafts.
+- Migration 0024: protected global pending proofs, explicit null/type/permission/revision checks,
+  UUID-only audits, ordered admission locks and email-keyed grant sync, old session/code revocation.
+  A club admin cannot confirm another account's change: its existing authenticated owner must use
+  the mailed new-mailbox code/link, preventing other-club/global takeover. Configured source and
+  destination addresses cannot be changed in the app. Global role changes require a persisted
+  RowLens admin, expected state, inline confirmation and serialized self/last-admin protection.
+  The hidden operator bootstrap remains first-admin/recovery and uses the same authority lock.
+  Account-ID-bound admissions and identity/mailbox locks also coordinate OTP verification, legacy
+  adoption, allowlist provisioning, approval and initial-admin writers. A real lock-wait regression
+  proves a changed/recycled email cannot redirect a role grant.
+- Checks: **593** web/DB, latest **29** focused identity/permission cases, **16** laptop/iPhone WebKit,
+  legacy local **49 pass/65 skipped**, final auth/permission compatibility **16/16**, proxy
+  **39 pass/17 skipped**, worker **50** + Ruff/mypy,
+  **77** deploy checks and real Docker migration/rollback rehearsal pass. Format/lint/typecheck/build
+  and generated-schema consistency pass. TEST.md records all diagnostic/mixed-build/trace failures
+  and isolated successful reruns; do not describe them as product fixes. Physical iPhone untested.
+- Local dev :5174/API :3100 is healthy, **25 migrations**. Unreleased function definitions were
+  refreshed as verification hardened them; fresh DB tests/rehearsal validate full SQL application.
+  Edge stopped with data retained. Feature-on build restored after legacy checks (local Vite dev
+  remains feature-on independently). No real identity/mailbox or production mutation was performed.
+- Next: Ewout reviews `/users` locally. Latest CI is on PR #157; no merge/deploy is authorized.
 
 ## Current follow-up — Users page and zero-or-more club memberships
 

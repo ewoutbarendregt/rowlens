@@ -28,4 +28,6 @@
 
 | [0022](0022-club-archiving.md) | Reversible club archiving and separate administration screens | accepted |
 
+| [0023](0023-user-directory-and-identity-management.md) | Scoped user table, verified identity changes and global role management | accepted |
+
 New ADR: copy `0000-template.md` to the next number.
