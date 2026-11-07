@@ -14,3 +14,15 @@ it receives data, and linked from the privacy statement.
 Note author names (typed by users during the pilot) are stored with the notes in the RowLens database.
 Videos are stored on the same Hetzner server (a directory on its local disk; the renditions people watch are stripped of location and device metadata) and are **not backed up** during the
 pilot (ADR-0006). The privacy statement must say so.
+
+
+## Account and club access (ADR-0021)
+
+The unified-user feature stores verified account profiles, membership applications and club role
+sets on our own server. Club administrators see/decide applications for their own club. Accounts
+may belong to multiple clubs with different roles; account preferences remain global. A global
+RowLens administrator has full access to all clubs and their content, including private feedback,
+for platform administration. Administrative actions retain the real actor and club in protected
+audit records; a club administrator cannot confer platform authority. No new external processor is
+introduced. Historical name-only sporting references remain preserved until explicitly linked to
+real verified accounts; no fabricated accounts or automatic name-based matching is used.

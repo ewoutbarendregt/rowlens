@@ -229,7 +229,7 @@ describe('email OTP authentication', () => {
     const cookies = await signIn();
     const club = await app.inject({ url: `${BASE}/api/club`, headers: { cookie: cookies } });
     expect(club.statusCode).toBe(200);
-    expect(club.json()).toEqual({ slug: 'pilot', name: 'Pilot' });
+    expect(club.json()).toEqual({ slug: 'pilot', name: 'WVIJburg' });
 
     const csrf = cookieValue(cookies, 'rowlens_csrf');
     const logout = await post('/api/auth/logout', undefined, {

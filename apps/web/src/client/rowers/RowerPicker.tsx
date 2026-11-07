@@ -1,3 +1,5 @@
+import { useAuth } from '../auth/useAuth.ts';
+import { clubStrings } from '../clubs/strings.ts';
 import { type KeyboardEvent, useId, useState } from 'react';
 import { nameMatches, normalizeName } from '../../shared/names.ts';
 import { rowerStrings } from './strings.ts';
@@ -39,6 +41,8 @@ export function RowerPicker({
   unavailable,
   suggested,
 }: RowerPickerProps) {
+  const { state: auth } = useAuth();
+  allowCreate = allowCreate && !(auth.kind === 'open' && auth.unified);
   const t = rowerStrings();
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -129,7 +133,9 @@ export function RowerPicker({
           }
           autoComplete="off"
           enterKeyHint="done"
-          placeholder={t.typeToAdd}
+          placeholder={
+            auth.kind === 'open' && auth.unified ? clubStrings().chooseUser : t.typeToAdd
+          }
           value={open ? query : (value?.displayName ?? '')}
           disabled={busy}
           onFocus={() => {

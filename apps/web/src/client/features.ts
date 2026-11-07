@@ -15,3 +15,7 @@ export const PLAYER_DEMO =
  * worker keeps finding the lines either way.
  */
 export const AUTO_BOAT_LINE = import.meta.env.VITE_FEATURE_AUTO_BOAT_LINE !== 'false';
+
+/** Account applications and multi-club UI; pair with server UNIFIED_USERS=true. */
+export const UNIFIED_USERS =
+  import.meta.env.DEV || import.meta.env.VITE_FEATURE_UNIFIED_USERS === 'true';

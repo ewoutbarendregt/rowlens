@@ -75,3 +75,14 @@ trainings are fully read-only for rowers, including old own feedback, sharing an
 Private feedback visibility, club isolation, additive roles, standalone roster restrictions and
 admin-only account/creator administration remain. Migration 0019 separates resource read/write
 policies and media operations authorize before file effects.
+
+
+## Addendum 2026-11-07: unified accounts and platform administration
+
+ADR-0021 supersedes one-club signup/identity constraints in the feature-enabled flow: accounts may
+apply to several clubs, with admission controlled by club administrators. Rower/coach/club-admin
+permissions remain club scoped; a separately persisted RowLens-admin grant has full selected-club
+content access, including private feedback. New auth does not silently elevate existing server
+admins. Historical roster IDs are compatibility references during explicit account mapping; the
+standalone Rowers register/UI is retired in this flow. The paired feature flags are off by default
+in production builds; this addendum does not authorize deployment.

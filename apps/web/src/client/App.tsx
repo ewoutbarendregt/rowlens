@@ -1,7 +1,8 @@
+import { ClubsPage } from './clubs/ClubsPage.tsx';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
 import { AccessPage } from './admin/AccessPage.tsx';
-import { PLAYER_DEMO } from './features.ts';
+import { PLAYER_DEMO, UNIFIED_USERS } from './features.ts';
 import { useLanguage } from './i18n/language.ts';
 import { HomePage } from './pages/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
@@ -23,6 +24,16 @@ export function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
+      {UNIFIED_USERS && (
+        <Route
+          path="clubs"
+          element={
+            <RequireAuth accountOnly>
+              <ClubsPage />
+            </RequireAuth>
+          }
+        />
+      )}
       <Route
         path="sessions"
         element={

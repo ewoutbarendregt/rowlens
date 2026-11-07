@@ -4,5 +4,9 @@
 **/.venv
 **/playwright-report
 **/test-results
+**/test-results-unified
+**/.env
+**/.env.*
+apps/web/.media
 apps/web/public/demo-media
 .git

@@ -25,9 +25,11 @@ ARG BASE_PATH=/projects/rowlens
 # Build-time feature flag (src/client/features.ts); off by default, so the demo isn't in the bundle.
 ARG VITE_FEATURE_PLAYER_DEMO=false
 # The boat line found per frame (ADR-0018): on; false builds without showing it.
+ARG VITE_FEATURE_UNIFIED_USERS=false
 ARG VITE_FEATURE_AUTO_BOAT_LINE=true
 ENV BASE_PATH=${BASE_PATH} VITE_FEATURE_PLAYER_DEMO=${VITE_FEATURE_PLAYER_DEMO} \
-    VITE_FEATURE_AUTO_BOAT_LINE=${VITE_FEATURE_AUTO_BOAT_LINE}
+    VITE_FEATURE_AUTO_BOAT_LINE=${VITE_FEATURE_AUTO_BOAT_LINE} \
+    VITE_FEATURE_UNIFIED_USERS=${VITE_FEATURE_UNIFIED_USERS}
 RUN pnpm --filter @rowlens/web build \
  && pnpm --filter @rowlens/web deploy --prod --legacy /out
 
@@ -37,7 +39,9 @@ LABEL org.opencontainers.image.source="https://github.com/ewoutbarendregt/rowlen
 ARG BASE_PATH=/projects/rowlens
 # Image tag (sha-<7> or v<semver>), reported by /health/live; the deploy workflow checks it.
 ARG APP_VERSION=dev
-ENV NODE_ENV=production PORT=3000 BASE_PATH=${BASE_PATH} APP_VERSION=${APP_VERSION}
+ARG VITE_FEATURE_UNIFIED_USERS=false
+ENV NODE_ENV=production PORT=3000 BASE_PATH=${BASE_PATH} APP_VERSION=${APP_VERSION} \
+    UNIFIED_USERS=${VITE_FEATURE_UNIFIED_USERS}
 WORKDIR /app
 COPY --from=build /out/package.json ./
 COPY --from=build /out/node_modules ./node_modules

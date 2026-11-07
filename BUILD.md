@@ -3,6 +3,36 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Unified-account transition (ADR-0021, local implementation)
+
+Global OTP creates an account only after verifying inbox ownership. Protected account sessions and
+pending membership applications are independent of a selected club; the existing OTP/IP limits,
+CSRF/origin rules, cookie security and legacy sessions remain. Migration 0020 adds global protected
+account tokens/codes/platform authority/audit and tenant-protected applications; 0021 adds canonical
+account references to all five sporting/history tables. Migration 0022 adds restrictive membership/access policies, synchronized legacy-session adoption/revocation and canonical name updates. Platform SQL roles recheck persisted authority rather than trusting a request snapshot. Rower IDs remain compatibility identifiers
+until every historical mapping is resolved; no historical people or references are deleted.
+
+The club guard validates live per-club roles (or persisted platform authority), using an explicit
+club UUID in API headers/media query parameters and captured upload headers. UI club selection is
+per tab and opening a club reloads the page. Account preferences stay global. Platform elevation
+uses protected persisted grants and the real actor; club administrators cannot grant it. The
+operator bootstrap is `bash scripts/admin/grant-platform-admin.sh` (hidden terminal email prompt,
+owner connection, already verified account, audited). Existing server admins remain club admins;
+no automatic global promotion is performed.
+
+The seeded pilot keeps its UUID/slug and is named WVIJburg. New clubs can be created/renamed and get
+an initial administrator. Club admins approve/reject requests or admit an existing verified account;
+approval and membership/grant updates are atomic. Rejected applications have a seven-day cooldown;
+applicants can cancel pending ones. Direct admission resolves pending requests; revocation retains the account/other clubs and starts the same seven-day reapplication cooldown. Names/selectors derive from accounts. New seats/measurements/
+assignment require rower role; direct sharing accepts any active verified club member. Legacy
+identity linking has inline confirmation and refuses collisions without losing seats or measures.
+
+Flags: server `UNIFIED_USERS=true`, client `VITE_FEATURE_UNIFIED_USERS=true`; the Docker build arg
+`VITE_FEATURE_UNIFIED_USERS` also sets the runtime flag, off by default. Local dev runs with the
+server flag; Vite development enables the UI. Production-image flag activation and platform
+bootstrap need the separately authorized rollout. Logos and club theme selection are deferred;
+existing theme tokens/global user preferences provide the later club-aware design boundary.
+
 ## Central user settings and role sets (2026-11-06, ADR-0019)
 
 Migration `0018_admin_user_settings.sql` extends `app_user` with nullable language/theme/video

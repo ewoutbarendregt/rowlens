@@ -24,4 +24,6 @@
 
 | [0020](0020-club-training-permissions.md) | Club-wide training reading with ownership and staff editing | accepted |
 
+| [0021](0021-unified-accounts-and-club-admission.md) | Unified accounts, club admission and full platform administration | accepted |
+
 New ADR: copy `0000-template.md` to the next number.

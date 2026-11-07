@@ -5,6 +5,7 @@ import { isStoredHash } from './pilot/code.ts';
 const GIB = 1024 ** 3;
 
 const envSchema = z.object({
+  UNIFIED_USERS: z.enum(['true', 'false']).default('false'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   HOST: z.string().min(1).default('0.0.0.0'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
@@ -68,6 +69,7 @@ const envSchema = z.object({
 });
 
 export interface AppConfig {
+  unifiedUsers: boolean;
   nodeEnv: 'development' | 'test' | 'production';
   host: string;
   port: number;
@@ -151,7 +153,8 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   const allowedEmails = emailList('AUTH_ALLOWED_EMAILS');
   const adminEmails = emailList('AUTH_ADMIN_EMAILS');
   // Login is on once the server names anyone; admins then admit the rest in the app.
-  const authConfigured = allowedEmails.length + adminEmails.length > 0;
+  const authConfigured =
+    e.UNIFIED_USERS === 'true' || allowedEmails.length + adminEmails.length > 0;
   if (authConfigured && e.OTP_PEPPER === undefined) {
     throw new Error(
       'Invalid configuration: OTP_PEPPER is required with AUTH_ALLOWED_EMAILS or AUTH_ADMIN_EMAILS',
@@ -189,6 +192,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   }
 
   return {
+    unifiedUsers: e.UNIFIED_USERS === 'true',
     nodeEnv: e.NODE_ENV,
     host: e.HOST,
     port,

@@ -4,6 +4,7 @@ import { loadConfig } from './config.ts';
 describe('loadConfig', () => {
   it('applies defaults for local development', () => {
     expect(loadConfig({})).toEqual({
+      unifiedUsers: false,
       nodeEnv: 'development',
       host: '0.0.0.0',
       port: 3000,

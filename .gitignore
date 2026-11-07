@@ -29,6 +29,7 @@ __pycache__/
 # Test output
 playwright-report/
 test-results/
+test-results-unified/
 
 # OS / editor
 .DS_Store

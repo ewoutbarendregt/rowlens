@@ -1,3 +1,4 @@
+import { activeClub } from './club-context.ts';
 import { appUrl } from './env.ts';
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -7,12 +8,14 @@ export async function api(
   path: string,
   init: { method?: string; body?: unknown } = {},
 ): Promise<Response> {
+  const club = activeClub();
   const method = init.method ?? 'GET';
   const csrf = UNSAFE.has(method) ? csrfToken() : null;
   return fetch(appUrl(path), {
     method,
     credentials: 'same-origin',
     headers: {
+      ...(club === null ? {} : { 'x-rowlens-club': club }),
       ...(init.body === undefined ? {} : { 'content-type': 'application/json' }),
       ...(csrf === null ? {} : { 'x-csrf-token': csrf }),
     },

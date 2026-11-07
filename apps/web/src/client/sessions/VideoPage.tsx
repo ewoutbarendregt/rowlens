@@ -112,6 +112,7 @@ export function VideoPage() {
   const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
   const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
   const roster = useRoster(undefined, video?.sessionId ?? null);
+  const shareRoster = useRoster(undefined, video?.sessionId ?? null, true);
   const [tool, setTool] = useState<DrawingKind | null>(null);
   const [drawingControls, setDrawingControls] = useState<HTMLDivElement | null>(null);
   const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
@@ -921,6 +922,7 @@ export function VideoPage() {
                 momentRowers={momentRowers}
                 momentShares={momentShares}
                 roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
+                shareRoster={(shareRoster.rowers ?? []).filter((r) => r.archivedAt === null)}
                 suggestions={lineupSuggestions(
                   video.boatType,
                   video.lineup,

@@ -3408,3 +3408,46 @@ a.list__item {
   height: 44px;
   font: inherit;
 }
+
+.clubs-page .card {
+  margin-block: 1rem;
+}
+.club-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+.club-list__item {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-default);
+}
+.club-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.clubs-page input,
+.clubs-page select {
+  width: 100%;
+  min-height: 44px;
+  max-width: 100%;
+}
+.clubs-page button {
+  min-height: 44px;
+}
+
+.clubs-page select {
+  height: 44px;
+}
+
+/* Club names may be long; keep the wordmark and navigation inside the viewport. */
+.app-header__brand {
+  min-width: 0;
+  max-width: 100%;
+}
+.app-header__club {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

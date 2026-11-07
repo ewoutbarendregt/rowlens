@@ -1,7 +1,37 @@
-# RowLens handoff — 2026-11-06
+# RowLens handoff — 2026-11-07
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
+
+## Current task — unified users and multi-club admission (2026-11-07)
+
+- Ewout approved with "ja uitvoeren". Branch `codex/feat/unified-club-users`, from main 799dfbe;
+  planning docs copied without incorporating separate deployment-log PR #156. Production remains
+  sha-799dfbe, as previously explicitly deployed; no new merge/deploy is authorized.
+- Implemented paired-feature-flag account requests/verification, account-only sessions/settings,
+  club applications/admission, multi-club context and UI, separate global RowLens authority/full
+  private-content access, club create/rename/initial admin, and WVIJburg display name with old IDs.
+- Migration 0020 adds protected global auth/platform storage and tenant applications; 0021 adds
+  canonical account refs with same-club derivation/backfill. Existing IDs, sessions and history are
+  preserved. Production read-only preflight: 7 roster people, all unlinked; 10 seats, 1 assignment,
+  0 shares, 1 historical log and 8 angle measures. Admin explicit mapping UI waits for real verified
+  accounts/admission and refuses collisions. Do not invent accounts, infer matches or drop history.
+- Platform bootstrap is `bash scripts/admin/grant-platform-admin.sh`: hidden terminal email prompt,
+  owner connection and existing verified account. Existing server admins are not auto-promoted.
+  Logos/club interface design remain deferred. Flags default off for production; local dev runs on.
+- Final checks: **540 web/DB** (18 new cases), **50 worker** with Ruff/mypy, format/lint/typecheck,
+  feature-on build and schema consistency pass. Local unified **6/6** and proxy **6/6** (1000×540
+  Chromium + iPhone WebKit) pass; screenshots and >=44 px/no-overflow checks inspected. Legacy
+  local **49 pass/53 skipped**. Legacy proxy first run **38 pass/1 transient lineup fail/12 skipped**;
+  targeted repeat **1/1** passed, followed by final full **39 pass/13 skipped**, no failures. Deploy-script **77** and real
+  Docker deploy/rollback rehearsal pass. See TEST.md for failed diagnostic iterations as well.
+- Local dev :5174/API :3100 is healthy, UNIFIED_USERS=true, **23 migrations**. Unreleased function
+  definitions were refreshed locally as SQL evolved; fresh DB tests/rehearsal validate migration
+  application. Edge is stopped after final regression, with data retained.
+- Global bootstrap: existing server admins remain club admins. The local operator runs
+  `bash scripts/admin/grant-platform-admin.sh` after signing in once; hidden input and protected
+  owner connection keep the address out of chat/arguments. No production bootstrap was run.
+- Older task snapshots below are historical and do not authorize another release.
 
 ## Current task — #154, club-wide reading and role-based editing
 

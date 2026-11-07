@@ -2,6 +2,20 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Verify unified accounts, role boundaries and club interfaces
+
+**Session**: codex/feat/unified-club-users
+**Changed**: TEST.md, BUGS.md, FEATURES.md, BUILD.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0021-unified-accounts-and-club-admission.md, docs/plans/unified-users-impact.md
+**Summary**: Final web/DB suite passes 540 tests (18 new integration cases), worker 50 plus Ruff/mypy, format/lint/typecheck/build and schema consistency; six new local and six proxy laptop/iPhone WebKit cases pass, with screenshots and >=44 px/no-overflow measurements. Legacy local passes 49; legacy proxy initially had one transient inline-add failure, then passed its targeted repeat and final full 39-case rerun (13 skipped). Deploy-script 77 and real Docker deploy/rollback rehearsal pass. No production mutation or deployment; 7 historical people still need real account mapping, and platform bootstrap remains an explicit hidden terminal prompt.
+**Prompts used**: "ja uitvoeren".
+
+## 2026-11-07 — Implement approved account requests and multi-club administration
+
+**Session**: codex/feat/unified-club-users
+**Changed**: apps/web/src/{server,client}, apps/web/{e2e,playwright.unified.config.ts,tsconfig.json,package.json,Dockerfile}, scripts/admin/grant-platform-admin.sh, .github/workflows/ci.yml, .gitignore, .dockerignore, AGENTS.md, docs/adr/{0011,0013,0019,0020,0021,README}.md, docs/plans/unified-users-impact.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented feature-gated verified account requests, independent sessions, audited club applications/admission, live per-club roles/switching, separately bootstrapped full RowLens authority, WVIJburg club mapping and account-backed selectors without standalone roster creation. Three additive migrations preserve old IDs/history and add canonical user references with explicit admin mapping; read-only production preflight found all 7 old people unlinked, so contract removal waits for real account mappings. Initial checks passed; the final verification entry records the expanded 540 web/DB, 50 worker and browser/rollback results. No production writes, real invitation, merge or deployment.
+**Prompts used**: "ja uitvoeren" (approval of the unified-user/account request/multi-club/RowLens-admin plan; logos and club design remain later).
+
 ## 2026-11-06 — Finish upgrade-compatible training permissions (#154)
 
 **Session**: codex/feat/154-club-training-readonly

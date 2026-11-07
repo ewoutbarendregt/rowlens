@@ -55,6 +55,16 @@ async function members(tx: Tx): Promise<Map<string, Member>> {
 /** One user register; multiple additive roles, with serialized and audited access changes. */
 export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opts, done) => {
   const { db, guard, auth } = opts;
+  const pilotClub = async (tx: Tx) => {
+    const r = await tx.execute<{ id: string }>(sql`select rowlens_club_id(${auth.clubSlug}) as id`);
+    return r.rows[0]?.id;
+  };
+  const roots = async (tx: Tx) =>
+    (await pilotClub(tx)) ===
+    (await tx.execute<{ id: string }>(sql`select current_setting('app.club_id') as id`)).rows[0]?.id
+      ? auth.adminEmails
+      : new Set<string>();
+
   const requireAdmin = async (req: FastifyRequest, reply: FastifyReply) =>
     req.roles?.includes('admin') === true ? undefined : notFound(reply);
   const preHandler = [guard, requireAdmin];
@@ -71,7 +81,7 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
   const lastAdmin = async (tx: Tx, address: string) => {
     const rows = await tx.select().from(clubAccess);
     return ![
-      ...auth.adminEmails,
+      ...(await roots(tx)),
       ...rows.filter((r) => r.roles.includes('admin')).map((r) => r.email),
     ].some((e) => e !== address);
   };
@@ -106,15 +116,15 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
       const seen = await members(tx);
       const out: AccessEntry[] = [];
       const addresses = new Set([
-        ...auth.adminEmails,
-        ...auth.allowedEmails,
+        ...(await roots(tx)),
+        ...(tenantOf(req).clubId === (await pilotClub(tx)) ? auth.allowedEmails : []),
         ...listed.map((r) => r.email),
         ...seen.keys(),
       ]);
       for (const address of addresses) {
         const row = listed.find((r) => r.email === address);
         const member = seen.get(address);
-        const root = auth.adminEmails.has(address);
+        const root = (await roots(tx)).has(address);
         const selected = rolesSchema.parse([
           ...new Set([
             ...(row?.roles ?? member?.roles ?? (root ? [] : ['coach'])),
@@ -145,8 +155,20 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
     const body = addBody.safeParse(req.body);
     if (!body.success) return reply.code(400).send({ error: 'invalid_access' });
     const { email: address, roles } = body.data;
-    const root = auth.adminEmails.has(address);
+    const root = await withTenant(db, tenantOf(req), async (tx) => (await roots(tx)).has(address));
     if (root && !roles.includes('admin')) return reply.code(409).send({ error: 'server_managed' });
+    if (opts.unifiedUsers) {
+      const result = await withTenant(db, tenantOf(req), async (tx) => {
+        const r = await tx.execute<{ value: string }>(
+          sql`select rowlens_admit_account(${address},${`{${roles.join(',')}}`}::text[]) as value`,
+        );
+        return r.rows[0]?.value;
+      });
+      return result === 'ok'
+        ? reply.code(201).send({ invited: false })
+        : reply.code(result === 'not_found' ? 404 : 409).send({ error: result });
+    }
+
     const tenant = tenantOf(req);
     const result = await withTenant(db, tenant, async (tx) => {
       if (!(await lock(tx, tenant))) return 'not_found' as const;
@@ -207,9 +229,14 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
           JSON.stringify([...row.roles].sort())
       )
         return 'access_changed' as const;
-      if (auth.adminEmails.has(row.email) && !roles.includes('admin'))
+      if ((await roots(tx)).has(row.email) && !roles.includes('admin'))
         return 'server_managed' as const;
-      if (member?.user_id === tenant.userId && !roles.includes('admin')) return 'self' as const;
+      if (
+        member?.user_id === tenant.userId &&
+        member.roles.includes('admin') &&
+        !roles.includes('admin')
+      )
+        return 'self' as const;
       if (
         row.roles.includes('admin') &&
         !roles.includes('admin') &&
@@ -245,14 +272,14 @@ export const accessRoutes: FastifyPluginCallback<AccessRouteOptions> = (app, opt
         .for('update');
       if (row === undefined) return 'not_found' as const;
       const member = (await members(tx)).get(row.email);
-      if (auth.adminEmails.has(row.email)) return 'server_managed' as const;
+      if ((await roots(tx)).has(row.email)) return 'server_managed' as const;
       if (member?.user_id === tenant.userId) return 'self' as const;
       if (row.roles.includes('admin') && (await lastAdmin(tx, row.email)))
         return 'last_admin' as const;
       await log(tx, tenant, row.email, 'removed', null, member);
       await tx.delete(clubAccess).where(eq(clubAccess.id, row.id));
       if (member !== undefined) {
-        if (auth.allowedEmails.has(row.email))
+        if (tenant.clubId === (await pilotClub(tx)) && auth.allowedEmails.has(row.email))
           await tx
             .update(membership)
             .set({ roles: ['coach'] })

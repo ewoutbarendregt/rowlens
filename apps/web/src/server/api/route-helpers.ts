@@ -13,6 +13,7 @@ export interface MediaLimits {
 }
 
 export interface ClubRouteOptions {
+  unifiedUsers?: boolean;
   db: Database;
   guard: (req: FastifyRequest, reply: FastifyReply) => Promise<FastifyReply | undefined>;
   /** `null` without MEDIA_DIR: uploads are off. */

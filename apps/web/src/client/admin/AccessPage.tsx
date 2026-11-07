@@ -21,17 +21,19 @@ interface Entry {
   lastSeenAt: string | null;
 }
 const errorText = (t: ReturnType<typeof adminStrings>, error: string | undefined) =>
-  error === 'exists'
-    ? t.exists
-    : error === 'server_managed'
-      ? t.serverManaged
-      : error === 'self'
-        ? t.self
-        : error === 'last_admin'
-          ? t.lastAdmin
-          : error === 'access_changed'
-            ? settingsStrings().conflict
-            : t.failed;
+  error === 'account_required'
+    ? t.accountRequired
+    : error === 'exists'
+      ? t.exists
+      : error === 'server_managed'
+        ? t.serverManaged
+        : error === 'self'
+          ? t.self
+          : error === 'last_admin'
+            ? t.lastAdmin
+            : error === 'access_changed'
+              ? settingsStrings().conflict
+              : t.failed;
 const formatWhen = (iso: string) =>
   new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeStyle: 'short' }).format(
     new Date(iso),
@@ -94,6 +96,7 @@ export function AccessPage() {
       setFailed(true);
     }
   }, []);
+  const unified = state.kind === 'open' && state.unified === true;
   const admin = state.kind === 'open' && state.user.roles.includes('admin');
   useEffect(() => {
     if (admin) void load();
@@ -113,8 +116,12 @@ export function AccessPage() {
     if (response?.status === 201) {
       const { invited } = (await response.json()) as { invited: boolean };
       setMessage({
-        text: invited ? t.admitted(address) : t.admittedNoMail(address),
-        alert: !invited,
+        text: unified
+          ? t.admittedClub(address)
+          : invited
+            ? t.admitted(address)
+            : t.admittedNoMail(address),
+        alert: !unified && !invited,
       });
       setEmail('');
       await load();
@@ -155,6 +162,7 @@ export function AccessPage() {
           data-testid="roles"
         >
           <p className="muted">{t.rolesIntro}</p>
+          {unified && <p>{t.platformRoleHint}</p>}
           <div className="table-wrap">
             <table className="roles-table">
               <thead>
@@ -168,14 +176,16 @@ export function AccessPage() {
                 </tr>
               </thead>
               <tbody>
-                {t.rights.map((right) => (
-                  <tr key={right.what}>
-                    <th scope="row">{right.what}</th>
-                    {ROLES.map((r) => (
-                      <td key={r}>{right[r]}</td>
-                    ))}
-                  </tr>
-                ))}
+                {t.rights
+                  .filter((r) => !unified || !('legacyRoster' in r))
+                  .map((right) => (
+                    <tr key={right.what}>
+                      <th scope="row">{right.what}</th>
+                      {ROLES.map((r) => (
+                        <td key={r}>{right[r]}</td>
+                      ))}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -186,7 +196,7 @@ export function AccessPage() {
           id={`${formId}-panel-users`}
           aria-labelledby={`${formId}-tab-users`}
         >
-          <p className="muted">{t.intro}</p>
+          <p className="muted">{unified ? t.unifiedIntro : t.intro}</p>
           {failed && <p role="alert">{t.loadFailed}</p>}
           <form
             className="card form"
@@ -232,7 +242,13 @@ export function AccessPage() {
                   .includes(search.trim().toLocaleLowerCase()),
               )
               .map((entry) => (
-                <AccessRow key={entry.email} entry={entry} onChanged={load} ownId={state.user.id} />
+                <AccessRow
+                  key={entry.email}
+                  entry={entry}
+                  onChanged={load}
+                  ownId={state.user.id}
+                  unified={unified}
+                />
               ))}
           </ul>
         </section>
@@ -244,10 +260,12 @@ function AccessRow({
   entry,
   onChanged,
   ownId,
+  unified,
 }: {
   entry: Entry;
   onChanged: () => Promise<void>;
   ownId: string;
+  unified: boolean;
 }) {
   const t = adminStrings();
   const s = settingsStrings();
@@ -297,7 +315,11 @@ function AccessRow({
         <span className="muted">
           {[
             entry.source === 'server' ? t.server : null,
-            entry.lastSeenAt === null ? t.notYet : t.lastSeen(formatWhen(entry.lastSeenAt)),
+            entry.lastSeenAt === null
+              ? unified && entry.userId !== null
+                ? t.activityUnknown
+                : t.notYet
+              : t.lastSeen(formatWhen(entry.lastSeenAt)),
           ]
             .filter(Boolean)
             .join(' · ')}
@@ -325,7 +347,7 @@ function AccessRow({
           entry.id !== null &&
           (confirming ? (
             <ConfirmInline
-              question={t.confirmRemove(entry.email)}
+              question={unified ? t.confirmRemoveClub(entry.email) : t.confirmRemove(entry.email)}
               yesLabel={t.removeYes}
               onConfirm={() => {
                 setConfirming(false);

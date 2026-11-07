@@ -65,6 +65,7 @@ interface NotesPanelProps {
   momentShares: MomentShares[];
   /** The active club roster, to pick rowers from. */
   roster: Rower[];
+  shareRoster?: Rower[];
   /** The session lineup with seats, offered first. */
   suggestions: readonly { id: string; label: string; name?: string }[];
   onRosterChanged: () => void;
@@ -290,7 +291,7 @@ export function NotesPanel(props: NotesPanelProps) {
                   videoId={videoId}
                   frame={at}
                   shares={sharesAt.get(at)}
-                  roster={props.roster}
+                  roster={props.shareRoster ?? props.roster}
                   suggestions={props.suggestions}
                   onChanged={props.onChanged}
                   onRosterChanged={props.onRosterChanged}

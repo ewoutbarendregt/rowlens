@@ -2,6 +2,35 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Unified accounts and multiple clubs (2026-11-07)
+
+- Initial full run: 524 passed/3 failed (config/schema expectations and an empty JSON test request).
+  After fixture corrections: 527/527. Expanded suite then passed 533, 535 and 538 as coverage grew;
+  final suite includes 18 unified integration cases (**540/540** final full run).
+- Security/lifecycle cases cover account-only/profile access, OTP single use/limits/expiry, duplicate
+  and atomic decisions, cancellation ownership/cooldown, account-first admission, private feedback,
+  two-club SQL/API isolation, conflicting context, forged platform flags, withdrawn global authority,
+  direct membership/grant self-escalation denial, historical canonical references, legacy-session
+  adoption/logout and account logout-others. Direct admission/revocation keeps applications aligned.
+- Worker: Ruff lint/format, mypy and **50/50** pytest pass. Schema generation reports no difference.
+  Deploy-script checks: **77 passed**; real Docker deploy/upgrade/failed-release/explicit rollback
+  rehearsal passed twice (three runs, including a final-source pass).
+- Full local legacy browsers: **49 passed, 53 skipped**, desktop + mobile Chromium. Early runs needed
+  updated club/role labels. Edge legacy: **38 passed, 1 failed, 12 skipped**; the inline-add lineup
+  case returned HTTP 201 but lost its selection under load and then passed its targeted repeat
+  (**1/1**). It remains a recorded intermittent regression, not a claimed product fix.
+- Unified account/club browsers: **6/6 local** (3 per device) pass on Chromium **1000×540** and iPhone
+  13 WebKit. Earlier proxy run passed 4/4 before the added long-name case; **6/6** final proxy cases pass as well. Screenshots inspected; no document overflow and controls >=44 px. BUG-035 fixed
+  native selector size/accessible name; BUG-036 first reproduced a long-name overflow, then passed.
+- CI now runs the unified browser matrix separately with paired feature flags. Dedicated output
+  directories prevent trace collisions; test artifacts, local env files and media are excluded from
+  Docker build contexts. No dependency was added.
+- Local dev is ready at :5174/API :3100 with UNIFIED_USERS=true and **23 migrations**. Development
+  function definitions were refreshed as unreleased SQL evolved; fresh Testcontainers/rehearsal
+  runs validate actual migration application, not only a locally patched database. Production was
+  inspected through aggregate read-only queries only (7 unlinked people, 10 seats, 8 measurements;
+  one seeded pilot club to rename). No production write/deploy or real invitation.
+
 ## Strategy
 
 | Layer | Tool | Scope |
@@ -189,3 +218,24 @@ nothing is served outside the base path."
 
 Finding while writing it: React Router with basename `/projects/rowlens` turned `<Link to="/">` into the
 non-canonical `/projects/rowlens`; fixed by giving the router basename `/projects/rowlens/`.
+
+
+## Final unified-user verification notes — 2026-11-07
+
+- `pnpm format:check`, lint, typecheck and the last full `pnpm test` pass: **540 tests, 55 files**.
+  This adds 18 integration cases to the prior 522, without a new runtime dependency.
+- `VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true pnpm build` passes. Paired flags are
+  also wired through the Docker build; production remains off by default. New browser config runs
+  3 flows per device: applicant/admission/club switching, platform management/old-route retirement,
+  and long-name header constraints. Local **6/6**, proxy **6/6** passed; screenshots inspected.
+- The final admin review added explicit account-first self/last-admin/server-managed protections and
+  tested an independent global admin holding an ordinary rower club membership. Platform elevation
+  uses persisted SQL checks and logs actual resource UUIDs with the real actor. Direct admission
+  does not report a failed invitation or claim to delete an account; activity with no club evidence
+  is explicitly unknown. No real invitation was sent.
+- Legacy local full: 49 passed/53 skipped. Legacy proxy first full: 38 passed/1 transient lineup
+  selection failure/12 skipped; targeted repeat passed 1/1. Final full proxy rerun: **39 passed, 13 skipped**, no failures. Browser startup collisions and fixture missing author metadata
+  during development were diagnostics, not concealed successful runs.
+- No physical iPhone gesture check was performed; WebKit simulation and screenshots were used.
+
+Final proxy regression rerun passed **39/39** (13 deliberately skipped) on the final feature-off image; the earlier transient lineup failure did not recur. The edge stack was stopped with data retained.

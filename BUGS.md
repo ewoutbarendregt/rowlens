@@ -2,6 +2,55 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-038] Account-first admission could bypass existing admin safeguards — high
+**Location**: apps/web/src/server/api/access.ts:160
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The new admission path needed the same immutable server-admin, self-demotion and last-club-admin protections as existing role updates. A global administrator's independent non-admin club role must remain editable.
+**Fix**: Check server-managed identities before the new path and enforce existing-member safeguards in the serialized SQL operation. An integration regression covers self, last-admin, server-admin and global-admin-as-rower cases.
+
+### [BUG-039] Legacy session adoption could revive a withdrawn proof — high
+**Location**: apps/web/src/server/auth/unified-gate.ts:86
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Fallback lookup must not accept a legacy bearer after its adopted account proof is revoked, and old logout must invalidate the adopted proof during an upgrade/rollback window.
+**Fix**: Lock before adoption, preserve token revocation on conflicts, synchronize legacy logout, and re-resolve the account proof without an independent permissive fallback. Tests verify legacy logout, membership revocation and account logout-others.
+
+### [BUG-040] Tenant-only account-access policies allowed role mutations without club-admin RLS — high
+**Location**: apps/web/src/server/db/schema.ts:169
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: API admin guards protected access management, but membership/access tables lacked restrictive policies rejecting role writes from ordinary same-club contexts.
+**Fix**: Add restrictive membership/access/access-log policies in migration 0022, with direct SQL self-escalation and two-club regressions.
+
+### [BUG-041] Account-only routing considered query text — medium
+**Location**: apps/web/src/server/auth/unified-gate.ts:153
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Checking the entire request URL for the own-profile prefix could let an account-only session reach a protected club handler by putting that prefix in a query. Tenant RLS still denied actual club data.
+**Fix**: Match the server's registered route prefix, with a regression requiring a plain 404 for the crafted query.
+
+### [BUG-036] Long club names could push the header outside a laptop viewport — low
+**Location**: apps/web/src/client/styles.css:3446
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: A valid 76-character unbroken club name widened the header beyond a 1000 px window. A browser regression reproduced document overflow before the fix.
+**Fix**: Constrain the brand container and ellipsize the club label; preserve the full accessible name/title. Test on laptop and iPhone WebKit.
+
+### [BUG-037] A pending invitation could restore a broader role after admission — high
+**Location**: apps/web/src/server/db/migrations/0020_unified_accounts.sql:169
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: Approving a new member as rower must not retain an older coach grant that provisioning could restore on a later login. Direct admission and subsequent revocation must also keep application state consistent.
+**Fix**: Commit matching membership/access roles and application decisions atomically; revocation preserves the account and applies the reapplication cooldown. Integration regressions cover both paths.
+
+### [BUG-035] Native club selectors were undersized on iPhone WebKit — low
+**Location**: apps/web/src/client/styles.css:3441
+**Status**: fixed
+**Found**: 2026-11-07
+**Description**: The new club-management selectors could render below the 44 px touch target on WebKit even with min-height. The browser layout check caught it.
+**Fix**: Set explicit selector height alongside minimum height and verify on iPhone WebKit and low laptop. Administrator selector also receives an explicit accessible name for stable label-based interaction.
+
 ### [BUG-034] Permission migration could broaden old web handlers before their replacement — high
 **Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql, apps/web/src/server/db/tenant.ts
 **Status**: fixed in [#155](https://github.com/ewoutbarendregt/rowlens/pull/155) (not merged/deployed)

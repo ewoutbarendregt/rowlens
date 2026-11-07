@@ -72,6 +72,11 @@ jobs:
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
       - name: E2E smoke + player (desktop + mobile Chromium)
         run: pnpm --filter @rowlens/web e2e
+      - name: Unified accounts (laptop Chromium and iPhone WebKit)
+        run: |
+          pnpm --filter @rowlens/web exec playwright install --with-deps webkit
+          VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true pnpm build
+          pnpm --filter @rowlens/web e2e:unified
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v4

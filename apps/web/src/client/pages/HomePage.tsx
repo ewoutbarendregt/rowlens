@@ -13,7 +13,8 @@ export function HomePage() {
   const { state, refresh } = useAuth();
   const t = authStrings();
 
-  if (state.kind === 'open') return <Navigate to="/sessions" replace />;
+  if (state.kind === 'open')
+    return <Navigate to={state.unified && !state.club.id ? '/clubs' : '/sessions'} replace />;
 
   return (
     <main className="shell login">
@@ -27,7 +28,9 @@ export function HomePage() {
           )}
         </header>
         {state.kind === 'closed' && <p className="version">{t.closed}</p>}
-        {state.kind === 'locked' && <LoginGate onAccess={refresh} />}
+        {state.kind === 'locked' && (
+          <LoginGate onAccess={refresh} unified={state.unified === true} />
+        )}
       </div>
       <LanguageSwitch />
       <ThemeSwitch />

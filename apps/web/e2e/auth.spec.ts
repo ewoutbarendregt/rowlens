@@ -19,7 +19,7 @@ test('email code opens the club, persists and sign-out revokes it', async ({ pag
 
   await code.fill(authCode);
   await page.getByRole('button', { name: /^(Sign in|Inloggen)$/ }).click();
-  await expect(page.getByTestId('club-name')).toHaveText('Pilot');
+  await expect(page.getByTestId('club-name')).toHaveText('WVIJburg');
 
   const cookies = await page.context().cookies();
   expect(cookies.find((item) => item.name === 'rowlens_sid')).toMatchObject({
@@ -34,7 +34,7 @@ test('email code opens the club, persists and sign-out revokes it', async ({ pag
   });
 
   await page.reload();
-  await expect(page.getByTestId('club-name')).toHaveText('Pilot');
+  await expect(page.getByTestId('club-name')).toHaveText('WVIJburg');
 
   await page.getByTestId('account-menu').locator('summary').click();
   await page.getByRole('button', { name: /^(Sign out|Afmelden)$/ }).click();

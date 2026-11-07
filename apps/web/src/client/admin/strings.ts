@@ -2,14 +2,23 @@ import { lang } from '../i18n/language.ts';
 
 // Admin strings in NL and EN (move into the i18n catalogs with #34).
 const en = {
-  admin: 'Admin',
+  activityUnknown: 'No club activity recorded',
+  unifiedIntro:
+    'Admit an existing verified account to this club and assign its club roles. Membership requests are under Clubs.',
+  platformRoleHint:
+    'RowLens administrators manage clubs and have full access to all clubs and their content, including private feedback. This global role is granted by the platform operator.',
+  admittedClub: (email: string) => `${email} now has access to this club.`,
+  confirmRemoveClub: (email: string) =>
+    `Remove club access for ${email}? Their account and other club memberships remain available.`,
+  accountRequired: 'This person must first verify a RowLens account.',
+  admin: 'Club administration',
   access: 'Access',
   intro: 'Who may sign in to RowLens, and as what. People get an e-mail and sign in with a code.',
   home: 'Home',
   admit: 'Give access',
   email: 'E-mail address',
   role: 'Role',
-  roles: { rower: 'Rower', coach: 'Coach', admin: 'Admin' },
+  roles: { rower: 'Rower', coach: 'Coach', admin: 'Club administrator' },
   admitted: (email: string) => `${email} has access and got an e-mail.`,
   admittedNoMail: (email: string) =>
     `${email} has access, but the e-mail could not be sent. Let them know yourself.`,
@@ -63,14 +72,23 @@ const en = {
       coach: 'Yes',
       rower: 'Self-created sessions only',
     },
-    { what: 'Club roster', admin: 'Yes', coach: 'Yes', rower: 'No' },
+    { legacyRoster: true, what: 'Club roster', admin: 'Yes', coach: 'Yes', rower: 'No' },
     { what: 'Admin: users and roles', admin: 'Yes', coach: 'No', rower: 'No' },
     { what: 'Give a session to a coach', admin: 'Yes', coach: 'No', rower: 'No' },
   ],
 };
 
 const nl: typeof en = {
-  admin: 'Beheer',
+  activityUnknown: 'Geen clubactiviteit vastgelegd',
+  unifiedIntro:
+    'Laat een bestaand geverifieerd account toe tot deze club en kies de clubrollen. Lidmaatschapsaanvragen staan onder Clubs.',
+  platformRoleHint:
+    'RowLens-beheerders beheren clubs en hebben volledige toegang tot alle clubs en hun inhoud, inclusief afgeschermde feedback. De platformbeheerder kent deze globale rol toe.',
+  admittedClub: (email: string) => `${email} heeft nu toegang tot deze club.`,
+  confirmRemoveClub: (email: string) =>
+    `Clubtoegang van ${email} intrekken? Het account en lidmaatschappen bij andere clubs blijven beschikbaar.`,
+  accountRequired: 'Deze persoon moet eerst een RowLens-account verifiëren.',
+  admin: 'Clubbeheer',
   access: 'Toegang',
   intro:
     'Wie mag inloggen in RowLens, en als wat. Mensen krijgen een e-mail en loggen in met een code.',
@@ -78,7 +96,7 @@ const nl: typeof en = {
   admit: 'Toegang geven',
   email: 'E-mailadres',
   role: 'Rol',
-  roles: { rower: 'Roeier', coach: 'Coach', admin: 'Beheerder' },
+  roles: { rower: 'Roeier', coach: 'Coach', admin: 'Clubbeheerder' },
   admitted: (email: string) => `${email} heeft toegang en kreeg een e-mail.`,
   admittedNoMail: (email: string) =>
     `${email} heeft toegang, maar de e-mail kon niet worden verstuurd. Laat het zelf even weten.`,
@@ -133,7 +151,7 @@ const nl: typeof en = {
       coach: 'Ja',
       rower: 'Alleen in zelf aangemaakte trainingen',
     },
-    { what: 'Ploeglijst van de club', admin: 'Ja', coach: 'Ja', rower: 'Nee' },
+    { legacyRoster: true, what: 'Ploeglijst van de club', admin: 'Ja', coach: 'Ja', rower: 'Nee' },
     { what: 'Beheer: gebruikers en rollen', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
     { what: 'Een training aan een coach geven', admin: 'Ja', coach: 'Nee', rower: 'Nee' },
   ],

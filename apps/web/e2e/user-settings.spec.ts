@@ -155,8 +155,10 @@ test('admin edits one central account; rower boundaries, combined roles and pref
       .getByRole('alert')
       .getByRole('button', { name: /^(Reload|Herladen)$/ })
       .click();
-    await expect(row.getByRole('checkbox', { name: /^(Admin|Beheerder)$/ })).toBeChecked();
-    await row.getByRole('checkbox', { name: /^(Admin|Beheerder)$/ }).uncheck();
+    await expect(
+      row.getByRole('checkbox', { name: /^(Club administrator|Clubbeheerder)$/ }),
+    ).toBeChecked();
+    await row.getByRole('checkbox', { name: /^(Club administrator|Clubbeheerder)$/ }).uncheck();
     await row.getByRole('checkbox', { name: 'Coach', exact: true }).check();
     // Add coach; this is still one identity, with the rower role retained.
     const roleSaved = page.waitForResponse(
