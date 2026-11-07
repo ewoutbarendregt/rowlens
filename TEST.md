@@ -2,6 +2,14 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Release image authentication smoke (2026-11-07)
+
+- CI run 42390255322 passed web, worker, edge, policy, secrets and deploy checks, but the
+  web-image smoke failed at startup: unified authentication also requires production SMTP.
+- Added synthetic SMTP host/credentials/sender to the isolated image smoke alongside its OTP
+  pepper. No mail is sent by the health/status check; production validation remains unchanged.
+- Fresh CI on the corrected head must pass before merging or deploying.
+
 ## Full account table/editor and verified identity changes (2026-11-07)
 
 - Full web/DB: **589/589**, then **591/591**, and final expanded suites **592/592** and **593/593** across 57 files.

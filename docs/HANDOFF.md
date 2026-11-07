@@ -7,10 +7,12 @@ newest-first detailed log. Update this file at the end of a session.
 
 - Ewout explicitly requested "merge en deploy" for PR #157. Head ce6c014 passed all eight CI jobs.
 - Release and CI images now explicitly enable paired unified-user flags; the smoke check verifies
-  unified account status with synthetic OTP configuration. Production has no override, so no .env
+  unified account status with synthetic OTP and SMTP configuration. Run 42390255322 caught the
+  missing SMTP fixture; corrected before merge, with production validation unchanged. Production has no override, so no .env
   or installed compose edit is required. Wait for new CI, then merge and deploy the merge SHA.
-- Global grants remain separately bootstrapped; do not infer authority from names/allowlists. A
-  production bootstrap must be shown as an exact operator command and approved before execution.
+- Global grants remain separately bootstrapped; do not infer authority from names/allowlists. Ewout approved
+  the exact one-time production bootstrap command. After deployment, obtain the verified account
+  address only through the hidden terminal prompt; never infer it or put it in chat/arguments.
 - No production write/deployment has happened yet in this release turn. Older "no merge/deploy"
   statements below are superseded only for this explicitly requested RowLens release.
 

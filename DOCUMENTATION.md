@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-07 — Complete enabled-auth release smoke configuration
+
+**Session**: codex/feat/unified-club-users
+**Changed**: .github/workflows/ci.yml, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: CI caught missing SMTP fixtures after unified authentication was enabled in release images. Added synthetic mail configuration to the isolated smoke check without relaxing production validation or changing server settings; merge/deploy remains gated on fresh green CI. Ewout also explicitly approved the previously shown one-time production platform-admin bootstrap, with the account email entered only through a hidden terminal prompt after deployment.
+**Prompts used**: "ga verder"; "Ja, ook mijn productieaccount RowLens-beheerder maken".
+
 ## 2026-11-07 — Enable unified accounts in the authorized production release
 
 **Session**: codex/feat/unified-club-users

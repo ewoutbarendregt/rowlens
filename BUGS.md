@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-051] Enabled-auth release image smoke lacked SMTP fixtures — low
+**Location**: .github/workflows/ci.yml
+**Status**: fixed
+**Found**: 2026-11-07 (CI run 42390255322)
+**Description**: Enabling unified authentication in release images caused the isolated image smoke to fail production configuration validation because SMTP fixtures were absent.
+**Fix**: Supply synthetic SMTP configuration to the smoke container; keep production validation intact. CI checks ready status and enabled unified authentication without sending mail.
+
 ### [BUG-050] Concurrent/recycled email could redirect a club admission — high
 **Location**: apps/web/src/server/db/migrations/0024_account_management.sql
 **Status**: fixed

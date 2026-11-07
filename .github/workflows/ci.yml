@@ -212,6 +212,8 @@ jobs:
             rowlens-web:ci node dist/server/db/migrate-cli.js
           docker run -d --name web --network smoke -p 3000:3000 -e PUBLIC_ORIGIN=http://127.0.0.1:3000 \
             -e OTP_PEPPER=eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee \
+            -e SMTP_HOST=smtp.invalid -e SMTP_USER=smoke -e SMTP_PASSWORD=smoke_only \
+            -e MAIL_FROM=smoke@example.test \
             -e DATABASE_URL=postgres://rowlens_app:smoke_app_password_only@db:5432/rowlens rowlens-web:ci
           for _ in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:3000/projects/rowlens/health/ready; then
