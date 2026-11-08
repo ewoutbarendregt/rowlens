@@ -802,3 +802,31 @@ describe('concurrent initial admission and leased delivery', () => {
     expect(await dispatchAdmission(h.db, () => Promise.resolve())).toBe(false);
   });
 });
+
+describe('registration directory rate limit isolation', () => {
+  it('enforces the configured public-directory limit without weakening production defaults', async () => {
+    const isolated = await buildApp({
+      config: loadConfig({
+        NODE_ENV: 'test',
+        UNIFIED_USERS: 'true',
+        OTP_PEPPER: 'd'.repeat(64),
+        PUBLIC_ORIGIN: ORIGIN,
+        AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE: '1',
+      }),
+      clientDir: null,
+      database: h.db,
+      logger: false,
+    });
+    const request = {
+      method: 'GET' as const,
+      url: withBasePath(BASE, '/api/auth/registration/clubs'),
+      remoteAddress: '192.0.2.187',
+    };
+    try {
+      expect((await isolated.inject(request)).statusCode).toBe(200);
+      expect((await isolated.inject(request)).statusCode).toBe(429);
+    } finally {
+      await isolated.close();
+    }
+  });
+});

@@ -43,6 +43,8 @@ process.env['OTP_PEPPER'] = 'e'.repeat(64);
 process.env['AUTH_TEST_CODE'] = authCode;
 process.env['AUTH_OTP_PER_EMAIL_15M'] = '1000';
 process.env['AUTH_OTP_PER_IP_HOUR'] = '1000';
+// Browser projects share one synthetic client IP and directory history. Production defaults to 30.
+process.env['AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE'] = '1000';
 process.env['AUTH_VERIFY_PER_IP_15M'] = '1000';
 const media = await mkdtemp(join(tmpdir(), 'rowlens-e2e-media-'));
 process.env['MEDIA_DIR'] = media;

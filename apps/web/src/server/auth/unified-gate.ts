@@ -212,7 +212,14 @@ export function createUnifiedGate(opts: {
       };
     });
     app.get('/api/auth/registration/clubs', async (req, reply) => {
-      if (!(await hit('registration-directory-ip', req.ip, 60, 30)))
+      if (
+        !(await hit(
+          'registration-directory-ip',
+          req.ip,
+          60,
+          auth.limits.registrationDirectoryPerIpMinute,
+        ))
+      )
         return reply.code(429).send({ error: 'too_many' });
       return value(sql`select rowlens_registration_clubs() as value`);
     });

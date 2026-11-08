@@ -80,7 +80,12 @@ describe('loadConfig', () => {
       otpPepper: 'a'.repeat(64),
       clubSlug: 'pilot',
       testCode: null,
-      limits: { otpPerEmail15m: 3, otpPerIpHour: 10, verifyPerIp15m: 10 },
+      limits: {
+        otpPerEmail15m: 3,
+        otpPerIpHour: 10,
+        verifyPerIp15m: 10,
+        registrationDirectoryPerIpMinute: 30,
+      },
       smtp: {
         host: 'smtp.example.com',
         port: 465,

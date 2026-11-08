@@ -60,6 +60,7 @@ const envSchema = z.object({
     .optional(),
   AUTH_OTP_PER_EMAIL_15M: z.coerce.number().int().min(1).max(1000).default(3),
   AUTH_OTP_PER_IP_HOUR: z.coerce.number().int().min(1).max(1000).default(10),
+  AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE: z.coerce.number().int().min(1).max(1000).default(30),
   AUTH_VERIFY_PER_IP_15M: z.coerce.number().int().min(1).max(1000).default(10),
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
@@ -108,6 +109,7 @@ export interface AppConfig {
       otpPerEmail15m: number;
       otpPerIpHour: number;
       verifyPerIp15m: number;
+      registrationDirectoryPerIpMinute: number;
     };
     smtp: {
       host: string;
@@ -230,6 +232,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
               otpPerEmail15m: e.AUTH_OTP_PER_EMAIL_15M,
               otpPerIpHour: e.AUTH_OTP_PER_IP_HOUR,
               verifyPerIp15m: e.AUTH_VERIFY_PER_IP_15M,
+              registrationDirectoryPerIpMinute: e.AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE,
             },
             smtp,
           },

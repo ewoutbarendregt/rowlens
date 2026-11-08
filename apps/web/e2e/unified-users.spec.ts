@@ -566,7 +566,7 @@ test('registration with a club shows its result before names and reaches global 
   await expect(application).toContainText('Goedgekeurd');
   await expect(application.getByRole('button')).toHaveCount(0);
   await layout(admin);
-  await admin.screenshot({ path: testInfo.outputPath('registration-review.png'), fullPage: true });
+  await application.screenshot({ path: testInfo.outputPath('registration-review.png') });
   await page.reload();
   await pending.getByRole('button', { name: /^(Club openen|Huidige club)$/ }).click();
   await expect(page.getByTestId('welcome')).toBeVisible();
@@ -596,10 +596,7 @@ test('registration without a club requires platform review and supports later cl
   await row.getByRole('button', { name: 'Aanmelding accepteren', exact: true }).click();
   await expect(row).toContainText('Aanmelding zonder club geaccepteerd');
   await layout(admin);
-  await admin.screenshot({
-    path: testInfo.outputPath('registration-without-club-review.png'),
-    fullPage: true,
-  });
+  await row.screenshot({ path: testInfo.outputPath('registration-without-club-review.png') });
   const club = page
     .locator('article')
     .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) });

@@ -3,6 +3,20 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Authorized release in progress — 2026-11-08
+
+Ewout requested "Merge en deploy". #160 merged as 4e8061b, branch retained. #161 retargeted to main;
+main integration conflicts resolved by restoring its own reviewed tree, marker scan clean, pushed
+3892e2e; wait for CI 42468683540 before merging it. Then retarget/integrate #162, and #163 last.
+Feature head ea40edb CI 42468395663 failed on 3 Linux WebKit tests: screenshot >32767 pixels and
+shared synthetic directory quota. BUG-058 fixes capture only relevant request cards, keeps production
+30/minute and configures 1000 only in E2E, with a configured-limit DB regression. Focused config and
+registration checks: 35 pass; CI-mode local browser rerun: 34/34 pass. Do not merge #163 until
+its corrected head's CI passes. No deploy yet; previous no-deploy authorization wording is superseded.
+Production baseline files: /tmp/rowlens-admission-predeploy-{containers.txt,data.json}; sha-a47111c,
+26 migrations, kernel149, 7 accounts/memberships, 4 sessions, 6 videos, 1 registration, 1 global admin.
+Post-deploy SQL is prepared at /tmp/rowlens-admission-postdeploy.sql. Preserve shared container IDs.
+
 ## PR and deployment rehearsal checkpoint — 2026-11-08
 
 Feature PR [#163](https://github.com/ewoutbarendregt/rowlens/pull/163) is stacked on DNS documentation

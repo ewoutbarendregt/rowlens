@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Begin authorized merge/deploy and repair CI test isolation
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: apps/web/src/server/config.ts, apps/web/src/server/config.test.ts, apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/auth/registration.db.test.ts, apps/web/e2e/server.ts, apps/web/e2e/unified-users.spec.ts, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Ewout requested merge/deploy. Merged green audit #160 as 4e8061b, retained its branch, retargeted #161 and resolved lower squash-log conflicts by preserving its reviewed tree (3892e2e), verified no conflict markers and started fresh CI. Production baseline is sha-a47111c/26 migrations/kernel149 with 7 accounts/memberships, 4 sessions, 6 videos and 1 registration. Feature CI exposed WebKit screenshot-height and synthetic shared-IP directory-quota failures (BUG-058); fixed the harness with unchanged production default and a rate-limit regression. No production deploy or real email test yet.
+**Prompts used**: "Merge en deploy".
+
 ## 2026-11-08 — Record notification PR and successful local deploy rehearsal
 
 **Session**: codex/feat/club-application-notifications
