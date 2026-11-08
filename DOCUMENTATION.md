@@ -2,6 +2,48 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Begin authorized merge/deploy and repair CI test isolation
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: apps/web/src/server/config.ts, apps/web/src/server/config.test.ts, apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/auth/registration.db.test.ts, apps/web/e2e/server.ts, apps/web/e2e/unified-users.spec.ts, BUGS.md, TEST.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Ewout requested merge/deploy. Merged green audit #160 as 4e8061b, retained its branch, retargeted #161 and resolved lower squash-log conflicts by preserving its reviewed tree (3892e2e), verified no conflict markers and started fresh CI. Production baseline is sha-a47111c/26 migrations/kernel149 with 7 accounts/memberships, 4 sessions, 6 videos and 1 registration. Feature CI exposed WebKit screenshot-height and synthetic shared-IP directory-quota failures (BUG-058); fixed the harness with unchanged production default and a rate-limit regression. No production deploy or real email test yet.
+**Prompts used**: "Merge en deploy".
+
+## 2026-11-08 — Record notification PR and successful local deploy rehearsal
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: DOCUMENTATION.md, TEST.md, docs/HANDOFF.md
+**Summary**: Opened owner-DNS documentation #162 and feature #163 in the existing stack, and completed the real local deploy rehearsal including migrations, backup, update, failed-release rollback and explicit rollback. All local checks pass (621 full web/DB, 38 focused, 34 browser, 50 worker, 77 deploy-script); CI worker setup download failed with HTTP504 before tests in run 42468102702, while other completed checks pass. Latest-head CI needs verification after this checkpoint push; production/actual notification emails remain untouched.
+**Prompts used**: "Ja, voer het aangepaste volledige plan uit".
+
+## 2026-11-08 — Implement initial admission mail, clubless review and multi-club trainings
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: apps/web/src/server/repositories/admission-notices.ts, apps/web/src/server/auth/admission-mail.ts, apps/web/src/server/auth/admission-mail.test.ts, apps/web/src/server/auth/registration.db.test.ts, apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/repositories/session-list.ts, apps/web/src/server/api/sessions.ts, apps/web/src/server/api/visibility.db.test.ts, apps/web/src/server/app.ts, apps/web/src/server/main.ts, apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0026_admission_notifications.sql, apps/web/src/server/db/migrations/meta/0026_snapshot.json, apps/web/src/server/db/migrations/meta/_journal.json, apps/web/src/client/admin/AdmissionPage.tsx, apps/web/src/client/admin/admission-strings.ts, apps/web/src/client/admin/UsersPage.tsx, apps/web/src/client/App.tsx, apps/web/src/client/clubs/ClubsPage.tsx, apps/web/src/client/club-context.ts, apps/web/src/client/sessions/SessionsPage.tsx, apps/web/src/client/sessions/filter.ts, apps/web/src/client/sessions/filter.test.ts, apps/web/e2e/unified-users.spec.ts, docs/adr/0025-initial-admission-notifications-and-training-overview.md, docs/adr/README.md, docs/plans/club-application-notifications.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented the approved future-new-user-only notification procedure, durable tenant/global queues, explicit audited platform review for clubless applications and authenticated accept/reject links with inline confirmation. Added a tenant-safe aggregated training overview with club/participation filters and microsecond-stable pagination. Migration 0026 is applied locally (27 total), readiness healthy; 621 full web/DB, 38 focused, 34 laptop/iPhone WebKit, 50 worker and 77 deploy-script checks pass. Corrected initial browser regressions and pagination precision before release; no production deployment, real notification mail or shared-host change.
+**Prompts used**: "Ja, voer het aangepaste volledige plan uit" (the full revised plan approved after the initial-signup/clubless/multi-club scope clarification).
+
+## 2026-11-08 — Finalize explicit platform review for clubless admission
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Owner confirmed that clubless applications require explicit RowLens-admin decisions with notification email and accept/reject links. Finalized protected global application/notification storage, audited current-authority decisions, recipient rechecks and separation from tenant membership; rejected requests do not implicitly lock accounts or revoke memberships. Complete revised architecture/migration plan is ready for approval. No implementation, production mail, migration or deployment performed.
+**Prompts used**: "Ja, expliciet beoordelen met notificatiemail en beslislinks".
+
+## 2026-11-08 — Revise initial admission and multi-club training scope
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Owner narrowed email/decision procedure to new users, kept one initial club choice, added explicit clubless fallback after rejection and additional-club requests from Clubs, and requested a cross-club training overview with club/own-participation filters. Revised impact/design after confirming the current list is single-tenant and both application paths share a submission helper. Asked whether clubless fallback needs platform-admin approval and matching mail/decision links; this behavior and architectural approval remain pending. No implementation, migration, notifications or production changes performed.
+**Prompts used**: "deze procedure geldt alleen voor aanvragen van nieuwe gebruikers. bij eerste aanmelding kan een gebruiker maar voor 1 club kiezen. wanneer een gebruiker niet wordt toegelaten bij een club, kan de gebruiker ook een aanvraag indienen voor een aanmelding zonder club, die komt dan bij de rowlens admin uit. een gebruiker kan vanuit de clubs tab een aanvraag indienen om zich tevens aan te melden bij een andere club. in het overzicht van de trainingen kan de gebruiker alle trainingen zien waar hij toegang toe heeft, kan selecteren per club en alleen trainingen waar hij zelf in voorkomt".
+
+## 2026-11-08 — Specify club administrator application notification and decision links
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Explored verified registration and existing-account club application paths and the current invitation mail transport. Prepared a durable tenant-scoped notification design for all current club admins, localized individual mail, safe retries and deduplication. Owner added direct accept/reject links; specified authenticated review plus explicit confirmation, preserving existing permission/CSRF checks and preventing scanner GET mutations. New outbox/migration and protected review UI require architecture approval; no implementation or production email/change performed.
+**Prompts used**: "als er een aanmelding is, moeten de clubbeheerders van de betreffende club een email ontvangen met een notificatie"; "in de email naar de clubbeheerder moet gelijk een link zitten voor de acceptatie/ afwijzing van de aanmelding".
+
 ## 2026-11-08 — Verify owner-applied mail authentication DNS repair
 
 **Session**: codex/fix/056-registration-mail-auth

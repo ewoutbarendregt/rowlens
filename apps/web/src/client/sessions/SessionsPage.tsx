@@ -1,5 +1,7 @@
+import { admissionStrings } from '../admin/admission-strings.ts';
+import { appUrl } from '../env.ts';
 import { type SubmitEvent, useEffect, useId, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { BOAT_CLASS_NAMES, type BoatClass, seatRole } from '../../shared/boats.ts';
 import { api } from '../api.ts';
 import { useAuth } from '../auth/useAuth.ts';
@@ -29,6 +31,8 @@ import { DEFAULT_BOAT } from '../ui/ProfileForm.tsx';
 
 interface SessionSummary extends SessionRow {
   id: string;
+  clubId?: string;
+  clubName?: string;
   boatType: BoatClass | null;
   /** Who made it (their name, else their e-mail address); null when nobody is set. */
   creatorName: string | null;
@@ -60,6 +64,10 @@ export function SessionsPage() {
     setParams(writeFilters(filters), { replace: true });
   }, [filters, setParams]);
   const roster = useRoster();
+  const [createClub, setCreateClub] = useState(state.kind === 'open' ? (state.club.id ?? '') : '');
+  const actor = state.kind === 'open' ? state.user.id : null;
+  const clubSignature = state.kind === 'open' ? JSON.stringify(state.clubs) : '';
+  const unified = state.kind === 'open' && state.unified === true;
   const [sessions, setSessions] = useState<SessionSummary[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -75,19 +83,40 @@ export function SessionsPage() {
   const filtersRef = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
-    api('/api/sessions')
-      .then((res) =>
-        res.ok
-          ? (res.json() as Promise<{ sessions: SessionSummary[] }>)
-          : Promise.reject(new Error()),
-      )
-      .then((body) => {
-        setSessions(body.sessions);
-      })
-      .catch(() => {
-        setFailed(true);
-      });
-  }, []);
+    const load = new AbortController();
+    setSessions(null);
+    setFailed(false);
+    void (async () => {
+      const rows: SessionSummary[] = [];
+      const cursor: { next: string | null } = { next: null };
+      do {
+        const path = unified
+          ? `/api/account/sessions${cursor.next ? '?' + new URLSearchParams({ cursor: cursor.next }).toString() : ''}`
+          : '/api/sessions';
+        const r = await api(path, unified ? { clubId: null } : {});
+        if (!r.ok) throw new Error();
+        const body = (await r.json()) as { sessions: SessionSummary[]; next?: string | null };
+        if (load.signal.aborted) return;
+        rows.push(...body.sessions);
+        cursor.next = body.next ?? null;
+      } while (cursor.next);
+      setSessions(rows);
+    })().catch(() => {
+      if (!load.signal.aborted) setFailed(true);
+    });
+    return () => {
+      load.abort();
+    };
+  }, [actor, clubSignature, unified]);
+  const sessionUrl = (s: SessionSummary) => {
+    const url = new URL(appUrl(`/sessions/${s.id}`), window.location.origin);
+    if (s.clubId) url.searchParams.set('club', s.clubId);
+    return url.pathname + url.search;
+  };
+  const openSession = (s: SessionSummary) => {
+    if (unified) window.location.assign(sessionUrl(s));
+    else void navigate(`/sessions/${s.id}`);
+  };
 
   const set = (change: Partial<Filters>) => {
     setFilters((current) => ({ ...current, ...change }));
@@ -96,11 +125,19 @@ export function SessionsPage() {
   const create = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setBusy(true);
-    void api('/api/sessions', { method: 'POST', body: { title, date, boatType: chosenBoat } })
+    void api('/api/sessions', {
+      method: 'POST',
+      body: { title, date, boatType: chosenBoat },
+      ...(unified ? { clubId: createClub } : {}),
+    })
       .then(async (res) => {
         if (!res.ok) throw new Error();
         const { id } = (await res.json()) as { id: string };
-        void navigate(`/sessions/${id}`);
+        if (unified) {
+          const url = new URL(appUrl(`/sessions/${id}`), window.location.origin);
+          url.searchParams.set('club', createClub);
+          window.location.assign(url.toString());
+        } else void navigate(`/sessions/${id}`);
       })
       .catch(() => {
         setFailed(true);
@@ -123,6 +160,15 @@ export function SessionsPage() {
     };
   }, []);
 
+  const filterRowers = unified
+    ? [
+        ...new Map(
+          (sessions ?? [])
+            .flatMap((s) => s.lineup)
+            .map((s) => [s.rowerId, { id: s.rowerId, displayName: s.displayName }]),
+        ).values(),
+      ].sort((a, b) => a.displayName.localeCompare(b.displayName))
+    : (roster.rowers ?? []);
   const shown = sessions === null ? [] : applyFilters(sessions, filters);
   const boats = BOAT_CLASS_NAMES.filter((b) => sessions?.some((s) => s.boatType === b));
   const groups = groupByMonth(shown, filters.sort);
@@ -140,7 +186,7 @@ export function SessionsPage() {
             </p>
           )}
         </div>
-        {!creating && (
+        {!creating && (!unified || !!state.clubs?.length) && (
           <button
             type="button"
             onClick={() => {
@@ -161,6 +207,27 @@ export function SessionsPage() {
       {creating && (
         <form className="card form" onSubmit={create} aria-labelledby={`${formId}-h`}>
           <h2 id={`${formId}-h`}>{t.newSession}</h2>
+          {unified && (
+            <label>
+              {admissionStrings().clubFilter}
+              <select
+                required
+                value={createClub}
+                onChange={(e) => {
+                  setCreateClub(e.target.value);
+                }}
+              >
+                <option value="" disabled>
+                  {admissionStrings().clubFilter}
+                </option>
+                {state.clubs?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label htmlFor={`${formId}-title`}>{t.title}</label>
           <input
             id={`${formId}-title`}
@@ -219,6 +286,27 @@ export function SessionsPage() {
           {count > 0 && <span className="badge">{count}</span>}
         </summary>
         <div className="filters__grid form">
+          {unified && (
+            <>
+              <label>
+                {admissionStrings().clubFilter}
+                <select
+                  aria-label={admissionStrings().clubFilter}
+                  value={filters.club ?? ''}
+                  onChange={(e) => {
+                    set({ club: e.target.value || null });
+                  }}
+                >
+                  <option value="">{admissionStrings().allClubs}</option>
+                  {state.clubs?.map((c) => (
+                    <option value={c.id} key={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
           <label className="filters__search">
             {t.search}
             <span className="search-field">
@@ -262,7 +350,7 @@ export function SessionsPage() {
               }}
             >
               <option value="">{t.anyone}</option>
-              {(roster.rowers ?? []).map((r) => (
+              {filterRowers.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.displayName}
                 </option>
@@ -302,6 +390,19 @@ export function SessionsPage() {
           </label>
         </div>
         <div className="filters__footer">
+          {unified && (
+            <label className="filters__check">
+              <input
+                type="checkbox"
+                aria-label={admissionStrings().participating}
+                checked={filters.participating}
+                onChange={(e) => {
+                  set({ participating: e.target.checked });
+                }}
+              />
+              {admissionStrings().participating}
+            </label>
+          )}
           <label className="filters__check">
             <input
               type="checkbox"
@@ -358,17 +459,17 @@ export function SessionsPage() {
                       <tr
                         key={s.id}
                         onClick={(e) => {
-                          if (!(e.target as Element).closest('a'))
-                            void navigate(`/sessions/${s.id}`);
+                          if (!(e.target as Element).closest('a')) openSession(s);
                         }}
                       >
                         <td className="sessions-table__date">
                           <span className="muted">{day.weekday}</span> {day.day}
                         </td>
                         <td className="sessions-table__title">
-                          <Link to={`/sessions/${s.id}`} data-testid="session">
+                          <a href={sessionUrl(s)} data-testid="session">
                             {s.title}
-                          </Link>
+                          </a>
+                          {s.clubName && <span className="muted">{s.clubName}</span>}
                           <span className="muted">
                             {s.creatorName !== null && <>{s.creatorName} · </>}
                             {t.createdOn(

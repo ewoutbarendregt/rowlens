@@ -3,6 +3,25 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Initial admission and training overview (ADR-0025)
+
+Migration 0026 adds an initial-signup marker, protected global clubless requests and separate tenant
+and global notification queues. Verified first signup enqueues atomically; extra-club requests keep
+the original in-app admission path. Claim/finish repositories run in a fixed service TenantContext,
+recheck current recipient authority and commit before SMTP. The web dispatcher polls with leases,
+unique recipient keys and five bounded retries, stopping in preClose before pool shutdown. Messages
+contain localized protected accept/reject URLs; the review page authenticates in place and requires
+inline confirmation. Clubless decisions use persisted platform authority, the shared authority lock,
+pending-state compare/update and an audit, granting no tenant rights. Existing accounts are not
+backfilled or implicitly revoked. Local mail previews are wired only by main.ts when SMTP is unset.
+
+The account-level session list derives eligible clubs, calls the shared list repository separately
+under each TenantContext/RLS, and merges 100-row cursor pages. Keep timestamp microseconds through
+SQL-generated cursor text; resource links/opening/creation capture club IDs. UI club/participation
+filters are independent of private feedback and edit capability. Participant identity is linked
+user/lineup data, including cox seat 0, rather than creator/name matching. The old selected-club API
+and profile completion gate remain compatible. No new dependency, processor or host setting.
+
 ## Explicit registration (ADR-0024)
 
 Unified authentication separates existing-account login from registration. Public

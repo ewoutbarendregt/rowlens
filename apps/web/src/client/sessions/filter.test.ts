@@ -71,6 +71,8 @@ describe('applyFilters', () => {
 describe('filters in the URL', () => {
   it('round-trips and leaves defaults out', () => {
     const f: Filters = {
+      club: null,
+      participating: false,
       from: '2026-10-01',
       to: '2026-11-30',
       rower: 'kees',
@@ -130,5 +132,19 @@ describe('crewText', () => {
     expect(crewText([{ seat: 1, displayName: 'Tom Bakker' }], 'stuur')).toBe('Tom');
     expect(crewText([{ seat: 0, displayName: 'Lieke Smit' }], 'stuur')).toBe('stuur Lieke');
     expect(crewText([], 'cox')).toBeNull();
+  });
+});
+
+describe('multi-club participation filters', () => {
+  it('distinguishes actual participation including cox from creation/notes and persists filters', () => {
+    const list = [
+      { ...row('Participant', '2026-11-01'), clubId: 'a', mySeat: 0 },
+      { ...row('Other club', '2026-11-01'), clubId: 'b', mySeat: 2 },
+      { ...row('Not participating', '2026-11-01'), clubId: 'a', mySeat: null },
+    ];
+    const f = { ...DEFAULT_FILTERS, club: 'a', participating: true };
+    expect(applyFilters(list, f)).toEqual([list[0]]);
+    expect(readFilters(writeFilters(f))).toEqual(f);
+    expect(activeFilters(f)).toBe(2);
   });
 });

@@ -1,3 +1,4 @@
+import { admissionStrings } from '../admin/admission-strings.ts';
 import { registrationStrings } from '../auth/registration-strings.ts';
 import { useEffect, useState } from 'react';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
@@ -27,6 +28,10 @@ export function ClubsPage() {
   const { state, refresh } = useAuth();
   const t = clubStrings(),
     r = registrationStrings();
+  const [admission, setAdmission] = useState<{
+    request: { id: string; status: 'pending' | 'approved' | 'rejected' } | null;
+    canRequest: boolean;
+  } | null>(null);
   const [registration, setRegistration] = useState<{
     clubId: string | null;
     clubName: string | null;
@@ -62,8 +67,10 @@ export function ClubsPage() {
           clubs: Club[];
           applications: Application[];
           registration: typeof registration;
+          admission: typeof admission;
         };
         setRegistration(platform ? null : own.registration);
+        setAdmission(platform ? null : own.admission);
         setDirectory(platform ? (data[0] as Club[]) : own.clubs);
         setApplications(platform ? [] : own.applications);
         setUsers(platform ? (data[1] as User[]) : []);
@@ -118,6 +125,17 @@ export function ClubsPage() {
             <p>{r.registeredWithoutClub}</p>
           )}
         </section>
+      )}
+      {admission?.request && (
+        <section className="card" role="status">
+          <h2>{admissionStrings().withoutClub}</h2>
+          <p>{admissionStrings()[admission.request.status]}</p>
+        </section>
+      )}
+      {admission?.canRequest && (
+        <button disabled={busy} onClick={() => void change('/api/account/clubless')}>
+          {admissionStrings().applyWithoutClub}
+        </button>
       )}
       <p>{t.switchHint}</p>
       {!platform && !state.clubs?.length && <p>{t.none}</p>}

@@ -472,6 +472,7 @@ describe('what a rower sees (#40)', () => {
       'annotation',
       'club_access',
       'club_access_log',
+      'club_application_notice',
       'lineup_seat',
       'membership',
       'membership_application',

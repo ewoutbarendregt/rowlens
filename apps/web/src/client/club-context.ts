@@ -1,5 +1,9 @@
 /** Each tab owns its club; requests and media URLs capture this context when created. */
-let selected: string | null = sessionStorage.getItem('rowlens.activeClub');
+const requestedClub = new URLSearchParams(window.location.search).get('club');
+let selected: string | null =
+  requestedClub !== null && /^[0-9a-f-]{36}$/i.test(requestedClub)
+    ? requestedClub
+    : sessionStorage.getItem('rowlens.activeClub');
 export const activeClub = () => selected;
 export function setActiveClub(id: string | null): void {
   selected = id;

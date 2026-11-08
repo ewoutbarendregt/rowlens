@@ -1,3 +1,4 @@
+import { dispatchAdmission } from './admission-mail.ts';
 import pg from 'pg';
 import { withBasePath } from '../../shared/base-path.ts';
 import { randomUUID } from 'node:crypto';
@@ -450,5 +451,382 @@ describe('explicit verified registration', () => {
     expect(
       await asOwner('select club_id from membership_application where user_id=$1', [u.id]),
     ).toEqual([{ club_id: clubs.b }]);
+  });
+});
+
+function must<T>(value: T | undefined): T {
+  if (value === undefined) throw new Error('Missing fixture');
+  return value;
+}
+
+// Initial admission notifications are intentionally distinct from later membership requests.
+describe('initial admission notifications and platform decisions', () => {
+  it('enqueues all relevant club admins only after proof, without notifying later applications', async () => {
+    const staff = await actors(),
+      extra = await register();
+    await asOwner("insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin'])", [
+      clubs.a,
+      extra.id,
+    ]);
+    const proof = await issue(email(), clubs.a);
+    expect(
+      await asOwner(
+        'select n.id from club_application_notice n join membership_application a on a.id=n.application_id join app_user u on u.id=a.user_id where u.email=$1',
+        [proof.email],
+      ),
+    ).toHaveLength(0);
+    const r = await verify(proof);
+    expect(r.statusCode).toBe(204);
+    const [user] = await asOwner<{ id: string }>('select id from app_user where email=$1', [
+      proof.email,
+    ]);
+    const recipients = await asOwner<{ recipient_id: string }>(
+      'select n.recipient_id from club_application_notice n join membership_application a on a.id=n.application_id where a.user_id=$1',
+      [must(user).id],
+    );
+    expect(recipients.map((r) => r.recipient_id)).toEqual(
+      expect.arrayContaining([staff.a.id, extra.id]),
+    );
+    expect(recipients.some((r) => r.recipient_id === staff.b.id)).toBe(false);
+    expect((await verify(proof)).statusCode).toBe(403);
+    const cookies = r.cookies.map((c) => `${c.name}=${c.value}`).join('; ');
+    expect(
+      (await call('POST', '/api/account/applications', { clubId: clubs.b }, cookies)).statusCode,
+    ).toBe(201);
+    const foreign = await asOwner(
+      'select n.id from club_application_notice n join membership_application a on a.id=n.application_id where a.user_id=$1 and a.club_id=$2',
+      [must(user).id, clubs.b],
+    );
+    expect(foreign).toHaveLength(0);
+  });
+  it('routes explicit post-rejection clubless requests only to persisted platform reviewers', async () => {
+    const staff = await actors(),
+      u = await register(clubs.a);
+    expect((await call('POST', '/api/account/clubless', undefined, u.cookies)).statusCode).toBe(
+      409,
+    );
+    const [a] = await asOwner<{ id: string }>(
+      'select id from membership_application where user_id=$1 and club_id=$2',
+      [u.id, clubs.a],
+    );
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/admin/applications/${must(a).id}`,
+          { approve: false },
+          staff.a.cookies,
+          clubs.a,
+        )
+      ).statusCode,
+    ).toBe(204);
+    expect((await call('POST', '/api/account/clubless', undefined, u.cookies)).statusCode).toBe(
+      201,
+    );
+    expect((await call('POST', '/api/account/clubless', undefined, u.cookies)).statusCode).toBe(
+      409,
+    );
+    const [g] = await asOwner<{ id: string }>(
+      'select id from clubless_application where user_id=$1',
+      [u.id],
+    );
+    const rows = (
+      await call('GET', '/api/account/clubless-requests', undefined, staff.platform.cookies)
+    ).json<{ id: string }[]>();
+    expect(rows.some((r) => r.id === must(g).id)).toBe(true);
+    expect(
+      (
+        await call('GET', '/api/account/clubless-requests', undefined, staff.a.cookies, clubs.a)
+      ).json(),
+    ).toEqual([]);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/clubless-requests/${must(g).id}`,
+          { approve: true },
+          staff.a.cookies,
+          clubs.a,
+        )
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/clubless-requests/${must(g).id}`,
+          { approve: true },
+          staff.platform.cookies,
+        )
+      ).statusCode,
+    ).toBe(204);
+    expect(
+      (
+        await call(
+          'POST',
+          `/api/account/clubless-requests/${must(g).id}`,
+          { approve: false },
+          staff.platform.cookies,
+        )
+      ).statusCode,
+    ).toBe(409);
+    expect(await asOwner('select * from membership where user_id=$1', [u.id])).toHaveLength(0);
+    const own = (await call('GET', '/api/account/clubs', undefined, u.cookies)).json<{
+      admission: { request: { status: string } };
+    }>();
+    expect(own.admission.request.status).toBe('approved');
+  });
+  it('initial no-club signup creates a protected pending global request with no tenant membership', async () => {
+    const staff = await actors(),
+      u = await register();
+    const [g] = await asOwner<{ id: string }>(
+      'select id from clubless_application where user_id=$1',
+      [u.id],
+    );
+    expect(g).toBeDefined();
+    const notices = await asOwner<{ recipient_id: string }>(
+      'select recipient_id from clubless_application_notice where application_id=$1',
+      [must(g).id],
+    );
+    expect(notices.some((n) => n.recipient_id === staff.platform.id)).toBe(true);
+    const client = new pg.Client({ connectionString: inject('appUrl') });
+    await client.connect();
+    try {
+      await expect(client.query('select * from clubless_application')).rejects.toThrow(
+        /permission denied/,
+      );
+      await expect(client.query('select * from club_application_notice')).rejects.toThrow(
+        /permission denied/,
+      );
+      expect(
+        (await client.query<{ value: unknown }>('select rowlens_claim_admission_notice() as value'))
+          .rows[0]?.value,
+      ).toBeNull();
+    } finally {
+      await client.end();
+    }
+  });
+  it('rejects multi-club signup intent and prevents authenticated review GET from mutating', async () => {
+    const staff = await actors(),
+      u = await register(clubs.a);
+    const response = await call('POST', '/api/auth/registration/otp', {
+      email: email(),
+      clubId: [clubs.a, clubs.b],
+    });
+    expect(response.statusCode).toBe(202);
+    const [a] = await asOwner<{ id: string }>(
+      'select id from membership_application where user_id=$1 and club_id=$2',
+      [u.id, clubs.a],
+    );
+    const path = `/api/account/admission/${must(a).id}?global=false&club=${clubs.a}`;
+    expect((await call('GET', path, undefined, staff.a.cookies)).statusCode).toBe(200);
+    expect((await call('GET', path, undefined, staff.b.cookies)).statusCode).toBe(404);
+    expect(
+      (
+        await asOwner<{ status: string }>('select status from membership_application where id=$1', [
+          must(a).id,
+        ])
+      )[0]?.status,
+    ).toBe('pending');
+  });
+  it('aggregates only authorized clubs with a stable pagination cursor', async () => {
+    const u = await register(),
+      other = await register(),
+      c = await createTwoClubs();
+    await asOwner(
+      "insert into membership(club_id,user_id,roles) values($1,$3,ARRAY['rower']),($2,$3,ARRAY['rower'])",
+      [c.a, c.b, u.id],
+    );
+    await asOwner(
+      "insert into rowing_session(club_id,title,session_date,created_by_user_id) select $1::uuid,'Multi '||n,'2026-11-08'::date,$3::uuid from generate_series(1,102) n union all select $2::uuid,'Other club','2026-11-07'::date,$3::uuid",
+      [c.a, c.b, other.id],
+    );
+    const r = (await call('GET', '/api/account/sessions', undefined, u.cookies)).json<{
+      sessions: { id: string; clubId: string; canEdit: boolean }[];
+      next: string | null;
+    }>();
+    expect(r.sessions).toHaveLength(100);
+    expect(r.next).not.toBeNull();
+    expect(r.sessions.every((s) => s.clubId === c.a && !s.canEdit)).toBe(true);
+    const second = (
+      await call('GET', `/api/account/sessions?cursor=${String(r.next)}`, undefined, u.cookies)
+    ).json<typeof r>();
+    expect(second.sessions).toHaveLength(3);
+    expect(second.sessions.some((s) => s.clubId === c.b)).toBe(true);
+    expect(new Set([...r.sessions, ...second.sessions].map((s) => s.id)).size).toBe(103);
+    expect(
+      (await call('GET', '/api/account/sessions', undefined, other.cookies)).json<{
+        sessions: unknown[];
+      }>().sessions,
+    ).toHaveLength(0);
+    expect(
+      (await call('GET', '/api/account/sessions?cursor=invalid', undefined, u.cookies)).statusCode,
+    ).toBe(400);
+  });
+});
+
+describe('durable notification dispatcher', () => {
+  it('retries failed SMTP, recovers expired leases and rejects stale acknowledgements', async () => {
+    await actors();
+    await register(clubs.a);
+    // Isolate queue selection; fixtures remain synthetic and preserve historical accepted rows.
+    await asOwner("update club_application_notice set state='cancelled'");
+    await asOwner("update clubless_application_notice set state='cancelled'");
+    const u = await register(clubs.a);
+    const [n] = await asOwner<{ id: string }>(
+      'select n.id from club_application_notice n join membership_application a on a.id=n.application_id where a.user_id=$1 order by n.id limit 1',
+      [u.id],
+    );
+    await asOwner("update club_application_notice set state='cancelled' where id<>$1", [
+      must(n).id,
+    ]);
+    expect(
+      await dispatchAdmission(h.db, () => Promise.reject(new Error('synthetic SMTP failure'))),
+    ).toBe(true);
+    expect(
+      (
+        await asOwner<{ state: string; attempts: number }>(
+          'select state,attempts from club_application_notice where id=$1',
+          [must(n).id],
+        )
+      )[0],
+    ).toEqual({ state: 'queued', attempts: 1 });
+    expect(await dispatchAdmission(h.db, () => Promise.resolve())).toBe(false);
+    await asOwner(
+      "update club_application_notice set available_at=now()-interval '1 second',state='sending',locked_until=now()-interval '1 second',lease=gen_random_uuid() where id=$1",
+      [must(n).id],
+    );
+    const sent: string[] = [];
+    expect(
+      await dispatchAdmission(h.db, (notice) => {
+        sent.push(notice.id);
+        return Promise.resolve();
+      }),
+    ).toBe(true);
+    expect(sent).toEqual([must(n).id]);
+    expect(
+      (
+        await asOwner<{ state: string }>('select state from club_application_notice where id=$1', [
+          must(n).id,
+        ])
+      )[0]?.state,
+    ).toBe('accepted');
+    expect(await dispatchAdmission(h.db, () => Promise.resolve())).toBe(false);
+  });
+  it('skips revoked recipients and archived clubs instead of sending', async () => {
+    await asOwner("update club_application_notice set state='cancelled'");
+    await asOwner("update clubless_application_notice set state='cancelled'");
+    const c = await createTwoClubs(),
+      admin = await register();
+    await asOwner("insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin'])", [
+      c.a,
+      admin.id,
+    ]);
+    await asOwner("update clubless_application_notice set state='cancelled'");
+    const u = await register(c.a);
+    expect(u.id).toBeTruthy();
+    await asOwner('delete from membership where club_id=$1 and user_id=$2', [c.a, admin.id]);
+    let called = false;
+    await dispatchAdmission(h.db, () => {
+      called = true;
+      return Promise.resolve();
+    });
+    expect(called).toBe(false);
+    await asOwner("insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin'])", [
+      c.a,
+      admin.id,
+    ]);
+    await register(c.a);
+    await asOwner('update club set archived_at=now() where id=$1', [c.a]);
+    await dispatchAdmission(h.db, () => {
+      called = true;
+      return Promise.resolve();
+    });
+    expect(called).toBe(false);
+  });
+});
+
+describe('concurrent initial admission and leased delivery', () => {
+  it('one verified proof creates one initial event under concurrent verification', async () => {
+    await actors();
+    const proof = await issue(email(), clubs.a);
+    const rs = await Promise.all([verify(proof), verify(proof)]);
+    expect(rs.map((r) => r.statusCode).sort()).toEqual([204, 403]);
+    const rows = await asOwner<{ recipient_id: string; n: number }>(
+      'select n.recipient_id,count(*)::int as n from club_application_notice n join membership_application a on a.id=n.application_id join app_user u on u.id=a.user_id where u.email=$1 group by n.recipient_id',
+      [proof.email],
+    );
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((r) => r.n === 1)).toBe(true);
+  });
+  it('claims a delivery once across concurrent dispatchers and stops after bounded failures', async () => {
+    await asOwner("update club_application_notice set state='cancelled'");
+    await asOwner("update clubless_application_notice set state='cancelled'");
+    const c = await createTwoClubs(),
+      admin = await register();
+    await asOwner("update clubless_application_notice set state='cancelled'");
+    await asOwner("insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['admin'])", [
+      c.a,
+      admin.id,
+    ]);
+    const u = await register(c.a);
+    let sent = 0;
+    const results = await Promise.all([
+      dispatchAdmission(h.db, () => {
+        sent++;
+        return Promise.resolve();
+      }),
+      dispatchAdmission(h.db, () => {
+        sent++;
+        return Promise.resolve();
+      }),
+    ]);
+    expect(sent).toBe(1);
+    expect(results.filter(Boolean)).toHaveLength(1);
+    const [n] = await asOwner<{ id: string }>(
+      'select n.id from club_application_notice n join membership_application a on a.id=n.application_id where a.user_id=$1',
+      [u.id],
+    );
+    await asOwner(
+      "update club_application_notice set state='queued',attempts=4,available_at=now() where id=$1",
+      [must(n).id],
+    );
+    await dispatchAdmission(h.db, () => Promise.reject(new Error('synthetic failure')));
+    expect(
+      (
+        await asOwner<{ state: string }>('select state from club_application_notice where id=$1', [
+          must(n).id,
+        ])
+      )[0]?.state,
+    ).toBe('dead');
+    expect(await dispatchAdmission(h.db, () => Promise.resolve())).toBe(false);
+  });
+});
+
+describe('registration directory rate limit isolation', () => {
+  it('enforces the configured public-directory limit without weakening production defaults', async () => {
+    const isolated = await buildApp({
+      config: loadConfig({
+        NODE_ENV: 'test',
+        UNIFIED_USERS: 'true',
+        OTP_PEPPER: 'd'.repeat(64),
+        PUBLIC_ORIGIN: ORIGIN,
+        AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE: '1',
+      }),
+      clientDir: null,
+      database: h.db,
+      logger: false,
+    });
+    const request = {
+      method: 'GET' as const,
+      url: withBasePath(BASE, '/api/auth/registration/clubs'),
+      remoteAddress: '192.0.2.187',
+    };
+    try {
+      expect((await isolated.inject(request)).statusCode).toBe(200);
+      expect((await isolated.inject(request)).statusCode).toBe(429);
+    } finally {
+      await isolated.close();
+    }
   });
 });

@@ -1,3 +1,8 @@
+import {
+  smtpAdmissionDelivery,
+  startAdmissionDispatcher,
+  type DeliverAdmission,
+} from './auth/admission-mail.ts';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -45,6 +50,7 @@ export interface BuildAppOptions {
   resolvePilotClubId?: () => Promise<string | null>;
   /** Test seam for OTP delivery; production derives this from the SMTP configuration. */
   deliverLoginCode?: DeliverLoginCode;
+  deliverAdmission?: DeliverAdmission;
   /** Test seam for invitation mails (#42), like deliverLoginCode. */
   deliverInvite?: DeliverInvite;
   /** Pino logging; off in tests. */
@@ -153,6 +159,17 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
       const deliver =
         opts.deliverLoginCode ??
         (config.auth.smtp === null ? undefined : smtpDelivery(config.auth.smtp));
+      const admissionDelivery =
+        opts.deliverAdmission ??
+        (config.auth.smtp
+          ? smtpAdmissionDelivery(config.auth.smtp, config.publicOrigin, base)
+          : undefined);
+      if (config.unifiedUsers && admissionDelivery) {
+        const stop = startAdmissionDispatcher(db, admissionDelivery, () => {
+          app.log.error('Admission dispatcher failed');
+        });
+        app.addHook('preClose', stop);
+      }
       const authGate = (config.unifiedUsers ? createUnifiedGate : createAuthGate)({
         db,
         auth: config.auth,

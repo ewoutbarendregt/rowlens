@@ -1,3 +1,4 @@
+import { admissionReviewUrl, type DeliverAdmission } from './auth/admission-mail.ts';
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,8 +15,24 @@ const clientDir = config.clientDir ?? defaultClientDir;
 
 const database = config.databaseUrl === undefined ? null : connectDatabase(config.databaseUrl);
 
+// Local mail previews are wired here so injected/test app instances never start a real sink.
+const previewAdmission: DeliverAdmission | undefined =
+  config.nodeEnv === 'development' && config.auth?.smtp === null
+    ? (notice) => {
+        process.stdout.write(
+          JSON.stringify({
+            msg: 'development admission notification',
+            acceptUrl: admissionReviewUrl(notice, config.publicOrigin, config.basePath, true),
+            rejectUrl: admissionReviewUrl(notice, config.publicOrigin, config.basePath, false),
+          }) + '\n',
+        );
+        return Promise.resolve();
+      }
+    : undefined;
+
 const app = await buildApp({
   config,
+  ...(previewAdmission ? { deliverAdmission: previewAdmission } : {}),
   clientDir: existsSync(join(clientDir, BUILD_INFO_FILE)) ? clientDir : null,
   readinessChecks: database === null ? [] : [database.readiness],
   database: database?.db ?? null,

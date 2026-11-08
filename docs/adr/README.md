@@ -33,3 +33,5 @@
 | [0024](0024-explicit-registration-and-club-choice.md) | Explicit verified registration with optional club choice and scoped review | accepted |
 
 New ADR: copy `0000-template.md` to the next number.
+
+| [0025](0025-initial-admission-notifications-and-training-overview.md) | Initial admission notifications, explicit clubless review and multi-club training overview | accepted |

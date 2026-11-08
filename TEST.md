@@ -2,6 +2,62 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Authorized release in progress — 2026-11-08
+
+Ewout requested "Merge en deploy". #160 merged as 4e8061b, branch retained. #161 retargeted to main;
+main integration conflicts resolved by restoring its own reviewed tree, marker scan clean, pushed
+3892e2e; wait for CI 42468683540 before merging it. Then retarget/integrate #162, and #163 last.
+Feature head ea40edb CI 42468395663 failed on 3 Linux WebKit tests: screenshot >32767 pixels and
+shared synthetic directory quota. BUG-058 fixes capture only relevant request cards, keeps production
+30/minute and configures 1000 only in E2E, with a configured-limit DB regression. Focused config and
+registration checks: 35 pass; CI-mode local browser rerun: 34/34 pass. Do not merge #163 until
+its corrected head's CI passes. No deploy yet; previous no-deploy authorization wording is superseded.
+Production baseline files: /tmp/rowlens-admission-predeploy-{containers.txt,data.json}; sha-a47111c,
+26 migrations, kernel149, 7 accounts/memberships, 4 sessions, 6 videos, 1 registration, 1 global admin.
+Post-deploy SQL is prepared at /tmp/rowlens-admission-postdeploy.sql. Preserve shared container IDs.
+
+## PR and deployment rehearsal checkpoint — 2026-11-08
+
+Feature PR [#163](https://github.com/ewoutbarendregt/rowlens/pull/163) is stacked on DNS documentation
+[#162](https://github.com/ewoutbarendregt/rowlens/pull/162), then kernel/audit #161/#160. No merge/deploy
+was requested. Local actual deploy rehearsal **passes**: migrations, backup, normal update, failed
+release rollback, explicit rollback and status. Temporary rehearsal containers/images were cleaned
+by the script; local dev remains healthy (HTTP200 and DB ready).
+
+CI run **42468102702**: policy/secrets/deploy-script pass; worker stopped before tests because
+setup-uv's release download returned **HTTP504 three times**. This is a download failure, not a
+worker test failure; all 50 worker checks pass locally. GitHub refused an individual rerun while
+the full workflow was still in progress. The documentation push starts a fresh full run; inspect
+that latest head before claiming green or merging. Local validation remains 621 full web/DB,
+38 final focused, 34 laptop/iPhone WebKit, 50 worker and 77 deploy-script checks, with format,
+lint, typecheck and build passing. Production/actual notification receipt remains unverified.
+
+## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
+
+Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,
+27 migrations locally). New verified club signup queues individual NL/EN mail for current club
+admins only; later club applications do not send these emails. Initial clubless signup and an
+explicit clubless fallback after initial club rejection enter protected platform review, with
+notifications/accept/reject links for RowLens admins. Decisions preserve account and unrelated
+membership rights. Link GETs are read-only; sign-in preserves the review target and decisions need
+inline confirmation/current authority/CSRF. Durable leases, deduplication and bounded retry survive
+restarts; accepted means SMTP acceptance, not inbox delivery.
+
+Training overview aggregates authorized clubs under separate TenantContext/RLS, with club and
+actual-participation filters (cox seat 0 included), stable microsecond cursor pagination and explicit
+club context when opening/creating. Existing profile completion and private feedback rules remain.
+Local API readiness is healthy; dev UI: http://localhost:5174/projects/rowlens/. With SMTP absent,
+the local entry point logs protected decision URLs as `development admission notification` in
+/tmp/rowlens-unified-dev.log; synthetic injected delivery is used for tests.
+
+Checks: **621** full web/DB, **38** focused, **34** browser (1000x540 Chromium and iPhone13 WebKit),
+**50** worker and **77** deploy-script tests pass; typecheck/lint/build and formatting checked.
+Browser screenshots inspected; checkbox uses the existing 44px touch label. The first browser run
+found a bypassed name gate, duplicate email text and an unlabeled filter; fixed before final green
+34/34. An introduced pagination precision error was fixed (BUG-057). Local function definition was
+refreshed after the final platform-authority locking change; fresh test databases run the full
+migration. No production merge/deploy, actual email or shared-server change performed.
+
 ## DNS repair verified — 2026-11-08
 
 Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve
