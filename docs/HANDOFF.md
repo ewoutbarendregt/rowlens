@@ -3,6 +3,17 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Latest investigation — new-address OTP report (2026-11-08)
+
+Read-only check: unified mode active, live bundle includes Account aanmaken and registration OTP.
+The inspected production log window had 3 login OTP requests, 0 registration OTP requests and 0
+OTP mail failures (aggregate output only; no address/code exposed). ADR-0024 intentionally does
+not mail login codes to unknown accounts. Direct new users to Account aanmaken, choose a club
+or no club, then request/confirm the registration code. No production mail was sent for testing;
+registration mailbox delivery is not yet verified. No app/server change or deploy was made.
+An earlier question asks whether the user tried login versus registration; no explicit choice
+was received, so do not claim a user-confirmed path or rule out a later registration-mail issue.
+
 ## Completed production repair — 2026-11-07 20:17 UTC
 
 Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial

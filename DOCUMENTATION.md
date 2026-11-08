@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Diagnose new-address code requests on production
+
+**Session**: codex/docs/registration-mail-check
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Read-only production inspection found three login OTP requests, no registration OTP requests and zero OTP mail failures in the inspected 30-minute window. Unified authentication is active; the live bundle contains Account aanmaken and its registration endpoint. ADR-0024 deliberately sends login codes only to existing accounts; new addresses must use explicit registration with a club/no-club choice. No production email sent, account changed or deployment performed; actual registration mailbox delivery remains unverified.
+**Prompts used**: "als ik een nieuw email adres invul op prod, ontvang ik geen login code op dat adres. bestaande email adressen ontvangen wel een login code"; "ga verder".
+
 ## 2026-11-07 — Complete the approved production kernel repair and reboot
 
 **Session**: codex/fix/054-kernel-remediation
