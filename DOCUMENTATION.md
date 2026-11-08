@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Record notification PR and successful local deploy rehearsal
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: DOCUMENTATION.md, TEST.md, docs/HANDOFF.md
+**Summary**: Opened owner-DNS documentation #162 and feature #163 in the existing stack, and completed the real local deploy rehearsal including migrations, backup, update, failed-release rollback and explicit rollback. All local checks pass (621 full web/DB, 38 focused, 34 browser, 50 worker, 77 deploy-script); CI worker setup download failed with HTTP504 before tests in run 42468102702, while other completed checks pass. Latest-head CI needs verification after this checkpoint push; production/actual notification emails remain untouched.
+**Prompts used**: "Ja, voer het aangepaste volledige plan uit".
+
 ## 2026-11-08 — Implement initial admission mail, clubless review and multi-club trainings
 
 **Session**: codex/feat/club-application-notifications

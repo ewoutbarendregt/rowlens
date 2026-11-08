@@ -2,6 +2,22 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## PR and deployment rehearsal checkpoint — 2026-11-08
+
+Feature PR [#163](https://github.com/ewoutbarendregt/rowlens/pull/163) is stacked on DNS documentation
+[#162](https://github.com/ewoutbarendregt/rowlens/pull/162), then kernel/audit #161/#160. No merge/deploy
+was requested. Local actual deploy rehearsal **passes**: migrations, backup, normal update, failed
+release rollback, explicit rollback and status. Temporary rehearsal containers/images were cleaned
+by the script; local dev remains healthy (HTTP200 and DB ready).
+
+CI run **42468102702**: policy/secrets/deploy-script pass; worker stopped before tests because
+setup-uv's release download returned **HTTP504 three times**. This is a download failure, not a
+worker test failure; all 50 worker checks pass locally. GitHub refused an individual rerun while
+the full workflow was still in progress. The documentation push starts a fresh full run; inspect
+that latest head before claiming green or merging. Local validation remains 621 full web/DB,
+38 final focused, 34 laptop/iPhone WebKit, 50 worker and 77 deploy-script checks, with format,
+lint, typecheck and build passing. Production/actual notification receipt remains unverified.
+
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
 
 Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,
