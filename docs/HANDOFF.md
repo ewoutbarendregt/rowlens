@@ -3,6 +3,23 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Active production release — merged, awaiting main build (2026-11-08)
+
+Ewout authorized "Merge en deploy". #160/#161/#162/#163 merged as 4e8061b/004d99a/8904684/037899e.
+Final integrated PR CI 42470466200 is fully green. Source tree of main 037899e exactly matches
+reviewed 792d213/528fcfe. Main CI **42471455669** and images **42471455659** must pass, then deploy
+**sha-037899e** via standard deploy.yml with check_public_url=true. No production deploy yet.
+Current log branch: codex/docs/163-deploy; keep main untouched except explicitly requested PR merges.
+Local release state/baselines/scripts are in /tmp/rowlens-admission-release-state.json and paths
+listed there. Baseline is sha-a47111c/26 migrations/kernel149, 7 accounts/memberships, 4 sessions,
+6 videos, 14 compatibility people (7 unlinked), 10 seats, 8 angles, 1 registration/platform admin,
+0 pending applications. Compare shared container IDs/start times/images; refresh data immediately
+before deploy if needed. Expect 27 migrations, protected new tables, no retrospective notices.
+Provider read-only metadata shows the most recent existing registration email delivered at
+2026-11-08 08:32:25 UTC after DNS repair. No new real notification mail or production OTP requested.
+After verified deploy update all release logs/runbook and create a docs PR; do not merge it without
+a new request. Historical no-deploy instructions below are superseded by this authorization.
+
 ## Authorized release in progress — 2026-11-08
 
 Ewout requested "Merge en deploy". #160 merged as 4e8061b, branch retained. #161 retargeted to main;

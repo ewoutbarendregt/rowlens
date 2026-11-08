@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Merge the approved admission release and prepare production deploy
+
+**Session**: codex/docs/163-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: On Ewout's merge/deploy request, merged #160 (4e8061b), #161 (004d99a), #162 (8904684) and #163 (037899e), retaining lower branches and retesting each integrated reviewed tree; final PR CI 42470466200 passes all eight jobs. Corrected CI screenshot/quota isolation (BUG-058) with production defaults unchanged; 35 focused and 34 local CI-mode browser checks pass. Exact main merge tree matches the reviewed feature; main CI 42471455669 and images 42471455659 must pass before deploying sha-037899e. Read-only baseline: sha-a47111c, 26 migrations, kernel149, 7 accounts/memberships, 4 sessions, 6 videos, 14 compatibility people (7 unlinked), 10 seats, 8 angles, 1 registration/global administrator and no pending applications. No production deploy or new email test yet; provider metadata independently shows the latest existing registration mail delivered after the owner's DNS repair.
+**Prompts used**: "Merge en deploy".
+
 ## 2026-11-08 — Begin authorized merge/deploy and repair CI test isolation
 
 **Session**: codex/feat/club-application-notifications
