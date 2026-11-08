@@ -4,10 +4,10 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-056] Registration codes bounce at Microsoft due to sender authentication — high
 **Location**: shared trustable.nl DNS; docs/security/bug-056-registration-mail-auth.md
-**Status**: in-progress (DNS change awaits approval/access)
+**Status**: in-progress (DNS repair verified; awaiting fresh registration mail receipt)
 **Found**: 2026-11-08
 **Description**: Registration OTP is issued and SMTP accepts it, but three provider records show later bounces. Microsoft returns 550 5.7.1 AS9031519 for missing sender authentication. Live DNS lacks send-subdomain SPF and DMARC; configured DKIM exists. Some existing-login mail is delivered; the issue is not restricted by account age.
-**Fix**: Prepared exact two-record DNS addition and end-to-end receipt checks in docs/security/bug-056-registration-mail-auth.md. No DNS change or test mail performed; retain open until repaired registration mail is received.
+**Fix**: Prepared exact two-record DNS addition and end-to-end receipt checks in docs/security/bug-056-registration-mail-auth.md. Owner added both records; 10/10 authoritative/public DNS checks pass. No agent test mail sent; retain open until a fresh registration mail is received.
 
 ### [BUG-054] Active production kernel has a critical vendor IPv4/TCP advisory — critical
 **Location**: docs/security/2026-11-07-production-dependabot-review.md; trustable-prod kernel 6.8.0-147-generic

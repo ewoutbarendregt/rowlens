@@ -2,6 +2,15 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## DNS repair verified — 2026-11-08
+
+Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve
+from all three authoritative servers (ns3/ns4.firstfind.nl, ns5.firstfind.net) and public resolvers
+1.1.1.1/8.8.8.8: **10/10 checks pass**. Next: owner requests one fresh code through Account aanmaken;
+inspect the resulting Resend delivery status and confirm actual receipt. Existing bounced codes
+are not evidence of post-repair failure. No test message was sent by the agent; BUG-056 remains
+in progress until receipt is confirmed. No application deployment/restart is required.
+
 ## Registration mail incident — BUG-056 (2026-11-08)
 
 Registration route failure is confirmed, superseding the earlier login-only diagnosis. Read-only

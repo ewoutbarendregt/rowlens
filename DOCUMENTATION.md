@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Verify owner-applied mail authentication DNS repair
+
+**Session**: codex/fix/056-registration-mail-auth
+**Changed**: DOCUMENTATION.md, BUGS.md, TEST.md, PLAN.md, docs/HANDOFF.md, docs/security/bug-056-registration-mail-auth.md
+**Summary**: Ewout chose to add the exact two TXT records himself and confirmed completion. Both send SPF and DMARC match the proposal on all three authoritative servers and two public resolvers (10/10 checks). Await one fresh registration code request and actual mailbox receipt before closing BUG-056. No agent mail send, account change, server mutation or deployment performed.
+**Prompts used**: "Ik voeg de twee TXT-records zelf toe"; "toegevoegd".
+
 ## 2026-11-08 — Trace registration mail to authentication bounces
 
 **Session**: codex/fix/056-registration-mail-auth

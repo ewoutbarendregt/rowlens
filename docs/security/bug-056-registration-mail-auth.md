@@ -1,8 +1,15 @@
 # BUG-056: registration mail rejected by Microsoft
 
-Status: diagnosed; DNS repair prepared, awaiting owner approval/access. No DNS or server
-configuration changed. The prior login-versus-registration explanation did not resolve the
-reported registration delivery failure.
+Status: owner applied DNS repair; authoritative/public checks pass, awaiting fresh mail receipt.
+
+## DNS repair verified — 2026-11-08
+
+Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve
+from all three authoritative servers (ns3/ns4.firstfind.nl, ns5.firstfind.net) and public resolvers
+1.1.1.1/8.8.8.8: **10/10 checks pass**. Next: owner requests one fresh code through Account aanmaken;
+inspect the resulting Resend delivery status and confirm actual receipt. Existing bounced codes
+are not evidence of post-repair failure. No test message was sent by the agent; BUG-056 remains
+in progress until receipt is confirmed. No application deployment/restart is required.
 
 ## Evidence (2026-11-08, read-only)
 
