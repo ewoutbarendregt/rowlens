@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Trace registration mail to authentication bounces
+
+**Session**: codex/fix/056-registration-mail-auth
+**Changed**: BUGS.md, TEST.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/security/bug-056-registration-mail-auth.md
+**Summary**: User confirmed the failure occurs through account creation. Read-only inspection verifies registration proof issuance, limits below threshold and no SMTP exception; Resend metadata exposes three later Microsoft authentication bounces (550 5.7.1 AS9031519), unlike several delivered login messages. Authoritative/public DNS lacks send-subdomain SPF and DMARC while DKIM exists. Prepared exact two-TXT-record repair and owner receipt checks; asked for shared-DNS approval/access. No email, account mutation, DNS change, server change or deployment performed; BUG-056 remains open.
+**Prompts used**: "bij aanmaken nieuw account wordt geen email gestuurd".
+
 ## 2026-11-08 — Diagnose new-address code requests on production
 
 **Session**: codex/docs/registration-mail-check

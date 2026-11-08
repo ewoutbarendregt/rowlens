@@ -3,6 +3,15 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Registration mail incident — BUG-056 (2026-11-08)
+
+Registration route failure is confirmed, superseding the earlier login-only diagnosis. Read-only
+checks: HTTP202 request, recent registration proof, below-limit counters; no SMTP error. Resend
+records 3 registration bounces, Microsoft550 5.7.1 AS9031519. Authoritative/public DNS lacks send
+SPF and DMARC, while DKIM is present. Exact proposed 2 TXT additions and acceptance checks:
+docs/security/bug-056-registration-mail-auth.md. Owner approval/DNS access requested; no DNS,
+server, account or mail change made. Receipt after repair is unverified; BUG-056 stays open.
+
 ## Latest investigation — new-address OTP report (2026-11-08)
 
 Read-only check: unified mode active, live bundle includes Account aanmaken and registration OTP.
