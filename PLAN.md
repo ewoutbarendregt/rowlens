@@ -1,13 +1,22 @@
 # PLAN
 
+## Production security review — open maintenance findings 2026-11-07
+
+Our registration release is deployed as sha-a47111c with 26 migrations. Ewout rejects unsolicited
+external changes; bot PRs #72–79 are closed unmerged and auto-merge is off. Read-only review found
+existing host/image issues independent of Dependabot, including Canonical's critical IPv4/TCP
+kernel advisory BUG-054. Review the security report and prepare owner-approved mitigation/patch
+plans; no shared firewall/kernel/Docker changes are authorized or applied. Do not accept bot patches
+as an implicit part of future own releases. BUG-055 tracks the separate maintenance backlog.
+
 ## Explicit registration and optional club request — approved/implemented 2026-11-07
 
 Ewout approved `docs/plans/registration-onboarding.md` with "Ja, voer het volledige plan uit".
 ADR-0024/migration 0025 adds distinct registration, email-proof-bound optional club intent,
 atomic registration/application and global versus club-scoped request review. Clubless accounts
 need no platform admission; club access waits for the existing audited club approval. Local stack
-has 26 migrations; 608 web/DB plus final focused 42/42 and 28 laptop/iPhone WebKit checks pass. Production stays sha-dd71f78
-with 25 migrations; no new merge/deploy is authorized. Deployment-log PR #158 is the stack base.
+has 26 migrations; 608 web/DB plus final focused 42/42 and 28 laptop/iPhone WebKit checks pass. Production now runs sha-a47111c with 26 migrations after the explicit merge/deploy request. Further
+deployments require a fresh request. Deployment and security review are logged in the handoff.
 
 ## Unified users and multi-club membership — approved 2026-11-07
 

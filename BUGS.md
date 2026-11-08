@@ -2,16 +2,30 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-054] Active production kernel has a critical vendor IPv4/TCP advisory — critical
+**Location**: docs/security/2026-11-07-production-dependabot-review.md; trustable-prod kernel 6.8.0-147-generic
+**Status**: open
+**Found**: 2026-11-07 (read-only production security review)
+**Description**: Canonical identifies CVE-2026-98432 as critical with potential remote code execution in IPv4 TCP handling; Ubuntu Noble's fix is still in progress. Production's kernel is in that affected family and has public TCP services. Independent of Dependabot; no exploit or compromise was demonstrated. Additional current-kernel advisories require review.
+**Fix**: Pending owner-directed response: assess Canonical's partial packet-filter mitigation against the active firewall/Docker setup, and track a supported kernel fix. Shared firewall/kernel changes require a separately shown exact command/diff and Ewout's approval; none applied in this audit.
+
+### [BUG-055] Existing container and shared-runtime security maintenance backlog — high
+**Location**: apps/web/Dockerfile; worker/Dockerfile; docs/security/2026-11-07-production-dependabot-review.md
+**Status**: open
+**Found**: 2026-11-07 (image and host package review)
+**Description**: Exact image scans flag existing zlib/media-library/npm-tooling advisories; the shared Docker 29.2.1 runtime predates later security fixes. Raw scanner totals include repeated, unused-tool and optional-feature matches, so they are not confirmed independent exploit paths. Two moderate application dependency advisories remain; Python production audit has none. No Dependabot proposal was merged or caused these findings.
+**Fix**: Prepare manually reviewed image/dependency/media-hardening changes and a separately approved shared-host maintenance plan. Preserve vendor severity/reachability distinctions and regression checks; do not merge bot updates or automatically change the host.
+
 ### [BUG-053] Repeat signup confirmation showed the first club choice — low
 **Location**: apps/web/src/server/db/migrations/0025_explicit_registration.sql (rowlens_my_registration)
-**Status**: fixed (unreleased)
+**Status**: fixed (deployed sha-a47111c)
 **Found**: 2026-11-07 (final review of PR #159)
 **Description**: The immutable first signup record was also used for the confirmation banner, so a repeat signup for another club could show the original choice even though its actual application was correct. Clubless copy also described current membership rather than the submitted choice.
 **Fix**: The own confirmation projection uses the latest successfully verified signup intent, including explicit no-club, without exposing proof secrets or mutating history. Copy describes the signup choice. Focused database and laptop/iPhone regressions preserve existing identity/memberships and initial registration history.
 
 ### [BUG-052] Registration has no club choice or clubless request record — medium
 **Location**: apps/web/src/client/auth/LoginGate.tsx; apps/web/src/client/sessions/RequireAuth.tsx; apps/web/src/server/auth/unified-gate.ts
-**Status**: fixed (local implementation; production unchanged)
+**Status**: fixed (deployed sha-a47111c)
 **Found**: 2026-11-07 (production feedback after PR #157)
 **Description**: Email entry only requests a login code. Club choice requires later verification and name completion, and the Requests view includes only explicitly submitted club applications. There is no distinct registration form or administrator-visible clubless registration record.
 **Fix**: Approved ADR-0024/migration 0025 separates login/signup, binds optional club choice to email proof and atomically records registration/application. Global Requests includes clubless signup and decided statuses; club administrators see only their selected club. Account club/status pages no longer require names first. Verified with 608 web/DB tests, final focused 42/42 and 28 laptop/iPhone WebKit cases.
