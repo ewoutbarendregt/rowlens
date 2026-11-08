@@ -1,5 +1,35 @@
 # PLAN
 
+## Production release — sha-037899e (2026-11-08 12:58 UTC)
+
+Merged #160/#161/#162/#163 as **4e8061b / 004d99a / 8904684 / 037899e**, retaining parent branches
+through stack retargeting. Each integration preserved the reviewed tree and had a clean conflict-marker
+scan. Final PR CI **42470466200**, main CI **42471455669** and images **42471455659** pass. Deploy
+[42482645343](https://github.com/ewoutbarendregt/rowlens/actions/runs/42482645343) succeeded; live
+readiness reports **sha-037899e**, DB ok, **27 migrations**. New-user notifications, explicit clubless
+platform review and multi-club training overview are now deployed with the unified-users flags.
+
+Preserved: **7 accounts, 7 memberships, 4 sessions, 6 videos, 14 compatibility people (7 unlinked),
+10 seats, 8 angles, 1 registration and 1 platform administrator**, with no pending club applications.
+New clubless/notice queues and initial-signup marker counts are **0**, confirming no retrospective
+requests/mail. Direct new-table app-role reads and private enqueue execution are denied; tenant
+notice RLS is enabled with both policies. No dispatcher/OTP mail errors in post-start logs. Both
+RowLens services use the new tag; DB is healthy and kernel remains **6.8.0-149-generic**.
+
+All five trustable/AudioScribe container IDs, start times and image references match the baseline.
+RowLens readiness, trustable.nl, API health and AudioScribe return **HTTP200**. Public review/sign-in
+and signup club selection pass on **1000x540 Chromium and iPhone13 WebKit** (four page checks,
+no overflow; screenshots inspected). No OTP request, signup or actual administrator notification
+was sent for the production smoke test. Local/full CI evidence: **622 web/DB tests, 49 general
+browser cases, 34 unified laptop/iPhone cases, 50 worker tests, 77 deploy-script checks**, plus
+38 focused notification checks and 35 focused CI-isolation checks and actual local deploy rehearsal.
+
+The existing registration message at **08:32:25 UTC** is reported **delivered** by Resend after the
+owner-applied SPF/DMARC fix; older bounces are historical. Actual inbox placement and receipt of a
+new administrator notification have not been directly confirmed. BUG-056 retains that distinction;
+BUG-055 remains the separate security-maintenance backlog. Known release-please workflow failure
+is the existing Actions PR-creation restriction; required CI/images/deploy succeeded.
+
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
 
 Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,
