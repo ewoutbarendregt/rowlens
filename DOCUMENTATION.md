@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Implement initial admission mail, clubless review and multi-club trainings
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: apps/web/src/server/repositories/admission-notices.ts, apps/web/src/server/auth/admission-mail.ts, apps/web/src/server/auth/admission-mail.test.ts, apps/web/src/server/auth/registration.db.test.ts, apps/web/src/server/auth/unified-gate.ts, apps/web/src/server/repositories/session-list.ts, apps/web/src/server/api/sessions.ts, apps/web/src/server/api/visibility.db.test.ts, apps/web/src/server/app.ts, apps/web/src/server/main.ts, apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0026_admission_notifications.sql, apps/web/src/server/db/migrations/meta/0026_snapshot.json, apps/web/src/server/db/migrations/meta/_journal.json, apps/web/src/client/admin/AdmissionPage.tsx, apps/web/src/client/admin/admission-strings.ts, apps/web/src/client/admin/UsersPage.tsx, apps/web/src/client/App.tsx, apps/web/src/client/clubs/ClubsPage.tsx, apps/web/src/client/club-context.ts, apps/web/src/client/sessions/SessionsPage.tsx, apps/web/src/client/sessions/filter.ts, apps/web/src/client/sessions/filter.test.ts, apps/web/e2e/unified-users.spec.ts, docs/adr/0025-initial-admission-notifications-and-training-overview.md, docs/adr/README.md, docs/plans/club-application-notifications.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented the approved future-new-user-only notification procedure, durable tenant/global queues, explicit audited platform review for clubless applications and authenticated accept/reject links with inline confirmation. Added a tenant-safe aggregated training overview with club/participation filters and microsecond-stable pagination. Migration 0026 is applied locally (27 total), readiness healthy; 621 full web/DB, 38 focused, 34 laptop/iPhone WebKit, 50 worker and 77 deploy-script checks pass. Corrected initial browser regressions and pagination precision before release; no production deployment, real notification mail or shared-host change.
+**Prompts used**: "Ja, voer het aangepaste volledige plan uit" (the full revised plan approved after the initial-signup/clubless/multi-club scope clarification).
+
 ## 2026-11-08 — Finalize explicit platform review for clubless admission
 
 **Session**: codex/feat/club-application-notifications

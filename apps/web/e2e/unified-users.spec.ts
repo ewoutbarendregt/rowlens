@@ -573,7 +573,7 @@ test('registration with a club shows its result before names and reaches global 
   await context.close();
 });
 
-test('registration without a club appears globally with no approval action and supports later club requests', async ({
+test('registration without a club requires platform review and supports later club requests', async ({
   page,
   browser,
 }, testInfo) => {
@@ -591,8 +591,10 @@ test('registration without a club appears globally with no approval action and s
   await admin.getByRole('tab', { name: 'Aanmeldingen', exact: true }).click();
   const row = admin.getByTestId('registration-request').filter({ hasText: address });
   await expect(row).toContainText('Voorlopig geen club');
-  await expect(row).toContainText('E-mailadres bevestigd');
-  await expect(row.getByRole('button')).toHaveCount(0);
+  await expect(row).toContainText('Wacht op beoordeling door de RowLens-beheerder');
+  await expect(row.getByRole('button')).toHaveCount(2);
+  await row.getByRole('button', { name: 'Aanmelding accepteren', exact: true }).click();
+  await expect(row).toContainText('Aanmelding zonder club geaccepteerd');
   await layout(admin);
   await admin.screenshot({
     path: testInfo.outputPath('registration-without-club-review.png'),
@@ -722,4 +724,145 @@ test('repeated registration shows the confirmed new club instead of the first no
       .locator('article')
       .filter({ has: page.getByRole('heading', { name: 'WVIJburg', exact: true }) }),
   ).toContainText('Wacht op toelating');
+});
+
+test('clubless email review keeps its destination through sign in and requires a confirmed decision', async ({
+  page,
+  browser,
+}, info) => {
+  const address = `review-${randomUUID()}@example.test`;
+  await registerThroughForm(page, address);
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    admin = await context.newPage();
+  await existingSignIn(admin, adminEmail);
+  const data = await json(admin, '/api/account/clubless-requests');
+  const request = (data.data as { id: string; email: string; status: string }[]).find(
+    (r) => r.email === address,
+  );
+  if (!request) throw new Error('Missing synthetic request');
+  const signedOut = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    review = await signedOut.newPage();
+  await review.goto(`./admission/${request.id}?scope=platform&decision=accept`);
+  await expect(
+    review.getByText('Log in om deze aanmelding te beoordelen.', { exact: true }),
+  ).toBeVisible();
+  await review.getByLabel('E-mailadres', { exact: true }).fill(adminEmail);
+  await review.getByRole('button', { name: 'Stuur code', exact: true }).click();
+  await review.getByLabel('Inlogcode', { exact: true }).fill(authCode);
+  await review.getByRole('button', { name: 'Inloggen', exact: true }).click();
+  await expect(
+    review.getByRole('button', { name: 'Aanmelding accepteren', exact: true }),
+  ).toBeVisible();
+  expect((await json(admin, '/api/account/clubless-requests')).data).toEqual(
+    expect.arrayContaining([expect.objectContaining({ id: request.id, status: 'pending' })]),
+  );
+  await expect(review.getByText(address, { exact: true })).toBeVisible();
+  expect(await review.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+    true,
+  );
+  await review.screenshot({ path: info.outputPath('admission-review.png'), fullPage: true });
+  await review.getByRole('button', { name: 'Aanmelding accepteren', exact: true }).click();
+  await expect(review.getByTestId('confirm')).toBeVisible();
+  await review.getByRole('button', { name: 'Aanmelding accepteren', exact: true }).click();
+  await expect(review.getByRole('status')).toHaveText('Beslissing opgeslagen.');
+  await page.reload();
+  await expect(
+    page.getByText('Aanmelding zonder club geaccepteerd', { exact: true }),
+  ).toBeVisible();
+  await context.close();
+  await signedOut.close();
+});
+
+test('initial club rejection offers explicit clubless fallback and guarded review', async ({
+  page,
+  browser,
+}, info) => {
+  await existingSignIn(page, adminEmail);
+  const account = (await json(page, '/api/auth/status')).data as { user: { id: string } };
+  const name = `Initial review ${randomUUID().slice(0, 8)}`;
+  const c = (
+    await json(page, '/api/platform/clubs', {
+      name,
+      slug: `review-${randomUUID()}`,
+      adminId: account.user.id,
+    })
+  ).data as { id: string };
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    member = await context.newPage();
+  const address = `club-review-${randomUUID()}@example.test`;
+  await registerThroughForm(member, address, c.id);
+  const requests = (await json(page, '/api/manage/applications')).data as {
+    id: string;
+    email: string;
+    clubId: string | null;
+  }[];
+  const request = requests.find((r) => r.email === address && r.clubId === c.id);
+  if (!request) throw new Error('Missing synthetic application');
+  await page.goto(`./admission/${request.id}?club=${c.id}&decision=reject`);
+  await expect(page.getByText(name, { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Aanmelding afwijzen', exact: true }).click();
+  await page.getByRole('button', { name: 'Aanmelding afwijzen', exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('Beslissing opgeslagen.');
+  await member.reload();
+  await member.getByRole('button', { name: 'Aanmelden zonder club', exact: true }).click();
+  await expect(
+    member.getByText('Wacht op beoordeling door de RowLens-beheerder', { exact: true }),
+  ).toBeVisible();
+  expect(await member.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+    true,
+  );
+  await member.screenshot({ path: info.outputPath('clubless-fallback.png'), fullPage: true });
+  await context.close();
+});
+
+test('training overview filters accessible clubs and participation and opens the matching tenant', async ({
+  page,
+  browser,
+}, info) => {
+  await existingSignIn(page, adminEmail);
+  const account = (await json(page, '/api/auth/status')).data as { user: { id: string } };
+  const c1 = (
+    await json(page, '/api/platform/clubs', {
+      name: `Overview A ${randomUUID().slice(0, 8)}`,
+      slug: `overview-a-${randomUUID()}`,
+      adminId: account.user.id,
+    })
+  ).data as { id: string };
+  const c2 = (
+    await json(page, '/api/platform/clubs', {
+      name: `Overview B ${randomUUID().slice(0, 8)}`,
+      slug: `overview-b-${randomUUID()}`,
+      adminId: account.user.id,
+    })
+  ).data as { id: string };
+  const first = `Accessible A ${randomUUID().slice(0, 8)}`,
+    second = `Accessible B ${randomUUID().slice(0, 8)}`;
+  await json(page, '/api/sessions', { title: first, date: '2026-11-08', boatType: 'C4x+' }, c1.id);
+  await json(page, '/api/sessions', { title: second, date: '2026-11-08', boatType: 'C4x+' }, c2.id);
+  const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
+    member = await context.newPage();
+  const address = `overview-${randomUUID()}@example.test`;
+  await signIn(member, address);
+  await json(page, '/api/admin/access', { email: address, roles: ['rower'] }, c1.id);
+  await json(page, '/api/admin/access', { email: address, roles: ['rower'] }, c2.id);
+  await member.goto('./sessions');
+  await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
+  await expect(member.getByRole('link', { name: second, exact: true })).toBeVisible();
+  await member.getByTestId('filters').evaluate((el) => {
+    (el as HTMLDetailsElement).open = true;
+  });
+  await member.getByLabel('Club', { exact: true }).selectOption(c1.id);
+  await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
+  await expect(member.getByRole('link', { name: second, exact: true })).toHaveCount(0);
+  await member.getByLabel('Alleen trainingen waarin ik voorkom', { exact: true }).check();
+  await expect(member.getByRole('link', { name: first, exact: true })).toHaveCount(0);
+  await member.getByLabel('Alleen trainingen waarin ik voorkom', { exact: true }).uncheck();
+  expect(await member.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+    true,
+  );
+  await member.screenshot({ path: info.outputPath('multi-club-trainings.png'), fullPage: true });
+  await member.getByRole('link', { name: first, exact: true }).click();
+  await expect(member).toHaveURL(new RegExp(`club=${c1.id}`));
+  await expect(member.getByRole('heading', { name: first, exact: true })).toBeVisible();
+  await context.close();
 });

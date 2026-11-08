@@ -1,9 +1,8 @@
 # Initial admission, notification decision links and multi-club training overview
 
-Status: product scope clarified (2026-11-08). Owner confirmed explicit platform review with
-notification mail and decision links for clubless applications. The complete revised architecture
-and database migrations are now ready for approval before implementation.
-No implementation, migration, production change or notification mail has been performed.
+Status: approved by Ewout ("Ja, voer het aangepaste volledige plan uit", 2026-11-08).
+Implemented locally with migration 0026 and ADR-0025; final checks/PR are being recorded.
+No production deployment or actual administrator email has been performed.
 
 ## Product flow
 
@@ -55,7 +54,7 @@ recipient addresses. The approved Resend processor/SMTP sender is reused.
   must not impersonate a new signup or duplicate administrator emails. Preserve decided applications,
   cooldowns and existing memberships. No retrospective emails/backfill of invented signup events.
 - Add a durable tenant-owned notification outbox and migration. Store application/club/recipient IDs,
-  generation, delivery state, lease/retry metadata and safe error categories; avoid copied applicant
+  delivery state, lease/retry metadata and safe failure states; avoid copied applicant
   names/emails/secrets. Unique keys deduplicate concurrent/repeated issuance for the same initial
   application and recipient. Enqueue atomically with the verified initial application transaction.
 - A small web-process mail dispatcher sends only committed work with bounded retry/backoff, leases
@@ -69,7 +68,7 @@ recipient addresses. The approved Resend processor/SMTP sender is reused.
   bypass. Global no-club requests use protected global account state and narrow platform-authorized
   projections/decisions; never invent a fake club/null tenant row.
 - Add protected global clubless-admission state (account ID, origin, pending/approved/rejected,
-  generation/timestamps and audited decision actor), plus global notification delivery storage.
+  timestamps and audited decision actor), plus global notification delivery storage.
   These are global authentication/admission records, not tenant content; follow existing protected
   account tables with no direct app-role reads/writes and narrow self/platform-authorized wrappers.
   Enqueue platform notifications atomically with a new valid clubless request, deduplicate pending

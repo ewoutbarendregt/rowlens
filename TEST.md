@@ -2,6 +2,32 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
+
+Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,
+27 migrations locally). New verified club signup queues individual NL/EN mail for current club
+admins only; later club applications do not send these emails. Initial clubless signup and an
+explicit clubless fallback after initial club rejection enter protected platform review, with
+notifications/accept/reject links for RowLens admins. Decisions preserve account and unrelated
+membership rights. Link GETs are read-only; sign-in preserves the review target and decisions need
+inline confirmation/current authority/CSRF. Durable leases, deduplication and bounded retry survive
+restarts; accepted means SMTP acceptance, not inbox delivery.
+
+Training overview aggregates authorized clubs under separate TenantContext/RLS, with club and
+actual-participation filters (cox seat 0 included), stable microsecond cursor pagination and explicit
+club context when opening/creating. Existing profile completion and private feedback rules remain.
+Local API readiness is healthy; dev UI: http://localhost:5174/projects/rowlens/. With SMTP absent,
+the local entry point logs protected decision URLs as `development admission notification` in
+/tmp/rowlens-unified-dev.log; synthetic injected delivery is used for tests.
+
+Checks: **621** full web/DB, **38** focused, **34** browser (1000x540 Chromium and iPhone13 WebKit),
+**50** worker and **77** deploy-script tests pass; typecheck/lint/build and formatting checked.
+Browser screenshots inspected; checkbox uses the existing 44px touch label. The first browser run
+found a bypassed name gate, duplicate email text and an unlabeled filter; fixed before final green
+34/34. An introduced pagination precision error was fixed (BUG-057). Local function definition was
+refreshed after the final platform-authority locking change; fresh test databases run the full
+migration. No production merge/deploy, actual email or shared-server change performed.
+
 ## DNS repair verified — 2026-11-08
 
 Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve

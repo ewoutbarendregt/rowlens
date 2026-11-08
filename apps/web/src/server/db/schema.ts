@@ -982,6 +982,7 @@ export const accountLoginCode = pgTable('account_login_code', {
 });
 /** Explicit verified signup; global auth state, never directly exposed to the app role. */
 export const accountRegistration = pgTable('account_registration', {
+  initialSignup: boolean('initial_signup').notNull().default(false),
   userId: uuid('user_id')
     .primaryKey()
     .references(() => appUser.id, { onDelete: 'restrict' }),
@@ -1031,3 +1032,56 @@ export const membershipApplication = pgTable(
     rolePolicy('membership_application_write', 'all', sql`rowlens_admin_member()`),
   ],
 ).enableRLS();
+
+/** Global admission for an account without club content; protected definer APIs only. */
+export const clublessApplication = pgTable('clubless_application', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => appUser.id)
+    .unique(),
+  status: text('status').notNull().default('pending'),
+  decidedBy: uuid('decided_by').references(() => appUser.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+const deliveryColumns = () => ({
+  id: uuid('id').primaryKey().defaultRandom(),
+  recipientId: uuid('recipient_id')
+    .notNull()
+    .references(() => appUser.id),
+  state: text('state').notNull().default('queued'),
+  attempts: integer('attempts').notNull().default(0),
+  availableAt: timestamp('available_at', { withTimezone: true }).notNull().defaultNow(),
+  lease: uuid('lease'),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+});
+/** Dispatch is service-only. Tenant policies never expose recipients to applicants. */
+export const clubApplicationNotice = pgTable(
+  'club_application_notice',
+  {
+    ...deliveryColumns(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => membershipApplication.id),
+  },
+  (t) => [
+    unique('club_notice_recipient_unique').on(t.applicationId, t.recipientId),
+    tenantPolicy('club_notice_tenant', t.clubId),
+    rolePolicy('club_notice_private', 'all', sql`false`),
+  ],
+).enableRLS();
+/** Platform notification state is global, with no direct app-role privileges. */
+export const clublessApplicationNotice = pgTable(
+  'clubless_application_notice',
+  {
+    ...deliveryColumns(),
+    applicationId: uuid('application_id')
+      .notNull()
+      .references(() => clublessApplication.id),
+  },
+  (t) => [unique('clubless_notice_recipient_unique').on(t.applicationId, t.recipientId)],
+);

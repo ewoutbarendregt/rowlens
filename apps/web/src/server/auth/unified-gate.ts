@@ -1,3 +1,4 @@
+import { listSessions } from '../repositories/session-list.ts';
 import { randomUUID } from 'node:crypto';
 import type { FastifyReply, FastifyRequest, FastifyPluginCallback } from 'fastify';
 import { sql } from 'drizzle-orm';
@@ -323,8 +324,95 @@ export function createUnifiedGate(opts: {
     app.get('/api/account/clubs', { preHandler: accountGuard }, (req) =>
       run(
         req,
-        sql`select jsonb_build_object('clubs',rowlens_club_directory(),'applications',rowlens_my_applications(),'registration',rowlens_my_registration()) as value`,
+        sql`select jsonb_build_object('clubs',rowlens_club_directory(),'applications',rowlens_my_applications(),'registration',rowlens_my_registration(),'admission',rowlens_my_admission()) as value`,
       ),
+    );
+    app.get('/api/account/sessions', { preHandler: accountGuard }, async (req, reply) => {
+      const q = z.object({ cursor: z.string().max(1024).optional() }).safeParse(req.query);
+      if (!q.success) return reply.code(400).send({ error: 'invalid_cursor' });
+      let before: { date: string; createdAt: string; id: string } | undefined;
+      try {
+        if (q.data.cursor)
+          before = z
+            .object({
+              date: z.iso.date(),
+              createdAt: z.iso.datetime({ offset: true }),
+              id: z.uuid(),
+            })
+            .strict()
+            .parse(JSON.parse(Buffer.from(q.data.cursor, 'base64url').toString()));
+      } catch {
+        return reply.code(400).send({ error: 'invalid_cursor' });
+      }
+      const a = await session(req);
+      if (!a) return notFound(reply);
+      const all = await clubs(a);
+      const rows = [];
+      for (const c of all) {
+        const list = await listSessions(db, context(a, c), 101, before);
+        rows.push(...list.map((row) => ({ ...row, clubId: c.id, clubName: c.name })));
+      }
+      rows.sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) ||
+          b.cursorCreatedAt.localeCompare(a.cursorCreatedAt) ||
+          b.id.localeCompare(a.id),
+      );
+      const page = rows.slice(0, 100),
+        last = page.at(-1);
+      const next =
+        rows.length > 100 && last
+          ? Buffer.from(
+              JSON.stringify({ date: last.date, createdAt: last.cursorCreatedAt, id: last.id }),
+            ).toString('base64url')
+          : null;
+      return { sessions: page, next };
+    });
+    app.post('/api/account/clubless', { preHandler: accountGuard }, async (req, reply) => {
+      return (await run<boolean>(req, sql`select rowlens_request_clubless() as value`))
+        ? reply.code(201).send()
+        : reply.code(409).send({ error: 'application_unavailable' });
+    });
+    app.get('/api/account/clubless-requests', { preHandler: accountGuard }, (req) =>
+      run(req, sql`select rowlens_clubless_requests() as value`),
+    );
+    app.get('/api/account/admission/:id', { preHandler: accountGuard }, async (req, reply) => {
+      const b = z.object({ id: z.uuid() }).safeParse(req.params);
+      const q = z
+        .object({ global: z.enum(['true', 'false']), club: z.uuid().optional() })
+        .safeParse(req.query);
+      if (!b.success || !q.success) return notFound(reply);
+      const a = await session(req);
+      if (!a) return notFound(reply);
+      const c =
+        q.data.global === 'true' ? undefined : (await clubs(a)).find((c) => c.id === q.data.club);
+      if (q.data.global !== 'true' && !c) return notFound(reply);
+      const data = await withTenant(
+        db,
+        context(a, c),
+        async (tx) =>
+          (
+            await tx.execute<{ value: unknown }>(
+              sql`select rowlens_review_application(${b.data.id},${q.data.global === 'true'}) as value`,
+            )
+          ).rows[0]?.value,
+      );
+      return data ?? notFound(reply);
+    });
+    app.post(
+      '/api/account/clubless-requests/:id',
+      { preHandler: platformGuard },
+      async (req, reply) => {
+        const p = z.object({ id: z.uuid() }).safeParse(req.params),
+          b = z.object({ approve: z.boolean() }).strict().safeParse(req.body);
+        if (!p.success || !b.success) return reply.code(400).send({ error: 'invalid_application' });
+        return (await run<boolean>(
+          req,
+          sql`select rowlens_decide_clubless(${p.data.id},${b.data.approve}) as value`,
+        ))
+          ? reply.code(204).send()
+          : reply.code(409).send({ error: 'application_unavailable' });
+      },
     );
     app.post('/api/account/applications', { preHandler: accountGuard }, async (req, reply) => {
       const b = z.object({ clubId: z.uuid() }).strict().safeParse(req.body);

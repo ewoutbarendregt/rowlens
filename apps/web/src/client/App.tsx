@@ -1,3 +1,4 @@
+import { AdmissionPage } from './admin/AdmissionPage.tsx';
 import { ClubsPage } from './clubs/ClubsPage.tsx';
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router';
@@ -26,6 +27,7 @@ export function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
+      {UNIFIED_USERS && <Route path="admission/:id" element={<AdmissionPage />} />}
       {UNIFIED_USERS && <Route path="email-change/:id" element={<EmailChangePage />} />}
       {UNIFIED_USERS && (
         <Route

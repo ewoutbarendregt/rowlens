@@ -183,6 +183,13 @@
       "when": 1794075313038,
       "tag": "0025_explicit_registration",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794129289930,
+      "tag": "0026_admission_notifications",
+      "breakpoints": true
     }
   ]
 }

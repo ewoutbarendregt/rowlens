@@ -2,6 +2,13 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-057] New cross-club pagination dropped microsecond ties — medium
+**Location**: apps/web/src/server/repositories/session-list.ts; apps/web/src/server/auth/unified-gate.ts
+**Status**: fixed locally before release
+**Found**: 2026-11-08
+**Description**: During implementation, JavaScript Date precision truncated PostgreSQL timestamps in the new list cursor, skipping remaining rows with the same timestamp after the first 100 results.
+**Fix**: Preserve UTC microseconds in SQL cursor text and use stable date/timestamp/UUID ordering. Database regression verifies 103 tied/multi-club rows appear exactly once across pages. Not deployed.
+
 ### [BUG-056] Registration codes bounce at Microsoft due to sender authentication — high
 **Location**: shared trustable.nl DNS; docs/security/bug-056-registration-mail-auth.md
 **Status**: in-progress (DNS repair verified; awaiting fresh registration mail receipt)

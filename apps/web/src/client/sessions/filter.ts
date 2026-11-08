@@ -16,6 +16,8 @@ export interface Filters {
   /** Only sessions with notes meant for the viewer. */
   mine: boolean;
   sort: Sort;
+  club: string | null;
+  participating: boolean;
 }
 
 export const DEFAULT_FILTERS: Filters = {
@@ -26,9 +28,13 @@ export const DEFAULT_FILTERS: Filters = {
   q: '',
   mine: false,
   sort: 'date-desc',
+  club: null,
+  participating: false,
 };
 
 export interface SessionRow {
+  clubId?: string;
+  mySeat?: number | null;
   title: string;
   date: string;
   createdAt: string;
@@ -44,6 +50,8 @@ const isoDate = (value: string | null) =>
 export function readFilters(params: URLSearchParams): Filters {
   const sort = params.get('sort');
   return {
+    club: params.get('clubFilter') || null,
+    participating: params.get('participating') === '1',
     from: isoDate(params.get('from')),
     to: isoDate(params.get('to')),
     rower: params.get('rower') || null,
@@ -57,6 +65,8 @@ export function readFilters(params: URLSearchParams): Filters {
 /** Only what differs from the defaults, so a plain list keeps a plain URL. */
 export function writeFilters(f: Filters): URLSearchParams {
   const params = new URLSearchParams();
+  if (f.club) params.set('clubFilter', f.club);
+  if (f.participating) params.set('participating', '1');
   if (f.from !== null) params.set('from', f.from);
   if (f.to !== null) params.set('to', f.to);
   if (f.rower !== null) params.set('rower', f.rower);
@@ -70,9 +80,10 @@ export function writeFilters(f: Filters): URLSearchParams {
 /** How many filters narrow the list (the sort order doesn't count). */
 export function activeFilters(f: Filters): number {
   return (
-    [f.from, f.to, f.rower, f.boat].filter((v) => v !== null).length +
+    [f.from, f.to, f.rower, f.boat, f.club].filter((v) => v !== null).length +
     (f.q.trim() === '' ? 0 : 1) +
-    (f.mine ? 1 : 0)
+    (f.mine ? 1 : 0) +
+    (f.participating ? 1 : 0)
   );
 }
 
@@ -82,6 +93,8 @@ const newestFirst = (a: SessionRow, b: SessionRow) =>
 export function applyFilters<T extends SessionRow>(rows: readonly T[], f: Filters): T[] {
   const words = normalizeName(f.q).split(' ').filter(Boolean);
   const kept = rows.filter((r) => {
+    if (f.club !== null && r.clubId !== f.club) return false;
+    if (f.participating && (r.mySeat === undefined || r.mySeat === null)) return false;
     if (f.from !== null && r.date < f.from) return false;
     if (f.to !== null && r.date > f.to) return false;
     if (f.boat !== null && r.boatType !== f.boat) return false;

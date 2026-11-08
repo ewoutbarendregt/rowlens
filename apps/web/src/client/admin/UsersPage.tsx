@@ -1,3 +1,4 @@
+import { admissionStrings } from './admission-strings.ts';
 import { registrationStrings } from '../auth/registration-strings.ts';
 import { lang } from '../i18n/language.ts';
 import { useEffect, useRef, useState } from 'react';
@@ -63,7 +64,7 @@ function UsersDirectory() {
   const [requests, setRequests] = useState<
       {
         id: string;
-        kind: 'club' | 'registration';
+        kind: 'club' | 'registration' | 'clubless';
         clubId: string | null;
         clubName: string | null;
         name: string;
@@ -85,16 +86,28 @@ function UsersDirectory() {
     void Promise.all([
       api('/api/manage/users/query', { method: 'POST', body: query }),
       api('/api/manage/applications'),
+      api('/api/account/clubless-requests', { clubId: null }),
     ])
       .then(async (rs) => {
         if (rs.some((r) => !r.ok)) throw new Error();
-        const [raw, pending] = (await Promise.all(rs.map((r) => r.json()))) as [
+        const [raw, pending, clubless] = (await Promise.all(rs.map((r) => r.json()))) as [
           { rows: unknown[]; total: number; clubs: { id: string; name: string }[] },
+          typeof requests,
           typeof requests,
         ];
         if (ticket !== generation.current) return;
         setResult({ rows: directoryRowSchema.array().parse(raw.rows), total: raw.total });
-        setRequests(pending);
+        setRequests([
+          ...pending.filter(
+            (r) =>
+              !(
+                r.kind === 'registration' &&
+                r.clubId === null &&
+                clubless.some((c) => c.email === r.email)
+              ),
+          ),
+          ...clubless,
+        ]);
         setClubOptions(raw.clubs);
         if (query.page > 0 && query.page * query.pageSize >= raw.total)
           setQuery((q) => ({ ...q, page: Math.max(0, Math.ceil(raw.total / q.pageSize) - 1) }));
@@ -257,7 +270,9 @@ function UsersDirectory() {
                     ·{' '}
                     {r.status === 'registered'
                       ? registrationStrings().registeredStatus
-                      : c[r.status]}
+                      : r.kind === 'clubless' && r.status !== 'cancelled'
+                        ? admissionStrings()[r.status]
+                        : c[r.status]}
                     {r.archived ? ` · ${c.archived}` : ''}
                   </p>
                   <p>
@@ -266,36 +281,50 @@ function UsersDirectory() {
                       {new Date(r.createdAt).toLocaleString(lang() === 'en' ? 'en-GB' : 'nl-NL')}
                     </time>
                   </p>
-                  {r.kind === 'club' && r.status === 'pending' && !r.archived && r.clubId && (
-                    <div className="club-actions">
-                      {[true, false].map((approve) => (
-                        <button
-                          key={String(approve)}
-                          disabled={requestBusy}
-                          onClick={() => {
-                            setRequestBusy(true);
-                            void api(`/api/admin/applications/${r.id}`, {
-                              method: 'POST',
-                              body: { approve },
-                              clubId: r.clubId,
-                            })
-                              .then((response) => {
-                                if (!response.ok) throw new Error();
-                                setVersion((v) => v + 1);
-                              })
-                              .catch(() => {
-                                setFailed(true);
-                              })
-                              .finally(() => {
-                                setRequestBusy(false);
-                              });
-                          }}
-                        >
-                          {approve ? c.approve : c.reject}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  {(r.kind === 'club' || r.kind === 'clubless') &&
+                    r.status === 'pending' &&
+                    !r.archived &&
+                    (r.clubId || platform) && (
+                      <div className="club-actions">
+                        {[true, false].map((approve) => (
+                          <button
+                            key={String(approve)}
+                            disabled={requestBusy}
+                            onClick={() => {
+                              setRequestBusy(true);
+                              void api(
+                                r.kind === 'clubless'
+                                  ? `/api/account/clubless-requests/${r.id}`
+                                  : `/api/admin/applications/${r.id}`,
+                                {
+                                  method: 'POST',
+                                  body: { approve },
+                                  clubId: r.clubId,
+                                },
+                              )
+                                .then((response) => {
+                                  if (!response.ok) throw new Error();
+                                  setVersion((v) => v + 1);
+                                })
+                                .catch(() => {
+                                  setFailed(true);
+                                })
+                                .finally(() => {
+                                  setRequestBusy(false);
+                                });
+                            }}
+                          >
+                            {r.kind === 'clubless'
+                              ? approve
+                                ? admissionStrings().accept
+                                : admissionStrings().reject
+                              : approve
+                                ? c.approve
+                                : c.reject}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                 </article>
               ))}
             </section>
