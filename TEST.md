@@ -2,6 +2,24 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## DNS repair verified — 2026-11-08
+
+Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve
+from all three authoritative servers (ns3/ns4.firstfind.nl, ns5.firstfind.net) and public resolvers
+1.1.1.1/8.8.8.8: **10/10 checks pass**. Next: owner requests one fresh code through Account aanmaken;
+inspect the resulting Resend delivery status and confirm actual receipt. Existing bounced codes
+are not evidence of post-repair failure. No test message was sent by the agent; BUG-056 remains
+in progress until receipt is confirmed. No application deployment/restart is required.
+
+## Registration mail incident — BUG-056 (2026-11-08)
+
+Registration route failure is confirmed, superseding the earlier login-only diagnosis. Read-only
+checks: HTTP202 request, recent registration proof, below-limit counters; no SMTP error. Resend
+records 3 registration bounces, Microsoft550 5.7.1 AS9031519. Authoritative/public DNS lacks send
+SPF and DMARC, while DKIM is present. Exact proposed 2 TXT additions and acceptance checks:
+docs/security/bug-056-registration-mail-auth.md. Owner approval/DNS access requested; no DNS,
+server, account or mail change made. Receipt after repair is unverified; BUG-056 stays open.
+
 ## Completed production repair — 2026-11-07 20:17 UTC
 
 Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial

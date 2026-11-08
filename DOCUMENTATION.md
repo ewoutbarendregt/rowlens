@@ -2,6 +2,27 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Verify owner-applied mail authentication DNS repair
+
+**Session**: codex/fix/056-registration-mail-auth
+**Changed**: DOCUMENTATION.md, BUGS.md, TEST.md, PLAN.md, docs/HANDOFF.md, docs/security/bug-056-registration-mail-auth.md
+**Summary**: Ewout chose to add the exact two TXT records himself and confirmed completion. Both send SPF and DMARC match the proposal on all three authoritative servers and two public resolvers (10/10 checks). Await one fresh registration code request and actual mailbox receipt before closing BUG-056. No agent mail send, account change, server mutation or deployment performed.
+**Prompts used**: "Ik voeg de twee TXT-records zelf toe"; "toegevoegd".
+
+## 2026-11-08 — Trace registration mail to authentication bounces
+
+**Session**: codex/fix/056-registration-mail-auth
+**Changed**: BUGS.md, TEST.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/security/bug-056-registration-mail-auth.md
+**Summary**: User confirmed the failure occurs through account creation. Read-only inspection verifies registration proof issuance, limits below threshold and no SMTP exception; Resend metadata exposes three later Microsoft authentication bounces (550 5.7.1 AS9031519), unlike several delivered login messages. Authoritative/public DNS lacks send-subdomain SPF and DMARC while DKIM exists. Prepared exact two-TXT-record repair and owner receipt checks; asked for shared-DNS approval/access. No email, account mutation, DNS change, server change or deployment performed; BUG-056 remains open.
+**Prompts used**: "bij aanmaken nieuw account wordt geen email gestuurd".
+
+## 2026-11-08 — Diagnose new-address code requests on production
+
+**Session**: codex/docs/registration-mail-check
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Read-only production inspection found three login OTP requests, no registration OTP requests and zero OTP mail failures in the inspected 30-minute window. Unified authentication is active; the live bundle contains Account aanmaken and its registration endpoint. ADR-0024 deliberately sends login codes only to existing accounts; new addresses must use explicit registration with a club/no-club choice. No production email sent, account changed or deployment performed; actual registration mailbox delivery remains unverified.
+**Prompts used**: "als ik een nieuw email adres invul op prod, ontvang ik geen login code op dat adres. bestaande email adressen ontvangen wel een login code"; "ga verder".
+
 ## 2026-11-07 — Complete the approved production kernel repair and reboot
 
 **Session**: codex/fix/054-kernel-remediation
