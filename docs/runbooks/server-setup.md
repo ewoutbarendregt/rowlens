@@ -3,6 +3,18 @@
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
+## Completed production repair — 2026-11-07 20:17 UTC
+
+Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
+unsuccessful authentication attempt, the retried native Terminal operation exited 0 and scheduled
+the reboot. Fresh SSH confirms **6.8.0-149-generic**, a changed boot ID, all four packages at
+**6.8.0-149.149**, retained 147 image/initrd and an empty dpkg audit. All **8** containers returned
+on their same images; Docker/UFW are active. RowLens readiness is **sha-a47111c**, DB ok; all
+aggregate counts and permission checks match the pre-reboot baseline, including **26 migrations**.
+Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe and signup club
+listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
+and other maintenance findings remain open. No staging host was checked or modified.
+
 ## Current state
 
 | Item | State | Changed by / when |

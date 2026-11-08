@@ -2,6 +2,31 @@
 
 Test strategy, prompts and results. This file is the source of truth for testing.
 
+## Completed production repair — 2026-11-07 20:17 UTC
+
+Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
+unsuccessful authentication attempt, the retried native Terminal operation exited 0 and scheduled
+the reboot. Fresh SSH confirms **6.8.0-149-generic**, a changed boot ID, all four packages at
+**6.8.0-149.149**, retained 147 image/initrd and an empty dpkg audit. All **8** containers returned
+on their same images; Docker/UFW are active. RowLens readiness is **sha-a47111c**, DB ok; all
+aggregate counts and permission checks match the pre-reboot baseline, including **26 migrations**.
+Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe and signup club
+listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
+and other maintenance findings remain open. No staging host was checked or modified.
+
+## BUG-054 kernel repair preparation (2026-11-07)
+
+- Fresh Canonical amd64 archive and production mirror both offer **6.8.0-149.149** in
+  **noble-updates**, without proposed. Extracted downloaded modules changelog contains the exact
+  relevant IPv4/RCU fix. Earlier CVE-page-only no-fix wording is superseded by this evidence.
+- Production read-only solver/helper check: **2 new, 2 upgraded, 0 removed**, only the four
+  pinned kernel packages; **63 untouched**. Docker/UFW enabled; all **8** running containers have
+  unless-stopped policies. Current kernel remains **147** and no livepatch is active.
+- Real canonical payload verification **4/4 SHA-256**. **10/10** parser safety checks, Bash syntax
+  and ShellCheck pass locally in isolated Ubuntu. No local-container kernel boot test is claimed.
+- Installer changes are approval-gated; no production apt update/install, firewall/boot mutation
+  or reboot. Only helper `check` ran over SSH stdin; no script was copied to production yet.
+
 ## Registration production release and read-only security review (2026-11-07)
 
 - Final PR CI 42403762182: all eight checks pass. Merge a47111c main CI 42404700506 and images

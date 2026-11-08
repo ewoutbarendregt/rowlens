@@ -3,6 +3,45 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Completed production repair — 2026-11-07 20:17 UTC
+
+Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
+unsuccessful authentication attempt, the retried native Terminal operation exited 0 and scheduled
+the reboot. Fresh SSH confirms **6.8.0-149-generic**, a changed boot ID, all four packages at
+**6.8.0-149.149**, retained 147 image/initrd and an empty dpkg audit. All **8** containers returned
+on their same images; Docker/UFW are active. RowLens readiness is **sha-a47111c**, DB ok; all
+aggregate counts and permission checks match the pre-reboot baseline, including **26 migrations**.
+Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe and signup club
+listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
+and other maintenance findings remain open. No staging host was checked or modified.
+
+The operation is complete; do not re-run the Terminal helper. Logs/baselines remain under
+/tmp/rowlens-kernel-review locally. PR #161 records the repair; it is not merged. Historical
+preparation and pending-approval text below describes earlier checkpoints.
+
+## Earlier preparation — BUG-054 verified kernel repair
+
+- Ewout asked "kun je dit issue oplossen?". Prepared on `codex/fix/054-kernel-remediation`, based
+  on the still-open audit/policy docs PR #160. No host mutation/reboot authorized/applied yet;
+  show exact action and obtain the separate approval AGENTS.md requires for shared components.
+- **Correction**: the earlier CVE-page WIP status is stale/incomplete. Fresh signed Canonical
+  metadata and the production mirror offer **6.8.0-149.149 in noble-updates**. Downloaded module
+  changelog contains `ipv4: free inet_opt and ireq_opt after an RCU grace period` in that release.
+  No proposed source, firewall workaround or distro/kernel-family switch is needed.
+- `scripts/admin/fix-production-kernel-054.sh`: check is read-only; apply needs hidden root su
+  access, pins four reviewed packages/payload hashes, rejects unrelated/removal/version drift,
+  retains 147, backs up GRUB/inventory and validates boot entries before reboot in one minute.
+  Exact scope, commands and recovery plan: docs/security/bug-054-kernel-remediation.md.
+- Checks: **10 parser**, ShellCheck/Bash syntax, **4 real payload hashes**, production read-only
+  APT/helper check (2 new/2 upgraded/0 removed, 63 untouched). All eight containers restart
+  unless-stopped; Docker/UFW enabled, GRUB default 0, >75 GB free. No VM kernel boot test run.
+- Root password must be entered by Ewout in native Terminal, never chat/argv/env. After approval,
+  verify uploaded helper checksum before su; collect pre-reboot boot/service/data baselines,
+  execute only the reviewed helper, wait for fresh SSH + kernel149 and all app health checks.
+  Provider console should be available for manual old-kernel recovery if SSH does not return.
+- Production still sha-a47111c/26 migrations/kernel147. Do not mark BUG-054 fixed until the new
+  kernel is running; BUG-055 and other unrelated maintenance findings remain separate.
+
 ## Current production and security follow-up — 2026-11-07
 
 - Our registration PR #159 is merged as **a47111c**; lower docs #158 merged as ca0b7af with its

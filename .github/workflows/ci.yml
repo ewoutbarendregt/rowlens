@@ -129,7 +129,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: shellcheck
-        run: shellcheck -x infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker
+        run: shellcheck -x infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker scripts/admin/fix-production-kernel-054.sh scripts/admin/test/fix-production-kernel-054.test.sh
+      - name: Kernel maintenance safety parser (no host changes)
+        run: bash scripts/admin/test/fix-production-kernel-054.test.sh
       - name: Unit tests (stubbed docker)
         run: bash infra/deploy/test/run.sh
       - name: Rehearsal against real Docker
