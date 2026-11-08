@@ -1,76 +1,113 @@
-# Club application email notifications
+# Initial admission, notification decision links and multi-club training overview
 
-Status: explored and specified; awaiting owner approval of architecture/migration under AGENTS.md.
-No implementation, migration, production change or email delivery has been performed.
+Status: revised after owner scope correction (2026-11-08). Architecture/migrations await approval;
+one product decision remains open: whether a clubless fallback requires explicit platform review
+or merely administrator visibility. Do not implement that dependent behavior before clarification.
+No implementation, migration, production change or notification mail has been performed.
 
-## Requested behavior
+## Product flow
 
-When a verified user submits a new pending club membership application, notify every current
-verified administrator member of that club. Cover both first registration with a club choice and
-an existing account applying to another club. Never send an administrator notification before
-email verification. Clubless registration has no club recipient. Platform administrators receive
-this notification only if they also hold administrator membership of the relevant club; their
-existing global requests view remains unchanged.
+1. A new user verifies email and initially chooses at most **one** existing active club (or the
+   existing no-club option). Enforce the one-club intent server-side; reject extra/array choices.
+   Email proof creates the verified account; club membership still requires admission.
+2. For the initial verified club application only, notify every current verified administrator
+   member of that club. Send individual NL/EN messages through existing SMTP, with club name,
+   notice and separate **Accept application** / **Reject application** links. No email before proof.
+   Platform administrators retain the global overview; do not implicitly subscribe them to every
+   club's mail unless they hold that club's administrator membership.
+3. After club rejection the user may explicitly submit an application **without a club**, routed
+   to RowLens administrators. Do not silently convert the rejection into such a request. The
+   global review/notification behavior is pending the owner's clarification (question below).
+   Initial no-club registration remains available; resolve its global-review treatment consistently
+   with that decision rather than silently granting or withholding new rights.
+4. From Clubs, an existing user may request additional clubs using the same account, retaining
+   approved memberships and roles. The owner explicitly limits this email decision procedure to
+   new-user applications: additional-club requests remain in the relevant club's in-app queue and
+   the platform administrator overview; do not apply initial-signup mail automation to them.
+5. Trainings shows **all trainings the account is authorized to see across its clubs**, with a
+   club filter (All clubs / one accessible club) and independent **Only trainings I participate in**
+   filter. Default includes all authorized trainings. The participation filter refers to the
+   account linked to a lineup/crew seat (including cox), not training creator or text/name matching.
 
-Each recipient gets an individual operational email in their saved NL/EN language, through the
-existing Resend SMTP sender. Minimal content: club name, a new application notice, and distinct
-**Accept application** / **Reject application** links. Applicant details are available only after
-opening the protected application page. No OTP, session cookie or reusable admission credential
-is embedded in the email; recipients are not exposed to one another.
+Open question sent to Ewout: must the RowLens administrator explicitly accept/reject a clubless
+fallback with the same notification mail/decision links, or should it only appear as a notification
+with no approval requirement? Existing verified-account profile/status access is not implicitly
+revoked by this request; no new content access follows from a clubless request.
 
-Both links target the exact application and select the proposed decision. The recipient signs
-in if needed, with that review destination preserved. A small protected review screen shows the
-applicant and requires explicit inline confirmation. GET requests never change membership;
-link scanners/prefetching cannot approve or reject. Final decisions use the existing guarded,
-CSRF-protected tenant admission/rejection operation, checking current authority, active club and
-pending state. Forwarded links grant no authority. Already-decided, withdrawn, archived or
-inaccessible applications yield a localized safe state rather than another mutation. Existing
-role-assignment defaults are preserved. All URLs use the shared base-path helpers.
+## Safe email decision links
 
-## Impact and proposed architecture
+Links identify the exact application and proposed decision, using shared base-path helpers. They
+lead to an authenticated protected review screen; preserve the review destination through sign-in.
+Show applicant details there and require inline confirmation. A GET never changes membership:
+email-scanner/prefetch visits cannot admit or reject someone. Final POST reuses current club-scoped
+permission checks, CSRF protection, active-club validation and pending-state decision transaction.
+Forwarded links confer no authority. Decided/withdrawn/inaccessible applications show safe localized
+states; repeat clicks never repeat a decision. Existing role-assignment defaults remain unchanged.
+The message contains no OTP/session/bearer-admission credential, applicant personal data or other
+recipient addresses. The approved Resend processor/SMTP sender is reused.
 
-- Existing application creation is centralized in `rowlens_submit_application`, called during
-  verified registration and authenticated club application. Its current boolean result prevents
-  duplicate pending submissions but has no delivery event. Existing invitation SMTP sends do
-  not offer durable retry for this requirement.
-- Add a tenant-owned durable notification outbox and migration. Store application/club/recipient
-  IDs and an application-generation identifier, delivery state, lease/retry metadata and safe
-  error categories, not copied applicant names/emails or SMTP secrets. A unique key prevents
-  repeated signup/login or concurrent attempts from enqueueing duplicate notifications.
-- Enqueue within the same protected transaction that creates a pending application or legitimately
-  reopens a cancelled/rejected one. A rolled-back submission creates no notification. A new
-  pending generation may notify again; repeated submissions while already pending do not.
-- Every new tenant table has club_id, RLS, restrictive role policies and cross-club tests. Data
-  operations go through repositories with TenantContext/withTenant. Any initial dispatch/claim
-  capability is narrow, service-only, fixed-search-path and modeled on existing job dispatch;
-  no general app-role access to all profiles/memberships and no RLS bypass in application code.
-- A small web-process mail dispatcher claims pending deliveries, resolves current recipient
-  email/locale via a narrowly scoped repository, and sends only after commit. It rechecks current
-  admin membership, verified address, active club and pending application before dispatch. Graceful
-  shutdown, leases and bounded retry/backoff preserve queued work across restarts. It shares the
-  configured SMTP transport; no new dependency, processor or media-worker credential is needed.
-- SMTP acceptance is not mailbox delivery. Persist operational acceptance/failure states honestly;
-  mail failure must never roll back the verified account or membership request. Retry transient
-  failures, bound attempts and log safe identifiers/categories. This is at-least-once dispatch:
-  an ambiguous SMTP response/crash can produce a duplicate; do not promise exactly-once delivery.
-- Keep this behind existing unified-users feature gates. Supersede ADR-0024's explicitly excluded
-  administrator mail scope with a focused new ADR. Update schema, migration, mail templates,
-  repositories, lifecycle wiring, protected review UI, route/login return handling, tests and logs.
-- Start with future submissions only. Do not bulk-notify historic applications or send production
-  mail during implementation. Local fake delivery/synthetic accounts are the default. Production
-  migration/deploy still requires a separate owner request.
+## Data and reliability impact
 
-## Acceptance checks
+- Existing `rowlens_submit_application` serves both registration and later club requests. It cannot
+  by itself determine new-user notification eligibility. Persist explicit initial-admission origin
+  and lifecycle identity under protected writes; an existing account repeating public registration
+  must not impersonate a new signup or duplicate administrator emails. Preserve decided applications,
+  cooldowns and existing memberships. No retrospective emails/backfill of invented signup events.
+- Add a durable tenant-owned notification outbox and migration. Store application/club/recipient IDs,
+  generation, delivery state, lease/retry metadata and safe error categories; avoid copied applicant
+  names/emails/secrets. Unique keys deduplicate concurrent/repeated issuance for the same initial
+  application and recipient. Enqueue atomically with the verified initial application transaction.
+- A small web-process mail dispatcher sends only committed work with bounded retry/backoff, leases
+  and graceful shutdown. Resolve recipient address/locale at delivery and recheck current verified
+  club-admin membership, active club and pending initial application. An SMTP outage must not roll
+  back the account/application. Persist acceptance/failure honestly: SMTP acceptance is not delivery.
+  SMTP crash ambiguity means at-least-once delivery, not a promise of exactly-once receipt.
+- Tenant tables get club_id, RLS, restrictive role policies and cross-club tests; repositories always
+  use TenantContext/withTenant. Any initial claim capability is narrow/service-only, fixed-search-path
+  and modeled on existing job claims. No general app-role global profile reads or application RLS
+  bypass. A truly global no-club request, if approval is required, uses protected global account state
+  and narrow platform-authorized projections/decisions; never invent a fake club/null tenant row.
+- Separate global requests/notification storage and decision states depend on the open product
+  question. Preserve historical records and additive rollout; no global account-locking semantics
+  or administrative revocation are inferred from a denied clubless application.
 
-- Verified club signup and later club application enqueue all and only relevant club admins;
-  multiple admins, recipient language, zero admins and zero-club signup covered.
-- No notification for unverified/invalid proof, ordinary login, existing members, pending duplicate,
-  rolled-back transaction or other clubs. Reopened application emits one new generation.
-- Concurrency/deduplication, cross-club RLS, direct app-role denial, archived club, recipient role
-  revocation/email change, lease expiry, retry, shutdown and terminal failure covered.
-- Both email links resolve behind the production base path. Signed-out then signed-in return,
-  authorized accept/reject confirmation, forwarded/unauthorized link, scanner GET, duplicate
-  confirmation, decided/withdrawn application and CSRF rejection covered.
-- NL/EN escaped text/HTML templates; no recipients, passwords, OTPs or addresses in logs/fixtures.
-- Relevant unit/database/browser checks, required PR checks, and iPhone WebKit plus 1000x540 review
-  screen checks. Actual production delivery remains unverified until separately approved testing.
+## Multi-club training access impact
+
+The current `/api/sessions` path uses one selected tenant, and SessionsPage calls it once. Preserve
+that route's selected-club behavior for existing consumers. Add an account-authorized aggregate list
+repository/API for the overview, deriving current eligible clubs and roles from protected server
+state. Query each permitted club under its own TenantContext/RLS and project only already-visible
+training summaries. Platform administrators may include all active clubs via their persisted grant.
+A filter's client club ID never grants visibility. Return explicit club ID/name/current capabilities
+on each row; links/opening trainings carry the matching club context. Keep creation tied to an
+explicit authorized club and existing write permissions. Account/club switches must not let stale
+results or form data drift between clubs.
+
+Extend list filters/URL state for club and own participation, preserving existing sorts/search.
+Compute participation using linked user IDs through lineup records, not name/email similarity or
+creator identity. Do not create mappings for unlinked legacy people. Empty/no-club/role-revocation
+states fail closed. Private feedback and note counts retain existing per-club authorization; list
+aggregation does not broaden content reads/writes or trigger media side effects. Add pagination/
+bounded querying as needed so the overview does not become an unbounded cross-club data export.
+
+## Implementation and verification scope after approval
+
+- Focused ADR superseding the affected ADR-0021/0024 selected-club overview/mail exclusions; update
+  schema/migration, repositories, initial request lifecycle, localized mail templates/dispatcher,
+  protected decision page and login return handling, Clubs fallback UI, Users/global Requests and
+  training overview/API/filters. No new dependency/processor, media-worker mail secret or production
+  configuration required for the stated design. Additional database details depend on clarification.
+- Tests: verified initial-only mail eligibility, one-club signup, no unverified/login/repeated signup/
+  later-club notifications; multiple admins/languages; relevant club only; duplicate/concurrent/rolled
+  back submission; retry/lease/shutdown; recipient permission/email changes; archived clubs; denied
+  club followed by explicit no-club fallback; platform authority and forbidden cross-club/global reads.
+- Email links: base path, sign-in return, authorized confirmations, unauthorized/forwarded/scanner GET,
+  CSRF, withdrawn/decided application, concurrent clicks and stale authority. No automatic GET mutation.
+- Training list: zero/one/multiple clubs, all-club and single-club filters, own participation including
+  cox versus creator-only sessions, unrelated accessible trainings, unlinked legacy seats, platform
+  authority, role/membership revocation, private notes, tenant-aware opening/creation and stale UI.
+- Relevant unit/database/browser checks and required PR checks; measure iPhone WebKit and 1000x540
+  review/list/filters/Clubs UI. Use local synthetic recipients/fake delivery; do not email real admins.
+- No production merge/deploy/migration is authorized by this planning exchange. User acceptance and
+  explicit deploy request are still required. Existing DNS incident BUG-056 remains separately tracked
+  until fresh mailbox receipt is confirmed; do not treat notification implementation as its repair.

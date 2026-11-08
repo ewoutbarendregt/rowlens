@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Revise initial admission and multi-club training scope
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Owner narrowed email/decision procedure to new users, kept one initial club choice, added explicit clubless fallback after rejection and additional-club requests from Clubs, and requested a cross-club training overview with club/own-participation filters. Revised impact/design after confirming the current list is single-tenant and both application paths share a submission helper. Asked whether clubless fallback needs platform-admin approval and matching mail/decision links; this behavior and architectural approval remain pending. No implementation, migration, notifications or production changes performed.
+**Prompts used**: "deze procedure geldt alleen voor aanvragen van nieuwe gebruikers. bij eerste aanmelding kan een gebruiker maar voor 1 club kiezen. wanneer een gebruiker niet wordt toegelaten bij een club, kan de gebruiker ook een aanvraag indienen voor een aanmelding zonder club, die komt dan bij de rowlens admin uit. een gebruiker kan vanuit de clubs tab een aanvraag indienen om zich tevens aan te melden bij een andere club. in het overzicht van de trainingen kan de gebruiker alle trainingen zien waar hij toegang toe heeft, kan selecteren per club en alleen trainingen waar hij zelf in voorkomt".
+
 ## 2026-11-08 — Specify club administrator application notification and decision links
 
 **Session**: codex/feat/club-application-notifications

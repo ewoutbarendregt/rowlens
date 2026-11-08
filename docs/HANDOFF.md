@@ -3,14 +3,17 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
-## Proposed club application notification (2026-11-08)
+## Revised initial admission and multi-club overview scope (2026-11-08)
 
-Owner requests email to the relevant club's administrators, including accept/reject links.
-Exploration/design: docs/plans/club-application-notifications.md. Proposed tenant-scoped durable
-outbox, new migration and authenticated decision-review links with inline confirmation (GET is
-read-only). Covers verified signup and later applications, future submissions only, NL/EN,
-current recipient permissions and retries/deduplication. Await architecture approval before
-implementation. No production email, migration, server change or deploy authorized/performed.
+Owner corrected the initial proposal: email/decision links apply to NEW-user applications only;
+one initial club choice; explicit no-club fallback after rejection routes to platform admins;
+additional-club applications remain available from Clubs. Trainings must aggregate all authorized
+clubs, with club and own-participation filters. Current training list is single-tenant, so new
+aggregation must use per-club TenantContext/RLS and context-aware links, preserving private notes
+and write permissions. Revised design: docs/plans/club-application-notifications.md.
+Open question: does no-club fallback require explicit platform accept/reject and notification mail,
+or only visibility? Do not implement dependent behavior or treat the prior full plan as approved.
+Architecture/migration approval pending; no implementation or production action performed.
 
 ## DNS repair verified — 2026-11-08
 
