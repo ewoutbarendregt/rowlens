@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Finalize explicit platform review for clubless admission
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Owner confirmed that clubless applications require explicit RowLens-admin decisions with notification email and accept/reject links. Finalized protected global application/notification storage, audited current-authority decisions, recipient rechecks and separation from tenant membership; rejected requests do not implicitly lock accounts or revoke memberships. Complete revised architecture/migration plan is ready for approval. No implementation, production mail, migration or deployment performed.
+**Prompts used**: "Ja, expliciet beoordelen met notificatiemail en beslislinks".
+
 ## 2026-11-08 — Revise initial admission and multi-club training scope
 
 **Session**: codex/feat/club-application-notifications

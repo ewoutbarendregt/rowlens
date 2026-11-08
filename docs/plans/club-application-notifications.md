@@ -1,8 +1,8 @@
 # Initial admission, notification decision links and multi-club training overview
 
-Status: revised after owner scope correction (2026-11-08). Architecture/migrations await approval;
-one product decision remains open: whether a clubless fallback requires explicit platform review
-or merely administrator visibility. Do not implement that dependent behavior before clarification.
+Status: product scope clarified (2026-11-08). Owner confirmed explicit platform review with
+notification mail and decision links for clubless applications. The complete revised architecture
+and database migrations are now ready for approval before implementation.
 No implementation, migration, production change or notification mail has been performed.
 
 ## Product flow
@@ -17,9 +17,9 @@ No implementation, migration, production change or notification mail has been pe
    club's mail unless they hold that club's administrator membership.
 3. After club rejection the user may explicitly submit an application **without a club**, routed
    to RowLens administrators. Do not silently convert the rejection into such a request. The
-   global review/notification behavior is pending the owner's clarification (question below).
-   Initial no-club registration remains available; resolve its global-review treatment consistently
-   with that decision rather than silently granting or withholding new rights.
+   RowLens administrators explicitly accept/reject this request and each receives an individual
+   localized notification with both decision links. Initial no-club registration also routes to
+   this same platform review process. Approval does not create a club membership.
 4. From Clubs, an existing user may request additional clubs using the same account, retaining
    approved memberships and roles. The owner explicitly limits this email decision procedure to
    new-user applications: additional-club requests remain in the relevant club's in-app queue and
@@ -29,10 +29,11 @@ No implementation, migration, production change or notification mail has been pe
    filter. Default includes all authorized trainings. The participation filter refers to the
    account linked to a lineup/crew seat (including cox), not training creator or text/name matching.
 
-Open question sent to Ewout: must the RowLens administrator explicitly accept/reject a clubless
-fallback with the same notification mail/decision links, or should it only appear as a notification
-with no approval requirement? Existing verified-account profile/status access is not implicitly
-revoked by this request; no new content access follows from a clubless request.
+Owner confirmed: clubless admission is an explicit platform-admin decision with notification mail
+and accept/reject links. A pending/rejected clubless request does not revoke the verified account,
+existing club memberships or profile/status access, and acceptance grants no club content rights.
+The user can see their request's pending/accepted/rejected state. Platform administrators alone
+can view the global decision queue and make audited decisions; club administrators cannot.
 
 ## Safe email decision links
 
@@ -65,11 +66,17 @@ recipient addresses. The approved Resend processor/SMTP sender is reused.
 - Tenant tables get club_id, RLS, restrictive role policies and cross-club tests; repositories always
   use TenantContext/withTenant. Any initial claim capability is narrow/service-only, fixed-search-path
   and modeled on existing job claims. No general app-role global profile reads or application RLS
-  bypass. A truly global no-club request, if approval is required, uses protected global account state
-  and narrow platform-authorized projections/decisions; never invent a fake club/null tenant row.
-- Separate global requests/notification storage and decision states depend on the open product
-  question. Preserve historical records and additive rollout; no global account-locking semantics
-  or administrative revocation are inferred from a denied clubless application.
+  bypass. Global no-club requests use protected global account state and narrow platform-authorized
+  projections/decisions; never invent a fake club/null tenant row.
+- Add protected global clubless-admission state (account ID, origin, pending/approved/rejected,
+  generation/timestamps and audited decision actor), plus global notification delivery storage.
+  These are global authentication/admission records, not tenant content; follow existing protected
+  account tables with no direct app-role reads/writes and narrow self/platform-authorized wrappers.
+  Enqueue platform notifications atomically with a new valid clubless request, deduplicate pending
+  repeats, recheck current persisted platform grants and pending state before send/decision, and
+  use the same bounded dispatcher/lease discipline as tenant notifications. Preserve historical
+  registrations without fabricating review requests or sending retrospective notifications.
+  No global account lock or membership revocation follows from a rejected clubless application.
 
 ## Multi-club training access impact
 
@@ -96,7 +103,8 @@ bounded querying as needed so the overview does not become an unbounded cross-cl
   schema/migration, repositories, initial request lifecycle, localized mail templates/dispatcher,
   protected decision page and login return handling, Clubs fallback UI, Users/global Requests and
   training overview/API/filters. No new dependency/processor, media-worker mail secret or production
-  configuration required for the stated design. Additional database details depend on clarification.
+  configuration required for the stated design. Include protected global admission and notification
+  storage in the migration; test tenant/global isolation and current persisted platform authority.
 - Tests: verified initial-only mail eligibility, one-club signup, no unverified/login/repeated signup/
   later-club notifications; multiple admins/languages; relevant club only; duplicate/concurrent/rolled
   back submission; retry/lease/shutdown; recipient permission/email changes; archived clubs; denied

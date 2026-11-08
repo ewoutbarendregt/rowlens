@@ -11,9 +11,10 @@ additional-club applications remain available from Clubs. Trainings must aggrega
 clubs, with club and own-participation filters. Current training list is single-tenant, so new
 aggregation must use per-club TenantContext/RLS and context-aware links, preserving private notes
 and write permissions. Revised design: docs/plans/club-application-notifications.md.
-Open question: does no-club fallback require explicit platform accept/reject and notification mail,
-or only visibility? Do not implement dependent behavior or treat the prior full plan as approved.
-Architecture/migration approval pending; no implementation or production action performed.
+Owner confirmed explicit RowLens-admin accept/reject for clubless applications, with individual
+notification mail and both authenticated decision links. Include protected global request and
+notification storage, no fake club and no implicit account lock/membership revocation. Final
+revised architecture/migration plan awaits approval; no implementation or production action.
 
 ## DNS repair verified — 2026-11-08
 
