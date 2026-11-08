@@ -2,6 +2,13 @@
 
 Agent work log, newest first.
 
+## 2026-11-08 — Specify club administrator application notification and decision links
+
+**Session**: codex/feat/club-application-notifications
+**Changed**: docs/plans/club-application-notifications.md, PLAN.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Explored verified registration and existing-account club application paths and the current invitation mail transport. Prepared a durable tenant-scoped notification design for all current club admins, localized individual mail, safe retries and deduplication. Owner added direct accept/reject links; specified authenticated review plus explicit confirmation, preserving existing permission/CSRF checks and preventing scanner GET mutations. New outbox/migration and protected review UI require architecture approval; no implementation or production email/change performed.
+**Prompts used**: "als er een aanmelding is, moeten de clubbeheerders van de betreffende club een email ontvangen met een notificatie"; "in de email naar de clubbeheerder moet gelijk een link zitten voor de acceptatie/ afwijzing van de aanmelding".
+
 ## 2026-11-08 — Verify owner-applied mail authentication DNS repair
 
 **Session**: codex/fix/056-registration-mail-auth

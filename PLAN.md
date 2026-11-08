@@ -1,5 +1,14 @@
 # PLAN
 
+## Proposed club application notification (2026-11-08)
+
+Owner requests email to the relevant club's administrators, including accept/reject links.
+Exploration/design: docs/plans/club-application-notifications.md. Proposed tenant-scoped durable
+outbox, new migration and authenticated decision-review links with inline confirmation (GET is
+read-only). Covers verified signup and later applications, future submissions only, NL/EN,
+current recipient permissions and retries/deduplication. Await architecture approval before
+implementation. No production email, migration, server change or deploy authorized/performed.
+
 ## DNS repair verified — 2026-11-08
 
 Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve
