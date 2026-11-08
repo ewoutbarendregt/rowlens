@@ -3,6 +3,45 @@
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.
 
+## Production release — sha-037899e (2026-11-08 12:58 UTC)
+
+Merged #160/#161/#162/#163 as **4e8061b / 004d99a / 8904684 / 037899e**, retaining parent branches
+through stack retargeting. Each integration preserved the reviewed tree and had a clean conflict-marker
+scan. Final PR CI **42470466200**, main CI **42471455669** and images **42471455659** pass. Deploy
+[42482645343](https://github.com/ewoutbarendregt/rowlens/actions/runs/42482645343) succeeded; live
+readiness reports **sha-037899e**, DB ok, **27 migrations**. New-user notifications, explicit clubless
+platform review and multi-club training overview are now deployed with the unified-users flags.
+
+Preserved: **7 accounts, 7 memberships, 4 sessions, 6 videos, 14 compatibility people (7 unlinked),
+10 seats, 8 angles, 1 registration and 1 platform administrator**, with no pending club applications.
+New clubless/notice queues and initial-signup marker counts are **0**, confirming no retrospective
+requests/mail. Direct new-table app-role reads and private enqueue execution are denied; tenant
+notice RLS is enabled with both policies. No dispatcher/OTP mail errors in post-start logs. Both
+RowLens services use the new tag; DB is healthy and kernel remains **6.8.0-149-generic**.
+
+All five trustable/AudioScribe container IDs, start times and image references match the baseline.
+RowLens readiness, trustable.nl, API health and AudioScribe return **HTTP200**. Public review/sign-in
+and signup club selection pass on **1000x540 Chromium and iPhone13 WebKit** (four page checks,
+no overflow; screenshots inspected). No OTP request, signup or actual administrator notification
+was sent for the production smoke test. Local/full CI evidence: **622 web/DB tests, 49 general
+browser cases, 34 unified laptop/iPhone cases, 50 worker tests, 77 deploy-script checks**, plus
+38 focused notification checks and 35 focused CI-isolation checks and actual local deploy rehearsal.
+
+The existing registration message at **08:32:25 UTC** is reported **delivered** by Resend after the
+owner-applied SPF/DMARC fix; older bounces are historical. Actual inbox placement and receipt of a
+new administrator notification have not been directly confirmed. BUG-056 retains that distinction;
+BUG-055 remains the separate security-maintenance backlog. Known release-please workflow failure
+is the existing Actions PR-creation restriction; required CI/images/deploy succeeded.
+
+## Handoff after verified release
+
+Release work is complete. Log branch `codex/docs/163-deploy` records the deployment for the next
+PR; do not merge/deploy it without another explicit request. Historical in-progress/no-deploy
+entries below describe earlier checkpoints. No further root bootstrap, kernel repair, shared DNS
+change or email test is needed merely to complete this release. Production is sha-037899e/27
+migrations; local dev remains available on :5174 with DB readiness healthy. Future real new signup
+should create the appropriate request/notice and use current club/platform administrators.
+
 ## Authorized release in progress — 2026-11-08
 
 Ewout requested "Merge en deploy". #160 merged as 4e8061b, branch retained. #161 retargeted to main;

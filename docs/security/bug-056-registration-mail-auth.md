@@ -2,6 +2,14 @@
 
 Status: owner applied DNS repair; authoritative/public checks pass, awaiting fresh mail receipt.
 
+## Provider delivery confirmed after repair — 2026-11-08
+
+Read-only provider metadata now reports the latest registration message (08:32:25 UTC) as
+**delivered**, whereas the three older attempts remain bounced. This supports restoration of
+delivery after the owner's DNS changes; it is not a claim of direct inbox placement or a new
+administrator-notification test. No message was sent for this check. Keep direct owner receipt
+confirmation distinct from provider status.
+
 ## DNS repair verified — 2026-11-08
 
 Ewout added the two TXT records himself and confirmed "toegevoegd". Both exact values now resolve

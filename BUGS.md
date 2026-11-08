@@ -4,24 +4,24 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-058] CI signup screenshots and shared directory quota exhausted — medium
 **Location**: apps/web/e2e/unified-users.spec.ts; apps/web/e2e/server.ts
-**Status**: fixed locally; fresh CI pending
+**Status**: fixed (CI 42470466200 / 42471455669 green; deployed sha-037899e)
 **Found**: 2026-11-08 (PR #163 CI run 42468395663)
 **Description**: Linux WebKit could not capture accumulated global request lists above 32767 device pixels, and fast shared-IP tests/retries exhausted the 30/minute public registration-directory limit.
 **Fix**: Capture the asserted request element rather than the unbounded page. Add a validated registration-directory limit (production default remains 30/minute); only the synthetic E2E server configures 1000. A database regression enforces the configured limit. No production setting changed.
 
 ### [BUG-057] New cross-club pagination dropped microsecond ties — medium
 **Location**: apps/web/src/server/repositories/session-list.ts; apps/web/src/server/auth/unified-gate.ts
-**Status**: fixed locally before release
+**Status**: fixed (deployed sha-037899e)
 **Found**: 2026-11-08
 **Description**: During implementation, JavaScript Date precision truncated PostgreSQL timestamps in the new list cursor, skipping remaining rows with the same timestamp after the first 100 results.
-**Fix**: Preserve UTC microseconds in SQL cursor text and use stable date/timestamp/UUID ordering. Database regression verifies 103 tied/multi-club rows appear exactly once across pages. Not deployed.
+**Fix**: Preserve UTC microseconds in SQL cursor text and use stable date/timestamp/UUID ordering. Database regression verifies 103 tied/multi-club rows appear exactly once across pages. Deployed as sha-037899e with green CI.
 
 ### [BUG-056] Registration codes bounce at Microsoft due to sender authentication — high
 **Location**: shared trustable.nl DNS; docs/security/bug-056-registration-mail-auth.md
-**Status**: in-progress (DNS repair verified; awaiting fresh registration mail receipt)
+**Status**: in-progress (DNS verified; provider reports fresh registration delivered; direct inbox confirmation pending)
 **Found**: 2026-11-08
 **Description**: Registration OTP is issued and SMTP accepts it, but three provider records show later bounces. Microsoft returns 550 5.7.1 AS9031519 for missing sender authentication. Live DNS lacks send-subdomain SPF and DMARC; configured DKIM exists. Some existing-login mail is delivered; the issue is not restricted by account age.
-**Fix**: Prepared exact two-record DNS addition and end-to-end receipt checks in docs/security/bug-056-registration-mail-auth.md. Owner added both records; 10/10 authoritative/public DNS checks pass. No agent test mail sent; retain open until a fresh registration mail is received.
+**Fix**: Prepared exact two-record DNS addition and end-to-end receipt checks in docs/security/bug-056-registration-mail-auth.md. Owner added both records; 10/10 authoritative/public DNS checks pass. Resend subsequently reports the 2026-11-08 08:32:25 UTC registration mail delivered; no new test mail was sent. No agent test mail sent; retain open until a fresh registration mail is received.
 
 ### [BUG-054] Active production kernel has a critical vendor IPv4/TCP advisory — critical
 **Location**: docs/security/2026-11-07-production-dependabot-review.md; trustable-prod kernel 6.8.0-147-generic
