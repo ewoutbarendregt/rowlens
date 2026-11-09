@@ -4,14 +4,14 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-062] Rejected uploads retained a physical-asset quota reservation — medium
 **Location**: apps/web/src/server/db/migrations/0028_training_video_reuse.sql:140
-**Status**: fixed locally before release
+**Status**: fixed (production sha-8a401c9, PR #175)
 **Found**: 2026-11-09
 **Description**: Review of the new physical-asset quota helper found it counted rejected uploads,
 whose bytes have already been removed. This could falsely exhaust the upload cap. Existing quota
 behavior excludes rejected uploads; shared recordings must still be charged exactly once.
 **Fix**: Exclude assets whose canonical status is rejected. The existing-data/old-image migration
 regression fails with 75 reserved bytes instead of 60 before the fix, and verifies rejection and
-last-entry deletion release the reservation. No production incident or deployment.
+last-entry deletion release the reservation. Deployed in run 42640926073; no production incident occurred.
 
 ### [BUG-058] CI signup screenshots and shared directory quota exhausted — medium
 **Location**: apps/web/e2e/unified-users.spec.ts; apps/web/e2e/server.ts

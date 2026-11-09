@@ -3,6 +3,37 @@
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
+## Training video reuse deployed — sha-8a401c9 (2026-11-09 15:05 UTC)
+
+Ewout requested "Merge en deploy". PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175)
+merged as **8a401c9** after PR CI **42634226543** passed all eight jobs. Main CI **42636448470**
+(attempt 2) and images **42636448533** passed; deploy
+[42640926073](https://github.com/ewoutbarendregt/rowlens/actions/runs/42640926073) succeeded.
+The first main edge job stopped progressing in package preparation and was cancelled/retried
+alone; no application test failure or code change. The retry passed with earlier green jobs retained.
+
+Public readiness reports **sha-8a401c9**, DB ok, **28 migrations**. Both RowLens services run the new
+tag; web/DB are healthy. Preserved: **7 accounts/memberships, 4 trainings, 6 videos, 83 annotations,
+14 rowers, 10 seats, 2 moments, 1 assignment, 8 angles, 53 stroke marks and 9 manual boat lines**.
+All **21 physical files / 352,880,017 bytes** and media quota are unchanged. Six assets map to their
+original video IDs, with zero missing assets, source references or active jobs. Both new tables have
+RLS and four restrictive reference policies; app-role asset reads return zero, private trigger
+execution is denied and the guarded reference helper remains executable.
+
+All **7 other containers**, including the database and six neighbouring/shared services, retain
+identical IDs/start times/images. RowLens readiness, trustable.nl, API health and AudioScribe all
+return **HTTP200**. Public sign-in passes on **1000x540 Chromium and iPhone 13 WebKit (390x664)**,
+with no overflow, JS errors or POST requests; screenshots inspected. Authenticated write flows were
+verified locally/CI, without creating production test data or sending a login/notification email.
+Pre-deploy backup exists: `pre-deploy-20261109T150452Z-sha-8a401c9.dump` (339,487 bytes). No server
+settings, shared components, .env/compose, bot update or other repository was changed. The known
+release-please Actions PR-creation restriction remains separate from successful CI/images/deploy.
+
+Release work is complete. This log branch `codex/docs/175-deploy` is for the next documentation PR;
+do not merge/deploy it without a new request. The isolated local development stack stays on :5174 /
+API :3100 with DB readiness healthy and 28 migrations. Original dirty club-editor work remains
+separate; its address migration journal/snapshot/timestamp must be reconciled before integration.
+
 ## Completed production repair — 2026-11-07 20:17 UTC
 
 Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
@@ -28,7 +59,7 @@ and other maintenance findings remain open. No staging host was checked or modif
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `AUTH_ADMIN_EMAILS` (first admin, added before `sha-96a0202` with a backup), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587` (465 is blocked outbound on trustable-prod, BUG-010; changed 2026-11-02 07:34 UTC, backup `.env.bak-20261102b`), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the e-mail change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
-| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-a47111c` (2026-11-07 19:20 UTC), signup enabled, 26 migrations; web and DB healthy. Previous release: `sha-dd71f78`. Networks unchanged. | Codex, 2026-11-07, approved |
+| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-8a401c9` (2026-11-09 15:05 UTC), independent training video reuse enabled, 28 migrations; web and DB healthy. Previous release: `sha-037899e`. Networks/settings unchanged. | Codex, 2026-11-09, approved |
 | Resend sender domain | ✅ `trustable.nl` verified (DKIM `resend._domainkey`, bounce MX on `send.trustable.nl`, SPF includes resend.com); AudioScribe already sends from it | checked 2026-11-02 |
 
 Nothing under `/opt/trustable` has been changed.

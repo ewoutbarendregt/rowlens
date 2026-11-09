@@ -2,10 +2,11 @@
 
 ## Own-training/video reuse workflow (2026-11-09)
 
-Status: in progress (implementation and local verification complete; not merged). Created by me filter,
+Status: done (merged in PR #175 as 8a401c9, deployed as sha-8a401c9 on 2026-11-09). Created by me filter,
 same-club media reuse with independent feedback/analysis, and authorized read-only source annotation
 references with creator/source switches. See ADR-0026 and docs/plans/training-video-reuse.md.
-PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. Production remains unchanged.
+PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is deployed with 28 migrations; readiness
+and existing data/media preservation are verified.
 
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).

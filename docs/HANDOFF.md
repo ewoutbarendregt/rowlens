@@ -1,10 +1,41 @@
 # RowLens handoff — 2026-11-09
 
+## Training video reuse deployed — sha-8a401c9 (2026-11-09 15:05 UTC)
+
+Ewout requested "Merge en deploy". PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175)
+merged as **8a401c9** after PR CI **42634226543** passed all eight jobs. Main CI **42636448470**
+(attempt 2) and images **42636448533** passed; deploy
+[42640926073](https://github.com/ewoutbarendregt/rowlens/actions/runs/42640926073) succeeded.
+The first main edge job stopped progressing in package preparation and was cancelled/retried
+alone; no application test failure or code change. The retry passed with earlier green jobs retained.
+
+Public readiness reports **sha-8a401c9**, DB ok, **28 migrations**. Both RowLens services run the new
+tag; web/DB are healthy. Preserved: **7 accounts/memberships, 4 trainings, 6 videos, 83 annotations,
+14 rowers, 10 seats, 2 moments, 1 assignment, 8 angles, 53 stroke marks and 9 manual boat lines**.
+All **21 physical files / 352,880,017 bytes** and media quota are unchanged. Six assets map to their
+original video IDs, with zero missing assets, source references or active jobs. Both new tables have
+RLS and four restrictive reference policies; app-role asset reads return zero, private trigger
+execution is denied and the guarded reference helper remains executable.
+
+All **7 other containers**, including the database and six neighbouring/shared services, retain
+identical IDs/start times/images. RowLens readiness, trustable.nl, API health and AudioScribe all
+return **HTTP200**. Public sign-in passes on **1000x540 Chromium and iPhone 13 WebKit (390x664)**,
+with no overflow, JS errors or POST requests; screenshots inspected. Authenticated write flows were
+verified locally/CI, without creating production test data or sending a login/notification email.
+Pre-deploy backup exists: `pre-deploy-20261109T150452Z-sha-8a401c9.dump` (339,487 bytes). No server
+settings, shared components, .env/compose, bot update or other repository was changed. The known
+release-please Actions PR-creation restriction remains separate from successful CI/images/deploy.
+
+Release work is complete. This log branch `codex/docs/175-deploy` is for the next documentation PR;
+do not merge/deploy it without a new request. The isolated local development stack stays on :5174 /
+API :3100 with DB readiness healthy and 28 migrations. Original dirty club-editor work remains
+separate; its address migration journal/snapshot/timestamp must be reconciled before integration.
+
 ## Own-training/video reuse implementation (2026-11-09)
 
-PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) targets main and is ready for review;
-no merge or deployment was requested. Feature implementation head e9fbbba. GitHub CI status must
-be checked on the latest push before any future authorized merge.
+Historical local checkpoint: PR #175 was ready for review at implementation head e9fbbba. The
+subsequent authorized merge/deployment is complete and recorded above; earlier no-deploy wording
+below describes the implementation stage only.
 
 Owner approved docs/plans/training-video-reuse.md with "Ja"; do not ask for architecture approval
 again. Implementation on codex/feat/training-video-reuse: Created by me filter, tenant media assets

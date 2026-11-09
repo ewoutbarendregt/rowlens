@@ -1,3 +1,17 @@
+## [2026-11-09] — Deploy verified training reuse release
+
+**Session**: codex/docs/175-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md
+**Summary**: Merged #175 as 8a401c9 after green PR CI; main CI 42636448470 (edge-only retry after stalled package preparation) and images 42636448533 passed, then deploy 42640926073 succeeded at 15:05 UTC. Verified sha-8a401c9/28 migrations, unchanged sporting/account counts and 21 media files/352,880,017 bytes, six correctly backfilled assets and protected new tables; all seven other container identities/start times/images and four public HTTP checks are intact. Two public laptop/iPhone WebKit checks pass without writes; no production test content/email or shared-setting change.
+**Prompts used**: Merge en deploy
+
+## [2026-11-09] — Begin authorized training reuse production release
+
+**Session**: codex/docs/175-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, PLAN.md, FEATURES.md
+**Summary**: On explicit request merged PR #175 as 8a401c9 after its latest CI 42634226543 passed all eight jobs and a clean conflict-marker scan; no bot or unrelated change was included. Saved the production container/data baseline (sha-037899e, 27 migrations), prepared read-only postchecks and await main CI/images before deploying sha-8a401c9.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-09] — Verify training reuse locally and prepare isolated PR
 
 **Session**: codex/feat/training-video-reuse
