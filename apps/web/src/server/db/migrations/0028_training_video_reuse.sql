@@ -133,7 +133,7 @@ GRANT EXECUTE ON FUNCTION rowlens_collect_unused_assets(uuid[]) TO rowlens_app;
 --> statement-breakpoint
 CREATE OR REPLACE FUNCTION rowlens_media_bytes() RETURNS bigint
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public,pg_temp AS $$
- SELECT coalesce(sum(size_bytes+renditions_bytes),0)::bigint FROM video_asset
+ SELECT coalesce(sum(size_bytes+renditions_bytes),0)::bigint FROM video_asset WHERE metadata->>'status'<>'rejected'
 $$;
 
 --> statement-breakpoint

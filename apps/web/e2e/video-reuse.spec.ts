@@ -89,14 +89,12 @@ test('reuse and selected source layers preserve attribution, own notes and per-v
   const overlay = page.getByTestId('video-note-overlay');
   await expect(overlay).toContainText('Original technique note');
   await expect(overlay).toContainText('Source Coach · Source video reuse fixture');
-  const layer = panel
-    .getByTestId('source-layer')
-    .filter({
-      has: page.getByRole('heading', {
-        name: 'Source Coach · Source video reuse fixture',
-        exact: true,
-      }),
-    });
+  const layer = panel.getByTestId('source-layer').filter({
+    has: page.getByRole('heading', {
+      name: 'Source Coach · Source video reuse fixture',
+      exact: true,
+    }),
+  });
   const toggle = layer.getByRole('checkbox');
   await expect(toggle).toBeChecked();
   await toggle.uncheck();

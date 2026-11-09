@@ -85,6 +85,10 @@ it('backfills existing media without changing paths or feedback and supports old
       expect(
         (await legacy.query<{ n: string }>('select rowlens_media_bytes() as n')).rows[0]?.n,
       ).toBe('75');
+      await legacy.query("update video set status='rejected' where id=$1", [uploaded]);
+      expect(
+        (await legacy.query<{ n: string }>('select rowlens_media_bytes() as n')).rows[0]?.n,
+      ).toBe('60');
       await legacy.query('delete from video where id=$1', [uploaded]);
       expect(
         (await legacy.query<{ n: string }>('select rowlens_media_bytes() as n')).rows[0]?.n,

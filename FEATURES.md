@@ -2,7 +2,7 @@
 
 ## Own-training/video reuse workflow (2026-11-09)
 
-Status: in progress, approved and implemented locally; verification underway. Created by me filter,
+Status: in progress (implementation and local verification complete; not merged). Created by me filter,
 same-club media reuse with independent feedback/analysis, and authorized read-only source annotation
 references with creator/source switches. See ADR-0026 and docs/plans/training-video-reuse.md.
 Production remains unchanged.

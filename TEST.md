@@ -1,14 +1,27 @@
 ## 2026-11-09 — Independent training video reuse implementation
 
-- New creator-filter regression failed before the implementation and passes afterward. Current
-  broad run: 641 web/DB tests pass, including existing-data asset backfill and old-image upload,
-  worker metadata and ordinary deletion. Six synthetic browser checks pass at 1000x540 Chromium
-  and iPhone 13 WebKit: filtering/reload, reuse/source attribution, selection/layer visibility,
-  independent same-frame notes, deletion and measured 44px labels; screenshots inspected.
-- Added further live-membership/archived-club and independent stroke/angle/boat-line checks; final
-  verification is in progress. Updated the restrictive-policy inventory for both new tables.
-- Worker checks: Ruff, format and strict mypy pass; 50 tests pass. Worker implementation is unchanged.
-  Initial test-fixture hex/header mistakes and multi-layer selector ambiguity were corrected.
+- **641 web/DB tests pass** after isolation onto main, including 17 focused reuse cases and the
+  existing-data migration/old-image compatibility test. Creator filtering was red before its fix;
+  rejected-asset quota regression was red (75 vs 60 bytes) before excluding rejected assets.
+  Coverage includes same-club/tenant boundaries, private notes/sharing revocation, actual current
+  membership, all seven role sets, independent strokes/angles/manual and automatic boat lines,
+  concurrent reuse/deletion, deduplication/quota, original-training deletion and tus termination.
+- **6 synthetic browser checks pass** at 1000x540 Chromium and iPhone 13 WebKit: filter/URL reload,
+  existing-video picker, original attribution, individual references, persisted personal layer
+  switches, same-frame local/source separation and delete safety. Measured 44px labels; screenshots
+  inspected. **34 unified-account checks pass**, including member-created filtering across clubs
+  and reload; **32 general browser checks pass** (106 context-specific skips in that run).
+- **38 edge checks pass**, including actual upload/transcoding and a new real-worker reuse case:
+  independent detector corrections leave the source result unchanged; deleting the source training
+  preserves 206-range playback and local notes on the reused entry while removing source references.
+  The edge run has 32 context-specific skips. The initially stopped edge stack was stopped afterward.
+- Format, lint, typecheck and flagged builds pass. Worker Ruff/format/strict mypy and **50 worker
+  tests pass**. **77 deploy-script checks pass** in Ubuntu; the native macOS invocation lacks flock
+  and was replaced by that supported Linux run. Actual local Docker deploy rehearsal passes normal
+  deployment/backups, failed-release rollback, explicit rollback and status; no production action.
+- Local migration count: **28**; development UI remains on :5174 and API :3100, database readiness
+  HTTP200. Refreshed the unreleased quota helper locally after BUG-062; fresh test databases run
+  the final migration. Original worktree's pending address migration is not applied or copied.
 
 ## 2026-11-09 — Training reuse design review
 

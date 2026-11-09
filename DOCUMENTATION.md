@@ -1,3 +1,10 @@
+## [2026-11-09] — Verify training reuse locally and prepare isolated PR
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: apps/web/e2e/{unified-users.spec,video-reuse.spec,video-reuse-edge.spec}.ts, apps/web/src/server/db/video-assets-migration.db.test.ts, apps/web/src/server/db/migrations/0028_training_video_reuse.sql, BUGS.md, PLAN.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Rebased only this feature onto main 037899e, preserving original uncommitted club/address/research work and scanning conflicts clean. Added unified creator-filter and real-worker reuse/deletion coverage, fixed the red rejected-asset quota regression (BUG-062), and verified local UI/API with 28 migrations; 641 web/DB, 6 focused/34 unified/32 general/38 edge browser, 50 worker and 77 Linux deploy-script checks plus actual Docker deploy rehearsal pass. Production is unchanged.
+**Prompts used**: Ja
+
 ## [2026-11-09] — Implement independent training video and annotation reuse
 
 **Session**: codex/feat/training-video-reuse

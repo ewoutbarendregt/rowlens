@@ -124,5 +124,5 @@ Keep existing participation (`mySeat`, including cox 0), notes-for-me and club f
   coverage includes 1000x540 Chromium and iPhone 13 WebKit, screenshot inspection, overflow/touch
   measurements, fullscreen, layer visibility reload and switching accounts/training contexts.
 
-Implementation is in progress; current validation and completion status are recorded in TEST.md
-and docs/HANDOFF.md.
+Implementation and local validation are complete; review/merge and production deployment remain
+separate. See TEST.md, ADR-0026 and docs/HANDOFF.md for evidence and operational details.

@@ -6,11 +6,17 @@ Owner approved docs/plans/training-video-reuse.md with "Ja"; do not ask for arch
 again. Implementation on codex/feat/training-video-reuse: Created by me filter, tenant media assets
 and independent ready-video entries, source feedback discovery/read-only references and personal
 creator/source switches. ADR-0026/migration 0028 document privacy, media lifecycle, old-image guard
-and independent worker jobs. Validation/local stack and PR preparation are in progress; no deploy.
+and independent worker jobs. Local validation complete: 641 web/DB, 6 focused browser, 34 unified, 32 general browser, 38 edge,
+50 worker and 77 Linux deploy-script checks pass, plus actual local deploy rehearsal. Local UI
+http://localhost:5174/projects/rowlens/ and API :3100 run from this isolated worktree with unified
+users enabled; DB readiness is healthy and migration count 28. Source reads already return HTTP200
+on the local app. BUG-062 quota regression was red before excluding rejected assets; the unreleased
+helper is refreshed locally and fresh DB tests apply final SQL. No production change or deploy.
 
 The isolated worktree is /Users/ewout/src/rowlens-training-video-reuse. Original worktree remains
 codex/fix/club-editor-feedback with existing uncommitted club-editor/address migration 0027 and
-turn probe untouched. Feature migration 0028 currently follows journal 0026; reconcile journal,
+turn probe untouched. Feature branch is rebased onto main 037899e; unrelated committed research/brand/club work is not
+part of this feature. Conflict-marker checks are clean. Feature migration 0028 follows journal 0026; reconcile journal,
 snapshot ancestry and timestamps before integrating the separate address migration. Production
 remains sha-037899e/27 migrations. No bot/third-party change was accepted.
 
