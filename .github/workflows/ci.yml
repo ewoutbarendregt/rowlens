@@ -72,6 +72,11 @@ jobs:
         run: pnpm --filter @rowlens/web exec playwright install --with-deps chromium
       - name: E2E smoke + player (desktop + mobile Chromium)
         run: pnpm --filter @rowlens/web e2e
+      - name: Independent video reuse (laptop Chromium and iPhone WebKit)
+        run: |
+          pnpm --filter @rowlens/web exec playwright install --with-deps webkit
+          VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_VIDEO_REUSE=true pnpm build
+          pnpm --filter @rowlens/web e2e:reuse
       - name: Unified accounts (laptop Chromium and iPhone WebKit)
         run: |
           pnpm --filter @rowlens/web exec playwright install --with-deps webkit

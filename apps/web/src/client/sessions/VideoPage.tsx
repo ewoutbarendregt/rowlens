@@ -33,7 +33,8 @@ import { Icon } from '../ui/icons.tsx';
 import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
 import { StrokeFrameTools } from '../strokes/StrokeFrameTools.tsx';
 import { AnglesPanel, type AutoBoatLineState, type Measuring } from '../angles/AnglesPanel.tsx';
-import { AUTO_BOAT_LINE } from '../features.ts';
+import { SourceAnnotations, useSourceAnnotations } from './SourceAnnotations.tsx';
+import { AUTO_BOAT_LINE, VIDEO_REUSE } from '../features.ts';
 import { angleStrings, leanText } from '../angles/strings.ts';
 import {
   type AngleMeasure,
@@ -100,6 +101,11 @@ export function VideoPage() {
   const { id = '' } = useParams();
   const auth = useAuth();
   const personal = useOwnSettings();
+  const sourceIdentity =
+    auth.state.kind === 'open'
+      ? `${auth.state.user.id}:${auth.state.user.roles.join(',')}`
+      : 'closed';
+  const sources = useSourceAnnotations(VIDEO_REUSE ? id : '', sourceIdentity);
   const rolesKey = auth.state.kind === 'open' ? auth.state.user.roles.join(',') : '';
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
@@ -370,8 +376,15 @@ export function VideoPage() {
           (rower) => rower.mine === true || rower.email?.toLowerCase() === accountEmail,
         );
   const filteredMoments = useMemo(
-    () => videoMoments(notes, framesFor(momentRowers, forRower)),
-    [notes, momentRowers, forRower],
+    () =>
+      videoMoments(
+        [
+          ...notes.filter((n) => framesFor(momentRowers, forRower)?.has(n.frame) ?? true),
+          ...(forRower === null && VIDEO_REUSE ? sources.annotations : []),
+        ],
+        null,
+      ),
+    [notes, momentRowers, forRower, sources.annotations],
   );
   const fps =
     video?.fpsNum != null && video.fpsDen != null && video.fpsDen > 0
@@ -460,6 +473,7 @@ export function VideoPage() {
       id: drawing.id,
       kind: drawing.kind as DrawingKind,
       points: drawing.shape?.points ?? [],
+      ...(drawing.id.startsWith('source:') ? { label: drawing.authorName } : {}),
       frame: moment?.frame ?? current,
       // Rowers change only their own; coaches those of the sessions they coach (ADR-0013).
       editable: video?.canEdit === true && drawing.canEdit === true,
@@ -910,6 +924,17 @@ export function VideoPage() {
               aria-labelledby="side-tab-notes"
               hidden={sideTab !== 'notes'}
             >
+              {VIDEO_REUSE && (
+                <SourceAnnotations
+                  model={sources}
+                  canEdit={video.canEdit}
+                  filtered={forRower !== null}
+                  onJump={(f) => {
+                    player.current?.pause();
+                    player.current?.seekToFrame(f);
+                  }}
+                />
+              )}
               <NotesPanel
                 canEdit={video.canEdit}
                 videoId={video.id}

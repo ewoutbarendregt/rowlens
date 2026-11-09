@@ -23,6 +23,7 @@ import { userSettingsRoutes } from './api/user-settings.ts';
 import { rowerRoutes } from './api/rowers.ts';
 import { sessionRoutes } from './api/sessions.ts';
 import { uploadRoutes } from './api/uploads.ts';
+import { videoReuseRoutes } from './api/video-reuse.ts';
 import { videoRoutes } from './api/videos.ts';
 import { createUnifiedGate } from './auth/unified-gate.ts';
 import { createAuthGate } from './auth/gate.ts';
@@ -200,6 +201,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
     };
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
+    await app.register(videoReuseRoutes, { prefix: base, ...clubOpts });
     await app.register(videoRoutes, { prefix: base, ...clubOpts });
     await app.register(annotationRoutes, { prefix: base, ...clubOpts });
     await app.register(strokeRoutes, { prefix: base, ...clubOpts });

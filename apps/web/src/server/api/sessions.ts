@@ -7,6 +7,7 @@ import { lockEditableSession, lockEditableVideo } from '../repositories/training
 import { can } from '../auth/can.ts';
 import { rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
+import { lockVideoAssets, collectUnusedAssets } from '../repositories/video-assets.ts';
 import { videoKey } from '../media/store.ts';
 import { lineupOf } from './lineups.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
@@ -103,6 +104,7 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
           boatType: rowingSession.boatType,
           createdByUserId: rowingSession.createdByUserId,
           canEdit: sql<boolean>`rowlens_can_edit_session(${rowingSession.id})`,
+          createdByMe: sql<boolean>`${rowingSession.createdByUserId} = ${tenant.userId}::uuid`,
         })
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
@@ -201,15 +203,22 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
       // The parent lock also blocks new uploads until its media keys are collected.
       const session = { id: params.data.id };
       const rows = await tx
-        .select({ id: video.id })
+        .select({ id: video.id, assetId: video.assetId })
         .from(video)
         .where(and(eq(video.sessionId, session.id), eq(video.clubId, tenant.clubId)));
+      await lockVideoAssets(
+        tx,
+        rows.map((r) => r.assetId),
+      );
       const deleted = await tx
         .delete(rowingSession)
         .where(and(eq(rowingSession.id, session.id), eq(rowingSession.clubId, tenant.clubId)))
         .returning({ id: rowingSession.id });
       if (deleted.length === 0) return null;
-      return rows.map((row) => row.id);
+      return collectUnusedAssets(
+        tx,
+        rows.map((row) => row.assetId),
+      );
     });
     if (videoIds === null) return notFound(reply);
     if (media !== null) {
@@ -228,14 +237,23 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
     if (!params.success) return notFound(reply);
     const tenant = tenantOf(req);
     const deleted = await withTenant(db, tenant, async (tx) => {
-      if (!(await lockEditableVideo(tx, params.data.id))) return [];
-      return tx
+      if (!(await lockEditableVideo(tx, params.data.id))) return null;
+      const [entry] = await tx
+        .select({ assetId: video.assetId })
+        .from(video)
+        .where(eq(video.id, params.data.id));
+      if (!entry) return null;
+      await lockVideoAssets(tx, [entry.assetId]);
+      const gone = await tx
         .delete(video)
         .where(and(eq(video.id, params.data.id), eq(video.clubId, tenant.clubId)))
         .returning({ id: video.id });
+      if (gone.length === 0) return null;
+      return collectUnusedAssets(tx, [entry.assetId]);
     });
-    if (deleted.length === 0) return notFound(reply);
-    await media?.remove(videoKey(tenant.clubId, params.data.id));
+    if (deleted === null) return notFound(reply);
+    if (media !== null)
+      await Promise.all(deleted.map((assetId) => media.remove(videoKey(tenant.clubId, assetId))));
     req.log.info({ videoId: params.data.id }, 'video deleted');
     return reply.code(204).send();
   });

@@ -3579,3 +3579,59 @@ a.list__item {
 .registration .gate__text {
   overflow-wrap: anywhere;
 }
+
+/* Source feedback stays separate from the editable local note at the same frame. */
+.video-reuse__body,
+.source-annotations {
+  margin-block: 1rem;
+}
+.video-reuse__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.75rem;
+}
+.video-reuse__item > div {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.video-reuse__item span {
+  display: block;
+}
+.source-annotations summary {
+  min-height: 44px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.source-annotations__layer {
+  border-top: 1px solid var(--color-divider);
+  padding-block: 0.75rem;
+}
+.source-annotations__layer h3,
+.source-annotations__item p {
+  overflow-wrap: anywhere;
+}
+.source-annotations__item {
+  padding-block: 0.5rem;
+}
+.source-annotations__item p {
+  white-space: pre-wrap;
+  margin-block: 0.25rem;
+}
+.video-reuse button,
+.source-annotations button {
+  min-height: 44px;
+}
+
+.source-annotations__layer > .filters__check {
+  display: flex;
+  width: fit-content;
+}
+.source-annotations__layer > a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin-block-end: 0.5rem;
+}

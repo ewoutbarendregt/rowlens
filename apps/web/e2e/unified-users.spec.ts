@@ -842,6 +842,8 @@ test('training overview filters accessible clubs and participation and opens the
   await signIn(member, address);
   await json(page, '/api/admin/access', { email: address, roles: ['rower'] }, c1.id);
   await json(page, '/api/admin/access', { email: address, roles: ['rower'] }, c2.id);
+  const ownTitle = `Created by member ${randomUUID().slice(0, 8)}`;
+  await json(member, '/api/sessions', { title: ownTitle, date: '2026-11-09' }, c1.id);
   await member.goto('./sessions');
   await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
   await expect(member.getByRole('link', { name: second, exact: true })).toBeVisible();
@@ -851,6 +853,12 @@ test('training overview filters accessible clubs and participation and opens the
   await member.getByLabel('Club', { exact: true }).selectOption(c1.id);
   await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
   await expect(member.getByRole('link', { name: second, exact: true })).toHaveCount(0);
+  await member.getByLabel('Door mij aangemaakt', { exact: true }).check();
+  await expect(member.getByRole('link', { name: ownTitle, exact: true })).toBeVisible();
+  await expect(member.getByRole('link', { name: first, exact: true })).toHaveCount(0);
+  await member.reload();
+  await expect(member.getByLabel('Door mij aangemaakt', { exact: true })).toBeChecked();
+  await member.getByLabel('Door mij aangemaakt', { exact: true }).uncheck();
   await member.getByLabel('Alleen trainingen waarin ik voorkom', { exact: true }).check();
   await expect(member.getByRole('link', { name: first, exact: true })).toHaveCount(0);
   await member.getByLabel('Alleen trainingen waarin ik voorkom', { exact: true }).uncheck();

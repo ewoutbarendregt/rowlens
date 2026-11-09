@@ -3,6 +3,25 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Independent training video reuse (ADR-0026)
+
+Migration 0028 introduces protected physical `video_asset` and tenant-scoped annotation references.
+Existing video IDs remain per-training entries. A private trigger backfills/preserves physical keys
+and projects asset metadata into old-compatible entry fields, supporting existing uploads/workers.
+Reuse is ready/same-club only, serialized/idempotent, without duplicate bytes/transcoding. Detector
+jobs/results and all feedback/analysis remain entry scoped. Current actor/source/target checks and
+reference RLS preserve privacy; source body/attribution update live, deletion/revocation hides it.
+
+Media URLs authorize entries then validate keys against asset identity. Parent/asset locks order
+reuse and deletion; collection removes media only after the last entry goes. Session/video/tus
+handlers all follow that rule. Fixed `app.video_assets=isolated` opts new handlers in; old images
+refuse shared deletion before file effects. The creator boolean comes from account IDs, separate
+from participation. UI `VITE_FEATURE_VIDEO_REUSE` is on in development and enabled in image builds.
+Per-viewer/club/entry layer visibility stores identifiers only. Local notes are the only editable
+panel data; source display IDs are namespaced and have no edit handles. Source reads refresh on
+focus/15-second polling and fail closed. Focused synthetic browser suite: `pnpm --filter
+@rowlens/web e2e:reuse` after a build with `VITE_FEATURE_VIDEO_REUSE=true` and synthetic demo media.
+
 ## Initial admission and training overview (ADR-0025)
 
 Migration 0026 adds an initial-signup marker, protected global clubless requests and separate tenant

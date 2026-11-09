@@ -1,5 +1,15 @@
 # PLAN
 
+## Own trainings and reused-video annotation workspaces (2026-11-09)
+
+Approved by Ewout ("Ja"). Implemented creator filtering, same-club ready-video reuse, independent
+training feedback/analysis and read-only source annotation references with personal layer switches.
+ADR-0026/migration 0028 preserve physical storage, old URLs, quota and deletion/worker isolation.
+Implementation and local validation are complete; PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. See TEST.md and
+docs/plans/training-video-reuse.md. Original worktree's
+uncommitted club-editor/address and research changes remain separate. No production deployment.
+
+
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
 
 Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,

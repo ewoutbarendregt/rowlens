@@ -35,3 +35,5 @@
 New ADR: copy `0000-template.md` to the next number.
 
 | [0025](0025-initial-admission-notifications-and-training-overview.md) | Initial admission notifications, explicit clubless review and multi-club training overview | accepted |
+
+| [0026](0026-independent-training-video-reuse.md) | Shared recordings, independent training feedback and read-only source references | accepted |

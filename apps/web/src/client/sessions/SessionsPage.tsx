@@ -36,6 +36,7 @@ interface SessionSummary extends SessionRow {
   boatType: BoatClass | null;
   /** Who made it (their name, else their e-mail address); null when nobody is set. */
   creatorName: string | null;
+  createdByMe: boolean;
   mySeat: number | null;
   lineup: { seat: number; rowerId: string; displayName: string }[];
 }
@@ -390,6 +391,16 @@ export function SessionsPage() {
           </label>
         </div>
         <div className="filters__footer">
+          <label className="filters__check">
+            <input
+              type="checkbox"
+              checked={filters.created}
+              onChange={(e) => {
+                set({ created: e.target.checked });
+              }}
+            />
+            {t.createdByMe}
+          </label>
           {unified && (
             <label className="filters__check">
               <input

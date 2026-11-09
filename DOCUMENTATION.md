@@ -1,3 +1,30 @@
+## [2026-11-09] — Verify training reuse locally and prepare isolated PR
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: apps/web/e2e/{unified-users.spec,video-reuse.spec,video-reuse-edge.spec}.ts, apps/web/src/server/db/video-assets-migration.db.test.ts, apps/web/src/server/db/migrations/0028_training_video_reuse.sql, BUGS.md, PLAN.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Rebased only this feature onto main 037899e, preserving original uncommitted club/address/research work and scanning conflicts clean. Added unified creator-filter and real-worker reuse/deletion coverage, fixed the red rejected-asset quota regression (BUG-062), and verified local UI/API with 28 migrations; 641 web/DB, 6 focused/34 unified/32 general/38 edge browser, 50 worker and 77 Linux deploy-script checks plus actual Docker deploy rehearsal pass. PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is open against main; GitHub CI is pending its latest push. Production is unchanged.
+**Prompts used**: Ja
+
+## [2026-11-09] — Implement independent training video and annotation reuse
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: apps/web/src/client/sessions/*, apps/web/src/client/features.ts, apps/web/src/client/styles.css, apps/web/src/server/api/{sessions,uploads,videos,video-reuse,visibility.db.test}.ts, apps/web/src/server/repositories/{session-list,video-assets,video-reuse}.ts, apps/web/src/server/{app,db/schema,db/tenant}.ts, apps/web/src/server/db/migrations/0028_training_video_reuse.sql, apps/web/src/server/db/migrations/meta/*, apps/web/src/server/db/video-assets-migration.db.test.ts, apps/web/e2e/{server,video-reuse.spec}.ts, apps/web/playwright.reuse.config.ts, apps/web/{package.json,tsconfig.json,Dockerfile}, .github/workflows/{ci,images}.yml, infra/compose/docker-compose.edge.yml, docs/adr/{0026-independent-training-video-reuse,README}.md, docs/plans/training-video-reuse.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: With explicit architectural approval implemented creator filtering, shared physical recordings with independent training feedback/analysis and authorized read-only source-annotation references. Added backward-compatible asset backfill/deletion guards, tenant/role enforcement and focused browser/database coverage; final validation/local-stack availability are in progress. No production change.
+**Prompts used**: Ja
+
+## [2026-11-09] — Propose independent training video and annotation reuse
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: docs/plans/training-video-reuse.md, PLAN.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Investigated creator filtering, video/feedback relationships, role visibility, worker state and media deletion; documented a concrete proposal for same-club media reuse with independent training entries and attributed read-only source-annotation references. New tables/migrations await architectural approval; no runtime implementation or production change. Work is isolated from the original worktree's pre-existing uncommitted club-editor/research changes.
+**Prompts used**:
+
+```text
+Ik wil bij trainingen ook kunnen filteren op trainingen die door mij zijn aangemaakt en ik wil videos van anderen aan een door
+Mij gemaakte training kunnen toevoegen zodat ik ze kan analyseren en annoteren zonder de annotaties van anderen te verstoren. Als er al annotaties zijn bij een bepaalde video dan moet ik dat kunnen zien, en die aan en uit kunnen zetten in mijn nieuwe training. Ik wil annotaties van anderen kunnen toevoegen aan de video in mijn training
+```
+
+
 # DOCUMENTATION
 
 Agent work log, newest first.

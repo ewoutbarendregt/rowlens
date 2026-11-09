@@ -1,5 +1,12 @@
 # FEATURES
 
+## Own-training/video reuse workflow (2026-11-09)
+
+Status: in progress (implementation and local verification complete; not merged). Created by me filter,
+same-club media reuse with independent feedback/analysis, and authorized read-only source annotation
+references with creator/source switches. See ADR-0026 and docs/plans/training-video-reuse.md.
+PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. Production remains unchanged.
+
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).
 
