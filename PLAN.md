@@ -1,5 +1,16 @@
 # PLAN
 
+## Own trainings and reused-video annotation workspaces (2026-11-09)
+
+Proposed scope: creator-only overview filter, same-club existing-video reuse with independent
+training feedback/analysis, and visible authorized source-annotation layers with individual saved
+references and per-viewer switches. See docs/plans/training-video-reuse.md for asset/entry separation,
+RLS/privacy, source attribution, worker/deletion lifecycle and acceptance checks. New tables and
+migrations require architecture approval under AGENTS.md; implementation is pending. Source
+annotations are proposed as read-only current-content references, not editable snapshots.
+Existing dirty club-editor/research changes are untouched in the original working tree. No deploy.
+
+
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
 
 Approved scope implemented on `codex/feat/club-application-notifications` (ADR-0025, migration 0026,

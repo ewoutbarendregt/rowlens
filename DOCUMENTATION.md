@@ -1,3 +1,16 @@
+## [2026-11-09] — Propose independent training video and annotation reuse
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: docs/plans/training-video-reuse.md, PLAN.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Investigated creator filtering, video/feedback relationships, role visibility, worker state and media deletion; documented a concrete proposal for same-club media reuse with independent training entries and attributed read-only source-annotation references. New tables/migrations await architectural approval; no runtime implementation or production change. Work is isolated from the original worktree's pre-existing uncommitted club-editor/research changes.
+**Prompts used**:
+
+```text
+Ik wil bij trainingen ook kunnen filteren op trainingen die door mij zijn aangemaakt en ik wil videos van anderen aan een door
+Mij gemaakte training kunnen toevoegen zodat ik ze kan analyseren en annoteren zonder de annotaties van anderen te verstoren. Als er al annotaties zijn bij een bepaalde video dan moet ik dat kunnen zien, en die aan en uit kunnen zetten in mijn nieuwe training. Ik wil annotaties van anderen kunnen toevoegen aan de video in mijn training
+```
+
+
 # DOCUMENTATION
 
 Agent work log, newest first.

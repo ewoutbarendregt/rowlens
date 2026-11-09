@@ -1,4 +1,19 @@
-# RowLens handoff — 2026-11-08
+# RowLens handoff — 2026-11-09
+
+## Own-training filter and video reuse proposal (2026-11-09)
+
+Owner requests a Created by me filter and reuse of others' videos in self-created trainings, with
+independent analysis/annotations plus source annotation discovery, toggles and adding selected
+items. Investigated current video/session, feedback RLS, worker and destructive media handlers.
+Concrete proposal: docs/plans/training-video-reuse.md; architecture approval is pending. Proposed
+source items are attributed, read-only live references with current source permissions, not editable
+copies. Physical media must be separated from training entries, preserving deletion/quota/worker
+isolation and private feedback. No implementation/migration/production change or feature tests.
+
+Proposal committed in isolated worktree /Users/ewout/src/rowlens-training-video-reuse on
+codex/feat/training-video-reuse, based on 6b9a93f. The original worktree remains on
+codex/fix/club-editor-feedback with its pre-existing club-editor/address migration and turn probe
+changes untouched; do not commit or discard those as part of this feature. Production is unchanged.
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.

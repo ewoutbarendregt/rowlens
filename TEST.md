@@ -1,3 +1,13 @@
+## 2026-11-09 — Training reuse design review
+
+- Documentation-only proposal; no application, schema or worker changes and no feature tests run.
+  Reviewed existing creator projection/filtering, video/session foreign keys, annotation/moment
+  policies, per-entry analysis data and media serving/deletion assumptions. Recorded the required
+  isolation, source-visibility, lifecycle, migration and laptop/iPhone WebKit checks in
+  docs/plans/training-video-reuse.md. Prettier checks on all six changed Markdown files and
+  git diff whitespace checks pass; implementation awaits architecture approval.
+
+
 # TEST
 
 Test strategy, prompts and results. This file is the source of truth for testing.
