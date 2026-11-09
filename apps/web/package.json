@@ -20,18 +20,18 @@
     "e2e:reuse": "E2E_VIDEO_REUSE=true playwright test --config=playwright.reuse.config.ts"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@testcontainers/postgresql": "^12.2.1",
-    "@types/node": "^22.20.5",
+    "@types/node": "^26.6.6",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.2.1",
     "drizzle-kit": "^0.31.11",
-    "typescript": "~6.0.3",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5"
+    "typescript": "~7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   },
   "dependencies": {
     "@fastify/helmet": "^13.2.0",
