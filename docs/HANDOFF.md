@@ -2,6 +2,10 @@
 
 ## Own-training/video reuse implementation (2026-11-09)
 
+PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) targets main and is ready for review;
+no merge or deployment was requested. Feature implementation head e9fbbba. GitHub CI status must
+be checked on the latest push before any future authorized merge.
+
 Owner approved docs/plans/training-video-reuse.md with "Ja"; do not ask for architecture approval
 again. Implementation on codex/feat/training-video-reuse: Created by me filter, tenant media assets
 and independent ready-video entries, source feedback discovery/read-only references and personal

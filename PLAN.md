@@ -5,7 +5,7 @@
 Approved by Ewout ("Ja"). Implemented creator filtering, same-club ready-video reuse, independent
 training feedback/analysis and read-only source annotation references with personal layer switches.
 ADR-0026/migration 0028 preserve physical storage, old URLs, quota and deletion/worker isolation.
-Implementation and local validation are complete; PR review is next. See TEST.md and
+Implementation and local validation are complete; PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. See TEST.md and
 docs/plans/training-video-reuse.md. Original worktree's
 uncommitted club-editor/address and research changes remain separate. No production deployment.
 
