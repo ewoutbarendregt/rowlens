@@ -26,8 +26,8 @@ Pre-deploy backup exists: `pre-deploy-20261109T150452Z-sha-8a401c9.dump` (339,48
 settings, shared components, .env/compose, bot update or other repository was changed. The known
 release-please Actions PR-creation restriction remains separate from successful CI/images/deploy.
 
-Release work is complete. This log branch `codex/docs/175-deploy` is for the next documentation PR;
-do not merge/deploy it without a new request. The isolated local development stack stays on :5174 /
+Release work is complete. Deploy log PR [#176](https://github.com/ewoutbarendregt/rowlens/pull/176)
+on `codex/docs/175-deploy` remains open; do not merge/deploy it without a new request. The isolated local development stack stays on :5174 /
 API :3100 with DB readiness healthy and 28 migrations. Original dirty club-editor work remains
 separate; its address migration journal/snapshot/timestamp must be reconciled before integration.
 

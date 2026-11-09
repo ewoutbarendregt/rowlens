@@ -2,7 +2,7 @@
 
 **Session**: codex/docs/175-deploy
 **Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md
-**Summary**: Merged #175 as 8a401c9 after green PR CI; main CI 42636448470 (edge-only retry after stalled package preparation) and images 42636448533 passed, then deploy 42640926073 succeeded at 15:05 UTC. Verified sha-8a401c9/28 migrations, unchanged sporting/account counts and 21 media files/352,880,017 bytes, six correctly backfilled assets and protected new tables; all seven other container identities/start times/images and four public HTTP checks are intact. Two public laptop/iPhone WebKit checks pass without writes; no production test content/email or shared-setting change.
+**Summary**: Merged #175 as 8a401c9 after green PR CI; main CI 42636448470 (edge-only retry after stalled package preparation) and images 42636448533 passed, then deploy 42640926073 succeeded at 15:05 UTC. Verified sha-8a401c9/28 migrations, unchanged sporting/account counts and 21 media files/352,880,017 bytes, six correctly backfilled assets and protected new tables; all seven other container identities/start times/images and four public HTTP checks are intact. Two public laptop/iPhone WebKit checks pass without writes; no production test content/email or shared-setting change. Deployment log PR [#176](https://github.com/ewoutbarendregt/rowlens/pull/176) remains separate.
 **Prompts used**: Merge en deploy
 
 ## [2026-11-09] — Begin authorized training reuse production release
