@@ -38,6 +38,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
       tx
         .select({
           id: video.id,
+          assetId: video.assetId,
           canEdit: sql<boolean>`rowlens_can_edit_video(${video.id})`,
           sessionId: video.sessionId,
           sessionTitle: rowingSession.title,
@@ -89,7 +90,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     let key: string;
     let contentType: string;
     if (name === 'poster') {
-      key = `${videoKey(clubId, row.id)}/poster`;
+      key = `${videoKey(clubId, row.assetId)}/poster`;
       contentType = 'image/jpeg';
     } else {
       const rendition = ((row.renditions ?? []) as Rendition[]).find((r) => r.name === name);
@@ -98,7 +99,7 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
       contentType = rendition.contentType;
     }
     // The stored key must be this video's own; never trust a path from the database blindly.
-    if (!key.startsWith(`${videoKey(clubId, row.id)}/`)) return notFound(reply);
+    if (!key.startsWith(`${videoKey(clubId, row.assetId)}/`)) return notFound(reply);
     const size = await media.size(key);
     if (size === 0) return notFound(reply);
 

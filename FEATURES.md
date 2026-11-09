@@ -1,11 +1,11 @@
 # FEATURES
 
-## Proposed own-training/video reuse workflow (2026-11-09)
+## Own-training/video reuse workflow (2026-11-09)
 
-Status: planned, awaiting architectural approval. Add a Created by me filter, attach existing
-same-club recordings to independent training entries, and discover/select/toggle authorized source
-annotations without altering their originals. Source items remain attributed read-only references;
-local feedback and analysis are separate. Design and checks: docs/plans/training-video-reuse.md.
+Status: in progress, approved and implemented locally; verification underway. Created by me filter,
+same-club media reuse with independent feedback/analysis, and authorized read-only source annotation
+references with creator/source switches. See ADR-0026 and docs/plans/training-video-reuse.md.
+Production remains unchanged.
 
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).

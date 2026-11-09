@@ -485,6 +485,8 @@ describe('what a rower sees (#40)', () => {
       'stroke_mark',
       'user_settings_audit',
       'video',
+      'video_annotation_reference',
+      'video_asset',
       'video_auto_boat_line',
       'video_boat_line',
     ]);

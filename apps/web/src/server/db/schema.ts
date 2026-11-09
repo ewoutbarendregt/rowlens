@@ -379,12 +379,35 @@ export const videoStatus = pgEnum('video_status', [
   'rejected',
 ]);
 
+/** Physical storage identity. Legacy video metadata is retained as a compatibility projection. */
+export const videoAsset = pgTable(
+  'video_asset',
+  {
+    id: uuid('id').primaryKey(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    metadata: jsonb('metadata').notNull(),
+    sizeBytes: bigint('size_bytes', { mode: 'number' }).notNull(),
+    renditionsBytes: bigint('renditions_bytes', { mode: 'number' }).notNull().default(0),
+  },
+  (t) => [
+    unique('video_asset_club_id_id_unique').on(t.clubId, t.id),
+    tenantPolicy('video_asset_tenant', t.clubId),
+    rolePolicy('video_asset_role', 'all', sql`false`),
+  ],
+).enableRLS();
+
 export const video = pgTable(
   'video',
   {
     id: uuid('id').primaryKey().defaultRandom(),
     clubId: uuid('club_id').notNull(),
     sessionId: uuid('session_id').notNull(),
+    /** Set by the insert trigger for old upload clients as well. */
+    assetId: uuid('asset_id')
+      .notNull()
+      .default(sql`gen_random_uuid()`),
     originalFilename: text('original_filename').notNull(),
     contentType: text('content_type').notNull(),
     perspective: perspective('perspective').notNull(),
@@ -425,6 +448,12 @@ export const video = pgTable(
       columns: [t.clubId, t.sessionId],
       foreignColumns: [rowingSession.clubId, rowingSession.id],
     }).onDelete('cascade'),
+    foreignKey({
+      name: 'video_asset_fk',
+      columns: [t.clubId, t.assetId],
+      foreignColumns: [videoAsset.clubId, videoAsset.id],
+    }).onDelete('restrict'),
+    index('video_asset_idx').on(t.assetId),
     index('video_session_idx').on(t.sessionId),
     // Target of annotation's (club_id, video_id) key, like rowing_session's for video.
     unique('video_club_id_id_unique').on(t.clubId, t.id),
@@ -498,6 +527,7 @@ export const annotation = pgTable(
       columns: [t.clubId, t.videoId],
       foreignColumns: [video.clubId, video.id],
     }).onDelete('cascade'),
+    unique('annotation_club_id_id_unique').on(t.clubId, t.id),
     index('annotation_video_frame_idx').on(t.videoId, t.frame),
     check('annotation_frame_check', sql`${t.frame} >= 0`),
     check('annotation_body_check', sql`char_length(${t.body}) <= 2000`),
@@ -1085,3 +1115,45 @@ export const clublessApplicationNotice = pgTable(
   },
   (t) => [unique('clubless_notice_recipient_unique').on(t.applicationId, t.recipientId)],
 );
+
+/** Read-only references, never copied content or source access grants. */
+export const videoAnnotationReference = pgTable(
+  'video_annotation_reference',
+  {
+    clubId: uuid('club_id').notNull(),
+    videoId: uuid('video_id').notNull(),
+    annotationId: uuid('annotation_id').notNull(),
+    addedByUserId: uuid('added_by_user_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.videoId, t.annotationId] }),
+    foreignKey({
+      name: 'video_annotation_reference_video_fk',
+      columns: [t.clubId, t.videoId],
+      foreignColumns: [video.clubId, video.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'video_annotation_reference_annotation_fk',
+      columns: [t.clubId, t.annotationId],
+      foreignColumns: [annotation.clubId, annotation.id],
+    }).onDelete('cascade'),
+    tenantPolicy('video_annotation_reference_tenant', t.clubId),
+    rolePolicy(
+      'video_annotation_reference_read',
+      'select',
+      sql`rowlens_can_reference_annotation(${t.videoId}, ${t.annotationId}, false)`,
+    ),
+    rolePolicy(
+      'video_annotation_reference_add',
+      'insert',
+      sql`rowlens_can_reference_annotation(${t.videoId}, ${t.annotationId}, true) and ${t.addedByUserId} is not distinct from ${me}`,
+    ),
+    rolePolicy('video_annotation_reference_edit', 'update', sql`false`),
+    rolePolicy(
+      'video_annotation_reference_delete',
+      'delete',
+      sql`rowlens_can_edit_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();

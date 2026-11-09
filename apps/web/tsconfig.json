@@ -24,6 +24,7 @@
     "drizzle.config.ts",
     "playwright.config.ts",
     "playwright.unified.config.ts",
-    "playwright.editing.config.ts"
+    "playwright.editing.config.ts",
+    "playwright.reuse.config.ts"
   ]
 }

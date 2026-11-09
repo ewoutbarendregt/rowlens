@@ -1,19 +1,18 @@
 # RowLens handoff — 2026-11-09
 
-## Own-training filter and video reuse proposal (2026-11-09)
+## Own-training/video reuse implementation (2026-11-09)
 
-Owner requests a Created by me filter and reuse of others' videos in self-created trainings, with
-independent analysis/annotations plus source annotation discovery, toggles and adding selected
-items. Investigated current video/session, feedback RLS, worker and destructive media handlers.
-Concrete proposal: docs/plans/training-video-reuse.md; architecture approval is pending. Proposed
-source items are attributed, read-only live references with current source permissions, not editable
-copies. Physical media must be separated from training entries, preserving deletion/quota/worker
-isolation and private feedback. No implementation/migration/production change or feature tests.
+Owner approved docs/plans/training-video-reuse.md with "Ja"; do not ask for architecture approval
+again. Implementation on codex/feat/training-video-reuse: Created by me filter, tenant media assets
+and independent ready-video entries, source feedback discovery/read-only references and personal
+creator/source switches. ADR-0026/migration 0028 document privacy, media lifecycle, old-image guard
+and independent worker jobs. Validation/local stack and PR preparation are in progress; no deploy.
 
-Proposal committed in isolated worktree /Users/ewout/src/rowlens-training-video-reuse on
-codex/feat/training-video-reuse, based on 6b9a93f. The original worktree remains on
-codex/fix/club-editor-feedback with its pre-existing club-editor/address migration and turn probe
-changes untouched; do not commit or discard those as part of this feature. Production is unchanged.
+The isolated worktree is /Users/ewout/src/rowlens-training-video-reuse. Original worktree remains
+codex/fix/club-editor-feedback with existing uncommitted club-editor/address migration 0027 and
+turn probe untouched. Feature migration 0028 currently follows journal 0026; reconcile journal,
+snapshot ancestry and timestamps before integrating the separate address migration. Production
+remains sha-037899e/27 migrations. No bot/third-party change was accepted.
 
 For any agent (opencode, Claude Code, Codex). Read `AGENTS.md` first; `DOCUMENTATION.md` is the
 newest-first detailed log. Update this file at the end of a session.

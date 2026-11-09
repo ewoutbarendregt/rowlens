@@ -1,3 +1,15 @@
+## 2026-11-09 — Independent training video reuse implementation
+
+- New creator-filter regression failed before the implementation and passes afterward. Current
+  broad run: 641 web/DB tests pass, including existing-data asset backfill and old-image upload,
+  worker metadata and ordinary deletion. Six synthetic browser checks pass at 1000x540 Chromium
+  and iPhone 13 WebKit: filtering/reload, reuse/source attribution, selection/layer visibility,
+  independent same-frame notes, deletion and measured 44px labels; screenshots inspected.
+- Added further live-membership/archived-club and independent stroke/angle/boat-line checks; final
+  verification is in progress. Updated the restrictive-policy inventory for both new tables.
+- Worker checks: Ruff, format and strict mypy pass; 50 tests pass. Worker implementation is unchanged.
+  Initial test-fixture hex/header mistakes and multi-layer selector ambiguity were corrected.
+
 ## 2026-11-09 — Training reuse design review
 
 - Documentation-only proposal; no application, schema or worker changes and no feature tests run.

@@ -18,6 +18,7 @@ export interface Filters {
   sort: Sort;
   club: string | null;
   participating: boolean;
+  created: boolean;
 }
 
 export const DEFAULT_FILTERS: Filters = {
@@ -30,10 +31,12 @@ export const DEFAULT_FILTERS: Filters = {
   sort: 'date-desc',
   club: null,
   participating: false,
+  created: false,
 };
 
 export interface SessionRow {
   clubId?: string;
+  createdByMe?: boolean;
   mySeat?: number | null;
   title: string;
   date: string;
@@ -52,6 +55,7 @@ export function readFilters(params: URLSearchParams): Filters {
   return {
     club: params.get('clubFilter') || null,
     participating: params.get('participating') === '1',
+    created: params.get('created') === '1',
     from: isoDate(params.get('from')),
     to: isoDate(params.get('to')),
     rower: params.get('rower') || null,
@@ -67,6 +71,7 @@ export function writeFilters(f: Filters): URLSearchParams {
   const params = new URLSearchParams();
   if (f.club) params.set('clubFilter', f.club);
   if (f.participating) params.set('participating', '1');
+  if (f.created) params.set('created', '1');
   if (f.from !== null) params.set('from', f.from);
   if (f.to !== null) params.set('to', f.to);
   if (f.rower !== null) params.set('rower', f.rower);
@@ -83,7 +88,8 @@ export function activeFilters(f: Filters): number {
     [f.from, f.to, f.rower, f.boat, f.club].filter((v) => v !== null).length +
     (f.q.trim() === '' ? 0 : 1) +
     (f.mine ? 1 : 0) +
-    (f.participating ? 1 : 0)
+    (f.participating ? 1 : 0) +
+    (f.created ? 1 : 0)
   );
 }
 
@@ -93,6 +99,7 @@ const newestFirst = (a: SessionRow, b: SessionRow) =>
 export function applyFilters<T extends SessionRow>(rows: readonly T[], f: Filters): T[] {
   const words = normalizeName(f.q).split(' ').filter(Boolean);
   const kept = rows.filter((r) => {
+    if (f.created && r.createdByMe !== true) return false;
     if (f.club !== null && r.clubId !== f.club) return false;
     if (f.participating && (r.mySeat === undefined || r.mySeat === null)) return false;
     if (f.from !== null && r.date < f.from) return false;

@@ -25,6 +25,8 @@ services:
     build:
       context: ../..
       dockerfile: apps/web/Dockerfile
+      args:
+        VITE_FEATURE_VIDEO_REUSE: 'true'
     image: rowlens-web:edge
     environment:
       NODE_ENV: test

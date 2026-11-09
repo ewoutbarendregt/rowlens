@@ -73,6 +73,7 @@ describe('filters in the URL', () => {
     const f: Filters = {
       club: null,
       participating: false,
+      created: false,
       from: '2026-10-01',
       to: '2026-11-30',
       rower: 'kees',
@@ -146,5 +147,24 @@ describe('multi-club participation filters', () => {
     expect(applyFilters(list, f)).toEqual([list[0]]);
     expect(readFilters(writeFilters(f))).toEqual(f);
     expect(activeFilters(f)).toBe(2);
+  });
+});
+
+describe('created by me', () => {
+  it('distinguishes creation from participation, staff edit rights and notes', () => {
+    const rows = [
+      { ...row('Created', '2026-11-01'), createdByMe: true, mySeat: null, clubId: 'a' },
+      { ...row('Participated', '2026-11-01'), createdByMe: false, mySeat: 0, clubId: 'a' },
+      { ...row('Legacy', '2026-11-01'), mySeat: null, clubId: 'a' },
+      { ...row('Other club', '2026-11-01'), createdByMe: true, mySeat: 1, clubId: 'b' },
+    ];
+    const f = { ...DEFAULT_FILTERS, created: true };
+    expect(applyFilters(rows, f).map((r) => r.title)).toEqual(['Created', 'Other club']);
+    expect(applyFilters(rows, { ...f, club: 'a' }).map((r) => r.title)).toEqual(['Created']);
+    expect(applyFilters(rows, { ...f, participating: true }).map((r) => r.title)).toEqual([
+      'Other club',
+    ]);
+    expect(readFilters(writeFilters(f))).toEqual(f);
+    expect(activeFilters(f)).toBe(1);
   });
 });

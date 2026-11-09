@@ -105,6 +105,7 @@ export async function listSessions(
       const lineup = lineups.get(r.id) ?? [];
       return {
         ...r,
+        createdByMe: tenant.userId !== null && createdByUserId === tenant.userId,
         creatorName: createdByUserId === null ? null : nameOf(club.get(createdByUserId)),
         lineup: lineup.map((s) => ({
           seat: s.seat,

@@ -20,6 +20,8 @@ import { Icon } from '../ui/icons.tsx';
 import { crewText } from './filter.ts';
 import { ConfirmInline } from '../ui/ConfirmInline.tsx';
 import { videoDisplayName } from './displayName.ts';
+import { VIDEO_REUSE } from '../features.ts';
+import { ExistingVideoPicker } from './ExistingVideoPicker.tsx';
 import { retryable, useUploads } from './useUploads.ts';
 
 interface SessionVideo {
@@ -57,6 +59,7 @@ interface SessionDetail {
   /** The maker and all club coaches/admins may rename it (ADR-0020). */
   canRename: boolean;
   canEdit: boolean;
+  createdByMe: boolean;
   /** Admin only (#108): who made it, and the coaches it can be given to. */
   creatorUserId?: string | null;
   coaches?: { userId: string; email: string }[];
@@ -258,6 +261,9 @@ export function SessionPage() {
       {/* Videos first, with a plain button to add more (Ewout, 2026-11-03). */}
       <section className="card session-videos" aria-labelledby={`${inputId}-videos-h`}>
         <h2 id={`${inputId}-videos-h`}>{t.videosTitle}</h2>
+        {VIDEO_REUSE && session.canEdit && session.createdByMe && (
+          <ExistingVideoPicker key={session.id} sessionId={session.id} onAdded={load} />
+        )}
         {session.videos.length === 0 && <p className="muted">{t.noVideos}</p>}
         <ul className="list" data-testid="video-list">
           {session.videos.map((v) => {

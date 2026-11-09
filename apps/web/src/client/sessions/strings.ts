@@ -91,6 +91,7 @@ const en = {
     videos: 'Most videos',
     notes: 'Most notes for me',
   },
+  createdByMe: 'Created by me',
   onlyMine: 'Only with notes for me',
   clearFilters: 'Clear filters',
   showing: (shown: number, total: number) =>
@@ -197,6 +198,7 @@ const nl: typeof en = {
     videos: 'Meeste video’s',
     notes: 'Meeste notities voor mij',
   },
+  createdByMe: 'Door mij aangemaakt',
   onlyMine: 'Alleen met notities voor mij',
   clearFilters: 'Filters wissen',
   showing: (shown: number, total: number) =>

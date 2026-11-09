@@ -1,7 +1,7 @@
 # Own trainings, reused videos and independent annotations
 
-Status: proposed, awaiting architectural approval. No application/schema change, migration,
-production action or deployment is authorized by this proposal.
+Status: approved by Ewout ("Ja", 2026-11-09). Implementation and local validation authorized;
+production merge/deployment remain separate. Implementation decision: ADR-0026.
 
 ## Requested behavior
 
@@ -124,4 +124,5 @@ Keep existing participation (`mySeat`, including cox 0), notes-for-me and club f
   coverage includes 1000x540 Chromium and iPhone 13 WebKit, screenshot inspection, overflow/touch
   measurements, fullscreen, layer visibility reload and switching accounts/training contexts.
 
-No runtime tests have been run for this proposal; the feature is not implemented.
+Implementation is in progress; current validation and completion status are recorded in TEST.md
+and docs/HANDOFF.md.

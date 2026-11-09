@@ -6,6 +6,7 @@ import { job, perspective, rowingSession, video } from '../db/schema.ts';
 import type { Tx } from '../db/client.ts';
 import { lockEditableSession, lockEditableVideo } from '../repositories/training-access.ts';
 import { withTenant } from '../db/tenant.ts';
+import { lockVideoAssets, collectUnusedAssets } from '../repositories/video-assets.ts';
 import { originalKey, TooLarge, videoKey } from '../media/store.ts';
 import { looksLikeVideo, sniffContainer } from '../media/sniff.ts';
 import { RateLimiter } from '../rate-limit.ts';
@@ -256,12 +257,22 @@ export const uploadRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
     if (upload === null) return notFound(reply);
     const tenant = tenantOf(req);
     if (busy.has(upload.id)) return reply.code(423).send({ error: 'upload_busy' });
-    const deleted = await withTenant(db, tenant, async (tx) => {
-      if (!(await lockEditableVideo(tx, upload.id))) return [];
-      return tx.delete(video).where(eq(video.id, upload.id)).returning({ id: video.id });
+    const removed = await withTenant(db, tenant, async (tx) => {
+      if (!(await lockEditableVideo(tx, upload.id))) return null;
+      const [entry] = await tx
+        .select({ assetId: video.assetId })
+        .from(video)
+        .where(eq(video.id, upload.id));
+      if (!entry) return null;
+      await lockVideoAssets(tx, [entry.assetId]);
+      const gone = await tx
+        .delete(video)
+        .where(eq(video.id, upload.id))
+        .returning({ id: video.id });
+      return gone.length > 0 ? collectUnusedAssets(tx, [entry.assetId]) : null;
     });
-    if (deleted.length === 0) return notFound(reply);
-    await media.remove(videoKey(tenant.clubId, upload.id));
+    if (removed === null) return notFound(reply);
+    await Promise.all(removed.map((assetId) => media.remove(videoKey(tenant.clubId, assetId))));
     return reply.code(204).send();
   });
 

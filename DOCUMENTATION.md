@@ -1,3 +1,10 @@
+## [2026-11-09] — Implement independent training video and annotation reuse
+
+**Session**: codex/feat/training-video-reuse
+**Changed**: apps/web/src/client/sessions/*, apps/web/src/client/features.ts, apps/web/src/client/styles.css, apps/web/src/server/api/{sessions,uploads,videos,video-reuse,visibility.db.test}.ts, apps/web/src/server/repositories/{session-list,video-assets,video-reuse}.ts, apps/web/src/server/{app,db/schema,db/tenant}.ts, apps/web/src/server/db/migrations/0028_training_video_reuse.sql, apps/web/src/server/db/migrations/meta/*, apps/web/src/server/db/video-assets-migration.db.test.ts, apps/web/e2e/{server,video-reuse.spec}.ts, apps/web/playwright.reuse.config.ts, apps/web/{package.json,tsconfig.json,Dockerfile}, .github/workflows/{ci,images}.yml, infra/compose/docker-compose.edge.yml, docs/adr/{0026-independent-training-video-reuse,README}.md, docs/plans/training-video-reuse.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: With explicit architectural approval implemented creator filtering, shared physical recordings with independent training feedback/analysis and authorized read-only source-annotation references. Added backward-compatible asset backfill/deletion guards, tenant/role enforcement and focused browser/database coverage; final validation/local-stack availability are in progress. No production change.
+**Prompts used**: Ja
+
 ## [2026-11-09] — Propose independent training video and annotation reuse
 
 **Session**: codex/feat/training-video-reuse
