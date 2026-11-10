@@ -1,5 +1,11 @@
 # FEATURES
 
+## Brand and release/build display (2026-11-10)
+
+Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the
+signed-in header and login, retain focus on rowing and make the RowLens brand return to trainings.
+Root release is 0.0.0; build tags continue to identify each deployment. No release-policy change.
+
 ## Own-training/video reuse workflow (2026-11-09)
 
 Status: in progress (implementation and local verification complete; not merged). Created by me filter,

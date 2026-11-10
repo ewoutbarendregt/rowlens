@@ -1,6 +1,7 @@
 import { lang } from '../i18n/language.ts';
 const en = {
   title: 'Sign in to RowLens',
+  brandTagline: 'focus on rowing',
   intro: 'Enter the email address registered with your club. We will send you a six-digit code.',
   emailLabel: 'Email address',
   requestCode: 'Send code',
@@ -44,6 +45,7 @@ const en = {
 };
 
 const nl: typeof en = {
+  brandTagline: 'focus on rowing',
   title: 'Inloggen bij RowLens',
   intro:
     'Vul het e-mailadres in dat bij je club geregistreerd staat. We sturen je een zescijferige code.',

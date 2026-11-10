@@ -20,10 +20,13 @@ export function HomePage() {
     <main className="shell login">
       <div className="login__card">
         <header className="login__head">
-          <h1 className="wordmark">RowLens</h1>
+          <div>
+            <h1 className="wordmark">RowLens</h1>
+            <p className="brand-tagline">{t.brandTagline}</p>
+          </div>
           {version !== null && (
             <span className="version" data-testid="app-version">
-              {/^\d/.test(version) ? `v${version}` : version}
+              {version}
             </span>
           )}
         </header>

@@ -1,7 +1,7 @@
 import { clubStrings } from '../clubs/strings.ts';
 import { AccountPreferences } from '../settings/AccountPreferences.tsx';
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { Link, NavLink, useNavigate } from 'react-router';
 import { adminStrings } from '../admin/strings.ts';
 import { api } from '../api.ts';
 import { authStrings } from '../auth/strings.ts';
@@ -12,6 +12,7 @@ import { Icon } from './icons.tsx';
 import { LanguageSwitch } from './LanguageSwitch.tsx';
 import { ProfileForm } from './ProfileForm.tsx';
 import { ThemeSwitch } from './ThemeSwitch.tsx';
+import { useAppVersion } from '../useAppVersion.ts';
 
 /**
  * The bar on every page after login (#108): Sessions, Rowers, Admin (admins only), and an account
@@ -27,6 +28,7 @@ export function AppHeader({
   const t = authStrings();
   const navigate = useNavigate();
   const [othersDone, setOthersDone] = useState(false);
+  const version = useAppVersion();
 
   const logout = () => {
     void api('/api/auth/logout', { method: 'POST' }).finally(() => {
@@ -46,12 +48,22 @@ export function AppHeader({
   return (
     <header className="app-header">
       <div className="app-header__inner">
-        <span className="app-header__brand">
-          RowLens{' '}
+        <div className="app-header__brand">
+          <div className="app-header__identity">
+            <Link className="app-header__home" to="/sessions">
+              RowLens
+            </Link>
+            <span className="brand-tagline">{t.brandTagline}</span>
+            {version !== null && (
+              <span className="version" data-testid="app-version">
+                {version}
+              </span>
+            )}
+          </div>
           <span className="app-header__club" data-testid="club-name" title={state.club.name}>
             {state.club.name}
           </span>
-        </span>
+        </div>
         <nav className="app-header__nav" aria-label="RowLens">
           <NavLink to="/sessions" end={false}>
             {sessionStrings().sessions}

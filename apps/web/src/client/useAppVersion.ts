@@ -9,7 +9,13 @@ export function useAppVersion(): string | null {
     fetch(appUrl('/health/live'), { signal: controller.signal })
       .then((res) => (res.ok ? (res.json() as Promise<{ version?: unknown }>) : null))
       .then((body) => {
-        if (typeof body?.version === 'string') setVersion(body.version);
+        if (typeof body?.version === 'string') {
+          const build = body.version;
+          const release = /^v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(build)
+            ? build.replace(/^v/, '')
+            : `${__ROWLENS_RELEASE__}+${build.replace(/[^0-9A-Za-z.-]/g, '-')}`;
+          setVersion(`v${release}`);
+        }
       })
       .catch(() => {
         // Version is decorative; the page works without it.
