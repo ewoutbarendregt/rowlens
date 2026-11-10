@@ -1,3 +1,10 @@
+## [2026-11-10] — Confirm completed training reuse release
+
+**Session**: codex/docs/175-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Resumed the release handoff and confirmed PR #175 is merged, deploy 42640926073 succeeded, and public readiness still reports sha-8a401c9 with the database healthy. Deploy log PR #176 is open and its prior commits are pushed; no additional production change or merge was performed.
+**Prompts used**: ga verder
+
 ## [2026-11-09] — Deploy verified training reuse release
 
 **Session**: codex/docs/175-deploy

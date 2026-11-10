@@ -1,4 +1,11 @@
-# RowLens handoff — 2026-11-09
+# RowLens handoff — 2026-11-10
+
+## Release handoff confirmed (2026-11-10)
+
+On "ga verder", rechecked that #175 is merged and deploy 42640926073 succeeded. Public readiness
+still reports sha-8a401c9 with DB ok. Release work is complete; the detailed November 9 verification
+is below. Deploy log PR #176 remains open on codex/docs/175-deploy and is not authorized for an
+additional merge/deployment by this continuation. No outstanding production action remains.
 
 ## Training video reuse deployed — sha-8a401c9 (2026-11-09 15:05 UTC)
 
