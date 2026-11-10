@@ -2,7 +2,7 @@
 
 ## Automatic drawing save and direct selection delete (2026-11-10)
 
-Status: implemented and verified locally; awaiting review and release. Final point automatically persists
+Status: implemented and verified locally; [PR #179](https://github.com/ewoutbarendregt/rowlens/pull/179) awaits review and release. Final point automatically persists
 lines, arrows, angles and manual measurements/references. Selected editable objects expose a
 compact trash icon (44px target) and delete immediately; failures remain visible/retryable.
 Production remains sha-b9c983c. See ADR-0017 addendum.

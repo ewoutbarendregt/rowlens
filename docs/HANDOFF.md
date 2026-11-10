@@ -4,7 +4,9 @@
 
 Owner requested final-point autosave and a small selected-object trash control without confirmation.
 Implemented on codex/fix/drawing-autosave in /Users/ewout/src/rowlens-version-display, reusing the
-clean checkout from origin/main b9c983c. No new table/dependency/server/permission change. Notes,
+clean checkout from origin/main b9c983c. PR [#179](https://github.com/ewoutbarendregt/rowlens/pull/179) is open against main; implementation
+head b4bc11d. Check CI on the latest push before any subsequently authorized merge.
+No new table/dependency/server/permission change. Notes,
 manual boat lines and joint measurements use existing scoped routes. Failed saves keep the preview
 and original frame for retry; failed deletion retains the object. Source drawings remain read-only;
 generated boat lines are correctable and only their manual corrections are deletable. 641 web/DB
