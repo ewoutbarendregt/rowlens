@@ -1,16 +1,15 @@
 import { expect, test } from '@playwright/test';
+import { expectedRelease } from './env.ts';
 import { openLineup, openNewSession, signIn } from './helpers.ts';
 
-test('brand returns to trainings and shows tagline and build version', async ({ page }, info) => {
+test('brand returns to trainings and shows tagline and numeric version', async ({ page }, info) => {
   await page.route('**/health/live*', (route) =>
     route.fulfill({ json: { version: 'sha-1234567' } }),
   );
   await signIn(page);
   await page.goto('./rowers');
   await expect(page.locator('.app-header').getByText('focus on rowing')).toBeVisible();
-  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(
-    /^v\d+\.\d+\.\d+\+sha-1234567$/,
-  );
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(expectedRelease);
   await page.locator('.app-header').getByRole('link', { name: 'RowLens' }).click();
   await expect(page).toHaveURL(/\/sessions$/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -23,7 +22,11 @@ test('brand returns to trainings and shows tagline and build version', async ({ 
   await page.unroute('**/health/live*');
   await page.route('**/health/live*', (route) => route.fulfill({ json: { version: 'v1.2.3' } }));
   await page.reload();
-  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText('v1.2.3');
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(expectedRelease);
+  // Runtime diagnostic tags must never replace the numeric release of the loaded bundle.
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(
+    /^\d+\.\d+\.\d+$/,
+  );
 });
 
 // The sessions list is the start page; filters and sort live in the URL (#108).

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { edgeUrl, expectedVersion } from './env.ts';
+import { edgeUrl, expectedRelease } from './env.ts';
 
 const BASE = '/projects/rowlens';
 
@@ -15,9 +15,8 @@ test('home page loads and reaches the API under the base path', async ({ page },
   expect(response?.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
 
   await expect(page.getByRole('heading', { level: 1, name: 'RowLens' })).toBeVisible();
-  await expect(page.getByTestId('app-version')).toHaveText(
-    new RegExp(`^v\\d+\\.\\d+\\.\\d+\\+${expectedVersion}$`),
-  );
+  await expect(page.getByTestId('app-version')).toHaveText(expectedRelease);
+  await expect(page.getByTestId('app-version')).toHaveText(/^\d+\.\d+\.\d+$/);
   await expect(page.getByText('focus on rowing')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('login-version.png'), fullPage: true });

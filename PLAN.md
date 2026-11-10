@@ -1,5 +1,17 @@
 # PLAN
 
+## Sequential numeric version display (2026-11-10)
+
+Owner corrected the version requirement: numbers only, automatically sequential. Implemented
+major.minor.<images workflow run_number> (current base 0.0) using a validated generator and image
+build argument. Login/header show only the numeric release; rerunning the same workflow preserves
+it. Both image OCI labels and build-info carry the release. Existing SHA deploy identity and manual
+approval stay intact. No dependency/schema/server/permission change. See ADR-0027.
+660 web/DB and six focused legacy/unified laptop/iPhone browser checks pass, including injected
+0.0.59 and ignoring runtime diagnostic tags; an actual Docker image contains the same release.
+Local :5174 API is healthy (development fallback 0.0.0). Drawing PR #179 remains independent on
+:5184; production remains sha-b9c983c/28 migrations. No new merge/deploy requested.
+
 ## Restore omitted version display (2026-11-10)
 
 Owner identified the missing deployed version/header work. Original commit eace60b remained on

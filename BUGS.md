@@ -2,6 +2,16 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-065] Visible version used a hash instead of sequential numbers — low
+**Location**: apps/web/src/client/useAppVersion.ts; .github/workflows/images.yml
+**Status**: fixed locally; awaiting release
+**Found**: 2026-11-10
+**Description**: The displayed v0.0.0+sha-... identified a build, but did not meet the owner's
+requirement for a numeric sequential version.
+**Fix**: Generate major.minor.<image workflow run number>, bake it into the client and image
+metadata, and display it identically on login/header. Reruns retain the number; 660 web/DB and
+six focused browser checks plus an actual Docker image verification pass. See ADR-0027.
+
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
 **Status**: fixed locally; PR #177 awaiting release

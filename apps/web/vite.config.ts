@@ -2,6 +2,7 @@ import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { normalizeBasePath } from './src/shared/base-path.ts';
+import { isNumericVersion } from './src/shared/release-version.ts';
 
 // The client is built for one base path (ADR-0003); the server checks build-info.json at startup.
 const basePath = normalizeBasePath(process.env['BASE_PATH'] ?? '/projects/rowlens');
@@ -10,11 +11,13 @@ const fileEnv = loadEnv('development', import.meta.dirname, '');
 const env = (key: string) => process.env[key] ?? fileEnv[key];
 // API_PORT, not PORT: dev tooling often sets PORT for Vite itself.
 const apiTarget = `http://127.0.0.1:${env('API_PORT') ?? '3000'}`;
-const release = (
+const packageRelease = (
   JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
     version: string;
   }
 ).version;
+const release = env('APP_RELEASE') || packageRelease;
+if (!isNumericVersion(release)) throw new Error('APP_RELEASE must be numeric major.minor.patch.');
 
 function buildInfo(): Plugin {
   return {
@@ -24,7 +27,7 @@ function buildInfo(): Plugin {
       this.emitFile({
         type: 'asset',
         fileName: 'build-info.json',
-        source: JSON.stringify({ basePath }),
+        source: JSON.stringify({ basePath, release }),
       });
     },
   };

@@ -1,3 +1,10 @@
+## [2026-11-10] — Use sequential numeric release numbers
+
+**Session**: codex/fix/sequential-version
+**Changed**: .github/workflows/images.yml, .github/workflows/ci.yml, apps/web/Dockerfile, apps/web/vite.config.ts, apps/web/src/shared/release-version.ts, apps/web/src/shared/release-version.test.ts, scripts/release-version.js, apps/web/src/client/useAppVersion.ts, apps/web/src/client/pages/HomePage.tsx, apps/web/src/client/ui/AppHeader.tsx, apps/web/e2e/env.ts, apps/web/e2e/sessions.spec.ts, apps/web/e2e/smoke.spec.ts, apps/web/e2e/unified-users.spec.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0027-sequential-numeric-versions.md, docs/adr/README.md
+**Summary**: Replaced the visible release-plus-hash with a validated numeric build release, major.minor.<existing image workflow sequence>; retries keep the number and new main builds advance it. Client/build-info/OCI metadata share the release; 660 web/DB and six laptop/iPhone browser checks plus actual Docker build verification pass, with no production action. Preserved drawing PR #179 and its :5184 preview in the other clean worktree.
+**Prompts used**: Ik zie dit ‘PR #177 is gemerged. De nieuwe productieversie wordt v0.0.0+sha-b9c983c. ‘’ Het versie nummer moet uit getallen bestaan en sequentieel zijn
+
 ## [2026-11-10] — Restore built version display omitted from release
 
 **Session**: codex/fix/version-display

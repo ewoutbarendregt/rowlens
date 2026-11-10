@@ -3,6 +3,15 @@
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
+## Numeric release metadata prepared locally — 2026-11-10
+
+No server change or additional deployment. The image workflow now prepares a numeric visible
+release from its stable build counter (ADR-0027). After its future approved rollout, confirm the
+numeric value in public build-info.json and the login/header; readiness continues to report the
+immutable image SHA used by the existing deploy gate. OCI version labels identify the corresponding
+numeric release for both images. Production currently remains sha-b9c983c (#177, deploy42789959357,
+2026-11-10 09:21:30 UTC), with 28 migrations; deployment log PR #178 is separate.
+
 ## Completed production repair — 2026-11-07 20:17 UTC
 
 Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial

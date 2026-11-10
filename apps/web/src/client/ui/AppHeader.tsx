@@ -54,11 +54,9 @@ export function AppHeader({
               RowLens
             </Link>
             <span className="brand-tagline">{t.brandTagline}</span>
-            {version !== null && (
-              <span className="version" data-testid="app-version">
-                {version}
-              </span>
-            )}
+            <span className="version" data-testid="app-version">
+              {version}
+            </span>
           </div>
           <span className="app-header__club" data-testid="club-name" title={state.club.name}>
             {state.club.name}

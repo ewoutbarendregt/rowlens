@@ -1,5 +1,11 @@
 # FEATURES
 
+## Sequential numeric release label (2026-11-10)
+
+Status: implemented and verified locally; awaiting review/release. Login and signed-in header show
+only digits and dots, e.g. 0.0.59. The existing image-build counter advances the last component;
+retries keep it. See ADR-0027. No additional production deployment has been performed.
+
 ## Brand and release/build display (2026-11-10)
 
 Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the

@@ -1,5 +1,23 @@
 # RowLens handoff — 2026-11-10
 
+## Sequential numeric versions — local fix (2026-11-10)
+
+Owner explicitly corrected the version requirement: digits and sequential numbers, no SHA suffix.
+Implemented on codex/fix/sequential-version in /Users/ewout/src/rowlens-training-video-reuse,
+based on main b9c983c. Existing image-workflow run_number replaces the root version's patch:
+next from current build58 is 0.0.59, then 0.0.60; reruns preserve the same number. Vite validates
+APP_RELEASE and bakes it into client/build-info; workflow labels both images with that number.
+Login/header display only the numeric release; health SHA and deployment gates are unchanged.
+ADR-0027 explains build gaps, rollback and preserving the workflow counter. Local builds default
+numerically to root 0.0.0. No schema/dependency/server/permission change or production action.
+
+660 web/DB, four focused login/header and two unified laptop/iPhone WebKit checks pass; screenshots
+inspected and no overflow. Actual Docker image verifies 0.0.59 in metadata/bundle while retaining
+diagnostic tag sha-1234567. Invalid generator/build values are refused. Formatting/lint/typecheck
+and flagged builds pass, plus 50 worker and 77 Linux deploy checks. Development :5174/API :3100 is healthy. Drawing PR #179 is independent,
+with its clean worktree/preview :5184 preserved. Deployment logs #176/#178 stay open separately;
+production remains sha-b9c983c/28 migrations (#177/deploy42789959357). No new merge/deploy asked.
+
 ## Restore missed version/header work (2026-11-10)
 
 Owner reported versioning/display already built but absent from production. Original own commit
