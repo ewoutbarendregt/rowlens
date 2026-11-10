@@ -67,10 +67,9 @@ for (const rate of [0.25, 0.5] as const) {
       const [x, y] = point;
       if (x !== undefined && y !== undefined) await at(x, y);
     }
-    await activate(page.getByTestId('drawing-save'));
+    await expect(page.locator('.drawing-layer--active')).toHaveCount(0);
     // Saving is a round trip: an early tap on the still-empty picture would start the video.
     await expect(page.locator('[data-testid=drawing-layer] g[data-kind]')).toHaveCount(1);
-    await activate(tool);
     const movedBox = await settledBox(page, 'drawing-layer');
     const y = kind === 'line' ? 0.4 : 0.3;
     if (info.project.use.hasTouch === true)

@@ -2,6 +2,15 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-064] Drawing endpoints remained unsaved until a separate Save action — medium
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx
+**Status**: fixed locally; 48 editing browser checks pass, awaiting release
+**Found**: 2026-11-10
+**Description**: Completing a drawing still required the Save strip, so its endpoints could be lost
+when leaving drawing mode. The requested selected-object direct deletion control was absent.
+**Fix**: Save automatically on the last point, retain/retry failed writes on the original frame,
+and expose direct deletion for a selected editable object with existing tenant-scoped endpoints.
+
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
 **Status**: fixed locally; PR #177 awaiting release

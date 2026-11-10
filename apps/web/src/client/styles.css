@@ -1087,13 +1087,7 @@ a.list__item {
   min-width: 0;
 }
 
-.drawing-confirm {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px 8px;
-  width: 100%;
+.drawing-details {
   padding: 6px 8px;
   border-radius: var(--radius-md);
   background: rgb(20 20 20 / 0.82);
@@ -1101,17 +1095,8 @@ a.list__item {
   font-size: 0.8125rem;
 }
 
-.drawing-confirm__hint {
-  flex: 1 1 0;
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Choosing what a measurement is about, in the same strip as Save. */
-.drawing-confirm__attrs {
+.drawing-details__attrs,
+.drawing-error {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1119,13 +1104,13 @@ a.list__item {
   gap: 6px 8px;
 }
 
-.drawing-confirm__attrs label {
+.drawing-details__attrs label {
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
-.drawing-confirm__attrs select {
+.drawing-details__attrs select {
   height: 44px;
   min-height: 44px;
   max-width: 9rem;
@@ -1138,50 +1123,34 @@ a.list__item {
   font-size: 1rem;
 }
 
-/* On a phone the controls wrap below the picture, with forgiving touch targets. */
+.player .drawing-delete {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: var(--radius-md);
+  background: rgb(20 20 20 / 0.9);
+  color: #f2efe9;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 @media (max-width: 480px) {
-  .drawing-confirm {
-    gap: 4px 6px;
-    padding: 4px 6px;
-    font-size: 0.75rem;
-  }
-
-  .drawing-confirm button {
-    padding: 0 0.5rem;
-  }
-
-  .drawing-confirm__attrs select {
+  .drawing-details__attrs select {
     max-width: 7rem;
   }
 
-  /* The options say what they are; the labels would take the room the picture needs. */
-  .drawing-confirm__attr-name {
+  .drawing-details__attr-name {
     display: none;
   }
-}
-
-.drawing-confirm button {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 0.75rem;
-  border: 1px solid rgb(255 255 255 / 0.4);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: #f2efe9;
-  font: inherit;
-  cursor: pointer;
-}
-
-.drawing-confirm button.drawing-confirm__save {
-  border-color: var(--rl-draw);
-  background: var(--rl-draw);
-  color: var(--rl-on-draw);
-  font-weight: var(--weight-bold);
-}
-
-.drawing-confirm button:disabled {
-  opacity: 0.45;
-  cursor: default;
 }
 
 .drawing__line {

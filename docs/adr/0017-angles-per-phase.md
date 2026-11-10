@@ -115,3 +115,15 @@ and handle. The control strip stays absent until the required two or three point
 there is no "Point 1 of 2" menu between taps. After completion, adjustment, Save/Redo/Cancel and
 measurement attributes remain available below the picture, including fullscreen. Tap filtering,
 point geometry, dragging and persistence are unchanged.
+
+## Addendum (2026-11-10): final-tap autosave and direct selected-object deletion
+
+At Ewout's explicit request, completing the last point saves immediately for drawings, boat lines
+and measurements. This supersedes the separate Save/Start over strip above. Existing saved-point
+dragging provides subsequent correction; unfinished points still support Backspace/Escape. Rower
+and joint selectors are available beside the picture before completion, including fullscreen.
+Failed saves retain their preview and can be retried on the original frame. Selecting an editable
+user-created object exposes a small trash icon with a 44px target; deleting one object needs no
+confirmation. The same applies to an individual drawing in Notes. Bulk whole-note deletion keeps
+its own confirmation. Existing server authority and tenant scopes are unchanged; source annotation
+references remain read-only and generated boat lines are correctable rather than deletable objects.

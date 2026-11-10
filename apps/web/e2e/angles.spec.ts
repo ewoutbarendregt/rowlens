@@ -15,26 +15,24 @@ async function tap(page: Page, points: [number, number][]) {
   const box = await settledBox(page, 'drawing-layer');
   // A finger where the device has one: the touch path is what coaches use (2026-11-03).
   const finger = test.info().project.use.hasTouch === true;
-  await expect(page.locator('.drawing-confirm')).toHaveCount(0);
-  for (const [index, [x, y]] of points.entries()) {
-    if (finger) await page.touchscreen.tap(box.x + x * box.width, box.y + y * box.height);
-    else await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
-    if (index < points.length - 1) {
-      await expect(page.locator('.drawing-confirm')).toHaveCount(0);
+  const attributes = page.locator('.drawing-details__attrs');
+  if ((await attributes.count()) > 0) {
+    const controls = await attributes.boundingBox();
+    if (controls === null) throw new Error('measurement attributes not visible');
+    expect(controls.y).toBeGreaterThanOrEqual(box.y + box.height - 1);
+    for (const height of await attributes
+      .locator('select')
+      .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().height))) {
+      expect(height).toBeGreaterThanOrEqual(44);
     }
   }
-  // The entire picture must remain tappable, including on iPhone and a low laptop window.
-  const completeBox = await settledBox(page, 'drawing-layer');
-  const controls = await page.locator('.drawing-confirm').boundingBox();
-  if (controls === null) throw new Error('drawing controls not visible');
-  expect(controls.y).toBeGreaterThanOrEqual(completeBox.y + completeBox.height - 1);
+  for (const [x, y] of points) {
+    if (finger) await page.touchscreen.tap(box.x + x * box.width, box.y + y * box.height);
+    else await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
+  }
+  await expect(page.locator('.drawing-layer--active')).toHaveCount(0);
+  await expect(page.getByTestId('drawing-save')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  const targets = await page
-    .locator('.drawing-confirm button, .drawing-confirm select')
-    .evaluateAll((elements) => elements.map((element) => element.getBoundingClientRect().height));
-  for (const height of targets) expect(height).toBeGreaterThanOrEqual(44);
-  // Points stay adjustable until saved (touch drawing, 2026-11-03).
-  await page.getByTestId('drawing-save').click();
 }
 
 test('measure knees and the upper body at the catch, per rower, with the crew difference', async ({
@@ -168,4 +166,19 @@ test('measure knees and the upper body at the catch, per rower, with the crew di
   await page.keyboard.press(',');
   await expect(page.getByTestId('player-frame')).toHaveText('0');
   await expect(page.getByTestId('boat-line-here')).toContainText(/frame 0\b/);
+
+  // The same selected-object control removes a manual reference or measurement directly.
+  const picture = await settledBox(page, 'drawing-layer');
+  await page.mouse.click(picture.x + 0.8 * picture.width, picture.y + 0.6 * picture.height);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
+  await page.getByTestId('drawing-delete').click();
+  await expect(page.getByTestId('boat-line')).toHaveCount(1);
+  await page.mouse.click(picture.x + 0.5 * picture.width, picture.y + 0.36 * picture.height);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
+  await page.getByTestId('drawing-delete').click();
+  await expect(page.getByTestId('angle-here')).toHaveCount(2);
+  await page.reload();
+  await page.getByRole('tab', { name: /^(Angles|Hoeken)/ }).click();
+  await expect(page.getByTestId('boat-line')).toHaveCount(1);
+  await expect(page.getByTestId('angle-here')).toHaveCount(2);
 });

@@ -1,5 +1,23 @@
 # RowLens handoff — 2026-11-10
 
+## Drawing autosave/direct deletion — local implementation (2026-11-10)
+
+Owner requested final-point autosave and a small selected-object trash control without confirmation.
+Implemented on codex/fix/drawing-autosave in /Users/ewout/src/rowlens-version-display, reusing the
+clean checkout from origin/main b9c983c. PR [#179](https://github.com/ewoutbarendregt/rowlens/pull/179) is open against main; implementation
+head b4bc11d. Check CI on the latest push before any subsequently authorized merge.
+No new table/dependency/server/permission change. Notes,
+manual boat lines and joint measurements use existing scoped routes. Failed saves keep the preview
+and original frame for retry; failed deletion retains the object. Source drawings remain read-only;
+generated boat lines are correctable and only their manual corrections are deletable. 641 web/DB
+tests and all 48 editing/6 reuse browser cases pass, including laptop/low-laptop/iPhone WebKit.
+Fifty worker and 77 Linux deploy checks pass, plus formatting/lint/typecheck and the flagged build.
+Screenshots inspected, 44px targets measured. One failed interception setup was corrected; the
+three affected cases pass on rerun (see TEST.md). Preview :5184
+(API :3124) is healthy; edge test stack :8080 uses the real worker. No new merge/deploy requested.
+Production remains sha-b9c983c/28 migrations, deployed #177/run42789959357; deployment logs are in
+open documentation PR #178 (and prior #176). Preserve original dirty club/research checkout.
+
 ## Restore missed version/header work (2026-11-10)
 
 Owner reported versioning/display already built but absent from production. Original own commit

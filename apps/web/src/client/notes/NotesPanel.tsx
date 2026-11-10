@@ -239,35 +239,20 @@ export function NotesPanel(props: NotesPanelProps) {
                       const what = describeDrawing(d, size);
                       return (
                         <li key={d.id} className="chip" data-testid="drawing">
-                          {confirming === `drawing-${d.id}` ? (
-                            <ConfirmInline
-                              compact
-                              question={t.confirmDeleteDrawing(what)}
-                              onConfirm={() => {
-                                setConfirming(null);
+                          <span>{what}</span>
+                          {editableHere(d) && (
+                            <button
+                              type="button"
+                              className="chip__remove"
+                              aria-label={t.deleteDrawing(what)}
+                              disabled={busy}
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 void run(api(`/api/annotations/${d.id}`, { method: 'DELETE' }));
                               }}
-                              onCancel={() => {
-                                setConfirming(null);
-                              }}
-                            />
-                          ) : (
-                            <>
-                              <span>{what}</span>
-                              {editableHere(d) && (
-                                <button
-                                  type="button"
-                                  className="chip__remove"
-                                  aria-label={t.deleteDrawing(what)}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setConfirming(`drawing-${d.id}`);
-                                  }}
-                                >
-                                  ×
-                                </button>
-                              )}
-                            </>
+                            >
+                              ×
+                            </button>
                           )}
                         </li>
                       );

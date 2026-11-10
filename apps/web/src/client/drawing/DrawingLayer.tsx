@@ -11,6 +11,7 @@ import {
 import { createPortal } from 'react-dom';
 import { ViewContext, viewBoxOf } from '../player/zoom.ts';
 import { notesStrings } from '../notes/strings.ts';
+import { Icon } from '../ui/icons.tsx';
 import {
   angleArc,
   angleDegrees,
@@ -38,6 +39,8 @@ export interface Drawing {
   frame?: number;
   /** The viewer may move it; the page knows that from the API and the role (#141). */
   editable?: boolean;
+  /** Generated references can be corrected, but are not user-created objects to delete. */
+  deletable?: boolean;
 }
 
 interface DrawingLayerProps {
@@ -47,7 +50,8 @@ interface DrawingLayerProps {
   drawings: readonly Drawing[];
   /** The tool in use; `null`: the layer selects saved drawings instead of drawing new ones. */
   tool: DrawingKind | null;
-  onComplete: (kind: DrawingKind, points: Point[]) => void;
+  onComplete: (kind: DrawingKind, points: Point[]) => Promise<boolean>;
+  onDelete: (drawing: Drawing) => Promise<boolean>;
   onCancel: () => void;
   /** A saved drawing was moved and let go (#141). */
   onMove: (drawing: Drawing, points: Point[]) => void;
@@ -91,7 +95,7 @@ interface Drag {
  * Made for fingers (Ewout's coaches on an iPhone, 2026-11-03): a point is placed only by a short,
  * still tap (a swipe, a second finger or a long press places nothing); once placed, every point can
  * be dragged, at half speed with a finger so it can be put precisely and isn't hidden under it; and
- * nothing is saved until Save (or Enter). Backspace takes the last point back, Esc cancels.
+ * the last point saves immediately. Backspace takes an unfinished point back, Esc cancels.
  *
  * Tapping a saved drawing selects it and shows a ring on each of its points (#141); dragging a ring
  * moves that point — exactly with the mouse, at half speed with a finger — and letting go saves it.
@@ -102,6 +106,7 @@ export function DrawingLayer({
   drawings,
   tool,
   onComplete,
+  onDelete,
   onCancel,
   onMove,
   onSelect,
@@ -113,6 +118,10 @@ export function DrawingLayer({
   const svg = useRef<SVGSVGElement>(null);
   const arrowId = useId();
   const [pending, setPending] = useState<Point[]>([]);
+  const [working, setWorking] = useState(false);
+  const [failed, setFailed] = useState<'save' | 'delete' | null>(null);
+  const busy = useRef(false);
+  const generation = useRef(0);
   const [hover, setHover] = useState<Point | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [moving, setMoving] = useState<Drag | null>(null);
@@ -126,7 +135,7 @@ export function DrawingLayer({
   const needed = tool === null ? 0 : POINTS_NEEDED[tool];
   const complete = tool !== null && pending.length >= needed;
 
-  const selected = drawings.find((d) => d.id === selectedId) ?? null;
+  const selected = drawings.find((d) => d.id === selectedId && d.editable === true) ?? null;
   /** A drawing's points, following the finger while one of them is being dragged. */
   const pointsOf = useCallback(
     (drawing: Drawing): readonly Point[] =>
@@ -141,11 +150,16 @@ export function DrawingLayer({
     drag.current = null;
     setMoving(null);
     setSelectedId(drawing?.id ?? null);
+    setFailed(null);
     selectCallback.current?.(drawing);
   }, []);
 
   // A new tool (or none) starts afresh; drawing and moving don't mix (#141).
   useEffect(() => {
+    generation.current++;
+    busy.current = false;
+    setWorking(false);
+    setFailed(null);
     setPending([]);
     setHover(null);
     press.current = null;
@@ -158,36 +172,72 @@ export function DrawingLayer({
 
   // A drawing that leaves the picture (another frame) takes its handles with it.
   useEffect(() => {
-    if (selectedId !== null && !drawings.some((d) => d.id === selectedId)) {
+    if (selectedId !== null && !drawings.some((d) => d.id === selectedId && d.editable === true)) {
       drag.current = null;
       setMoving(null);
       setSelectedId(null);
     }
   }, [drawings, selectedId]);
 
-  const save = () => {
-    if (tool === null || pending.length < POINTS_NEEDED[tool]) return;
-    const points = pending;
-    setPending([]);
-    setHover(null);
-    onComplete(tool, points);
+  // Keep the completed shape visible until the server accepts it; a failed save can be retried.
+  const save = async (kind: DrawingKind, points: Point[]) => {
+    if (busy.current) return;
+    const started = generation.current;
+    busy.current = true;
+    setWorking(true);
+    setFailed(null);
+    try {
+      const saved = await onComplete(kind, points);
+      if (generation.current !== started) return;
+      if (saved) onCancel();
+      else setFailed('save');
+    } catch {
+      if (generation.current === started) setFailed('save');
+    } finally {
+      if (generation.current === started) {
+        busy.current = false;
+        setWorking(false);
+      }
+    }
   };
-  const latestSave = useRef(save);
-  latestSave.current = save;
+
+  const remove = async (drawing: Drawing) => {
+    if (busy.current || drawing.editable !== true || drawing.deletable === false) return;
+    const started = generation.current;
+    busy.current = true;
+    setWorking(true);
+    setFailed(null);
+    try {
+      const deleted = await onDelete(drawing);
+      if (generation.current !== started) return;
+      if (deleted) select(null);
+      else setFailed('delete');
+    } catch {
+      if (generation.current === started) setFailed('delete');
+    } finally {
+      if (generation.current === started) {
+        busy.current = false;
+        setWorking(false);
+      }
+    }
+  };
 
   useEffect(() => {
     if (tool === null && selected === null) return;
     const onKey = (e: KeyboardEvent) => {
+      if (
+        busy.current ||
+        (e.target instanceof HTMLElement &&
+          e.target.closest('input, textarea, select, [contenteditable]') !== null)
+      )
+        return;
       if (e.key === 'Escape') {
         if (tool === null) select(null);
         else onCancel();
         return;
       }
       if (tool === null) return;
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        latestSave.current();
-      } else if (e.key === 'Backspace') {
+      if (e.key === 'Backspace' && !complete) {
         e.preventDefault();
         setPending((points) => points.slice(0, -1));
       }
@@ -196,7 +246,7 @@ export function DrawingLayer({
     return () => {
       window.removeEventListener('keydown', onKey);
     };
-  }, [tool, selected, onCancel, select]);
+  }, [tool, selected, onCancel, select, complete]);
 
   /** Screen position → picture pixels (not clamped). */
   const pictureAt = (clientX: number, clientY: number): [number, number] | null => {
@@ -229,7 +279,7 @@ export function DrawingLayer({
   };
 
   const onPointerDown = (e: PointerEvent<SVGSVGElement>) => {
-    if (tool === null) return;
+    if (tool === null || busy.current || complete) return;
     e.preventDefault();
     fingers.current.add(e.pointerId);
     // A second finger (a pinch, a palm) places nothing.
@@ -263,7 +313,7 @@ export function DrawingLayer({
 
   /** Pressing a ring of the selected drawing starts dragging that point (#141). */
   const startDrag = (e: PointerEvent<SVGElement>, drawing: Drawing, index: number) => {
-    if (tool !== null) return;
+    if (tool !== null || busy.current) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const from = pointsOf(drawing)[index];
     if (from === undefined) return;
@@ -341,7 +391,7 @@ export function DrawingLayer({
       drag.current = null;
       setMoving(null);
       const drawing = drawings.find((d) => d.id === dragging.id);
-      if (drawing !== undefined && dragging.moved) onMove(drawing, dragging.points);
+      if (drawing?.editable === true && dragging.moved) onMove(drawing, dragging.points);
       return;
     }
     const current = press.current;
@@ -351,7 +401,12 @@ export function DrawingLayer({
     if (!isTap(current.moved, performance.now() - current.at)) return;
     const point = pointAt(e);
     if (point === null) return;
-    setPending((points) => (points.length < POINTS_NEEDED[tool] ? [...points, point] : points));
+    const points = [...pending, point];
+    setPending(points);
+    if (points.length === POINTS_NEEDED[tool]) {
+      setHover(null);
+      void save(tool, points);
+    }
   };
 
   const onPointerCancel = (e: PointerEvent<SVGSVGElement>) => {
@@ -489,40 +544,51 @@ export function DrawingLayer({
           </g>
         )}
       </svg>
-      {complete &&
-        controlsTarget !== null &&
+      {pickable && selected?.editable === true && selected.deletable !== false && (
+        <button
+          type="button"
+          className="drawing-delete"
+          data-testid="drawing-delete"
+          aria-label={t.deleteDrawing(t.tools[selected.kind])}
+          title={t.deleteDrawing(t.tools[selected.kind])}
+          disabled={working}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+          }}
+          onClick={(event) => {
+            event.stopPropagation();
+            void remove(selected);
+          }}
+        >
+          <Icon name="trash" size={18} />
+        </button>
+      )}
+      {controlsTarget !== null &&
+        ((attributes !== null && attributes !== undefined) || failed !== null) &&
         createPortal(
           <div
-            className="drawing-confirm"
-            role="group"
-            aria-label={t.draw}
+            className="drawing-details"
             onPointerDown={(event) => {
               event.stopPropagation();
             }}
           >
             {attributes}
-            <span className="drawing-confirm__hint">{t.drawAdjust}</span>
-            <button
-              type="button"
-              className="drawing-confirm__save"
-              data-testid="drawing-save"
-              disabled={!complete}
-              onClick={save}
-            >
-              {t.drawSave}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPending([]);
-                setHover(null);
-              }}
-            >
-              {t.drawRedo}
-            </button>
-            <button type="button" onClick={onCancel}>
-              {t.cancel}
-            </button>
+            {failed !== null && (
+              <div role="alert" className="drawing-error">
+                <span>{failed === 'save' ? t.failed : t.deleteFailed}</span>
+                {failed === 'save' && tool !== null && (
+                  <button
+                    type="button"
+                    disabled={working}
+                    onClick={() => {
+                      void save(tool, pending);
+                    }}
+                  >
+                    {t.retry}
+                  </button>
+                )}
+              </div>
+            )}
           </div>,
           controlsTarget,
         )}

@@ -1,3 +1,25 @@
+## 2026-11-10 — Automatic drawing save and direct deletion
+
+- Regression changed before implementation: completing two endpoints expected a saved drawing,
+  but received zero (real worker/proxy, 1000x540 Chrome). The old UI required Save.
+- 641 web/database checks pass; formatting, lint and type checking pass after Promise handling
+  updates. Initial focused run: 8 pass, 2 fail because the old deselection coordinates now hit
+  the new trash control; moved the deselection tap to a free corner. This was a test-coordinate
+  collision, not data loss outside the explicit trash action.
+- All 48 editing browser cases pass across laptop, 1000x540 laptop and iPhone13 WebKit. The full
+  run passed 45; the remaining three exercised a faulty test interception (unrouting before
+  fulfilling its pending request). Corrected that setup and reran those same three: 3/3 pass.
+  Native touch taps on iPhone; mouse drags where Playwright cannot synthesize finger drags.
+  Coverage includes automatic persistence/reload, zoom, fullscreen deletion, manual reference and
+  measurement deletion, no confirmation, failed save/delete retry, original frame on retry after
+  stepping, non-editable object controls and playback/stroke regressions. Screenshots inspected;
+  trash targets measured at least 44x44px.
+- Six independent video-reuse browser checks pass (laptop/iPhone), preserving source attribution,
+  own feedback and viewer layer switches. Fifty worker and 77 Linux deploy-script checks pass;
+  Ruff/format/mypy pass. The demo/reuse build passes. Final formatting/lint/typecheck pass.
+- Local preview :5184 serves the updated layer with DB ready; the edge stack :8080 uses the real
+  worker. No production writes, login, merge or deployment for this change.
+
 ## 2026-11-10 — Restore missed brand/version display
 
 - Both new login/header browser checks fail on deployed main's UI before restoring eace60b:
