@@ -21,11 +21,14 @@ this file summarises the current state.
 ## Brand navigation and displayed version
 
 The shared signed-in header links RowLens to the training overview and displays its tagline and
-version, also shown on the public sign-in page. `useAppVersion` combines the root package release
-version (Vite's `__ROWLENS_RELEASE__`) with `/health/live` build metadata: for example
-`v0.0.0+sha-8a401c9`. A semantic release image tag displays directly (`v1.2.3`). Deployment tags and
-health responses are unchanged. The root release version is still 0.0.0; this restores the existing
-UI and does not change release numbering or the release-please workflow.
+numeric release, also shown on the public sign-in page. The images workflow derives major/minor
+from root package.json and replaces the patch with github.run_number via scripts/release-version.js
+(ADR-0027): 0.0.59, 0.0.60, etc. Reruns keep their number; new main image builds advance it.
+APP_RELEASE is validated and baked into Vite's __ROWLENS_RELEASE__ and public build-info.json;
+both image OCI version labels carry the same number. Runtime health/image SHA metadata is never
+substituted into the user label. Local builds without an override use the root version (0.0.0).
+Existing immutable image tags, health gates, manual deploy approval and release-please remain
+unchanged. Published but undeployed builds can cause gaps; a rollback displays its older release.
 
 ## Independent training video reuse (ADR-0026)
 

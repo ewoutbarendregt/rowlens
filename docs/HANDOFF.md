@@ -1,5 +1,40 @@
 # RowLens handoff — 2026-11-10
 
+## Authorized combined release in progress — 2026-11-10
+
+Ewout explicitly requested "Merge en deploy" for #179/#180. #179 is merged as 7ed27be after
+all eight checks passed in CI 42793330184. #180 CI 42795678658 hit its 15-minute web timeout
+(no test failure: 660 web/DB, 51 general and 6 reuse browser cases had passed). Integrated main
+into #180, retaining both log sections; no source conflict. Web timeout increased to 25 minutes
+for slow dependency preparation. Fresh local formatting/lint/typecheck, 660 web/DB and six critical
+low-laptop/iPhone WebKit cases pass; marker scan is clean. Require new head CI to pass before merging #180, then main
+CI/images green before one combined manual deployment. No additional approval is needed for
+that normal release. Production remains sha-b9c983c/28 migrations; no deployment yet.
+Worktree /Users/ewout/src/rowlens-training-video-reuse, codex/fix/sequential-version. Separate
+logs #176/#178 and unrelated dirty original checkout stay untouched. Historical checkpoints below
+are superseded by this release authorization. Record the actual numeric image release after build;
+#179 itself publishes the previous-format build, so the final number need not be 0.0.59.
+
+## Sequential numeric versions — local fix (2026-11-10)
+
+Owner explicitly corrected the version requirement: digits and sequential numbers, no SHA suffix.
+Implemented on codex/fix/sequential-version in /Users/ewout/src/rowlens-training-video-reuse,
+based on main b9c983c. Standalone PR [#180](https://github.com/ewoutbarendregt/rowlens/pull/180) is open; implementation
+head 63d36de. Check CI on the latest push before a separately authorized merge/deploy.
+Existing image-workflow run_number replaces the root version's patch:
+next from current build58 is 0.0.59, then 0.0.60; reruns preserve the same number. Vite validates
+APP_RELEASE and bakes it into client/build-info; workflow labels both images with that number.
+Login/header display only the numeric release; health SHA and deployment gates are unchanged.
+ADR-0027 explains build gaps, rollback and preserving the workflow counter. Local builds default
+numerically to root 0.0.0. No schema/dependency/server/permission change or production action.
+
+660 web/DB, four focused login/header and two unified laptop/iPhone WebKit checks pass; screenshots
+inspected and no overflow. Actual Docker image verifies 0.0.59 in metadata/bundle while retaining
+diagnostic tag sha-1234567. Invalid generator/build values are refused. Formatting/lint/typecheck
+and flagged builds pass, plus 50 worker and 77 Linux deploy checks. Development :5174/API :3100 is healthy. Drawing PR #179 is independent,
+with its clean worktree/preview :5184 preserved. Deployment logs #176/#178 stay open separately;
+production remains sha-b9c983c/28 migrations (#177/deploy42789959357). No new merge/deploy asked.
+
 ## Drawing autosave/direct deletion — local implementation (2026-11-10)
 
 Owner requested final-point autosave and a small selected-object trash control without confirmation.

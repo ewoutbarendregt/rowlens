@@ -1,3 +1,31 @@
+## 2026-11-10 — Authorized integration and CI timeout correction
+
+- #179 CI 42793330184 passed all eight jobs before its authorized squash merge 7ed27be.
+- #180 CI 42795678658: GitHub annotation confirms the 15-minute job timeout, not a failing test.
+  660 web/DB, 51 general browser and 6 reuse cases passed before cancellation during unified
+  preparation/tests. Web budget raised to 25 minutes; other job limits/checks remain intact.
+- Integrated main into #180 without source conflicts. Six simultaneous documentation additions
+  were combined with both histories retained; conflict-marker scan is clean. Fresh formatting,
+  lint, typecheck, 660 web/DB and six critical low-laptop/iPhone WebKit drawing cases pass.
+
+## 2026-11-10 — Sequential numeric release display
+
+- Red-before browser regression on main: expected 0.0.0, received v0.0.0+e2e.
+- All 660 web/database tests pass, including 19 release-generator/validation cases: sequential
+  builds, repeat stability, numeric-only versions, invalid/leading-zero/unsafe sequences.
+- Four focused 1000x540 Chromium/iPhone13 WebKit login/header checks pass with an injected
+  APP_RELEASE=0.0.59. Header navigation, 44px brand target and no horizontal overflow checked;
+  a runtime health tag cannot replace the numeric client release. Screenshots inspected.
+- Two focused unified-account overview cases pass on laptop/iPhone WebKit; both platform account
+  and member headers display numeric versions and keep home navigation. Flagged builds pass.
+- An actual Docker image built with APP_RELEASE=0.0.59/APP_VERSION=sha-1234567 contains that
+  numeric client release in both build-info and bundled code; diagnostic identity stays unchanged.
+  Generator sequence 1.5 and Vite override sha-invalid both fail as intended. GitHub's previous
+  retry metadata was read-only checked: run 256 remains 256 in attempts 1 and 2.
+- All 50 worker tests and 77 Linux deploy-script checks pass; Ruff/format/mypy pass.
+- Formatting, lint and typecheck pass. No production write, merge or deployment. Development
+  :5174/API :3100 remains DB ready; independent drawing preview :5184 is unchanged.
+
 ## 2026-11-10 — Automatic drawing save and direct deletion
 
 - Regression changed before implementation: completing two endpoints expected a saved drawing,

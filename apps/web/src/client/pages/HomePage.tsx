@@ -24,11 +24,9 @@ export function HomePage() {
             <h1 className="wordmark">RowLens</h1>
             <p className="brand-tagline">{t.brandTagline}</p>
           </div>
-          {version !== null && (
-            <span className="version" data-testid="app-version">
-              {version}
-            </span>
-          )}
+          <span className="version" data-testid="app-version">
+            {version}
+          </span>
         </header>
         {state.kind === 'closed' && <p className="version">{t.closed}</p>}
         {state.kind === 'locked' && (

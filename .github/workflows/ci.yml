@@ -37,7 +37,8 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Browser/media dependency downloads can consume most of the previous 15-minute budget.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
@@ -50,6 +51,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Numeric release generator
+        run: node --experimental-strip-types scripts/release-version.js 59 | grep -Ex '[0-9]+\.[0-9]+\.59'
       - name: Player test fixture (VP9 clip with burned-in frame numbers)
         run: |
           sudo apt-get update -qq
@@ -201,6 +204,7 @@ jobs:
           tags: rowlens-${{ matrix.name }}:ci
           # Same as main's release images: demo and unified accounts enabled together.
           build-args: |
+            APP_RELEASE=0.0.999
             VITE_FEATURE_PLAYER_DEMO=true
             VITE_FEATURE_UNIFIED_USERS=true
           cache-from: type=gha,scope=${{ matrix.name }}
@@ -227,6 +231,7 @@ jobs:
               curl -fsS http://127.0.0.1:3000/projects/rowlens/api/auth/status | jq -e '.unified == true and .enabled == true and .access == false'
               curl -fsS -H 'accept: text/html' http://127.0.0.1:3000/projects/rowlens/ | grep -q '<div id="root">'
               curl -fsS http://127.0.0.1:3000/projects/rowlens/demo-media/manifest.json | jq -e 'length > 0'
+              curl -fsS http://127.0.0.1:3000/projects/rowlens/build-info.json | jq -e '.release == "0.0.999"'
               exit 0
             fi
             sleep 1
