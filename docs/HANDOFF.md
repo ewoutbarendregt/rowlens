@@ -1,5 +1,29 @@
 # RowLens handoff — 2026-11-10
 
+## Completed version-display release — 2026-11-10
+
+Ewout explicitly approved merging/deploying #177 with "Ja". All eight PR checks passed in CI
+42781740051 attempt 2; attempt 1 exceeded the web job's 15-minute limit during slow test-media
+preparation, and rerunning passed without code changes. #177 merged as b9c983c at 08:58:56 UTC.
+Main CI 42786883372 and images 42786883234 passed. Manual deploy 42789959357 completed successfully
+at 09:21:30 UTC, with public URL verification enabled. Production is **sha-b9c983c**, displaying
+**v0.0.0+sha-b9c983c** on login and in the signed-in header. Root release remains 0.0.0.
+
+Read-only production checks: DB ready, 28 migrations, all aggregate data unchanged (6 videos,
+85 annotations), 21 physical media files/352880017 bytes unchanged, no pending jobs. Both RowLens
+web/worker use the new tag; all seven other containers retain their IDs, start times and images.
+Four public endpoints return HTTP200. Pre-deploy DB backup exists (361680 bytes), and new
+web/worker logs have no error-level lines. Two live public browser checks (1000x540 Chromium and
+iPhone13 WebKit) show the expected version/tagline, no horizontal overflow, no page errors and no
+writes; screenshots inspected. No production login/email was attempted. Signed-in header and
+brand navigation are covered by local/CI synthetic accounts, including iPhone WebKit. Main edge
+suite: 41 pass, 30 intentional context skips. The release-please failure is known and harmless.
+
+Deployment logs are on codex/docs/177-deploy in /Users/ewout/src/rowlens-version-display; the
+separate previous deployment log PR #176 remains open. No unrelated/bot changes were merged.
+Preserve the dirty original club/editor worktree. Version preview remains :5184/API :3124;
+the existing :5174 preview remains unchanged. Historical sections below record earlier checkpoints.
+
 ## Restore missed version/header work (2026-11-10)
 
 Owner reported versioning/display already built but absent from production. Original own commit
@@ -14,8 +38,8 @@ production-length SHA and semantic release labels, low laptop/iPhone WebKit layo
 targets; screenshots inspected. Initial two checks were red before restoration. Flagged builds,
 format/lint/typecheck pass. The fixed tagline is in both NL/EN catalogs.
 Production is sha-8a401c9 with DB healthy and 28 migrations; #175 is merged/deployed (run 42640926073).
-Deploy log #176 is open separately. No new production action is authorized/performed in this repair;
-follow AGENTS.md's separate explicit per-deploy instruction. Original club/address/research changes
+Deploy log #176 is open separately. The owner's subsequent approval and release state are recorded
+above. Original club/address/research changes
 remain untouched. Restore preview: http://localhost:5184/projects/rowlens/ (API :3124), using the local stack with
 healthy DB. The existing :5174 preview remains unchanged. Standalone PR [#177](https://github.com/ewoutbarendregt/rowlens/pull/177) is open against main;
 implementation head 8ecdf49. CI must be green before a subsequently authorized merge.

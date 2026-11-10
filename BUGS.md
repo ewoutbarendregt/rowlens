@@ -4,18 +4,19 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
-**Status**: fixed locally; PR #177 awaiting release
+**Status**: fixed; #177 deployed as sha-b9c983c (2026-11-10)
 **Found**: 2026-11-10
 **Description**: The already-built eace60b brand/version commit stayed on the local club-editor
 branch. Isolating training reuse for PR #175 excluded it, leaving production with a raw build tag
 on login and no release/build version in the signed-in header. The omission was not reported.
 **Fix**: Restore the existing product files on a branch based on live main, with red-before/green-after
 login/header checks, real-length SHA layout and semantic-tag cases. Retain unrelated work separately;
-no production rollout has been performed for this repair.
+authorized deploy 42789959357 now serves v0.0.0+sha-b9c983c. Public laptop/iPhone checks pass;
+signed-in header/navigation checks pass with synthetic local/CI accounts.
 
 ### [BUG-062] Rejected uploads retained a physical-asset quota reservation — medium
 **Location**: apps/web/src/server/db/migrations/0028_training_video_reuse.sql:140
-**Status**: fixed locally before release
+**Status**: fixed; deployed with #175 as sha-8a401c9 (2026-11-09)
 **Found**: 2026-11-09
 **Description**: Review of the new physical-asset quota helper found it counted rejected uploads,
 whose bytes have already been removed. This could falsely exhaust the upload cap. Existing quota

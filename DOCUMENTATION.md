@@ -1,3 +1,10 @@
+## [2026-11-10] — Deploy restored version display
+
+**Session**: codex/docs/177-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md
+**Summary**: Following Ewout's explicit approval, merged #177 as b9c983c after green PR CI, waited for main CI/images, and deployed sha-b9c983c (run 42789959357, completed 09:21:30 UTC). Production displays v0.0.0+sha-b9c983c on laptop/iPhone; readiness/DB, four public endpoints, unchanged data/media and seven untouched containers are verified, with no production login/email. Updated historical #175 statuses to reflect its previous authorized deployment; separate documentation PR #176 and unrelated dirty work remain untouched.
+**Prompts used**: Ja
+
 ## [2026-11-10] — Restore built version display omitted from release
 
 **Session**: codex/fix/version-display

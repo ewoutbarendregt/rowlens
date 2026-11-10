@@ -3,6 +3,27 @@
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
+## Version-display release — 2026-11-10 09:21 UTC
+
+Ewout explicitly approved merging/deploying #177 with "Ja". Green PR CI 42781740051 (attempt 2;
+initial web preparation timeout, no code fix required), squash merge b9c983c, green main CI
+42786883372 and images 42786883234. Manual deploy **42789959357** completed at **09:21:30 UTC**,
+public verification enabled. Both RowLens web/worker run **sha-b9c983c**; login and signed-in header
+now display **v0.0.0+sha-b9c983c**. No migrations/settings/helper installation was needed.
+
+Read-only verification: DB ready, **28 migrations**, all aggregate counts unchanged (**6 videos,
+85 annotations**), media **21 files/352880017 bytes**, no pending jobs. The seven other containers,
+including RowLens DB, trustable.nl and AudioScribe, retained identical IDs/start times/images.
+Readiness, trustable.nl, API health and AudioScribe all returned HTTP200; new web/worker logs have
+zero error-level lines. Pre-deploy backup:
+`pre-deploy-20261110T092118Z-sha-b9c983c.dump` (**361680 bytes**).
+
+Two live public browser checks pass (1000x540 Chromium/iPhone13 WebKit): expected version and
+tagline, no horizontal overflow, no page errors or writes; screenshots inspected. No production
+login/email was attempted; authenticated header/navigation are covered by synthetic local/CI tests.
+Previous release: sha-8a401c9 (#175, deploy 42640926073 on 2026-11-09, 28 migrations); its separate
+log PR #176 remains open. No shared server settings, proxy, keys or other services were changed.
+
 ## Completed production repair — 2026-11-07 20:17 UTC
 
 Ewout explicitly approved the pinned kernel update and whole-server reboot. After an initial
@@ -28,7 +49,7 @@ and other maintenance findings remain open. No staging host was checked or modif
 | `/opt/rowlens/.env` (640) | ✅ `NODE_ENV`, `PUBLIC_ORIGIN`, `BASE_PATH`, `POSTGRES_PASSWORD`, `ROWLENS_APP_DB_PASSWORD`, `SESSION_SECRET`, `PILOT_ACCESS_CODE_HASH`; plus e-mail login (2026-11-02): `AUTH_ALLOWED_EMAILS` (2 addresses, typed by Ewout in his terminal), `AUTH_ADMIN_EMAILS` (first admin, added before `sha-96a0202` with a backup), `OTP_PEPPER` (generated on the server), `SMTP_HOST=smtp.resend.com`, `SMTP_PORT=587` (465 is blocked outbound on trustable-prod, BUG-010; changed 2026-11-02 07:34 UTC, backup `.env.bak-20261102b`), `SMTP_USER=resend`, `SMTP_PASSWORD` (the Resend key AudioScribe uses, copied on the server from `/opt/trustable/audioscribe.env` without printing it; that file was only read), `MAIL_FROM=RowLens <rowlens@trustable.nl>`. Backup before the e-mail change: `.env.bak-20261102` | Claude, 2026-11-02, approved |
 | Caddy route `/projects/rowlens/*` | ✅ live since trustable.nl v0.19.1 ([#377](https://github.com/ewoutbarendregt/trustable.nl/pull/377) → release [#378](https://github.com/ewoutbarendregt/trustable.nl/pull/378)) | Claude, 2026-11-01, approved (#24) |
 | `/opt/rowlens/bin/rowlens-deploy` (750), `/opt/rowlens/docker-compose.yml` (640) | ✅ installed by `infra/deploy/install.sh`; compose is byte-identical to the repo, deploy script with #98 reinstalled 2026-11-02 (CI key reported as already restricted) | Claude, 2026-11-02, approved |
-| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-a47111c` (2026-11-07 19:20 UTC), signup enabled, 26 migrations; web and DB healthy. Previous release: `sha-dd71f78`. Networks unchanged. | Codex, 2026-11-07, approved |
+| RowLens containers (project `rowlens`) | ✅ `web` + `worker` `sha-b9c983c` (2026-11-10 09:21 UTC), signup enabled, 28 migrations; web and DB healthy. Previous release: `sha-8a401c9`. Networks unchanged. | Codex, 2026-11-10, approved |
 | Resend sender domain | ✅ `trustable.nl` verified (DKIM `resend._domainkey`, bounce MX on `send.trustable.nl`, SPF includes resend.com); AudioScribe already sends from it | checked 2026-11-02 |
 
 Nothing under `/opt/trustable` has been changed.
