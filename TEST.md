@@ -1,3 +1,19 @@
+## 2026-11-09 — Production deployment of training reuse
+
+- PR CI 42634226543, main CI 42636448470 (attempt 2) and images 42636448533 pass. First main edge
+  attempt was cancelled after an eight-minute package-preparation stall and retried alone; earlier
+  passed jobs were retained. Deploy 42640926073 succeeds; public readiness sha-8a401c9/DB ok.
+- 28 migrations, 6 backfilled assets with original IDs, zero missing assets/references/active jobs,
+  RLS on both new tables and 4 restrictive reference policies. App-role asset SELECT returns 0;
+  private trigger execution denied; guarded reference helper available. Read-only checks only.
+- Exact pre/post sporting/account counters match (4 trainings, 6 videos, 83 annotations, 53 stroke
+  marks, 8 angles, 9 manual boat lines and 7 accounts/memberships). All 21 media files and
+  352,880,017 bytes/quota match. Pre-deploy DB backup exists (339,487 bytes).
+- 7 non-replaced container IDs/start times/images match. Four public endpoints return HTTP200.
+  Two production public sign-in checks pass at 1000x540 Chromium and 390x664 iPhone WebKit, with
+  zero overflow/JS errors/POSTs; screenshots inspected. No production login, email or write-flow
+  test/data creation. Authenticated behavior is covered by the local/CI tests below.
+
 ## 2026-11-09 — Independent training video reuse implementation
 
 - **641 web/DB tests pass** after isolation onto main, including 17 focused reuse cases and the

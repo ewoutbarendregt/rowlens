@@ -1,13 +1,21 @@
 # PLAN
 
+## Training video reuse deployed (2026-11-09)
+
+PR #175 merged as 8a401c9 after green CI and is deployed as sha-8a401c9 via run 42640926073.
+Readiness/DB are healthy with 28 migrations. Existing 4 trainings, 6 videos, 83 annotations and
+21 media files/352,880,017 bytes are preserved; neighbouring services are unchanged and HTTP200.
+Public low-laptop/iPhone WebKit checks pass. Deployment is complete; see docs/HANDOFF.md and
+docs/runbooks/server-setup.md. Further releases require a new explicit request.
+
 ## Own trainings and reused-video annotation workspaces (2026-11-09)
 
 Approved by Ewout ("Ja"). Implemented creator filtering, same-club ready-video reuse, independent
 training feedback/analysis and read-only source annotation references with personal layer switches.
 ADR-0026/migration 0028 preserve physical storage, old URLs, quota and deletion/worker isolation.
-Implementation and local validation are complete; PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. See TEST.md and
-docs/plans/training-video-reuse.md. Original worktree's
-uncommitted club-editor/address and research changes remain separate. No production deployment.
+PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is merged and deployed; see TEST.md and
+docs/plans/training-video-reuse.md. Original worktree's uncommitted club-editor/address and research
+changes remain separate.
 
 
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)
