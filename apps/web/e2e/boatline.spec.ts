@@ -58,7 +58,7 @@ test('the worker finds the waterline; the coach sets the bow and corrects it', a
   ] as const) {
     await page.mouse.click(box.x + x * box.width, box.y + y * box.height);
   }
-  await page.getByTestId('drawing-save').click();
+  await expect(page.locator('.drawing-layer--active')).toHaveCount(0);
   await expect(page.getByTestId('boat-line')).toHaveCount(1);
   await expect(page.getByTestId('boat-line-here')).toContainText(/frame 0/);
   await expect(status).toContainText(/(Found automatically in|Automatisch gevonden in) 100%/, {
@@ -91,6 +91,7 @@ test('the found boat line is corrected by dragging its ends (#141)', async ({ pa
     await page.mouse.click(box.x + 0.5 * box.width, box.y + (228 / 360) * box.height);
   }
   await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
+  await expect(page.getByTestId('drawing-delete')).toHaveCount(0); // generated reference
   await page.mouse.move(box.x + (520 / 640) * box.width, box.y + (228 / 360) * box.height);
   await page.mouse.down();
   await page.mouse.move(box.x + 0.9 * box.width, box.y + 0.85 * box.height, { steps: 8 });
@@ -101,4 +102,7 @@ test('the found boat line is corrected by dragging its ends (#141)', async ({ pa
   await expect(page.getByTestId('boat-line-here')).toContainText(/frame 0/);
   await expect(page.locator('[data-testid=drawing-layer] g.drawing--boat')).toHaveCount(1);
   await expect(auto).toHaveCount(0);
+  await expect(page.getByTestId('drawing-delete')).toBeVisible(); // now a manual correction
+  await page.getByTestId('drawing-delete').click();
+  await expect(page.getByTestId('boat-line')).toHaveCount(0);
 });

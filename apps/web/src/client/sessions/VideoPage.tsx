@@ -120,6 +120,7 @@ export function VideoPage() {
   const roster = useRoster(undefined, video?.sessionId ?? null);
   const shareRoster = useRoster(undefined, video?.sessionId ?? null, true);
   const [tool, setTool] = useState<DrawingKind | null>(null);
+  const drawingFrame = useRef<number | null>(null);
   const [drawingControls, setDrawingControls] = useState<HTMLDivElement | null>(null);
   const [notesVisible, setNotesVisible] = useState(storedNotesVisible);
   const [noteHoldSeconds, setNoteHoldSeconds] = useState(storedNoteHoldSeconds);
@@ -186,7 +187,7 @@ export function VideoPage() {
   const feedbackScopeRef = useRef(feedbackScope);
   feedbackScopeRef.current = feedbackScope;
   const loadNotes = useCallback(() => {
-    api(`/api/videos/${id}/annotations`)
+    return api(`/api/videos/${id}/annotations`)
       .then((res) =>
         res.ok
           ? (res.json() as Promise<{
@@ -211,7 +212,7 @@ export function VideoPage() {
     setNotes([]);
     setMomentRowers([]);
     setMomentShares([]);
-    loadNotes();
+    void loadNotes();
   }, [loadNotes]);
 
   const loadMarks = useCallback(() => {
@@ -277,14 +278,16 @@ export function VideoPage() {
     (path: string, method: 'PUT' | 'DELETE', body?: unknown) => {
       setAngleBusy(true);
       setAngleFailed(false);
-      void api(path, { method, ...(body === undefined ? {} : { body }) })
+      return api(path, { method, ...(body === undefined ? {} : { body }) })
         .then((res) => {
           if (!res.ok) throw new Error(String(res.status));
           loadAngles();
           loadAutoLine();
+          return true;
         })
         .catch(() => {
           setAngleFailed(true);
+          return false;
         })
         .finally(() => {
           setAngleBusy(false);
@@ -492,12 +495,14 @@ export function VideoPage() {
           stage?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       }
+      drawingFrame.current = null;
       setTool(next);
       if (next !== null) setMeasuring(null);
     },
     [video?.canEdit],
   );
   const cancelTool = useCallback(() => {
+    drawingFrame.current = null;
     setTool(null);
     setMeasuring(null);
   }, []);
@@ -520,11 +525,14 @@ export function VideoPage() {
   );
 
   const saveDrawing = useCallback(
-    (kind: DrawingKind, points: Point[]) => {
-      void api(`/api/videos/${id}/annotations`, {
+    async (kind: DrawingKind, points: Point[], at: number) => {
+      const response = await api(`/api/videos/${id}/annotations`, {
         method: 'POST',
-        body: { kind, frame: frame.current, points },
-      }).finally(loadNotes);
+        body: { kind, frame: at, points },
+      });
+      if (!response.ok) return false;
+      await loadNotes();
+      return true;
     },
     [id, loadNotes],
   );
@@ -538,16 +546,17 @@ export function VideoPage() {
         : 'angle';
   const completeLayer = useCallback(
     (kind: DrawingKind, points: Point[]) => {
+      // Retrying after a connection failure keeps the frame of the first save attempt.
+      const at = drawingFrame.current ?? frame.current;
+      drawingFrame.current = at;
       if (measuring === null) {
-        saveDrawing(kind, points);
-        return;
+        return saveDrawing(kind, points, at);
       }
-      setMeasuring(null);
       if (measuring.kind === 'boat_line') {
-        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', { frame: frame.current, points });
+        return angleRequest(`/api/videos/${id}/boat-line`, 'PUT', { frame: at, points });
       } else {
-        angleRequest(`/api/videos/${id}/angles`, 'PUT', {
-          frame: frame.current,
+        return angleRequest(`/api/videos/${id}/angles`, 'PUT', {
+          frame: at,
           rowerId: measuring.rowerId,
           joint: measuring.joint,
           points,
@@ -602,6 +611,7 @@ export function VideoPage() {
                   // Bow side first, like a coach's line, so moving an end keeps the bow where it was.
                   points: lineHere.points ?? lineHere.ends,
                   variant: 'auto',
+                  deletable: false,
                   frame: lineHere.frame,
                   // Without the bow side nobody knows which end is which: pick that first (#141).
                   editable: canMark && lineHere.points !== null,
@@ -632,7 +642,7 @@ export function VideoPage() {
       if (drawing.id.startsWith('measure-')) {
         const measure = measures.find((m) => `measure-${m.id}` === drawing.id);
         if (measure === undefined) return;
-        angleRequest(`/api/videos/${id}/angles`, 'PUT', {
+        void angleRequest(`/api/videos/${id}/angles`, 'PUT', {
           frame: measure.frame,
           rowerId: measure.rowerId,
           joint: measure.joint,
@@ -641,7 +651,7 @@ export function VideoPage() {
         return;
       }
       if (drawing.variant === 'boat' || drawing.variant === 'auto') {
-        angleRequest(`/api/videos/${id}/boat-line`, 'PUT', {
+        void angleRequest(`/api/videos/${id}/boat-line`, 'PUT', {
           frame: drawing.frame ?? current,
           points,
         });
@@ -650,6 +660,27 @@ export function VideoPage() {
       void api(`/api/annotations/${drawing.id}`, { method: 'PATCH', body: { points } }).finally(
         loadNotes,
       );
+    },
+    [measures, angleRequest, id, current, loadNotes],
+  );
+
+  const deleteDrawing = useCallback(
+    async (drawing: Drawing): Promise<boolean> => {
+      if (drawing.editable !== true || drawing.deletable === false) return false;
+      if (drawing.id.startsWith('measure-')) {
+        const measure = measures.find((m) => `measure-${m.id}` === drawing.id);
+        return measure === undefined ? false : angleRequest(`/api/angles/${measure.id}`, 'DELETE');
+      }
+      if (drawing.variant === 'boat') {
+        return angleRequest(
+          `/api/videos/${id}/boat-line/${String(drawing.frame ?? current)}`,
+          'DELETE',
+        );
+      }
+      const response = await api(`/api/annotations/${drawing.id}`, { method: 'DELETE' });
+      if (!response.ok) return false;
+      await loadNotes();
+      return true;
     },
     [measures, angleRequest, id, current, loadNotes],
   );
@@ -696,13 +727,13 @@ export function VideoPage() {
     video.width !== null && video.height !== null ? video.width / video.height : 16 / 9;
   const portrait = aspect < 0.9;
   const ready = video.status === 'ready' && rendition !== null && video.fpsNum !== null;
-  // Keep rower, joint and Save beside the picture, including fullscreen, without covering points.
+  // Choose rower/joint before the last tap auto-saves, including fullscreen.
   const angleText = angleStrings();
   const measureAttributes =
     measuring?.kind === 'joint' ? (
-      <div className="drawing-confirm__attrs">
+      <div className="drawing-details__attrs">
         <label>
-          <span className="drawing-confirm__attr-name">{angleText.rower}</span>
+          <span className="drawing-details__attr-name">{angleText.rower}</span>
           <select
             data-testid="measure-rower"
             aria-label={angleText.rower}
@@ -720,7 +751,7 @@ export function VideoPage() {
           </select>
         </label>
         <label>
-          <span className="drawing-confirm__attr-name">{angleText.joint}</span>
+          <span className="drawing-details__attr-name">{angleText.joint}</span>
           <select
             data-testid="measure-joint"
             aria-label={angleText.joint}
@@ -815,6 +846,7 @@ export function VideoPage() {
                     onComplete={completeLayer}
                     onCancel={cancelTool}
                     onMove={moveDrawing}
+                    onDelete={deleteDrawing}
                     // A drawing you select is being edited: the picture stops playing under it.
                     onSelect={(drawing) => {
                       if (drawing !== null) player.current?.pause();
@@ -943,7 +975,9 @@ export function VideoPage() {
                 size={size}
                 annotations={notes}
                 authorName={auth.state.kind === 'open' ? auth.state.user.authorName : undefined}
-                onChanged={loadNotes}
+                onChanged={() => {
+                  void loadNotes();
+                }}
                 momentRowers={momentRowers}
                 momentShares={momentShares}
                 roster={(roster.rowers ?? []).filter((r) => r.archivedAt === null)}
@@ -1027,13 +1061,15 @@ export function VideoPage() {
                 failed={angleFailed}
                 onMeasure={startMeasuring}
                 onDelete={(measureId) => {
-                  angleRequest(`/api/angles/${measureId}`, 'DELETE');
+                  void angleRequest(`/api/angles/${measureId}`, 'DELETE');
                 }}
                 onRemoveBoatLine={(lineFrame) => {
-                  angleRequest(`/api/videos/${id}/boat-line/${String(lineFrame)}`, 'DELETE');
+                  void angleRequest(`/api/videos/${id}/boat-line/${String(lineFrame)}`, 'DELETE');
                 }}
                 onBowSide={(bowSide) => {
-                  angleRequest(`/api/videos/${id}/auto-boat-line/bow-side`, 'PUT', { bowSide });
+                  void angleRequest(`/api/videos/${id}/auto-boat-line/bow-side`, 'PUT', {
+                    bowSide,
+                  });
                 }}
                 onJump={(f) => {
                   player.current?.seekToFrame(f);

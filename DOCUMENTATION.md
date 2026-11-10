@@ -1,3 +1,15 @@
+## [2026-11-10] — Autosave drawing endpoints and directly delete selected objects
+
+**Session**: codex/fix/drawing-autosave
+**Changed**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/notes/NotesPanel.tsx, apps/web/src/client/notes/strings.ts, apps/web/src/client/styles.css, apps/web/e2e/drawing.spec.ts, apps/web/e2e/angles.spec.ts, apps/web/e2e/boatline.spec.ts, apps/web/e2e/playback.spec.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0017-angles-per-phase.md
+**Summary**: Removed the explicit drawing save strip: final taps persist through existing routes, failed writes retain/retry their shape on its original frame, and selected editable objects expose a compact trash control for immediate deletion. Existing tenant/edit rights and read-only source/generated references remain; 641 web/DB, all 48 editing and 6 reuse browser cases, 50 worker and 77 Linux deploy checks pass; formatting/lint/typecheck and the flagged build pass. Screenshots inspected, 44px touch targets measured, local preview healthy. No production action.
+**Prompts used**:
+
+```text
+Dit menu is niet nodig, wanneer je een eindpunt zet van een lijn moet die gewoon altijd bewaard blijven.
+Wanneer een object is geselecteerd, moet er een klein delete icon in beeld verschijnen zodat ik het betreffende object kan deleten. Gewoon deleten, geen bevestiging nodig
+```
+
 ## [2026-11-10] — Restore built version display omitted from release
 
 **Session**: codex/fix/version-display

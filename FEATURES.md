@@ -1,5 +1,12 @@
 # FEATURES
 
+## Automatic drawing save and direct selection delete (2026-11-10)
+
+Status: implemented and verified locally; awaiting review and release. Final point automatically persists
+lines, arrows, angles and manual measurements/references. Selected editable objects expose a
+compact trash icon (44px target) and delete immediately; failures remain visible/retryable.
+Production remains sha-b9c983c. See ADR-0017 addendum.
+
 ## Brand and release/build display (2026-11-10)
 
 Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the
