@@ -2,20 +2,20 @@
 
 ## Sequential numeric release label (2026-11-10)
 
-Status: implemented and verified locally; [PR #180](https://github.com/ewoutbarendregt/rowlens/pull/180) awaits review/release. Login and signed-in header show
+Status: done; [PR #180](https://github.com/ewoutbarendregt/rowlens/pull/180) merged as 4b5530d and deployed as 0.0.60 (2026-11-10). Login and signed-in header show
 only digits and dots, e.g. 0.0.59. The existing image-build counter advances the last component;
-retries keep it. See ADR-0027. No additional production deployment has been performed.
+retries keep it. See ADR-0027. Live login checks pass on laptop/iPhone.
 
 ## Automatic drawing save and direct selection delete (2026-11-10)
 
-Status: merged as 7ed27be (#179); combined production release with #180 is explicitly authorized. Final point automatically persists
+Status: done; #179 merged as 7ed27be, deployed with #180 as 0.0.60 (run 42828663375). Final point automatically persists
 lines, arrows, angles and manual measurements/references. Selected editable objects expose a
 compact trash icon (44px target) and delete immediately; failures remain visible/retryable.
-Production remains sha-b9c983c. See ADR-0017 addendum.
+Production is 0.0.60 (sha-4b5530d). See ADR-0017 addendum.
 
 ## Brand and release/build display (2026-11-10)
 
-Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the
+Status: done (#177 restored the header; #180 now supplies numeric versioning in production). Show release + build in the
 signed-in header and login, retain focus on rowing and make the RowLens brand return to trainings.
 Root release is 0.0.0; build tags continue to identify each deployment. No release-policy change.
 
