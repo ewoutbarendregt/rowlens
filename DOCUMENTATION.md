@@ -1,3 +1,15 @@
+## [2026-11-10] — Restore built version display omitted from release
+
+**Session**: codex/fix/version-display
+**Changed**: apps/web/src/client/auth/strings.ts, apps/web/src/client/pages/HomePage.tsx, apps/web/src/client/styles.css, apps/web/src/client/ui/AppHeader.tsx, apps/web/src/client/useAppVersion.ts, apps/web/src/client/vite-env.d.ts, apps/web/vite.config.ts, apps/web/e2e/sessions.spec.ts, apps/web/e2e/smoke.spec.ts, apps/web/e2e/unified-users.spec.ts, BUILD.md, PLAN.md, FEATURES.md, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Traced the missing production version/header to original commit eace60b, which stayed on the other local branch when video reuse was isolated. Restored only that existing product change on live main, added realistic SHA-width/semantic-tag and unified-header assertions, and preserved unrelated dirty club/research work. 641 web/DB, 8 focused browser, 34 unified and 32 general browser checks pass; root release remains 0.0.0 and production is unchanged.
+**Prompts used**:
+
+```text
+Waar is de versioning en het weergeven van  het versienummer. Dat hadden we al gebouwd
+Maar is niet gedeployed
+```
+
 ## [2026-11-09] — Verify training reuse locally and prepare isolated PR
 
 **Session**: codex/feat/training-video-reuse

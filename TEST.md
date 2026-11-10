@@ -1,3 +1,16 @@
+## 2026-11-10 — Restore missed brand/version display
+
+- Both new login/header browser checks fail on deployed main's UI before restoring eace60b:
+  missing header tagline/version and login shows raw e2e instead of release + build.
+- 641 web/database tests and 34 unified-account browser checks pass after restoration; unified
+  overview checks include actual main-account and member header/version/navigation assertions.
+- Eight focused browser checks pass across desktop, 1000x540 laptop, mobile Chromium and iPhone
+  13 WebKit, including a real-length SHA label and a semantic release tag. Four laptop/iPhone cases
+  were rechecked for visual QA after the general runner cleared nested screenshots; screenshots
+  inspected and 44px logo target measured. General browser suite: 32 pass, 110 context/media skips.
+  NL/EN catalogs retain the fixed brand tagline. Format/lint/typecheck and flagged builds pass.
+  Changes restore existing UI only; no schema, worker, dependency or production change.
+
 ## 2026-11-09 — Independent training video reuse implementation
 
 - **641 web/DB tests pass** after isolation onto main, including 17 focused reuse cases and the

@@ -817,6 +817,9 @@ test('training overview filters accessible clubs and participation and opens the
   browser,
 }, info) => {
   await existingSignIn(page, adminEmail);
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(
+    /^v\d+\.\d+\.\d+\+e2e$/,
+  );
   const account = (await json(page, '/api/auth/status')).data as { user: { id: string } };
   const c1 = (
     await json(page, '/api/platform/clubs', {
@@ -869,5 +872,11 @@ test('training overview filters accessible clubs and participation and opens the
   await member.getByRole('link', { name: first, exact: true }).click();
   await expect(member).toHaveURL(new RegExp(`club=${c1.id}`));
   await expect(member.getByRole('heading', { name: first, exact: true })).toBeVisible();
+  await expect(member.locator('.app-header').getByTestId('app-version')).toHaveText(
+    /^v\d+\.\d+\.\d+\+e2e$/,
+  );
+  await expect(member.locator('.app-header').getByText('focus on rowing')).toBeVisible();
+  await member.locator('.app-header').getByRole('link', { name: 'RowLens', exact: true }).click();
+  await expect(member).toHaveURL(/\/sessions$/);
   await context.close();
 });

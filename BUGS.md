@@ -2,6 +2,17 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-063] Built version/header display omitted from deployment — low
+**Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
+**Status**: fixed locally; standalone PR awaiting release
+**Found**: 2026-11-10
+**Description**: The already-built eace60b brand/version commit stayed on the local club-editor
+branch. Isolating training reuse for PR #175 excluded it, leaving production with a raw build tag
+on login and no release/build version in the signed-in header. The omission was not reported.
+**Fix**: Restore the existing product files on a branch based on live main, with red-before/green-after
+login/header checks, real-length SHA layout and semantic-tag cases. Retain unrelated work separately;
+no production rollout has been performed for this repair.
+
 ### [BUG-062] Rejected uploads retained a physical-asset quota reservation — medium
 **Location**: apps/web/src/server/db/migrations/0028_training_video_reuse.sql:140
 **Status**: fixed locally before release

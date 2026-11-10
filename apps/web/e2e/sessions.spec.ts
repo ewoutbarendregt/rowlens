@@ -1,6 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { openLineup, openNewSession, signIn } from './helpers.ts';
 
+test('brand returns to trainings and shows tagline and build version', async ({ page }, info) => {
+  await page.route('**/health/live*', (route) =>
+    route.fulfill({ json: { version: 'sha-1234567' } }),
+  );
+  await signIn(page);
+  await page.goto('./rowers');
+  await expect(page.locator('.app-header').getByText('focus on rowing')).toBeVisible();
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText(
+    /^v\d+\.\d+\.\d+\+sha-1234567$/,
+  );
+  await page.locator('.app-header').getByRole('link', { name: 'RowLens' }).click();
+  await expect(page).toHaveURL(/\/sessions$/);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  const brand = await page
+    .locator('.app-header')
+    .getByRole('link', { name: 'RowLens', exact: true })
+    .boundingBox();
+  expect(brand?.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: info.outputPath('header-version.png'), fullPage: true });
+  await page.unroute('**/health/live*');
+  await page.route('**/health/live*', (route) => route.fulfill({ json: { version: 'v1.2.3' } }));
+  await page.reload();
+  await expect(page.locator('.app-header').getByTestId('app-version')).toHaveText('v1.2.3');
+});
+
 // The sessions list is the start page; filters and sort live in the URL (#108).
 test('lands on the sessions list, filters by rower, sorts by title, keeps it on reload', async ({
   page,

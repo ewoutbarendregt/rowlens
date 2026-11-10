@@ -1,4 +1,23 @@
-# RowLens handoff — 2026-11-09
+# RowLens handoff — 2026-11-10
+
+## Restore missed version/header work (2026-11-10)
+
+Owner reported versioning/display already built but absent from production. Original own commit
+eace60b (brand, tagline, semantic release + health build and home link) stayed on the dirty local
+club-editor branch and was omitted when #175 was isolated. The agent acknowledged that omission.
+Restored only those existing product files in isolated worktree /Users/ewout/src/rowlens-version-display
+on codex/fix/version-display, based on main 8a401c9. No new schema/dependency/version-numbering policy.
+Root release remains 0.0.0; the displayed build makes each deployment identifiable.
+
+641 web/DB, 34 unified, 8 focused and 32 general browser checks pass. The focused checks include
+production-length SHA and semantic release labels, low laptop/iPhone WebKit layouts and 44px logo
+targets; screenshots inspected. Initial two checks were red before restoration. Flagged builds,
+format/lint/typecheck pass. The fixed tagline is in both NL/EN catalogs.
+Production is sha-8a401c9 with DB healthy and 28 migrations; #175 is merged/deployed (run 42640926073).
+Deploy log #176 is open separately. No new production action is authorized/performed in this repair;
+follow AGENTS.md's separate explicit per-deploy instruction. Original club/address/research changes
+remain untouched. Restore preview: http://localhost:5184/projects/rowlens/ (API :3124), using the local stack with
+healthy DB. The existing :5174 preview remains unchanged. Standalone PR details follow after push.
 
 ## Own-training/video reuse implementation (2026-11-09)
 

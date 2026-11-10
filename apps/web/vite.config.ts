@@ -1,4 +1,5 @@
 import react from '@vitejs/plugin-react';
+import { readFileSync } from 'node:fs';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
 import { normalizeBasePath } from './src/shared/base-path.ts';
 
@@ -9,6 +10,11 @@ const fileEnv = loadEnv('development', import.meta.dirname, '');
 const env = (key: string) => process.env[key] ?? fileEnv[key];
 // API_PORT, not PORT: dev tooling often sets PORT for Vite itself.
 const apiTarget = `http://127.0.0.1:${env('API_PORT') ?? '3000'}`;
+const release = (
+  JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
+    version: string;
+  }
+).version;
 
 function buildInfo(): Plugin {
   return {
@@ -58,6 +64,7 @@ function dropUnreachableChunks(): Plugin {
 }
 
 export default defineConfig({
+  define: { __ROWLENS_RELEASE__: JSON.stringify(release) },
   base: `${basePath}/`,
   plugins: [react(), buildInfo(), dropUnreachableChunks()],
   build: {

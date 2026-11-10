@@ -3,6 +3,15 @@
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 
+## Brand navigation and displayed version
+
+The shared signed-in header links RowLens to the training overview and displays its tagline and
+version, also shown on the public sign-in page. `useAppVersion` combines the root package release
+version (Vite's `__ROWLENS_RELEASE__`) with `/health/live` build metadata: for example
+`v0.0.0+sha-8a401c9`. A semantic release image tag displays directly (`v1.2.3`). Deployment tags and
+health responses are unchanged. The root release version is still 0.0.0; this restores the existing
+UI and does not change release numbering or the release-please workflow.
+
 ## Independent training video reuse (ADR-0026)
 
 Migration 0028 introduces protected physical `video_asset` and tenant-scoped annotation references.
