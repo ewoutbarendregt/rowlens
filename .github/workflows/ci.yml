@@ -13,6 +13,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      full: ${{ steps.changes.outputs.full }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify CI change selection
+        run: node --test scripts/ci/changes.test.js
+      - name: Select checks (unknown changes run everything)
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: node scripts/ci/changes.js
+
   policy:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -36,6 +56,8 @@ jobs:
           fi
 
   web:
+    needs: [changes]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
     # Browser/media dependency downloads can consume most of the previous 15-minute budget.
     timeout-minutes: 25
@@ -97,7 +119,9 @@ jobs:
 
   edge:
     # RowLens behind a Caddy that mirrors trustable.nl, using the exact route proposed in #24.
-    needs: [web]
+    # Builds its own stack; it consumes no artifacts from the web job.
+    needs: [changes]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -132,6 +156,8 @@ jobs:
 
   deploy-script:
     # The only command the CI key may run on the server: lint, unit tests, and a real rehearsal.
+    needs: [changes]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -146,6 +172,8 @@ jobs:
         run: bash infra/deploy/test/rehearse.sh
 
   worker:
+    needs: [changes]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -178,7 +206,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   images:
-    needs: [web, worker]
+    # Independent builds and smoke tests; all jobs must still pass before merging.
+    needs: [changes]
+    if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:

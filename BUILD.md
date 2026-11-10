@@ -1,5 +1,25 @@
 # BUILD
 
+## CI feedback time (2026-11-10)
+
+CI first compares the PR base with its tested merge commit (main pushes use before/after SHAs).
+Only the seven root Markdown logs/README and Markdown under docs/ qualify for the short path;
+policy, secret scanning and the change-selector tests still run. All other paths, empty diffs,
+missing commits and comparison errors require every existing application/image/deployment check.
+Renames include the old and new paths, preventing code moved into docs from bypassing checks.
+Edge and image jobs build independently and now start alongside web/worker after selection,
+rather than waiting for the full web browser suite. Every applicable job must pass before merge.
+
+Measured GitHub runs on 2026-11-10: main CI 42824190007 took 27m54s (web 22m02s then edge
+5m46s); images 42824189834 took 1m19s, manual deploy 42828663375 took 37s (server step 21s).
+PR CI 42821550047 took 16m58s; even docs-only PR CI 42829445158 took 13m19s.
+Preparation varied sharply: web fixture setup 19–273s, Chromium installation 10–175s,
+reuse setup/tests 36–502s across those runs. Parallel execution removes a measured dependency
+wait, not download variability; no new duration is claimed until CI runs the revised graph.
+Future work: separate browser variants, reuse deterministic media/build artifacts, and cache
+edge builds. Existing pnpm/uv/BuildKit caches already exist. Main CI, release-image publishing,
+manual deploy approval, database backup/migrations/readiness and rollback remain in place.
+
 ## Drawing autosave and selected-object deletion (2026-11-10)
 
 DrawingLayer completes a shape on its final tap and waits for the existing write endpoint before

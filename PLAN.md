@@ -1,5 +1,15 @@
 # PLAN
 
+## Shorten CI feedback (2026-11-10)
+
+Independent edge/image checks now run alongside web after a conservative change-selection job.
+Documentation-only changes keep policy/secrets/selector checks and skip application/Docker suites;
+any code/configuration or unknown comparison retains the complete suite. No new dependencies,
+production changes or change to manual merge/deploy authorization. Next possible improvements
+are browser-job separation and deterministic fixture/edge-build reuse, measured against the CI
+timings recorded in BUILD.md rather than a promised target. Worktree: rowlens-ci-feedback,
+branch codex/ci/shorten-feedback; preserve the original dirty checkout and other PRs.
+
 ## Sequential numeric version display (2026-11-10)
 
 Owner corrected the version requirement: numbers only, automatically sequential. Implemented

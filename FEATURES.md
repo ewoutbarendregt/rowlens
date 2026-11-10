@@ -1,5 +1,11 @@
 # FEATURES
 
+## CI feedback (2026-11-10)
+
+Independent edge/image checks run alongside web; a conservative documentation-only path avoids
+application/Docker tests while retaining policy, secrets and selector regression checks. All
+code/configuration changes retain the full suite. Release and manual deployment gates unchanged.
+
 ## Sequential numeric release label (2026-11-10)
 
 Status: implemented and verified locally; [PR #180](https://github.com/ewoutbarendregt/rowlens/pull/180) awaits review/release. Login and signed-in header show
