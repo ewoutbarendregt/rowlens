@@ -12,6 +12,21 @@ approval stay intact. No dependency/schema/server/permission change. See ADR-002
 Local :5174 API is healthy (development fallback 0.0.0). Drawing PR #179 remains independent on
 :5184; production remains sha-b9c983c/28 migrations. No new merge/deploy requested.
 
+## Automatic drawing persistence and direct object deletion (2026-11-10)
+
+Owner requested removing the Save/Start over/Cancel strip: completing a line/arrow/angle, manual
+boat line or joint measurement saves immediately. Saved points remain draggable. A selected editable
+object gets a compact trash icon with a 44px target and deletes through the existing scoped API
+without confirmation; per-drawing deletion in Notes uses the same direct interaction. Whole-note
+bulk deletion keeps its separate confirmation. Generated boat-line references remain correctable;
+only manual corrections are deletable. No schema, dependency, role or server-setting change.
+Implemented on codex/fix/drawing-autosave, reusing the clean version-display worktree. Original dirty
+club/research changes and open documentation PRs #176/#178 remain separate. Local preview :5184
+(API :3124), and the real-worker edge test stack :8080. Production remains sha-b9c983c/28 migrations;
+no new merge/deploy is authorized. All 48 editing browser cases pass across three layouts, plus
+6 reuse browser, 641 web/DB, 50 worker and 77 Linux deploy checks. Screenshots inspected; 44px
+trash target measured. Formatting/lint/typecheck and the flagged production build pass.
+
 ## Restore omitted version display (2026-11-10)
 
 Owner identified the missing deployed version/header work. Original commit eace60b remained on

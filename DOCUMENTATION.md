@@ -1,9 +1,28 @@
+## [2026-11-10] — Integrate authorized drawing and numeric-version release
+
+**Session**: codex/fix/sequential-version
+**Changed**: .github/workflows/ci.yml, BUGS.md, DOCUMENTATION.md, FEATURES.md, PLAN.md, TEST.md, docs/HANDOFF.md, BUILD.md
+**Summary**: Following explicit merge/deploy authorization, merged #179 as 7ed27be after all eight checks passed (CI 42793330184), then integrated main into #180 while preserving both work logs; source code merged without conflicts and all documentation conflict markers were removed. #180 CI 42795678658 exceeded the 15-minute web limit after 660 web/DB, 51 general and 6 reuse browser checks passed; increased only that job's limit to 25 minutes for slow media/browser preparation and require fresh green CI before merging/deploying the combined release. Fresh formatting/lint/typecheck, 660 web/DB and six critical low-laptop/iPhone browser checks pass.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-10] — Use sequential numeric release numbers
 
 **Session**: codex/fix/sequential-version
 **Changed**: .github/workflows/images.yml, .github/workflows/ci.yml, apps/web/Dockerfile, apps/web/vite.config.ts, apps/web/src/shared/release-version.ts, apps/web/src/shared/release-version.test.ts, scripts/release-version.js, apps/web/src/client/useAppVersion.ts, apps/web/src/client/pages/HomePage.tsx, apps/web/src/client/ui/AppHeader.tsx, apps/web/e2e/env.ts, apps/web/e2e/sessions.spec.ts, apps/web/e2e/smoke.spec.ts, apps/web/e2e/unified-users.spec.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0027-sequential-numeric-versions.md, docs/adr/README.md
 **Summary**: Replaced the visible release-plus-hash with a validated numeric build release, major.minor.<existing image workflow sequence>; retries keep the number and new main builds advance it. Client/build-info/OCI metadata share the release; 660 web/DB and six laptop/iPhone browser checks plus actual Docker build verification pass, with no production action. Preserved drawing PR #179 and its :5184 preview in the other clean worktree. PR [#180](https://github.com/ewoutbarendregt/rowlens/pull/180) is open against main; CI is pending its latest push.
 **Prompts used**: Ik zie dit ‘PR #177 is gemerged. De nieuwe productieversie wordt v0.0.0+sha-b9c983c. ‘’ Het versie nummer moet uit getallen bestaan en sequentieel zijn
+
+## [2026-11-10] — Autosave drawing endpoints and directly delete selected objects
+
+**Session**: codex/fix/drawing-autosave
+**Changed**: apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/notes/NotesPanel.tsx, apps/web/src/client/notes/strings.ts, apps/web/src/client/styles.css, apps/web/e2e/drawing.spec.ts, apps/web/e2e/angles.spec.ts, apps/web/e2e/boatline.spec.ts, apps/web/e2e/playback.spec.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0017-angles-per-phase.md
+**Summary**: Removed the explicit drawing save strip: final taps persist through existing routes, failed writes retain/retry their shape on its original frame, and selected editable objects expose a compact trash control for immediate deletion. Existing tenant/edit rights and read-only source/generated references remain; 641 web/DB, all 48 editing and 6 reuse browser cases, 50 worker and 77 Linux deploy checks pass; formatting/lint/typecheck and the flagged build pass. Screenshots inspected, 44px touch targets measured, local preview healthy. PR [#179](https://github.com/ewoutbarendregt/rowlens/pull/179) is open against main; CI is pending its latest push. No production action.
+**Prompts used**:
+
+```text
+Dit menu is niet nodig, wanneer je een eindpunt zet van een lijn moet die gewoon altijd bewaard blijven.
+Wanneer een object is geselecteerd, moet er een klein delete icon in beeld verschijnen zodat ik het betreffende object kan deleten. Gewoon deleten, geen bevestiging nodig
+```
 
 ## [2026-11-10] — Restore built version display omitted from release
 

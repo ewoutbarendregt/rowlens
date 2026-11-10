@@ -37,7 +37,8 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Browser/media dependency downloads can consume most of the previous 15-minute budget.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4

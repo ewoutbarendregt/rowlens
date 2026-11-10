@@ -6,6 +6,13 @@ Status: implemented and verified locally; [PR #180](https://github.com/ewoutbare
 only digits and dots, e.g. 0.0.59. The existing image-build counter advances the last component;
 retries keep it. See ADR-0027. No additional production deployment has been performed.
 
+## Automatic drawing save and direct selection delete (2026-11-10)
+
+Status: merged as 7ed27be (#179); combined production release with #180 is explicitly authorized. Final point automatically persists
+lines, arrows, angles and manual measurements/references. Selected editable objects expose a
+compact trash icon (44px target) and delete immediately; failures remain visible/retryable.
+Production remains sha-b9c983c. See ADR-0017 addendum.
+
 ## Brand and release/build display (2026-11-10)
 
 Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the

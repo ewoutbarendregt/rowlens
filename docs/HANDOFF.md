@@ -1,5 +1,20 @@
 # RowLens handoff — 2026-11-10
 
+## Authorized combined release in progress — 2026-11-10
+
+Ewout explicitly requested "Merge en deploy" for #179/#180. #179 is merged as 7ed27be after
+all eight checks passed in CI 42793330184. #180 CI 42795678658 hit its 15-minute web timeout
+(no test failure: 660 web/DB, 51 general and 6 reuse browser cases had passed). Integrated main
+into #180, retaining both log sections; no source conflict. Web timeout increased to 25 minutes
+for slow dependency preparation. Fresh local formatting/lint/typecheck, 660 web/DB and six critical
+low-laptop/iPhone WebKit cases pass; marker scan is clean. Require new head CI to pass before merging #180, then main
+CI/images green before one combined manual deployment. No additional approval is needed for
+that normal release. Production remains sha-b9c983c/28 migrations; no deployment yet.
+Worktree /Users/ewout/src/rowlens-training-video-reuse, codex/fix/sequential-version. Separate
+logs #176/#178 and unrelated dirty original checkout stay untouched. Historical checkpoints below
+are superseded by this release authorization. Record the actual numeric image release after build;
+#179 itself publishes the previous-format build, so the final number need not be 0.0.59.
+
 ## Sequential numeric versions — local fix (2026-11-10)
 
 Owner explicitly corrected the version requirement: digits and sequential numbers, no SHA suffix.
@@ -19,6 +34,24 @@ diagnostic tag sha-1234567. Invalid generator/build values are refused. Formatti
 and flagged builds pass, plus 50 worker and 77 Linux deploy checks. Development :5174/API :3100 is healthy. Drawing PR #179 is independent,
 with its clean worktree/preview :5184 preserved. Deployment logs #176/#178 stay open separately;
 production remains sha-b9c983c/28 migrations (#177/deploy42789959357). No new merge/deploy asked.
+
+## Drawing autosave/direct deletion — local implementation (2026-11-10)
+
+Owner requested final-point autosave and a small selected-object trash control without confirmation.
+Implemented on codex/fix/drawing-autosave in /Users/ewout/src/rowlens-version-display, reusing the
+clean checkout from origin/main b9c983c. PR [#179](https://github.com/ewoutbarendregt/rowlens/pull/179) is open against main; implementation
+head b4bc11d. Check CI on the latest push before any subsequently authorized merge.
+No new table/dependency/server/permission change. Notes,
+manual boat lines and joint measurements use existing scoped routes. Failed saves keep the preview
+and original frame for retry; failed deletion retains the object. Source drawings remain read-only;
+generated boat lines are correctable and only their manual corrections are deletable. 641 web/DB
+tests and all 48 editing/6 reuse browser cases pass, including laptop/low-laptop/iPhone WebKit.
+Fifty worker and 77 Linux deploy checks pass, plus formatting/lint/typecheck and the flagged build.
+Screenshots inspected, 44px targets measured. One failed interception setup was corrected; the
+three affected cases pass on rerun (see TEST.md). Preview :5184
+(API :3124) is healthy; edge test stack :8080 uses the real worker. No new merge/deploy requested.
+Production remains sha-b9c983c/28 migrations, deployed #177/run42789959357; deployment logs are in
+open documentation PR #178 (and prior #176). Preserve original dirty club/research checkout.
 
 ## Restore missed version/header work (2026-11-10)
 

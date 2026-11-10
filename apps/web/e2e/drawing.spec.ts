@@ -59,28 +59,28 @@ test('draw an angle and an arrow at a frame; they stay on their own frame', asyn
   await at(page, 0.5, 0.15);
   const label = page.getByTestId('angle-label');
   await expect(label).toHaveText('90°');
-  // Nothing is saved until Save (touch drawing, 2026-11-03): the points can still be dragged.
-  const save = page.getByTestId('drawing-save');
-  await expect(save).toBeEnabled();
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
+  await expect(page.getByTestId('drawing-save')).toHaveCount(0);
+  // Saved points remain adjustable: no separate save step before or after a drag.
+  await at(page, 0.5, 0.3);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(3);
   const box = await page.getByTestId('drawing-layer').boundingBox();
-  const wide = (box?.width ?? 1) / (box?.height ?? 1); // the picture's aspect ratio
+  const wide = (box?.width ?? 1) / (box?.height ?? 1);
   const tip45: [number, number] = [0.5 + 0.35 / wide, 0.15];
   await drag(page, [0.5, 0.15], tip45);
   await expect(label).toHaveText('45°');
   await drag(page, tip45, [0.5, 0.15]);
   await expect(label).toHaveText('90°');
-  await save.click();
-  await expect(save).toHaveCount(0);
 
   await page.getByRole('button', { name: /^(Arrow|Pijl)$/ }).click();
   // A swipe across the picture places nothing; only taps do.
   await drag(page, [0.1, 0.9], [0.3, 0.7]);
-  await expect(save).toHaveCount(0);
+  await expect(page.getByTestId('drawing-save')).toHaveCount(0);
   await at(page, 0.2, 0.8);
   await expect(page.locator('.drawing--preview .drawing__handle-ring')).toBeVisible();
   await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await at(page, 0.4, 0.6);
-  await save.click();
+  await expect(page.locator('.drawing-layer--active')).toHaveCount(0);
 
   const shapes = page.locator('[data-testid=drawing-layer] g[data-kind]');
   await expect(shapes).toHaveCount(2);
@@ -123,10 +123,7 @@ test('draw an angle and an arrow at a frame; they stay on their own frame', asyn
     throw new Error('no browser dialogs expected');
   });
   await drawings.getByRole('button', { name: /^(Delete Arrow|Pijl verwijderen)$/ }).click();
-  await drawings
-    .getByTestId('confirm')
-    .getByRole('button', { name: /^(Yes|Ja)$/ })
-    .click();
+  await expect(drawings.getByTestId('confirm')).toHaveCount(0);
   await expect(shapes).toHaveCount(1);
   await expect(drawings).toHaveCount(1);
   await expect(moment).toHaveCount(1);
@@ -171,9 +168,10 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
   await expect(page.locator('.drawing-confirm')).toHaveCount(0);
   await page.screenshot({ path: info.outputPath('first-point-no-menu.png') });
   await at(page, 0.6, 0.2);
-  await page.getByTestId('drawing-save').click();
+  // The final point saves immediately, without a menu or keyboard action.
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
   await expect(page.getByTestId('drawing-save')).toHaveCount(0);
-  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('drawing-delete')).toHaveCount(0);
   const shapes = page.locator('[data-testid=drawing-layer] g[data-kind]');
   await expect(shapes).toHaveCount(1);
   const box = await settledBox(page, 'drawing-layer');
@@ -201,7 +199,7 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
   await at(page, 0.4, 0.5);
   await expect(page.getByTestId('drawing-handle')).toHaveCount(2);
   // A press beside it drops the rings instead of playing the video.
-  await at(page, 0.12, 0.12);
+  await at(page, 0.9, 0.9);
   await expect(page.getByTestId('drawing-handles')).toHaveCount(0);
   await expect(shapes).toHaveCount(1);
   await expect(frame).toHaveText('10');
@@ -221,6 +219,41 @@ test('a saved drawing is picked up by tapping it; a handle moves it for good (#1
   await page.getByTestId('player-markers').getByRole('button').click();
   await expect(frame).toHaveText('10');
   await startAt(0.3, 0.9);
+
+  // Selection alone exposes a compact, finger-sized delete control. No confirmation.
+  await at(page, 0.45, 0.55);
+  const remove = page.getByTestId('drawing-delete');
+  await expect(remove).toBeVisible();
+  const target = await remove.boundingBox();
+  expect(target?.width).toBeGreaterThanOrEqual(44);
+  expect(target?.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: info.outputPath('selected-delete.png') });
+  await page
+    .locator('.player__stage')
+    .screenshot({ path: info.outputPath('selected-delete-stage.png') });
+  // A refused deletion keeps the object and allows retrying, rather than pretending it is gone.
+  let refusedDeletion = false;
+  await page.route('**/api/annotations/*', async (route) => {
+    if (route.request().method() === 'DELETE' && !refusedDeletion) {
+      refusedDeletion = true;
+      await route.fulfill({ status: 503, json: { error: 'test_unavailable' } });
+    } else await route.continue();
+  });
+  await remove.click();
+  await expect(page.getByRole('alert')).toContainText(/Could not delete|Verwijderen lukte niet/);
+  await expect(shapes).toHaveCount(1);
+  await expect(remove).toBeEnabled();
+  page.on('dialog', () => {
+    throw new Error('no browser dialogs expected');
+  });
+  if (info.project.use.hasTouch === true) await remove.tap();
+  else await remove.click();
+  await expect(shapes).toHaveCount(0);
+  await expect(remove).toHaveCount(0);
+  await expect(page.getByTestId('confirm')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId('player-frame')).toBeVisible();
+  await expect(page.getByTestId('drawing')).toHaveCount(0);
 });
 
 test('drawing on the zoomed picture lands where tapped and zooms with it', async ({
@@ -241,8 +274,10 @@ test('drawing on the zoomed picture lands where tapped and zooms with it', async
   await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
   await at(page, 0.3, 0.5);
   await at(page, 0.7, 0.5);
-  await page.getByTestId('drawing-save').click();
-  const line = page.locator('[data-testid=drawing-layer] g[data-kind=line] line').first();
+  await expect(page.locator('.drawing-layer--active')).toHaveCount(0);
+  const line = page
+    .locator('[data-testid=drawing-layer] g[data-kind=line] line.drawing__line')
+    .first();
   const layer = await settledBox(page, 'drawing-layer');
   /** The line's ends on screen; the box includes the round-capped stroke, as wide as it is high. */
   const ends = async () => {
@@ -275,9 +310,7 @@ test('drawing on the zoomed picture lands where tapped and zooms with it', async
   expect(picture[1]).toBeCloseTo(0.5 + 0.2 / 2.25, 2);
 });
 
-test('drawing controls stay outside the picture in full screen and save there', async ({
-  page,
-}, info) => {
+test('a selected drawing deletes immediately in full screen', async ({ page }, info) => {
   test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
   await openProcessedClip(
     page,
@@ -287,20 +320,75 @@ test('drawing controls stay outside the picture in full screen and save there', 
   await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
   await at(page, 0.2, 0.4);
   await at(page, 0.8, 0.4);
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
   await page.getByRole('button', { name: /^(Full screen|Volledig scherm)$/ }).click();
   const player = page.locator('.player--fullscreen');
   await expect(player).toBeVisible();
-  const save = player.getByTestId('drawing-save');
-  await expect(save).toBeEnabled();
-  const stage = await player.locator('.player__stage').boundingBox();
-  const controls = await player.locator('.drawing-confirm').boundingBox();
-  if (stage === null || controls === null) throw new Error('fullscreen editing not visible');
-  expect(controls.y).toBeGreaterThanOrEqual(stage.y + stage.height - 1);
-  expect(controls.y + controls.height).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0);
-  await save.click();
-  await expect(player.locator('[data-kind=line]')).toHaveCount(1);
-  await expect(save).toHaveCount(0);
+  await at(page, 0.5, 0.4);
+  const remove = player.getByTestId('drawing-delete');
+  await expect(remove).toBeVisible();
+  const target = await remove.boundingBox();
+  expect(target?.y).toBeGreaterThanOrEqual(0);
+  expect((target?.y ?? 0) + (target?.height ?? 0)).toBeLessThanOrEqual(
+    page.viewportSize()?.height ?? 0,
+  );
+  await page.screenshot({ path: info.outputPath('fullscreen-delete.png') });
+  await remove.click();
+  await expect(player.locator('[data-kind=line]')).toHaveCount(0);
+  await expect(page.getByTestId('confirm')).toHaveCount(0);
   await page.getByRole('button', { name: /^(Exit full screen|Volledig scherm sluiten)$/ }).click();
   await page.reload();
-  await expect(page.locator('[data-testid=drawing-layer] [data-kind=line]')).toHaveCount(1);
+  await expect(page.getByTestId('player-frame')).toBeVisible();
+  await expect(page.locator('[data-testid=drawing-layer] [data-kind=line]')).toHaveCount(0);
+});
+
+test('a failed automatic save keeps the shape and retries without duplicates', async ({
+  page,
+}, info) => {
+  test.skip(!existsSync(FIXTURE), 'run `pnpm demo:media --e2e` first');
+  await openProcessedClip(
+    page,
+    readFileSync(FIXTURE),
+    `Drawing retry ${info.project.name} ${String(Date.now())}`,
+  );
+  let attempts = 0;
+  await page.route('**/api/videos/*/annotations', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue();
+    attempts++;
+    if (attempts === 1) await route.fulfill({ status: 503, json: { error: 'test_unavailable' } });
+    else await route.continue();
+  });
+  await page.getByRole('button', { name: /^(Line|Lijn)$/ }).click();
+  await at(page, 0.2, 0.4);
+  await at(page, 0.8, 0.4);
+  await expect(page.getByRole('alert')).toContainText(/Could not save|Opslaan lukte niet/);
+  await expect(page.locator('.drawing--preview [data-kind=line]')).toHaveCount(1);
+  await expect(page.getByTestId('drawing')).toHaveCount(0);
+  await page.keyboard.press('.');
+  await expect(page.getByTestId('player-frame')).toHaveText('1');
+  await page.getByRole('button', { name: /^(Try again|Opnieuw proberen)$/ }).click();
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  expect(attempts).toBe(2);
+  await expect(
+    page.getByTestId('moment').getByRole('button', { name: /^(Go to frame 0|Naar frame 0)/ }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId('player-frame')).toBeVisible();
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
+  // A visible object without edit rights never gains handles or a delete control.
+  await page.unroute('**/api/videos/*/annotations');
+  await page.route('**/api/videos/*/annotations', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.json()) as { annotations: { canEdit?: boolean }[] };
+    body.annotations.forEach((annotation) => {
+      annotation.canEdit = false;
+    });
+    await route.fulfill({ response, json: body });
+  });
+  await page.reload();
+  await expect(page.getByTestId('drawing')).toHaveCount(1);
+  await at(page, 0.5, 0.4);
+  await expect(page.getByTestId('drawing-handle')).toHaveCount(0);
+  await expect(page.getByTestId('drawing-delete')).toHaveCount(0);
 });

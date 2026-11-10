@@ -1,5 +1,20 @@
 # BUILD
 
+## Drawing autosave and selected-object deletion (2026-11-10)
+
+DrawingLayer completes a shape on its final tap and waits for the existing write endpoint before
+leaving drawing mode. A failed write retains the completed preview and exposes a localized retry;
+VideoPage retains the original save frame across retries. Existing pointer/tap guards, zoom mapping
+and saved-point dragging remain. Measurement rower/joint selectors are available beside the picture
+before the final tap, including fullscreen; the old Save/Start over/Cancel strip is removed.
+
+Selecting an editable saved shape exposes an 18px trash icon in a 44px control inside the player.
+Notes use DELETE /api/annotations/:id, measurements DELETE /api/angles/:id, manual boat lines the
+existing frame-specific DELETE route. Failures retain the object/selection and show localized
+feedback. Source drawings remain unpickable; generated boat-line references are correctable but
+not deletable, since only a manual correction is a stored user object. Notes-panel drawing chips
+also delete directly; whole-note deletion remains a separate bulk action. No permission/RLS change.
+
 Technical implementation and architecture. Decisions are recorded in [docs/adr/](docs/adr/README.md);
 this file summarises the current state.
 

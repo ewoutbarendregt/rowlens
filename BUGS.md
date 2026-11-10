@@ -2,6 +2,14 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-066] Web CI exhausted its budget during slow dependency preparation — low
+**Location**: .github/workflows/ci.yml:41
+**Status**: fixed in candidate; awaiting fresh CI
+**Found**: 2026-11-10
+**Description**: The 15-minute web job repeatedly times out after successful tests when browser/media
+package preparation is slow, blocking otherwise valid releases (42795678658, prior 42781740051).
+**Fix**: Allow 25 minutes for that job; retain every check and require a fully green run before merge.
+
 ### [BUG-065] Visible version used a hash instead of sequential numbers — low
 **Location**: apps/web/src/client/useAppVersion.ts; .github/workflows/images.yml
 **Status**: fixed locally; awaiting release
@@ -11,6 +19,15 @@ requirement for a numeric sequential version.
 **Fix**: Generate major.minor.<image workflow run number>, bake it into the client and image
 metadata, and display it identically on login/header. Reruns retain the number; 660 web/DB and
 six focused browser checks plus an actual Docker image verification pass. See ADR-0027.
+
+### [BUG-064] Drawing endpoints remained unsaved until a separate Save action — medium
+**Location**: apps/web/src/client/drawing/DrawingLayer.tsx
+**Status**: fixed locally; 48 editing browser checks pass, awaiting release
+**Found**: 2026-11-10
+**Description**: Completing a drawing still required the Save strip, so its endpoints could be lost
+when leaving drawing mode. The requested selected-object direct deletion control was absent.
+**Fix**: Save automatically on the last point, retain/retry failed writes on the original frame,
+and expose direct deletion for a selected editable object with existing tenant-scoped endpoints.
 
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
