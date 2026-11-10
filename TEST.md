@@ -1,3 +1,19 @@
+## 2026-11-10 — Authorized version-display production release
+
+- PR #177 CI 42781740051 attempt 2: all eight checks pass. Attempt 1 hit the 15-minute web timeout
+  after slow test-media preparation; the rerun passed without a code change. Merge b9c983c has
+  green main CI 42786883372 and image publication 42786883234. Main edge: 41 pass, 30 skips.
+- Manual deploy 42789959357 succeeds at 09:21:30 UTC, public verification enabled. Readiness
+  reports sha-b9c983c and DB ok; 28 migrations remain. Backup exists (361680 bytes).
+- All pre/post aggregate counts match, including 6 videos and 85 annotations; physical media
+  remains 21 files/352880017 bytes. No pending jobs. RowLens web/worker use sha-b9c983c;
+  seven other containers retain identical IDs/start times/images. New app/worker logs: zero
+  error-level lines. RowLens readiness, trustable.nl, API health and AudioScribe return HTTP200.
+- Two live read-only public browser checks pass: 1000x540 Chromium and iPhone13 WebKit display
+  v0.0.0+sha-b9c983c and focus on rowing, with no horizontal overflow, page errors or writes.
+  Screenshots inspected. No production login/email was attempted; signed-in version/navigation
+  are validated using synthetic accounts in the local/CI suites below.
+
 ## 2026-11-10 — Restore missed brand/version display
 
 - Both new login/header browser checks fail on deployed main's UI before restoring eace60b:

@@ -6,18 +6,23 @@ Owner identified the missing deployed version/header work. Original commit eace6
 codex/fix/club-editor-feedback and was excluded when PR #175 was isolated. Restore only its product
 files on codex/fix/version-display, based on live main 8a401c9; preserve the unrelated dirty club and
 research work. Root release remains 0.0.0, displayed with the changing build tag; no new versioning
-policy/schema/dependency. Local checks pass and PR [#177](https://github.com/ewoutbarendregt/rowlens/pull/177) is open; CI must
-pass before an explicitly requested additional production rollout. Production remains sha-8a401c9/28 migrations; deploy log PR #176
-records the previous release and is separate.
+policy/schema/dependency. Local and PR checks pass; Ewout subsequently approved the merge/deploy.
+PR [#177](https://github.com/ewoutbarendregt/rowlens/pull/177) merged as b9c983c; main CI/images passed.
+Deploy 42789959357 completed at 09:21:30 UTC. Production is sha-b9c983c/28 migrations, with the
+expected displayed v0.0.0+sha-b9c983c verified on laptop/iPhone. Data/media and seven other
+containers are unchanged; all four public checks pass. Deploy log PR #176 records the previous
+release and is separate.
 
 ## Own trainings and reused-video annotation workspaces (2026-11-09)
 
 Approved by Ewout ("Ja"). Implemented creator filtering, same-club ready-video reuse, independent
 training feedback/analysis and read-only source annotation references with personal layer switches.
 ADR-0026/migration 0028 preserve physical storage, old URLs, quota and deletion/worker isolation.
-Implementation and local validation are complete; PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. See TEST.md and
+Implementation and validation are complete; PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) was merged and deployed as sha-8a401c9 on 2026-11-09
+(deploy 42640926073, 28 migrations). See TEST.md and
 docs/plans/training-video-reuse.md. Original worktree's
-uncommitted club-editor/address and research changes remain separate. No production deployment.
+uncommitted club-editor/address and research changes remain separate. The previous release's
+detailed deployment log is in separate open documentation PR #176.
 
 
 ## Initial admission notifications and multi-club overview — local implementation (2026-11-08)

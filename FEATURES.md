@@ -2,16 +2,16 @@
 
 ## Brand and release/build display (2026-11-10)
 
-Status: in progress (restored locally from eace60b; not merged/deployed). Show release + build in the
+Status: done (#177; deployed as sha-b9c983c on 2026-11-10, run 42789959357). Show release + build in the
 signed-in header and login, retain focus on rowing and make the RowLens brand return to trainings.
 Root release is 0.0.0; build tags continue to identify each deployment. No release-policy change.
 
 ## Own-training/video reuse workflow (2026-11-09)
 
-Status: in progress (implementation and local verification complete; not merged). Created by me filter,
+Status: done (#175, deployed as sha-8a401c9 on 2026-11-09). Created by me filter,
 same-club media reuse with independent feedback/analysis, and authorized read-only source annotation
 references with creator/source switches. See ADR-0026 and docs/plans/training-video-reuse.md.
-PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is ready for review. Production remains unchanged.
+PR [#175](https://github.com/ewoutbarendregt/rowlens/pull/175) is merged; migration 0028 is live (28 total).
 
 Status: `planned` · `in progress` · `done`. Priority per MoSCoW. Issues live on GitHub; this is the overview.
 Statuses reviewed 2026-11-02 ("done" = merged to `main`; not necessarily deployed).
