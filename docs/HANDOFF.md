@@ -1,5 +1,18 @@
 # RowLens handoff — 2026-11-10
 
+## Temporary release worktree cleanup — 2026-11-10
+
+Owner requested removal of /Users/ewout/src/rowlens-training-video-reuse and
+/Users/ewout/src/rowlens-version-display. Both were clean; deployment-log branch codex/docs/180-deploy
+is pushed (PR #181), and drawing branch codex/fix/drawing-autosave remains in the shared repository.
+Cleanup stops their local previews (:5174/API :3100 and :5184/API :3124) and the dependent local
+rowlens-edge test stack (:8080), preserving Docker volumes. No local web preview is promised after
+cleanup. The original /Users/ewout/src/rowlens .env/media and its 13 unfinished files are retained.
+The separate rowlens-ci-feedback checkout is not one of the two requested removals and is untouched.
+Production remains release 0.0.60; no server access/change is needed. Older preview/worktree paths
+below are historical and should not be used as current working directories. Reuse the original
+project folder by default; discuss additional folders with Ewout before creating them.
+
 ## Completed combined production release — 0.0.60 (2026-11-10)
 
 Ewout requested "Merge en deploy". #179 merged as 7ed27be after green CI 42793330184. Integrated

@@ -1,3 +1,10 @@
+## [2026-11-10] — Remove the two temporary release worktrees
+
+**Session**: codex/docs/180-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, local worktree registrations and preview processes
+**Summary**: At the owner's request, clean up rowlens-training-video-reuse and rowlens-version-display after verifying clean Git state and preserved local branches/remote deployment-log commits. Stop only their local previews and the dependent local edge test stack, retaining its volumes; original .env/media symlink targets and all 13 pre-existing uncommitted files are preserved. Production and the separate CI-feedback checkout are outside this cleanup.
+**Prompts used**: kunnen die twee tijdelijke subfolders weg?
+
 ## [2026-11-10] — Deploy drawing autosave and numeric version 0.0.60
 
 **Session**: codex/docs/180-deploy
