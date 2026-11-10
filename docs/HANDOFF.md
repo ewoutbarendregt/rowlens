@@ -4,7 +4,9 @@
 
 Owner explicitly corrected the version requirement: digits and sequential numbers, no SHA suffix.
 Implemented on codex/fix/sequential-version in /Users/ewout/src/rowlens-training-video-reuse,
-based on main b9c983c. Existing image-workflow run_number replaces the root version's patch:
+based on main b9c983c. Standalone PR [#180](https://github.com/ewoutbarendregt/rowlens/pull/180) is open; implementation
+head 63d36de. Check CI on the latest push before a separately authorized merge/deploy.
+Existing image-workflow run_number replaces the root version's patch:
 next from current build58 is 0.0.59, then 0.0.60; reruns preserve the same number. Vite validates
 APP_RELEASE and bakes it into client/build-info; workflow labels both images with that number.
 Login/header display only the numeric release; health SHA and deployment gates are unchanged.

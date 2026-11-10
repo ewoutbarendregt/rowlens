@@ -2,7 +2,7 @@
 
 ## Sequential numeric release label (2026-11-10)
 
-Status: implemented and verified locally; awaiting review/release. Login and signed-in header show
+Status: implemented and verified locally; [PR #180](https://github.com/ewoutbarendregt/rowlens/pull/180) awaits review/release. Login and signed-in header show
 only digits and dots, e.g. 0.0.59. The existing image-build counter advances the last component;
 retries keep it. See ADR-0027. No additional production deployment has been performed.
 
