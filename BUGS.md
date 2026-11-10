@@ -4,7 +4,7 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-066] Web CI exhausted its budget during slow dependency preparation — low
 **Location**: .github/workflows/ci.yml:41
-**Status**: fixed in candidate; awaiting fresh CI
+**Status**: fixed; #180 merged, main CI 42824190007 passed in the 25-minute budget
 **Found**: 2026-11-10
 **Description**: The 15-minute web job repeatedly times out after successful tests when browser/media
 package preparation is slow, blocking otherwise valid releases (42795678658, prior 42781740051).
@@ -12,7 +12,7 @@ package preparation is slow, blocking otherwise valid releases (42795678658, pri
 
 ### [BUG-065] Visible version used a hash instead of sequential numbers — low
 **Location**: apps/web/src/client/useAppVersion.ts; .github/workflows/images.yml
-**Status**: fixed locally; awaiting release
+**Status**: fixed; deployed as 0.0.60 (#180, 2026-11-10)
 **Found**: 2026-11-10
 **Description**: The displayed v0.0.0+sha-... identified a build, but did not meet the owner's
 requirement for a numeric sequential version.
@@ -22,7 +22,7 @@ six focused browser checks plus an actual Docker image verification pass. See AD
 
 ### [BUG-064] Drawing endpoints remained unsaved until a separate Save action — medium
 **Location**: apps/web/src/client/drawing/DrawingLayer.tsx
-**Status**: fixed locally; 48 editing browser checks pass, awaiting release
+**Status**: fixed; #179 deployed with #180 as 0.0.60 (2026-11-10)
 **Found**: 2026-11-10
 **Description**: Completing a drawing still required the Save strip, so its endpoints could be lost
 when leaving drawing mode. The requested selected-object direct deletion control was absent.
@@ -31,7 +31,7 @@ and expose direct deletion for a selected editable object with existing tenant-s
 
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
-**Status**: fixed locally; PR #177 awaiting release
+**Status**: fixed; #177 restored the header, #180 deployed numeric 0.0.60
 **Found**: 2026-11-10
 **Description**: The already-built eace60b brand/version commit stayed on the local club-editor
 branch. Isolating training reuse for PR #175 excluded it, leaving production with a raw build tag

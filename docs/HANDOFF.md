@@ -1,19 +1,50 @@
 # RowLens handoff — 2026-11-10
 
-## Authorized combined release in progress — 2026-11-10
+## Temporary release worktree cleanup — 2026-11-10
 
-Ewout explicitly requested "Merge en deploy" for #179/#180. #179 is merged as 7ed27be after
-all eight checks passed in CI 42793330184. #180 CI 42795678658 hit its 15-minute web timeout
-(no test failure: 660 web/DB, 51 general and 6 reuse browser cases had passed). Integrated main
-into #180, retaining both log sections; no source conflict. Web timeout increased to 25 minutes
-for slow dependency preparation. Fresh local formatting/lint/typecheck, 660 web/DB and six critical
-low-laptop/iPhone WebKit cases pass; marker scan is clean. Require new head CI to pass before merging #180, then main
-CI/images green before one combined manual deployment. No additional approval is needed for
-that normal release. Production remains sha-b9c983c/28 migrations; no deployment yet.
-Worktree /Users/ewout/src/rowlens-training-video-reuse, codex/fix/sequential-version. Separate
-logs #176/#178 and unrelated dirty original checkout stay untouched. Historical checkpoints below
-are superseded by this release authorization. Record the actual numeric image release after build;
-#179 itself publishes the previous-format build, so the final number need not be 0.0.59.
+Owner requested removal of /Users/ewout/src/rowlens-training-video-reuse and
+/Users/ewout/src/rowlens-version-display. Both were clean; deployment-log branch codex/docs/180-deploy
+is pushed (PR #181), and drawing branch codex/fix/drawing-autosave remains in the shared repository.
+Cleanup stops their local previews (:5174/API :3100 and :5184/API :3124) and the dependent local
+rowlens-edge test stack (:8080), preserving Docker volumes. No local web preview is promised after
+cleanup. The original /Users/ewout/src/rowlens .env/media and its 13 unfinished files are retained.
+The separate rowlens-ci-feedback checkout is not one of the two requested removals and is untouched.
+Production remains release 0.0.60; no server access/change is needed. Older preview/worktree paths
+below are historical and should not be used as current working directories. Reuse the original
+project folder by default; discuss additional folders with Ewout before creating them.
+
+## Completed combined production release — 0.0.60 (2026-11-10)
+
+Ewout requested "Merge en deploy". #179 merged as 7ed27be after green CI 42793330184. Integrated
+#180 preserved both histories and source behavior, raised the web CI budget to 25 minutes after
+confirmed preparation timeouts (BUG-066), and passed all eight checks in 42821550047 (42 edge).
+#180 merged as **4b5530d** at 13:24:12 UTC. Main **CI 42824190007** and **images 42824189834**
+passed; image workflow run60 generated numeric release **0.0.60** for both services. Main web took
+22m02s (51 general, 6 reuse, 34 unified browser cases), and edge passed 42 with 30 context skips.
+The release-please failure is the known Actions PR-creation restriction, not a required CI failure.
+
+Manual deploy **42828663375**, public check enabled, completed successfully at **13:53:57 UTC**.
+Production is **0.0.60**; diagnostic image tag **sha-4b5530d** and DB ready. Both OCI version labels
+are 0.0.60 and revisions match 4b5530d1e38dd761ce38ff16696e8c7987054f4c. New drawing autosave,
+selected-object direct deletion and numeric login/header labels are shipped together. Public bundle
+contains drawing-delete and no drawing-save; no server settings or migration additions were needed.
+
+Read-only verification: **28 migrations**, every aggregate count unchanged (**6 videos,
+87 annotations**), **21 media files/352880017 bytes** unchanged, zero pending jobs/missing assets.
+Both RowLens web/worker run the new tag, web/DB healthy; seven other containers retain identical
+IDs/start times/images. Four public HTTP200 checks pass (RowLens readiness, trustable.nl, API health,
+AudioScribe). Backup pre-deploy-20261110T135341Z-sha-4b5530d.dump exists (363224 bytes). New
+web/worker logs contain zero error-level lines. Live 1000x540 Chromium and iPhone13 WebKit login
+checks display 0.0.60 with no overflow/page errors/writes; screenshots inspected. No production
+login/OTP or test content was created. Authenticated header and destructive drawing interactions
+were verified with synthetic local/CI accounts, not live user data.
+
+Worktree /Users/ewout/src/rowlens-training-video-reuse, branch codex/docs/180-deploy contains the
+new deployment log, open as [PR #181](https://github.com/ewoutbarendregt/rowlens/pull/181). Previous logs #176/#178 remain open separately; no unrelated/bot change was
+merged. Dirty original club/research checkout is untouched; clean drawing worktree/preview :5184
+remains available. Development :5174/API :3100 and edge :8080 are local; the numeric development
+fallback is 0.0.0. Future merges/deploys require a fresh explicit request. Historical entries below
+record earlier checkpoints and are superseded by this completed release.
 
 ## Sequential numeric versions — local fix (2026-11-10)
 

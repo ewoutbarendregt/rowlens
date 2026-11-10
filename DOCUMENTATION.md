@@ -1,3 +1,17 @@
+## [2026-11-10] — Remove the two temporary release worktrees
+
+**Session**: codex/docs/180-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, local worktree registrations and preview processes
+**Summary**: At the owner's request, clean up rowlens-training-video-reuse and rowlens-version-display after verifying clean Git state and preserved local branches/remote deployment-log commits. Stop only their local previews and the dependent local edge test stack, retaining its volumes; original .env/media symlink targets and all 13 pre-existing uncommitted files are preserved. Production and the separate CI-feedback checkout are outside this cleanup.
+**Prompts used**: kunnen die twee tijdelijke subfolders weg?
+
+## [2026-11-10] — Deploy drawing autosave and numeric version 0.0.60
+
+**Session**: codex/docs/180-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md
+**Summary**: Following explicit authorization, merged #179/#180 as 7ed27be/4b5530d after green PR CI, waited for main CI 42824190007 and images 42824189834, and deployed 0.0.60 / sha-4b5530d (run 42828663375, completed 13:53:57 UTC). Live laptop/iPhone version, deployed drawing bundle, readiness/DB, four public endpoints, matching image labels, unchanged data/media (6 videos/87 annotations/21 files) and seven untouched containers are verified; no production test writes/login/email, shared-service changes or extra migrations. Deployment log [PR #181](https://github.com/ewoutbarendregt/rowlens/pull/181) is open separately; historical log PRs #176/#178 and unrelated original work remain untouched.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-10] — Integrate authorized drawing and numeric-version release
 
 **Session**: codex/fix/sequential-version

@@ -1,3 +1,23 @@
+## 2026-11-10 — Combined production release 0.0.60
+
+- #179 PR CI 42793330184 and integrated #180 PR CI 42821550047 pass all eight checks. Merge
+  4b5530d has green main CI 42824190007 and images 42824189834 (image workflow60). Main web
+  completes in 22m02s under the corrected budget: 660 web/DB, 51 general, 6 reuse and 34 unified
+  browser cases; main edge: 42 pass, 30 intentional context skips. Prior web cancellation was a
+  confirmed 15-minute timeout, not a test failure. Fresh local integration: 660 web/DB and six
+  low-laptop/iPhone drawing cases pass; screenshots inspected and 44px targets measured.
+- Manual deploy 42828663375 succeeds at 13:53:57 UTC with public checking enabled. Readiness
+  returns sha-4b5530d/DB ok; public build-info and both OCI labels report 0.0.60 with matching
+  4b5530d revision. Deployed JS includes drawing-delete and excludes drawing-save.
+- Every aggregate count matches the fresh pre-deploy baseline, including 28 migrations, 6 videos
+  and 87 annotations; physical media remains 21 files/352880017 bytes. Zero pending jobs/missing
+  assets; seven other containers retain identical IDs/start times/images. Web/DB healthy; both
+  RowLens app services use the expected tag. Backup exists (363224 bytes); new logs: zero errors.
+- All four public endpoints return HTTP200. Two live public browser cases pass (1000x540 Chromium,
+  iPhone13 WebKit): 0.0.60/tagline visible, no horizontal overflow, page errors or writes; screenshots
+  inspected. No production login/OTP or test data/deletion was attempted. Authenticated header and
+  drawing changes are covered by local/CI synthetic accounts. No shared-service/settings change.
+
 ## 2026-11-10 — Authorized integration and CI timeout correction
 
 - #179 CI 42793330184 passed all eight jobs before its authorized squash merge 7ed27be.

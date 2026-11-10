@@ -1,5 +1,16 @@
 # PLAN
 
+## Combined production release complete — 0.0.60 (2026-11-10)
+
+Explicit request "Merge en deploy" completed: #179 merged as 7ed27be; integrated #180 merged as
+4b5530d after green PR CI 42821550047. Main CI 42824190007 and images 42824189834 passed;
+manual deploy 42828663375 completed at 13:53:57 UTC. Numeric release is 0.0.60 (image workflow60),
+with drawing autosave/direct delete and numeric header/login labels deployed together. Readiness/DB,
+public build-info/OCI labels, four public endpoints and two live laptop/iPhone login checks pass.
+28 migrations, data/media (6 videos/87 annotations/21 files) and seven other containers are
+unchanged. No production test content/login/email was created. Separate logs #176/#178 remain
+open; original dirty work is untouched. Subsequent releases require a new explicit request.
+
 ## Sequential numeric version display (2026-11-10)
 
 Owner corrected the version requirement: numbers only, automatically sequential. Implemented
