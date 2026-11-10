@@ -27,7 +27,7 @@ login/OTP or test content was created. Authenticated header and destructive draw
 were verified with synthetic local/CI accounts, not live user data.
 
 Worktree /Users/ewout/src/rowlens-training-video-reuse, branch codex/docs/180-deploy contains the
-new deployment log. Previous logs #176/#178 remain open separately; no unrelated/bot change was
+new deployment log, open as [PR #181](https://github.com/ewoutbarendregt/rowlens/pull/181). Previous logs #176/#178 remain open separately; no unrelated/bot change was
 merged. Dirty original club/research checkout is untouched; clean drawing worktree/preview :5184
 remains available. Development :5174/API :3100 and edge :8080 are local; the numeric development
 fallback is 0.0.0. Future merges/deploys require a fresh explicit request. Historical entries below
