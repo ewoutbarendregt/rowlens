@@ -6,8 +6,8 @@ Owner identified the missing deployed version/header work. Original commit eace6
 codex/fix/club-editor-feedback and was excluded when PR #175 was isolated. Restore only its product
 files on codex/fix/version-display, based on live main 8a401c9; preserve the unrelated dirty club and
 research work. Root release remains 0.0.0, displayed with the changing build tag; no new versioning
-policy/schema/dependency. Local/CI checks and a standalone PR precede an explicitly requested
-additional production rollout. Production remains sha-8a401c9/28 migrations; deploy log PR #176
+policy/schema/dependency. Local checks pass and PR [#177](https://github.com/ewoutbarendregt/rowlens/pull/177) is open; CI must
+pass before an explicitly requested additional production rollout. Production remains sha-8a401c9/28 migrations; deploy log PR #176
 records the previous release and is separate.
 
 ## Own trainings and reused-video annotation workspaces (2026-11-09)

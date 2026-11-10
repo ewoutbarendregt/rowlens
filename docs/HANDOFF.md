@@ -17,7 +17,8 @@ Production is sha-8a401c9 with DB healthy and 28 migrations; #175 is merged/depl
 Deploy log #176 is open separately. No new production action is authorized/performed in this repair;
 follow AGENTS.md's separate explicit per-deploy instruction. Original club/address/research changes
 remain untouched. Restore preview: http://localhost:5184/projects/rowlens/ (API :3124), using the local stack with
-healthy DB. The existing :5174 preview remains unchanged. Standalone PR details follow after push.
+healthy DB. The existing :5174 preview remains unchanged. Standalone PR [#177](https://github.com/ewoutbarendregt/rowlens/pull/177) is open against main;
+implementation head 8ecdf49. CI must be green before a subsequently authorized merge.
 
 ## Own-training/video reuse implementation (2026-11-09)
 

@@ -4,7 +4,7 @@ Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
 ### [BUG-063] Built version/header display omitted from deployment — low
 **Location**: apps/web/src/client/ui/AppHeader.tsx; apps/web/src/client/useAppVersion.ts
-**Status**: fixed locally; standalone PR awaiting release
+**Status**: fixed locally; PR #177 awaiting release
 **Found**: 2026-11-10
 **Description**: The already-built eace60b brand/version commit stayed on the local club-editor
 branch. Isolating training reuse for PR #175 excluded it, leaving production with a raw build tag
