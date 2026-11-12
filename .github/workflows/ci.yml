@@ -18,7 +18,7 @@ jobs:
     outputs:
       full: ${{ steps.changes.outputs.full }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
@@ -62,7 +62,7 @@ jobs:
     # Browser/media dependency downloads can consume most of the previous 15-minute budget.
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -161,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: shellcheck
         run: shellcheck -x infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker scripts/admin/fix-production-kernel-054.sh scripts/admin/test/fix-production-kernel-054.test.sh
       - name: Kernel maintenance safety parser (no host changes)
@@ -180,7 +180,7 @@ jobs:
       run:
         working-directory: worker
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
@@ -198,7 +198,7 @@ jobs:
       contents: read
       pull-requests: read # gitleaks-action lists the PR commits
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -221,7 +221,7 @@ jobs:
             dockerfile: worker/Dockerfile
             context: worker
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v3
       - name: Build rowlens-${{ matrix.name }} (not pushed)
         uses: docker/build-push-action@v6
