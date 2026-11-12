@@ -1,3 +1,10 @@
+## [2026-11-10] — Shorten CI feedback without removing application coverage
+
+**Session**: codex/ci/shorten-feedback
+**Changed**: .github/workflows/ci.yml, scripts/ci/changes.js, scripts/ci/changes.test.js, BUILD.md, PLAN.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Measured a 27m54s main CI versus a 37s deployment and found serial edge/image waits plus full suites on documentation-only PRs. Added conservative documentation selection and parallel independent jobs; code/configuration changes retain all checks, with production/deploy authorization unchanged and unrelated local work preserved.
+**Prompts used**: Waarom duurt het testen en deployen elke keer zo eindeloos lang? Kunnen we dat niet slimmer aanpakken?
+
 ## [2026-11-10] — Integrate authorized drawing and numeric-version release
 
 **Session**: codex/fix/sequential-version

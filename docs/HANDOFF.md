@@ -1,5 +1,17 @@
 # RowLens handoff — 2026-11-10
 
+## CI feedback improvement (2026-11-10)
+
+Owner asked why testing/deployment takes so long and to make it smarter. Measured current Actions:
+main CI 42824190007 27m54s, images 42824189834 1m19s, deploy 42828663375 37s; docs-only
+CI 42829445158 13m19s. Most waiting is CI/setup and serialized web → edge, not production deploy.
+On codex/ci/shorten-feedback in /Users/ewout/src/rowlens-ci-feedback, added conservative Markdown
+change selection and removed edge/images' dependency on web completion. All code/config changes
+still get every suite. No dependency/server/deploy-workflow change; original dirty checkout and
+other worktrees preserved. See BUILD.md for evidence/limits and TEST.md for validation. No new
+merge/deploy is authorized. Historical release-in-progress text below is superseded by successful
+main CI/images and deploy 42828663375; complete release log remains in open PR #181.
+
 ## Authorized combined release in progress — 2026-11-10
 
 Ewout explicitly requested "Merge en deploy" for #179/#180. #179 is merged as 7ed27be after

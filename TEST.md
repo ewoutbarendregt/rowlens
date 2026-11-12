@@ -1,3 +1,19 @@
+## 2026-11-10 — CI feedback selection and independent jobs
+
+- 13 selector regressions pass: documentation, mixed code/configuration, unknown paths, empty or
+  missing comparisons, git failure, renamed code and NUL-separated unusual filenames.
+- CLI comparison of actual docs PR #181 (main 4b5530d to 9237b3f) returns full=false; the actual
+  application/version merge (7ed27be to 4b5530d) returns full=true.
+- actionlint 1.7.7 validates the revised workflow, including expressions and embedded shell.
+- Formatting, ESLint and typecheck pass; all 660 web/database tests pass (62 files, 56.23s).
+  Worker Ruff, formatting and mypy pass; all 50 worker tests pass (19.22s).
+- Production build and formatting pass; all 77 Linux deploy-script checks pass.
+- Complete application/browser/image/deploy-script coverage is retained on this CI-changing PR.
+  GitHub run timing will be recorded after pushing; historical times in BUILD.md are baseline
+  measurements, not evidence of new speed. No product/UI/runtime/server change.
+- A preliminary Python YAML inspection was unavailable (PyYAML absent); actionlint supplies
+  actual GitHub workflow/schema validation without adding a project dependency.
+
 ## 2026-11-10 — Authorized integration and CI timeout correction
 
 - #179 CI 42793330184 passed all eight jobs before its authorized squash merge 7ed27be.

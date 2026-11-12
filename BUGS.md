@@ -2,6 +2,15 @@
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.
 
+### [BUG-067] CI serializes independent checks and retests documentation — severity: low
+**Location**: .github/workflows/ci.yml
+**Status**: fixed locally; CI validation pending
+**Found**: 2026-11-10
+**Description**: Edge/image checks wait for every web browser variant despite consuming no output
+from that job. Documentation-only PR #181 also runs all application/Docker suites (13m19s).
+**Fix**: Conservative Markdown-only selection with full-suite fallback, and parallel independent
+jobs. All code/configuration changes still require every existing suite; manual deployment is unchanged.
+
 ### [BUG-066] Web CI exhausted its budget during slow dependency preparation — low
 **Location**: .github/workflows/ci.yml:41
 **Status**: fixed in candidate; awaiting fresh CI
