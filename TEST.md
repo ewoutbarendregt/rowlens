@@ -1,3 +1,27 @@
+## 2026-11-12 — Authorized merge and release verification (#182)
+
+- All nine PR checks passed on 46e7a88, CI 42882969569: 8m59s overall, with web 8m43s
+  and edge 5m37s starting independently. Coverage: 660 web/database, 51 general browser,
+  6 reuse laptop/iPhone WebKit, 34 unified laptop/iPhone WebKit, 42 edge, 50 worker,
+  77 deploy-script checks and an actual Docker deploy/rollback rehearsal; 13 selector tests.
+- Squash merge dd617c6 has the identical reviewed file tree; conflict-marker scan is clean.
+  gh's nonzero cleanup result concerned only deletion of the branch still checked out in the
+  worktree; GitHub confirmed the merge. No code was integrated from other PRs or bots.
+- Main CI 43199453228 passed in 6m50s with the same complete coverage; release-image run
+  43199453539 succeeded for both images in 2m27s, release 0.0.61. No full local application suites were repeated for this unchanged tree.
+- Pre-deploy baseline: production release 0.0.60/sha-4b5530d, database ready, 28 migrations;
+  trustable.nl, its API health and AudioScribe all HTTP 200. Captured identity, start time and
+  image for all nine containers to verify isolation after deployment.
+- Deploy 43200553850 passed in 41s (server step 26s), completing at 10:28:17 UTC. Normal
+  pre-deploy backup was logged; readiness reports sha-dd617c6 with DB ok; build-info release
+  is 0.0.61. Migration count remains 28. All four public readiness/site/API/AudioScribe requests
+  return HTTP 200. Seven protected container identities/start times/images match exactly,
+  including RowLens DB, all five trustable/AudioScribe containers and Feelz.
+- Thirteen selector smoke checks pass locally on the unchanged merged code. This session's
+  follow-up changes are Markdown logs only; application/browser suites were not repeated locally.
+- Known release-please failure remains the existing Actions PR-creation restriction; required
+  PR/main CI, images and deploy all succeeded.
+
 ## 2026-11-10 — CI feedback selection and independent jobs
 
 - 13 selector regressions pass: documentation, mixed code/configuration, unknown paths, empty or

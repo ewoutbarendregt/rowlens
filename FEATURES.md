@@ -2,6 +2,9 @@
 
 ## CI feedback (2026-11-10)
 
+Status: merged in #182 and active on main; production release 0.0.61/sha-dd617c6 deployed
+2026-11-12 (run 43200553850). Complete main CI passed in 6m50s, deploy in 41s.
+
 Independent edge/image checks run alongside web; a conservative documentation-only path avoids
 application/Docker tests while retaining policy, secrets and selector regression checks. All
 code/configuration changes retain the full suite. Release and manual deployment gates unchanged.

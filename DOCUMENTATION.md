@@ -1,3 +1,10 @@
+## [2026-11-12] — Authorized CI-feedback release
+
+**Session**: codex/docs/182-deploy
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, TEST.md, PLAN.md, FEATURES.md, BUILD.md, BUGS.md
+**Summary**: Owner authorized #182, merged as dd617c6 after nine green PR checks; main CI 43199453228 passed in 6m50s and both images passed in 43199453539. Deploy 43200553850 released 0.0.61/sha-dd617c6 in 41s at 2026-11-12 10:28:17 UTC: DB ready, 28 unchanged migrations, four HTTP 200 checks and seven protected containers unchanged; unrelated local changes and other PRs/bots were preserved.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-10] — Shorten CI feedback without removing application coverage
 
 **Session**: codex/ci/shorten-feedback

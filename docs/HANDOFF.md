@@ -1,4 +1,27 @@
-# RowLens handoff — 2026-11-10
+# RowLens handoff — 2026-11-12
+
+## Completed CI-feedback release — 2026-11-12
+
+Ewout explicitly requested "Merge en deploy" for #182. All nine PR checks passed in
+CI 42882969569 (8m59s), then #182 squash-merged as dd617c6 with the reviewed tree unchanged
+and a clean conflict-marker scan. Main CI 43199453228 passed in 6m50s; both image jobs passed
+in 43199453539 (2m27s). Deploy 43200553850 completed at 10:28:17 UTC in 41s (server step 26s).
+Production now serves 0.0.61/sha-dd617c6, DB ready, 28 migrations unchanged. Both RowLens images
+use the new tag. RowLens readiness, trustable.nl, API health and AudioScribe all return HTTP 200.
+All seven protected containers (RowLens DB, five trustable/AudioScribe, Feelz) have identical
+IDs, start times and image references before/after. The deploy wrote its normal DB backup;
+no server configuration or shared-service changes were made.
+
+This release enables conservative documentation-only CI and independent concurrent suites.
+Full main coverage: 660 web/DB, 51 general browser, 6 reuse laptop/iPhone WebKit, 34 unified
+laptop/iPhone WebKit, 42 edge, 50 worker, 77 deploy checks plus real deploy/rollback rehearsal,
+and 13 selector regressions. Run times vary with preparation; historical 27m54s main CI is not
+a controlled benchmark. Next possible work: browser separation and fixture/build reuse.
+
+Release log worktree /Users/ewout/src/rowlens-ci-feedback, branch codex/docs/182-deploy.
+Original dirty club/research checkout and separate log PRs #176/#178/#181 remain untouched.
+Only #182 was merged; no bot change was accepted. Further merges/deployments require a new
+request. Historical in-progress/authorization statements below are superseded by this result.
 
 ## CI feedback improvement (2026-11-10)
 

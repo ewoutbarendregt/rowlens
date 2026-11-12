@@ -1,5 +1,25 @@
 # Runbook: RowLens on trustable-prod
 
+## Completed CI-feedback release — 2026-11-12 10:28 UTC
+
+On Ewout's explicit "Merge en deploy" request, #182 merged as dd617c6 after all nine checks
+passed in PR CI 42882969569. Main CI [43199453228](https://github.com/ewoutbarendregt/rowlens/actions/runs/43199453228)
+passed in 6m50s; both release images passed in [43199453539](https://github.com/ewoutbarendregt/rowlens/actions/runs/43199453539).
+Manual deploy [43200553850](https://github.com/ewoutbarendregt/rowlens/actions/runs/43200553850)
+completed at 10:28:17 UTC in 41s, using `gh workflow run deploy.yml --ref main -f tag=sha-dd617c6 -f check_public_url=true`.
+
+Production: **0.0.61**, both RowLens images **sha-dd617c6**; readiness DB ok; **28 migrations**
+unchanged. The normal pre-deploy dump was written at
+`/opt/rowlens/backups/pre-deploy-20261112T102800Z-sha-dd617c6.dump`; no new schema migration,
+server configuration or shared-service change. RowLens readiness, trustable.nl, API health and
+AudioScribe all return HTTP 200. Seven protected containers (RowLens DB, five trustable/AudioScribe,
+Feelz) retain exactly their prior IDs, start times and image references. Only RowLens web/worker
+were replaced. Previous production release was 0.0.60/sha-4b5530d. No rollback was needed.
+
+The CI graph now runs independent suites together and uses a conservative short path for
+Markdown-only documentation changes. Main code/configuration changes still get all suites.
+No additional merge/deployment is authorized by this completed release.
+
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
