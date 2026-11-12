@@ -15,7 +15,11 @@ Measured GitHub runs on 2026-11-10: main CI 42824190007 took 27m54s (web 22m02s 
 PR CI 42821550047 took 16m58s; even docs-only PR CI 42829445158 took 13m19s.
 Preparation varied sharply: web fixture setup 19–273s, Chromium installation 10–175s,
 reuse setup/tests 36–502s across those runs. Parallel execution removes a measured dependency
-wait, not download variability; no new duration is claimed until CI runs the revised graph.
+wait, not download variability. First revised PR run 42882969569 passed in 8m59s, with web
+8m43s and edge 5m37s running together. Historical runs differ in preparation time, so this is
+observed duration rather than a controlled speedup measurement. Main run 43199453228 on
+2026-11-12 passed in 6m50s (web 6m37s, edge 5m28s concurrent); image publishing took 2m27s
+and deployment 43200553850 took 41s (server step 26s), releasing 0.0.61/sha-dd617c6.
 Future work: separate browser variants, reuse deterministic media/build artifacts, and cache
 edge builds. Existing pnpm/uv/BuildKit caches already exist. Main CI, release-image publishing,
 manual deploy approval, database backup/migrations/readiness and rollback remain in place.

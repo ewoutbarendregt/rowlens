@@ -1,5 +1,13 @@
 # PLAN
 
+## CI-feedback release complete (2026-11-12)
+
+#182 is merged as dd617c6 and deployed as 0.0.61/sha-dd617c6 (deploy 43200553850).
+Main CI 43199453228 passed in 6m50s; deploy in 41s, with DB ready, 28 migrations unchanged,
+four HTTP 200 checks and seven protected containers unchanged. The documentation short path
+and parallel independent suites are active. Remaining possible improvements: split browser
+variants and reuse deterministic media/edge-build artifacts. No further deploy is authorized.
+
 ## Shorten CI feedback (2026-11-10)
 
 Independent edge/image checks now run alongside web after a conservative change-selection job.
