@@ -1,3 +1,10 @@
+## [2026-11-15] — Diagnose missing example notes and propose publisher-only feedback
+
+**Session**: codex/fix/example-feedback
+**Changed**: docs/plans/example-feedback.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: User confirmed that Help's example location is acceptable; the earlier discovery report is resolved. Confirmed missing DrawingLayer/note overlays and deliberate annotation denial/projection omission in ADR-0028. Read-only production counts show 167 drawings authored by the recorded platform example creator and 7 boat lines; no bodies/identities/media were read. Prepared a concrete publisher-only feedback proposal with immutable attribution, restrictive RLS, safe read-only projection and browser/security acceptance checks. This requires architectural permission/publication approval under AGENTS.md; no schema/code/configuration/production change or new deployment performed. BUG-068 tracks this separate omission; deployment evidence remains in PR #187.
+**Prompts used**: ik heb de voorbeeld trainingen gevonden onder 'uitleg'. prima zo, alleen zie ik de notities en lijnen niet die ik daar gezet heb
+
 ## [2026-11-15] — Explain the local 0.0.0 version label
 
 **Session**: codex/feat/training-sharing

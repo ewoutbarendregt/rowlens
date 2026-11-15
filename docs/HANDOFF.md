@@ -1,3 +1,17 @@
+# Example feedback proposal awaiting approval — 2026-11-15
+
+Ewout found examples through Help and accepts that location; no discovery fix needed. They report
+missing their own notes/lines. ExamplePage lacks drawing/text overlays; example API/RLS deliberately
+exclude annotations. Production read-only counts: 167 maker-authored drawings (162 lines, 4 angles,
+1 arrow), 7 manual boat lines. No personal content inspected or production write performed.
+
+Read docs/plans/example-feedback.md (BUG-068). Proposed: show the original publisher's own example
+notes/drawings to authenticated viewers, other authors/source/private feedback stays excluded;
+immutable publisher attribution prevents creator-transfer leakage. This needs an additive migration,
+restrictive RLS/safe projection and read-only player/frame UI. Await explicit architectural/publication
+approval before implementation. Production remains 0.0.63 / sha-4ec6e71, 30 migrations; deployment
+log PR #187 is separate. Original local stack remains untouched; copied local review is port5175.
+
 # Whole-training sharing implementation — 2026-11-15
 
 Local version-label finding: APP_RELEASE is unset in the test stack, so the client falls back to the package.json base 0.0.0. Production image numbering is supplied by GITHUB_RUN_NUMBER. No version/configuration change was made; the local label is not a build identifier.

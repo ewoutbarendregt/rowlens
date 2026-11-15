@@ -1,3 +1,10 @@
+### [BUG-068] Example viewer omits saved notes and drawing overlays — severity: medium
+**Location**: apps/web/src/client/help/ExamplePage.tsx; apps/web/src/server/repositories/examples.ts
+**Status**: open
+**Found**: 2026-11-15
+**Description**: User found examples in Help but cannot see their notes/lines. Example API intentionally excludes annotations under restrictive RLS; the example player also lacks drawing/note overlays, even for already supplied boat lines.
+**Fix**: Proposed publisher-only read-only example feedback and player overlays in docs/plans/example-feedback.md. Cross-account publication/permission change awaits approval; no production change.
+
 ### [BUG-064] Delayed primary-club initialization overwrites manual choices or navigation — medium
 **Location**: apps/web/src/client/sessions/SessionsPage.tsx
 **Status**: fixed
