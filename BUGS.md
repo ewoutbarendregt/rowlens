@@ -1,3 +1,10 @@
+### [BUG-065] Reported missing administrator example for a rower — severity: medium
+**Location**: apps/web/src/client/sessions/SessionsPage.tsx:563
+**Status**: open
+**Found**: 2026-11-15
+**Description**: User reports that an administrator-created training is absent when signed in as a rower. Production has three correctly classified active examples, all discoverable/readable under a verified rower-only RLS context; recent example requests return 200. The exact affected training/environment and whether the separate bottom-of-page Examples block renders are not yet confirmed.
+**Fix**: Pending reproduction; no permission or data change. Asked whether the Examples block appears and whether production or the local copy is affected.
+
 ### [BUG-064] Delayed primary-club initialization overwrites manual choices or navigation — medium
 **Location**: apps/web/src/client/sessions/SessionsPage.tsx
 **Status**: fixed

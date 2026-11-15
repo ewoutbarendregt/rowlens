@@ -1,3 +1,10 @@
+## [2026-11-15] — Investigate reported missing administrator example
+
+**Session**: codex/docs/training-sharing-deployment
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, TEST.md, BUGS.md
+**Summary**: Read-only production diagnostics confirm 3 active examples, matching all 3 sessions with a currently recorded platform-admin creator. A verified rower-only context under rowlens_app RLS discovers all 3 and can read each safe session/club projection; the diagnostic transaction rolled back without writes. Eight recent /api/examples requests returned HTTP200. The UI renders examples in a separate block at the bottom of Sessions (and in Help), independent of ordinary filters. The reported account/training/environment remains unconfirmed; asked whether the block is present and whether the report concerns production or the local copy. No permission, application or production change was made; BUG-065 remains open pending reproduction.
+**Prompts used**: als ik me aanmeld als roeier, dan zie ik niet de training die is aangemaakt door ewout rowlens admin
+
 ## [2026-11-15] — Deploy training visibility and club sharing as 0.0.63
 
 **Session**: codex/docs/training-sharing-deployment

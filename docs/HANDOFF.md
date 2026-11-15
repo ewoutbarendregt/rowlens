@@ -1,3 +1,13 @@
+# Missing example report under investigation — 2026-11-15
+
+Ewout reports a missing platform-admin training when signed in as a rower. Read-only production
+checks: all 3 currently recorded platform-created sessions are examples in an active club; a verified
+rower-only RLS context discovers/reads all 3. Eight recent example API responses are HTTP200.
+Examples render separately at the bottom of Sessions and in Help, not in the ordinary table.
+Asked whether the Examples block is present and whether the environment is production/local;
+exact affected training/account not established. BUG-065 is open; no fix or new deploy yet.
+Do not broaden permissions or reclassify other creators based on display names.
+
 # Production 0.0.63 — 2026-11-15
 
 Ewout explicitly requested “merge en deploy maar”. PRs [#184](https://github.com/ewoutbarendregt/rowlens/pull/184)

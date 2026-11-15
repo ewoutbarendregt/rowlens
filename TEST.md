@@ -1,3 +1,12 @@
+## 2026-11-15 — Missing-example report, read-only production diagnosis
+
+- 3 active example sessions, matching all 3 current platform-admin-created sessions.
+- Verified rower-only context, SET LOCAL ROLE rowlens_app: discovery **3**, safe session/club
+  projection **1 row for each of 3**. Context settings were transaction-local; READ ONLY/ROLLBACK.
+- Recent application logs: **8/8** /api/examples requests returned HTTP200; no identities/content logged.
+- Affected user's exact account/training/environment remains unconfirmed. These diagnostics do
+  not establish that their browser renders the example block. No production data/config change.
+
 ## 2026-11-15 — Production 0.0.63 rollout
 
 - PR #184 CI43709685832 passed; retargeted #185 CI43739977943 passed all nine jobs.
