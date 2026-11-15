@@ -34,7 +34,7 @@ jobs:
           echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           release=$(node --experimental-strip-types scripts/release-version.js "$GITHUB_RUN_NUMBER")
           echo "release=$release" >> "$GITHUB_OUTPUT"
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
