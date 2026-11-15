@@ -1,3 +1,10 @@
+## [2026-11-15] — Explain the local 0.0.0 version label
+
+**Session**: codex/feat/training-sharing
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Read-only verification confirms that the local test stack has no APP_RELEASE override and package.json retains the 0.0.0 release base; Vite uses that fallback. Numeric release sequencing is supplied by the images workflow through GITHUB_RUN_NUMBER, so this local label does not identify the review build. No application, configuration or production change.
+**Prompts used**: waarom staat de versie op 0.0.0?
+
 ## [2026-11-15] — Open club training-sharing review #185
 
 **Session**: codex/feat/training-sharing

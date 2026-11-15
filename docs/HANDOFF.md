@@ -1,5 +1,7 @@
 # Whole-training sharing implementation — 2026-11-15
 
+Local version-label finding: APP_RELEASE is unset in the test stack, so the client falls back to the package.json base 0.0.0. Production image numbering is supplied by GITHUB_RUN_NUMBER. No version/configuration change was made; the local label is not a build identifier.
+
 Review: [PR #185](https://github.com/ewoutbarendregt/rowlens/pull/185), stacked on #184. All local checks pass; remote CI pending. Keep the parent branch through an authorized merge and retarget #185 afterwards.
 
 Owner approved `docs/plans/training-sharing.md` with “ja”. Implemented on
