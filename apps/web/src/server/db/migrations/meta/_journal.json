@@ -204,6 +204,13 @@
       "when": 1794741343113,
       "tag": "0029_training_visibility_examples",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794746047099,
+      "tag": "0030_session_sharing",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,31 @@
+## [2026-11-15] — Explain the local 0.0.0 version label
+
+**Session**: codex/feat/training-sharing
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Read-only verification confirms that the local test stack has no APP_RELEASE override and package.json retains the 0.0.0 release base; Vite uses that fallback. Numeric release sequencing is supplied by the images workflow through GITHUB_RUN_NUMBER, so this local label does not identify the review build. No application, configuration or production change.
+**Prompts used**: waarom staat de versie op 0.0.0?
+
+## [2026-11-15] — Open club training-sharing review #185
+
+**Session**: codex/feat/training-sharing
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened [PR #185](https://github.com/ewoutbarendregt/rowlens/pull/185), stacked on #184, with the security review note and local verification. All local checks pass: 694 web/DB, 106 browser cases (including nine new sharing/race cases on low/normal laptop and iPhone WebKit), 50 worker, 77 deploy-script, format/lint/typecheck/build. Copied local review at http://127.0.0.1:5175/projects/rowlens/ is ready with 30 migrations; remote CI is pending. No merge, production change or message delivery was performed.
+**Prompts used**: ja
+
+## [2026-11-15] — Implement whole-training sharing within the club
+
+**Session**: codex/feat/training-sharing
+**Changed**: .github/workflows/ci.yml, .gitignore, apps/web/package.json, apps/web/tsconfig.json, apps/web/playwright.sharing.config.ts, apps/web/e2e/{server,sharing-fixture,training-sharing}, apps/web/src/client/{sharing,sessions,styles.css,help/strings.ts}, apps/web/src/server/{api/session-sharing,api/sessions.ts,api/visibility.db.test.ts,app.ts,db/schema.ts,db/migrations/0030_session_sharing.sql,db/migrations/meta,repositories/session-sharing.ts,repositories/session-list.ts}, apps/web/src/shared/session-sharing.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, docs/adr/{0029-training-sharing.md,README.md}, docs/plans/training-sharing.md, docs/privacy/processors.md, DOCUMENTATION.md
+**Summary**: Implemented approved creator/staff-controlled club-wide and individual training read grants, live membership/authority checks, private-feedback separation, revision conflicts and retained grant/revocation audit. Added NL/EN Sharing UI/Help and shared-recipient labels; corrected delayed preference/filter navigation races found by browser checks. Full web/DB694 and focused sharing16, new browser9, general51/reuse6/visibility6 and worker50 pass; final full sharing9/unified34 reruns pass (106 total browser cases); deploy-script77 also pass. Only the copied local stack was migrated (30 migrations, readiness DB ok); no original stack, production or message change.
+**Prompts used**: ja
+
+## [2026-11-15] — Propose whole-training sharing within a club
+
+**Session**: codex/feat/training-sharing
+**Changed**: docs/plans/training-sharing.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected existing training permissions, editable-parent locks, feedback sharing and recipient lookup. Prepared a concrete proposal for creator/staff-controlled club-wide or individual training read grants, with private feedback preserved, revocation, membership checks, audit and conflict handling; new storage/migration awaits architecture approval. Parent PR #184 has all nine CI jobs green; no application, local database or production change.
+**Prompts used**: il wil een training als roeier of coach kunnen delen met alle leden van de club of met individuele leden
+
 ## [2026-11-15] — Open training visibility review #184
 
 **Session**: codex/feat/training-visibility-help

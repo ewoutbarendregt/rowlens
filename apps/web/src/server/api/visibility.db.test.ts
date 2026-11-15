@@ -484,6 +484,8 @@ describe('what a rower sees (#40)', () => {
       'moment_share',
       'rower',
       'rowing_session',
+      'session_share',
+      'session_share_event',
       'stroke_mark',
       'user_session',
       'user_settings_audit',

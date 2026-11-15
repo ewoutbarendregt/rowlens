@@ -1,3 +1,14 @@
+### [BUG-064] Delayed primary-club initialization overwrites manual choices or navigation — medium
+**Location**: apps/web/src/client/sessions/SessionsPage.tsx
+**Status**: fixed
+**Found**: 2026-11-15
+**Description**: Sharing browser setup selected Alpha before settings loaded, then the delayed Beta
+primary preference reset it. A captured WebKit trace also showed the pending filter URL mirror
+return to Sessions after the user clicked Clubs. Both violate an explicit user choice.
+**Fix**: Track manual club choices during initialization, preserve other draft filters, and verify
+the live pathname before mirroring query parameters. Dedicated delayed-response regressions cover
+manual selection and leaving the list on all three browser sizes.
+
 ### [BUG-062] Rower training visibility exceeds creator/participant scope — medium
 **Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql
 **Status**: fixed

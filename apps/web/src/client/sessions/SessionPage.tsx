@@ -1,3 +1,5 @@
+import { SharingCard } from '../sharing/SharingCard.tsx';
+import { sharingStrings } from '../sharing/strings.ts';
 import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { useAuth } from '../auth/useAuth.ts';
@@ -59,6 +61,8 @@ interface SessionDetail {
   /** The maker and all club coaches/admins may rename it (ADR-0020). */
   canRename: boolean;
   canEdit: boolean;
+  canShare: boolean;
+  sharedWithMe: boolean;
   createdByMe: boolean;
   /** Admin only (#108): who made it, and the coaches it can be given to. */
   creatorUserId?: string | null;
@@ -225,6 +229,16 @@ export function SessionPage() {
         {session.creatorName !== null && <> {t.createdBy(session.creatorName)}</>}
       </p>
 
+      {session.sharedWithMe && !session.createdByMe && (
+        <p className="badge">{sharingStrings().sharedWithMe}</p>
+      )}
+      {session.canShare && (
+        <SharingCard
+          key={session.id}
+          sessionId={session.id}
+          clubName={auth.kind === 'open' ? auth.club.name : ''}
+        />
+      )}
       {!session.canEdit && (
         <p className="muted" data-testid="training-read-only">
           {t.readOnly}

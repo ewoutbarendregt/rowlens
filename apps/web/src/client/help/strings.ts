@@ -22,7 +22,7 @@ const en = {
     [
       'trainings',
       'Find your training',
-      'As a rower you see trainings you created or whose lineup includes you, also as cox. Coaches and club administrators can view all trainings in their club. Examples created by a RowLens administrator are available to every signed-in user. A shared note alone does not give access to another training.',
+      'As a rower you can view a training if you created it, appear in its lineup (including as cox), or have received access through individual or club-wide sharing. Coaches and club administrators can view all trainings in their club. Examples created by a RowLens administrator are available to every signed-in user. A shared note alone does not give access to another training.',
     ],
     [
       'clubs',
@@ -53,6 +53,11 @@ const en = {
       'angles',
       'Draw and measure',
       'Where editing is allowed, choose a drawing tool, tap the points on the paused picture and save. Adjust the points before saving if needed. Coaches use the Angles tab to draw or correct a boat line and measure joints on marked frames. Angle comparisons need a suitable side view; a filming perspective can make a measurement unreliable.',
+    ],
+    [
+      'sharing',
+      'Share a training',
+      'Open Share training on a training you created, or as a coach on a club training. Choose All club members or search for individual members by name, then Save sharing. Recipients can view the training and videos; private feedback keeps its existing permissions. Remove a recipient and save, or use Stop sharing to withdraw all extra viewing access. The creator, participants and staff keep their existing rights. RowLens examples remain available to all signed-in accounts.',
     ],
     [
       'feedback',
@@ -94,7 +99,7 @@ const nl: typeof en = {
     [
       'trainings',
       'Vind je training',
-      'Als roeier zie je trainingen die je zelf hebt aangemaakt of waarin je in de opstelling staat, ook als stuurman. Coaches en clubbeheerders zien alle trainingen van hun club. Voorbeelden van een RowLens-beheerder zijn voor iedereen die is ingelogd zichtbaar. Een gedeelde notitie alleen geeft geen toegang tot een andere training.',
+      'Als roeier zie je een training als je deze zelf hebt aangemaakt, in de opstelling staat (ook als stuurman), of toegang hebt gekregen via persoonlijk of clubbreed delen. Coaches en clubbeheerders zien alle trainingen van hun club. Voorbeelden van een RowLens-beheerder zijn voor iedereen die is ingelogd zichtbaar. Een gedeelde notitie alleen geeft geen toegang tot een andere training.',
     ],
     [
       'clubs',
@@ -125,6 +130,11 @@ const nl: typeof en = {
       'angles',
       'Teken en meet',
       'Waar je mag bewerken kies je een tekengereedschap, tik je de punten op het stilstaande beeld aan en sla je op. Pas punten zo nodig vóór het opslaan aan. Coaches tekenen of corrigeren in Hoeken een bootlijn en meten gewrichten op gemarkeerde beelden. Hoekvergelijkingen vragen om een geschikt zijaanzicht; het filmperspectief kan een meting onbetrouwbaar maken.',
+    ],
+    [
+      'sharing',
+      'Deel een training',
+      'Open Training delen bij een training die je zelf maakte, of als coach bij een clubtraining. Kies Alle clubleden of zoek individuele leden op naam en kies Delen opslaan. Ontvangers kunnen de training en video’s bekijken; privéfeedback houdt zijn bestaande rechten. Verwijder een ontvanger en sla op, of kies Delen stoppen om alle extra kijkrechten in te trekken. De maker, deelnemers en medewerkers houden hun bestaande rechten. RowLens-voorbeelden blijven voor iedereen die is ingelogd zichtbaar.',
     ],
     [
       'feedback',

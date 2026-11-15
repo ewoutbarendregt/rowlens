@@ -26,6 +26,7 @@
     "playwright.unified.config.ts",
     "playwright.editing.config.ts",
     "playwright.reuse.config.ts",
-    "playwright.visibility.config.ts"
+    "playwright.visibility.config.ts",
+    "playwright.sharing.config.ts"
   ]
 }

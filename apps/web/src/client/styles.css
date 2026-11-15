@@ -3678,3 +3678,43 @@ a.list__item {
 .example-viewer > .card {
   margin-block: 1rem;
 }
+
+/* Training sharing stays compact until opened and uses forgiving member controls. */
+.session-sharing {
+  margin-block: 1rem;
+}
+.session-sharing > summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding-block: 0.65rem;
+}
+.session-sharing summary span {
+  overflow-wrap: anywhere;
+}
+.session-sharing > .form {
+  margin-block-start: 1rem;
+}
+.session-sharing input[type='search'],
+.session-sharing button {
+  min-height: 44px;
+}
+.session-sharing__selected,
+.session-sharing__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.session-sharing__selected li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.session-sharing__selected li span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.session-sharing .filters__check {
+  min-height: 44px;
+}
