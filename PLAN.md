@@ -1,3 +1,12 @@
+## Training sharing proposal — awaiting approval (2026-11-15)
+
+Owner requests sharing a whole training with all club members or selected members. Prepared
+`docs/plans/training-sharing.md`: creator/staff-controlled read grants, private feedback preserved,
+revocation, membership-bound recipients, audit and revision checks. New grant/audit storage and
+permission migration require architectural approval before implementation. Branch
+`codex/feat/training-sharing`, based on PR #184 (CI 43709685832: all nine checks green).
+No application/database changes; the existing local review stack is unchanged.
+
 # Training visibility, primary club and Help — implemented (2026-11-15)
 
 Owner approved the proposal with “ja”. ADR-0028/migration 0029 implement creator/participant-only

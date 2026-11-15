@@ -1,3 +1,10 @@
+## [2026-11-15] — Propose whole-training sharing within a club
+
+**Session**: codex/feat/training-sharing
+**Changed**: docs/plans/training-sharing.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected existing training permissions, editable-parent locks, feedback sharing and recipient lookup. Prepared a concrete proposal for creator/staff-controlled club-wide or individual training read grants, with private feedback preserved, revocation, membership checks, audit and conflict handling; new storage/migration awaits architecture approval. Parent PR #184 has all nine CI jobs green; no application, local database or production change.
+**Prompts used**: il wil een training als roeier of coach kunnen delen met alle leden van de club of met individuele leden
+
 ## [2026-11-15] — Open training visibility review #184
 
 **Session**: codex/feat/training-visibility-help

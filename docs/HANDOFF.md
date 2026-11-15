@@ -1,3 +1,13 @@
+# Pending training sharing proposal — 2026-11-15
+
+New branch `codex/feat/training-sharing`, stacked on open PR #184. Owner requests sharing whole
+trainings with all club members or individual members. Read `docs/plans/training-sharing.md`:
+proposed rower creator/staff management, same-club read-only recipients, private feedback preserved,
+revocation, membership-bound grants, append-only audit and sharing revision. Await architectural
+approval for the new tables/migration before implementation; no application/database change.
+Parent PR #184 is now green: all nine jobs in CI run 43709685832 pass. It is not merged/deployed.
+Its copied local test stack at http://127.0.0.1:5175/projects/rowlens/ remains unchanged.
+
 # Training visibility, primary club and Help — 2026-11-15
 
 Review: [PR #184](https://github.com/ewoutbarendregt/rowlens/pull/184), targeting main; remote CI pending. Local checks pass. No merge/deploy authorized.
