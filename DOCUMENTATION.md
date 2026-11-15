@@ -1,3 +1,10 @@
+## [2026-11-15] — Implement approved training visibility and usage help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: apps/web/src/client/{help,sessions,settings,ui,auth,admin}, apps/web/src/server/{api,auth,db,repositories}, apps/web/src/shared/user-settings.ts, apps/web/e2e, apps/web/playwright.visibility.config.ts, .gitignore, docs/plans/training-visibility-help.md, DOCUMENTATION.md
+**Summary**: Implemented the approved creator/participant rower boundary, primary-club preference/default, authenticated read-only example projection/player and NL/EN Help. Initial validation passes 639/640 checks (remaining expected media-cache assertion), 14 new API/SQL tests and all three primary-club browser cases; final validation and integration onto current main are still in progress. No production action.
+**Prompts used**: ja
+
 ## [2026-11-15] — Propose training visibility, primary club and usage help
 
 **Session**: codex/feat/training-visibility-help

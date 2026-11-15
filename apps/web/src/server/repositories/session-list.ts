@@ -66,6 +66,7 @@ export async function listSessions(
     const rows = await tx
       .select({
         id: rowingSession.id,
+        isExample: rowingSession.isExample,
         title: rowingSession.title,
         date: rowingSession.sessionDate,
         createdAt: rowingSession.createdAt,

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  defaultClubId,
   activeFilters,
   applyFilters,
   crewText,
@@ -166,5 +167,26 @@ describe('created by me', () => {
     ]);
     expect(readFilters(writeFilters(f))).toEqual(f);
     expect(activeFilters(f)).toBe(1);
+  });
+});
+
+describe('primary club default', () => {
+  const clubs = [
+    { id: 'b', name: 'Beta', member: true },
+    { id: 'a', name: 'Alpha', member: true },
+    { id: 'c', name: 'Admin-only', member: false },
+  ];
+  it('uses a valid primary membership and a stable fallback for missing/unavailable preferences', () => {
+    expect(defaultClubId(clubs, 'b')).toBe('b');
+    expect(defaultClubId(clubs, 'c')).toBe('a');
+    expect(defaultClubId(clubs, 'archived')).toBe('a');
+    expect(defaultClubId(clubs)).toBe('a');
+    expect(defaultClubId(clubs.slice(0, 1))).toBe('b');
+    expect(defaultClubId([])).toBeNull();
+  });
+  it('respects explicit URL club/all-clubs choices across reloads', () => {
+    expect(readFilters(new URLSearchParams(), 'b').club).toBe('b');
+    expect(readFilters(new URLSearchParams('clubFilter=a'), 'b').club).toBe('a');
+    expect(readFilters(writeFilters(DEFAULT_FILTERS, true), 'b').club).toBeNull();
   });
 });

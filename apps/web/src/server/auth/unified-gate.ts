@@ -165,7 +165,8 @@ export function createUnifiedGate(opts: {
     authenticate(
       req,
       reply,
-      (req.routeOptions.url ?? '').startsWith(withBasePath(opts.basePath, '/api/me/')),
+      (req.routeOptions.url ?? '').startsWith(withBasePath(opts.basePath, '/api/me/')) ||
+        (req.routeOptions.url ?? '').startsWith(withBasePath(opts.basePath, '/api/examples')),
       req.routeOptions.url === withBasePath(opts.basePath, '/api/admin/users/:id/settings') ||
         managementRoutes.some((path) => req.routeOptions.url === withBasePath(opts.basePath, path)),
     );

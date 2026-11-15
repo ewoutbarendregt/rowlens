@@ -32,11 +32,13 @@ export const profileSchema = z.object({
 });
 export const settingsPatchSchema = preferenceSchema
   .extend(profileSchema.shape)
+  .extend({ primaryClubId: z.uuid().nullable() })
   .partial()
   .strict()
   .refine((patch) => Object.keys(patch).length > 0, 'empty_patch');
 export type SettingsPatch = z.infer<typeof settingsPatchSchema>;
 export interface UserSettings {
+  primaryClubId?: string | null;
   firstName: string | null;
   lastName: string | null;
   defaultBoatType: z.infer<typeof profileSchema>['defaultBoatType'];
@@ -45,6 +47,7 @@ export interface UserSettings {
 }
 
 export const userSettingsSchema = z.object({
+  primaryClubId: z.uuid().nullable().default(null),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
   defaultBoatType: z.enum(BOAT_CLASS_NAMES).nullable(),

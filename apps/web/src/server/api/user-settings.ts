@@ -13,6 +13,7 @@ const bodySchema = z
   })
   .strict();
 const preferences = preferenceSchema
+  .extend({ primaryClubId: z.uuid().nullable() })
   .partial()
   .strict()
   .refine((p) => Object.keys(p).length > 0);

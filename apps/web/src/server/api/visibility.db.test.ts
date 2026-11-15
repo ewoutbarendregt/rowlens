@@ -185,8 +185,8 @@ describe('what a rower sees (#40)', () => {
     expect(linked.map((r) => r.user_id !== null)).toEqual([true, true, false]);
   });
 
-  it('shows all club trainings without disclosing private feedback', async () => {
-    for (const who of ['a', 'b', 'coach', 'coach2', 'admin'] as const) {
+  it('restricts rower reads to creation or participation without disclosing private feedback', async () => {
+    for (const who of ['a', 'coach', 'coach2', 'admin'] as const) {
       expect(await sessionsOf(who)).toContain(sessionId);
       expect((await send('GET', `/api/sessions/${sessionId}`, as[who])).statusCode).toBe(200);
       expect((await send('GET', `/api/videos/${videoId}`, as[who])).statusCode).toBe(200);
@@ -210,7 +210,7 @@ describe('what a rower sees (#40)', () => {
     expect(rows.map((r) => r.id).sort()).toEqual([roster.a, roster.c].sort());
     expect(rows.every((r) => r.email === null && r.userId === undefined)).toBe(true);
     expect(rows.filter((r) => r.mine).map((r) => r.id)).toEqual([roster.a]);
-    expect((await send('GET', `/api/sessions/${sessionId}/rowers`, as.b)).statusCode).toBe(200);
+    expect((await send('GET', `/api/sessions/${sessionId}/rowers`, as.b)).statusCode).toBe(404);
     const status = (await send('GET', '/api/auth/status', as.a)).json<{ user: { id: string } }>();
     const context = { clubId: club, userId: status.user.id, roles: ['rower'] as const };
     const updated = await withTenant(handle.db, context, (tx) =>
@@ -234,14 +234,14 @@ describe('what a rower sees (#40)', () => {
     expect((await notes('a'))?.annotations[0]).toMatchObject({ canEdit: false, mine: false });
   });
 
-  it('a share with one rower opens that note (and its session) to them only', async () => {
+  it('a share alone does not open a training to a non-participant', async () => {
     const res = await send('PUT', `/api/videos/${videoId}/frames/20/shares`, as.coach, {
       rowerIds: [roster.b],
       crew: false,
     });
     expect(res.statusCode).toBe(200);
-    expect(await frames('b')).toEqual([20]);
-    expect(await sessionsOf('b')).toContain(sessionId);
+    expect(await frames('b')).toEqual([]);
+    expect(await sessionsOf('b')).not.toContain(sessionId);
     expect(await frames('a')).toEqual([10]);
   });
 
@@ -253,7 +253,7 @@ describe('what a rower sees (#40)', () => {
       crew: true,
     });
     expect(await frames('a')).toEqual([10]);
-    expect(await frames('b')).toEqual([20]); // B is not in the lineup
+    expect(await frames('b')).toEqual([]); // B is not in the lineup
   });
 
   it('refuses all sharing changes in another training, even on visible feedback', async () => {
@@ -265,7 +265,7 @@ describe('what a rower sees (#40)', () => {
       expect(
         (await send('PUT', `/api/videos/${videoId}/frames/10/shares`, as.a, body)).statusCode,
       ).toBe(404);
-    expect(await frames('b')).toEqual([20]);
+    expect(await frames('b')).toEqual([]);
     expect((await notes('a'))?.shares.find((s) => s.frame === 10)?.crew).toMatchObject({
       canUnshare: false,
     });
@@ -341,7 +341,7 @@ describe('what a rower sees (#40)', () => {
     });
     const own = created.json<{ id: string }>().id;
     expect(await sessionsOf('b')).toContain(own);
-    expect(await sessionsOf('a')).toContain(own);
+    expect(await sessionsOf('a')).not.toContain(own);
     const lineup = await send('PUT', `/api/sessions/${own}/lineup`, as.b, {
       boatType: 'C1x',
       seats: [{ seat: 1, rowerId: roster.b }],
@@ -473,7 +473,9 @@ describe('what a rower sees (#40)', () => {
       'club_access',
       'club_access_log',
       'club_application_notice',
+      'job',
       'lineup_seat',
+      'login_code',
       'membership',
       'membership_application',
       'moment',
@@ -483,6 +485,7 @@ describe('what a rower sees (#40)', () => {
       'rower',
       'rowing_session',
       'stroke_mark',
+      'user_session',
       'user_settings_audit',
       'video',
       'video_annotation_reference',

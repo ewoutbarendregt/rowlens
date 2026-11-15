@@ -23,7 +23,7 @@ const en = {
   noticeTitle: 'About this pilot',
   notice: [
     'This is a test version for one rowing club.',
-    'Videos contain real people and are visible only to signed-in club members.',
+    'Videos contain real people. Access to trainings depends on your role and participation; administrator examples are visible to all signed-in users.',
     'Videos are not backed up during the pilot: if the server is lost, they are gone.',
   ],
   signedIn: 'Signed in for 30 days on this device as',
@@ -69,7 +69,7 @@ const nl: typeof en = {
   noticeTitle: 'Over deze pilot',
   notice: [
     'Dit is een testversie voor één roeiclub.',
-    'Video’s bevatten echte mensen en zijn alleen zichtbaar voor ingelogde clubleden.',
+    'Video’s bevatten echte mensen. Je rol en deelname bepalen welke trainingen je ziet; voorbeelden van de beheerder zijn voor iedereen die is ingelogd zichtbaar.',
     'Tijdens de pilot worden video’s niet geback-upt: gaat de server verloren, dan zijn ze weg.',
   ],
   signedIn: 'Je bent op dit apparaat 30 dagen ingelogd als',

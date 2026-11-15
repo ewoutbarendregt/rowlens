@@ -1,3 +1,7 @@
+import { Examples } from '../help/Examples.tsx';
+import { helpStrings } from '../help/strings.ts';
+import { useOwnSettings } from '../settings/controller.ts';
+import { defaultClubId } from './filter.ts';
 import { admissionStrings } from '../admin/admission-strings.ts';
 import { appUrl } from '../env.ts';
 import { type SubmitEvent, useEffect, useId, useRef, useState } from 'react';
@@ -31,6 +35,7 @@ import { DEFAULT_BOAT } from '../ui/ProfileForm.tsx';
 
 interface SessionSummary extends SessionRow {
   id: string;
+  isExample?: boolean;
   clubId?: string;
   clubName?: string;
   boatType: BoatClass | null;
@@ -58,12 +63,28 @@ export function SessionsPage() {
   const navigate = useNavigate();
   const formId = useId();
   const [params, setParams] = useSearchParams();
+  const personal = useOwnSettings();
+  const defaultClub =
+    state.kind === 'open'
+      ? defaultClubId(state.clubs ?? [], personal.settings?.primaryClubId)
+      : null;
+  const initialized = useRef(false);
+  const [filtersReady, setFiltersReady] = useState(false);
   // The page owns the filters; the URL mirrors them (reload and shared links keep them). Inputs bound
   // straight to the URL lag behind on phones, where the router updates it asynchronously.
   const [filters, setFilters] = useState<Filters>(() => readFilters(params));
   useEffect(() => {
-    setParams(writeFilters(filters), { replace: true });
-  }, [filters, setParams]);
+    if (!filtersReady) return;
+    setParams(writeFilters(filters, state.kind === 'open' && state.unified === true), {
+      replace: true,
+    });
+  }, [filters, setParams, filtersReady, state.kind, state.kind === 'open' && state.unified]);
+  useEffect(() => {
+    if (initialized.current || personal.loading) return;
+    initialized.current = true;
+    setFilters(readFilters(params, defaultClub));
+    setFiltersReady(true);
+  }, [personal.loading, params, defaultClub]);
   const roster = useRoster();
   const [createClub, setCreateClub] = useState(state.kind === 'open' ? (state.club.id ?? '') : '');
   const actor = state.kind === 'open' ? state.user.id : null;
@@ -101,7 +122,7 @@ export function SessionsPage() {
         rows.push(...body.sessions);
         cursor.next = body.next ?? null;
       } while (cursor.next);
-      setSessions(rows);
+      setSessions(unified ? rows.filter((s) => !s.isExample) : rows);
     })().catch(() => {
       if (!load.signal.aborted) setFailed(true);
     });
@@ -198,6 +219,9 @@ export function SessionsPage() {
           </button>
         )}
       </div>
+      {unified && !state.clubs?.some((c) => c.member) && !state.user.platformAdmin && (
+        <p className="callout">{helpStrings().noClub}</p>
+      )}
       {failed && <p role="alert">{t.loadFailed}</p>}
       {unlinked && (
         <p className="callout" role="status" data-testid="unlinked">
@@ -429,7 +453,11 @@ export function SessionsPage() {
               type="button"
               className="button--quiet"
               onClick={() => {
-                setFilters((current) => ({ ...DEFAULT_FILTERS, sort: current.sort }));
+                setFilters((current) => ({
+                  ...DEFAULT_FILTERS,
+                  club: defaultClub,
+                  sort: current.sort,
+                }));
               }}
             >
               {t.clearFilters}
@@ -520,6 +548,7 @@ export function SessionsPage() {
           ))}
         </div>
       )}
+      {unified && <Examples />}
     </main>
   );
 }

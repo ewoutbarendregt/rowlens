@@ -1,6 +1,6 @@
 # Training visibility, primary club and help
 
-Status: proposed; awaiting Ewout's architectural approval (2026-11-15).
+Status: approved by Ewout with “ja” (2026-11-15); implementation and verification in progress.
 Branch: `codex/feat/training-visibility-help`.
 
 ## Findings
