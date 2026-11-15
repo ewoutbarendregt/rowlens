@@ -1,3 +1,10 @@
+## [2026-11-15] — Deploy training visibility and club sharing as 0.0.63
+
+**Session**: codex/docs/training-sharing-deployment
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, PLAN.md, FEATURES.md, TEST.md
+**Summary**: On Ewout's explicit request, squash-merged #184 (975a734) without deleting its parent branch, retargeted #185 to main and preserved its reviewed tree through a non-forced merge commit; the branch tree exactly matched the final squash 4ec6e71. Nine PR checks passed (43739977943), then main CI43740863692 and images43740863605 passed. Deploy43741547001 succeeded at 17:32 UTC, publishing numeric release 0.0.63 / sha-4ec6e71 with migrations 0029–0030 (30 total). Readiness DB ok; 9 trainings, 20 videos, 10 accounts/memberships, 1 club and 10 lineup seats preserved; exactly 3 expected admin examples, no sharing grants/events yet. Three anonymous production browser checks (1000×540, 1440×900 Chromium, iPhone13 WebKit) show 0.0.63 and no horizontal overflow; all three neighbouring public URLs return 200 and their containers retain the same IDs/images. Only RowLens web/worker/database containers were recreated by the standard workflow; no shared infrastructure, .env or installed compose change, no test signup/OTP/message, and no bot PR was accepted. Authenticated workflows were verified in local/CI test data, not exercised with real production accounts. The known release workflow failure is unrelated to the successful images/CI/deploy gates.
+**Prompts used**: merge en deploy maar
+
 ## [2026-11-15] — Explain the local 0.0.0 version label
 
 **Session**: codex/feat/training-sharing

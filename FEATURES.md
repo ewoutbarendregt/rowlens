@@ -1,3 +1,10 @@
+## Production status — 2026-11-15
+
+Release **0.0.63 / sha-4ec6e71** includes #184 and #185: creator/participant training visibility,
+primary-club default, authenticated global examples, NL/EN Help and explicit read-only club/member
+training sharing. Migrations 0029–0030 are live (30 total). See TEST.md for rollout verification;
+earlier local-only statuses below are historical.
+
 ## 2026-11-15 — Whole-training sharing within the club
 
 Implemented locally: rowers share their own trainings and coaches/admins share club trainings with

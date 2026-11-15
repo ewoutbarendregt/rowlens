@@ -1,3 +1,22 @@
+# Production 0.0.63 — 2026-11-15
+
+Ewout explicitly requested “merge en deploy maar”. PRs [#184](https://github.com/ewoutbarendregt/rowlens/pull/184)
+and [#185](https://github.com/ewoutbarendregt/rowlens/pull/185) are merged; production runs
+**0.0.63 / sha-4ec6e71**. Main CI43740863692, images43740863605 and deploy43741547001 pass
+(deploy completed 17:32 UTC). Migrations 0029/0030 applied, **30 total**, readiness DB ok.
+Creator/participant visibility, primary-club filter, global admin examples, permanent Help and
+explicit club/member training sharing are live. Exactly 3 expected existing examples were marked;
+9 trainings/20 videos/10 accounts/10 memberships/1 club/10 seats are preserved, no grants/events yet.
+Anonymous production login checks pass at 1000×540, 1440×900 and iPhone13 WebKit with release
+0.0.63 and no horizontal overflow. Neighbour URLs return 200 and non-RowLens container IDs/images
+are unchanged. Real production accounts were not used for write tests or OTP delivery.
+
+Deployment evidence is in TEST.md, DOCUMENTATION.md and docs/runbooks/server-setup.md. Keep
+this deployment-log PR separate; older open log PRs and bot PRs were not merged. No further
+production work is authorized by this completed deployment. Local review copy remains at
+http://127.0.0.1:5175/projects/rowlens/ (API3101/DB5436); original checkout/local stack untouched.
+The implementation notes below are historical; their earlier “no deploy authorized” status is superseded.
+
 # Whole-training sharing implementation — 2026-11-15
 
 Local version-label finding: APP_RELEASE is unset in the test stack, so the client falls back to the package.json base 0.0.0. Production image numbering is supplied by GITHUB_RUN_NUMBER. No version/configuration change was made; the local label is not a build identifier.
