@@ -1,3 +1,10 @@
+## [2026-11-15] — Open club training-sharing review #185
+
+**Session**: codex/feat/training-sharing
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened [PR #185](https://github.com/ewoutbarendregt/rowlens/pull/185), stacked on #184, with the security review note and local verification. All local checks pass: 694 web/DB, 106 browser cases (including nine new sharing/race cases on low/normal laptop and iPhone WebKit), 50 worker, 77 deploy-script, format/lint/typecheck/build. Copied local review at http://127.0.0.1:5175/projects/rowlens/ is ready with 30 migrations; remote CI is pending. No merge, production change or message delivery was performed.
+**Prompts used**: ja
+
 ## [2026-11-15] — Implement whole-training sharing within the club
 
 **Session**: codex/feat/training-sharing

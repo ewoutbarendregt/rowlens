@@ -1,5 +1,7 @@
 # Whole-training sharing implementation — 2026-11-15
 
+Review: [PR #185](https://github.com/ewoutbarendregt/rowlens/pull/185), stacked on #184. All local checks pass; remote CI pending. Keep the parent branch through an authorized merge and retarget #185 afterwards.
+
 Owner approved `docs/plans/training-sharing.md` with “ja”. Implemented on
 `codex/feat/training-sharing`, based on open PR #184 (nine parent CI checks green). Read ADR-0029:
 migration0030 adds tenant member/club read grants, compare-and-set sharing revision and retained
@@ -15,7 +17,7 @@ Local copied stack remains http://127.0.0.1:5175/projects/rowlens/, API3101, DB5
 readiness DB ok. Original checkout/local stack and production are unchanged. SMTP remains disabled.
 Checks: 694 full web/DB, 16 focused sharing, nine new browser cases, 51 general/six reuse/six visibility,
 50 worker pass. A captured unified WebKit navigation race was fixed; final browser checks are green (106 cases);
-PR status are recorded in the newest DOCUMENTATION.md entry. No merge/deploy authorized. Keep a
+PR status is recorded in the newest DOCUMENTATION.md entry. No merge/deploy authorized. Keep a
 separate stacked PR on #184; follow the repository's parent-branch retention/retargeting instructions.
 
 # Training visibility, primary club and Help — 2026-11-15
