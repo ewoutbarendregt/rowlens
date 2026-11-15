@@ -1,3 +1,29 @@
+## 2026-11-15 — Missing-example report, read-only production diagnosis
+
+- 3 active example sessions, matching all 3 current platform-admin-created sessions.
+- Verified rower-only context, SET LOCAL ROLE rowlens_app: discovery **3**, safe session/club
+  projection **1 row for each of 3**. Context settings were transaction-local; READ ONLY/ROLLBACK.
+- Recent application logs: **8/8** /api/examples requests returned HTTP200; no identities/content logged.
+- Affected user's exact account/training/environment remains unconfirmed. These diagnostics do
+  not establish that their browser renders the example block. No production data/config change.
+
+## 2026-11-15 — Production 0.0.63 rollout
+
+- PR #184 CI43709685832 passed; retargeted #185 CI43739977943 passed all nine jobs.
+  Main CI43740863692 and images43740863605 passed for 4ec6e71; deploy43741547001 succeeded
+  at 17:32 UTC with public URL verification. The known release workflow failure is not a deploy gate.
+- Readiness HTTP200: sha-4ec6e71, DB ok; build-info and production login show **0.0.63**.
+  Migrations **28 → 30**, including 0029 and 0030; expected administrator example backfill **3**.
+- Preserved aggregate counts: **9** trainings, **20** videos, **10** accounts, **10** memberships,
+  **1** club, **10** seats. Sharing grants/events both **0** immediately after rollout.
+- Anonymous production login smoke: **3/3** (Chromium1000×540, Chromium1440×900, iPhone13
+  WebKit390×664), HTTP200, correct version and document width equal to viewport width.
+  Authenticated sharing/visibility workflows use synthetic local/CI fixtures; no production write test.
+- Neighbour URLs **3/3 HTTP200**: trustable.nl, api.trustable.nl/api/health and AudioScribe.
+  All six non-RowLens containers retain IDs/images. Standard deploy recreated RowLens web/worker
+  and database containers; web/DB healthy, worker running. No infrastructure/.env/compose edits,
+  production OTP/signup/message, or third-party PR acceptance.
+
 ## 2026-11-15 — Whole-training sharing, privacy, races and mobile controls
 
 - Full web/unit/database run: **694/694**, 65 files. New focused sharing set **16/16**.

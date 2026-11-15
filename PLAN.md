@@ -1,3 +1,10 @@
+## Production rollout completed — 2026-11-15
+
+Training visibility/primary club/examples/Help (#184) and explicit club/member sharing (#185)
+are deployed as **0.0.63 / sha-4ec6e71**, at Ewout's explicit request. CI/images/deploy pass;
+production has 30 migrations and preserved aggregate data. Details: TEST.md and docs/HANDOFF.md.
+Earlier local-only status entries below describe the implementation history.
+
 ## Whole-training sharing — implemented locally (2026-11-15)
 
 Owner approved `docs/plans/training-sharing.md` with “ja”. ADR-0029/migration 0030 add creator/staff
