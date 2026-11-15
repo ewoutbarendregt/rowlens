@@ -1,3 +1,34 @@
+## Authenticated examples and primary club (2026-11-15)
+
+ADR-0028/migration 0029 supersede club-wide rower reads. `rowlens_can_read_training_row` uses creator
+or actual linked lineup membership (seat 0 included), while current staff keep club-wide access.
+Feedback helpers require accessible parents; shared notes cannot open an unrelated training.
+`app_user.primary_club_id` is validated against the settings subject's active memberships through
+existing revision-checked functions. URL filters override the initial primary/alphabetical default.
+
+`rowing_session.is_example` is stamped by a protected platform-authority trigger and immutable to
+application updates. Backfill uses current persisted platform creators only. `rowlens_examples`
+returns discovery IDs; `repositories/examples.ts` reads each in a separate tenant/example scope.
+All tenant tables carry restrictive example read/write boundaries. The dedicated projection includes
+only session/crew display data, video metadata, stroke marks and angle/boat-line measurements.
+No private feedback, source annotation references, emails, original filenames, storage keys or
+administration endpoints are exposed. Shared media streaming checks the physical asset directory
+and authorizes the logical entry. Media uses private/no-store. Archived examples disappear.
+
+`/examples/:id` is read-only for any authenticated account; normal club management remains separate.
+`/help` works without membership and links from the header/Examples section, with NL/EN instructions.
+`pnpm --filter @rowlens/web e2e:visibility` runs six synthetic scenarios at 1000x540, 1440x900 and
+iPhone13 WebKit and is included after the unified suite in CI. Dedicated test fixture code is local
+E2E only; no new runtime dependency/processor is introduced.
+
+Local review uses a separate RowLens compose project `rowlens-visibility`, copied database/media,
+DB 5436, API 3101 and Vite 5175. Its ignored `.env` contains copied local account configuration with
+SMTP disabled. The original checkout, database/media and running local stack were not modified.
+Local compose configuration: `/tmp/rowlens-visibility-compose.json`; dev log:
+`/tmp/rowlens-training-visibility-dev.log`. To restart in this worktree, start that compose project's
+DB/worker, then `NODE_OPTIONS=--dns-result-order=ipv4first pnpm dev`. Use
+http://127.0.0.1:5175/projects/rowlens/ (separate cookie host from localhost).
+
 # BUILD
 
 ## CI feedback time (2026-11-10)

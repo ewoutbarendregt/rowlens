@@ -67,14 +67,14 @@ export async function seedVisibility(ownerUrl: string, mediaRoot: string) {
     const example = await create(gamma, 'RowLens voorbeeld', platform.id);
     await db.query('commit');
     const clip = (
-      await db.query<{ id: string }>(
-        "insert into video(club_id,session_id,original_filename,content_type,perspective,size_bytes,status,frame_count,fps_num,fps_den,width,height,duration_ms) values($1,$2,'synthetic.webm','video/webm','bank',1,'ready',120,30,1,640,360,4000) returning id",
+      await db.query<{ id: string; asset_id: string }>(
+        "insert into video(club_id,session_id,original_filename,content_type,perspective,size_bytes,status,frame_count,fps_num,fps_den,width,height,duration_ms) values($1,$2,'synthetic.webm','video/webm','bank',1,'ready',120,30,1,640,360,4000) returning id,asset_id",
         [gamma, example],
       )
     ).rows[0];
     if (!clip) throw new Error('Missing fixture video');
     const bytes = await readFile(new URL('../public/demo-media/e2e-boat.webm', import.meta.url));
-    const key = videoKey(gamma, clip.id) + '/play-540';
+    const key = videoKey(gamma, clip.asset_id) + '/play-540';
     await new MediaStore(mediaRoot).append(key, Readable.from(bytes), bytes.length);
     await db.query('update video set renditions=$1::jsonb where id=$2', [
       JSON.stringify([

@@ -110,7 +110,10 @@ beforeAll(async () => {
     "insert into account_session(user_id,token_hash,csrf_hash,expires_at) values($1,$2,$3,now()+interval '1 day')",
     [viewer, sha256(token), sha256(csrf)],
   );
-  const key = videoKey(clubs.b, video) + '/play-540';
+  const [asset] = await asOwner<{ asset_id: string }>('select asset_id from video where id=$1', [
+    video,
+  ]);
+  const key = videoKey(clubs.b, asset?.asset_id ?? video) + '/play-540';
   await media.append(key, Readable.from(Buffer.from('demo')), 4);
   await asOwner(
     "update video set status='ready',fps_num=30,fps_den=1,width=640,height=360,renditions=$2::jsonb where id=$1",
@@ -273,6 +276,14 @@ describe('authenticated example API', () => {
     expect(created?.is_example).toBe(false);
     await asOwner('delete from platform_admin where user_id=$1', [platform]);
     expect((await call(`/api/examples/${example}`)).statusCode).toBe(200);
+  });
+  it('refuses importing a primary club as a legacy device preference', async () => {
+    const r = await call('/api/me/settings', 'PATCH', {
+      revision: 0,
+      changes: { primaryClubId: clubs.a },
+      importLegacy: true,
+    });
+    expect(r.statusCode).toBe(400);
   });
   it('withdraws examples immediately when their club is archived', async () => {
     await asOwner('update club set archived_at=now() where id=$1', [clubs.b]);

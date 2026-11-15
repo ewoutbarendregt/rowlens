@@ -1,5 +1,7 @@
+import { withBasePath } from '../src/shared/base-path.ts';
 import { expect, test } from '@playwright/test';
 import { signIn } from './helpers.ts';
+test.skip(process.env['E2E_UNIFIED'] !== 'true', 'Requires the isolated visibility configuration');
 async function layout(page: import('@playwright/test').Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
@@ -53,6 +55,10 @@ test('primary club, participation boundary, examples and saved filter choices', 
   expect((await save).ok()).toBe(true);
   await page.goto('./sessions');
   await expect(club.locator('option:checked')).toHaveText('Alpha testclub');
+  await expect(page.getByRole('link', { name: 'Eigen Alpha', exact: true })).toBeVisible();
+  await expect(
+    page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
+  ).toBeVisible();
   await layout(page);
   await page.screenshot({ path: info.outputPath('primary-club.png'), fullPage: true });
   // Reset to the initial preference so every viewport starts with the same fixture.
@@ -88,15 +94,28 @@ test('example playback and Help work for a club member and a clubless account', 
   // Unnamed clubless registrations can open Help/examples without inventing a membership.
   await page.context().clearCookies();
   await page.goto('./');
-  await page.getByRole('button', { name: 'Account aanmaken', exact: true }).click();
-  await page
-    .getByLabel('E-mailadres', { exact: true })
-    .fill(`clubless-${info.project.name}@example.test`);
-  await page.getByLabel('Club', { exact: true }).selectOption('none');
-  await page.getByRole('button', { name: 'Bevestigingscode versturen', exact: true }).click();
-  await page.getByLabel('Inlogcode', { exact: true }).fill('284619');
-  await page.getByRole('button', { name: 'Bevestigen en aanmelden', exact: true }).click();
-  await expect(page.getByTestId('registration-result')).toBeVisible();
+  const statuses = await page.evaluate(
+    async ({ otp, verify, email }) => {
+      const registered = await fetch(otp, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, clubId: null }),
+      });
+      const { requestId } = (await registered.json()) as { requestId: string };
+      const verified = await fetch(verify, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, code: '284619', requestId }),
+      });
+      return [registered.status, verified.status];
+    },
+    {
+      otp: withBasePath('/projects/rowlens', '/api/auth/registration/otp'),
+      verify: withBasePath('/projects/rowlens', '/api/auth/registration/verify'),
+      email: `clubless-${info.project.name}@example.test`,
+    },
+  );
+  expect(statuses).toEqual([202, 204]);
   await page.goto('./help');
   await expect(
     page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),

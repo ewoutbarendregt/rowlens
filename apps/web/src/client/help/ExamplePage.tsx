@@ -1,3 +1,4 @@
+import { angleStrings } from '../angles/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
@@ -74,6 +75,19 @@ export function ExamplePage() {
   const size = { width: v?.width ?? 1, height: v?.height ?? 1 };
   const summary = strokesFrom(v?.marks ?? [], fps);
   const phase = phaseOf(frame, summary);
+  const computed = middle
+    ? summary.strokes.flatMap((s) =>
+        s.driveMiddle === null || s.halfSlideDrive !== null
+          ? []
+          : [
+              {
+                frame: s.driveMiddle,
+                kind: 'drive_middle' as const,
+                label: st.markLabel(st.driveMiddle, s.number, s.driveMiddle),
+              },
+            ],
+      )
+    : [];
   const jump = (f: number) => player.current?.seekToFrame(f);
   return (
     <main className="page page--wide example-viewer">
@@ -130,11 +144,15 @@ export function ExamplePage() {
             fps={fps}
             onFrame={setFrame}
             handle={player}
-            strokeMarks={v.marks.map((m) => ({
-              ...m,
-              label: st.markLabel(st.kinds[m.kind], null, m.frame),
-            }))}
+            strokeMarks={[
+              ...v.marks.map((m) => ({
+                ...m,
+                label: st.markLabel(st.kinds[m.kind], null, m.frame),
+              })),
+              ...computed,
+            ].sort((a, b) => a.frame - b.frame)}
           />
+          <h2>{st.strokes}</h2>
           <StrokesPanel
             summary={summary}
             marks={v.marks}
@@ -150,6 +168,7 @@ export function ExamplePage() {
             driveMiddle={middle}
             onDriveMiddleChange={setMiddle}
           />
+          <h2>{angleStrings().angles}</h2>
           <AnglesPanel
             tables={angleTables(
               v.measures,

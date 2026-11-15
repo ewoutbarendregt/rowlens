@@ -4,6 +4,7 @@ const en = {
   help: 'Help',
   examples: 'Example trainings',
   example: 'Example training',
+  noExamples: 'No examples are available yet.',
   exampleIntro:
     'Explore how RowLens works. These examples are available to every signed-in user, independently of your club filters.',
   readOnly: 'This example is read-only. Private feedback is not included.',
@@ -36,7 +37,7 @@ const en = {
     [
       'upload',
       'Add video',
-      'Open the training and choose Add videos. Select the recordings and their filming perspective. Keep the page open until the upload finishes. Processing may take a while; the training refreshes its progress. Start playback once the video is ready. Upload controls appear only when you may edit the training.',
+      'Open the training and choose Add videos. Select the recordings and their filming perspective. Keep the page open until the upload finishes. Processing may take a while; the training refreshes its progress. Start playback once the video is ready. Upload controls appear only when you may edit the training. Where Add existing video is available, you can reuse an accessible recording from the same club; your training keeps its own feedback and analysis. Linked source feedback stays read-only and requires continued source access.',
     ],
     [
       'playback',
@@ -75,6 +76,7 @@ const nl: typeof en = {
   help: 'Uitleg',
   examples: 'Voorbeeldtrainingen',
   example: 'Voorbeeldtraining',
+  noExamples: 'Er zijn nog geen voorbeelden beschikbaar.',
   exampleIntro:
     'Ontdek hoe RowLens werkt. Deze voorbeelden zijn beschikbaar voor iedereen die is ingelogd, ongeacht je clubfilters.',
   readOnly: 'Dit voorbeeld kun je alleen bekijken. Privéfeedback wordt niet getoond.',
@@ -107,7 +109,7 @@ const nl: typeof en = {
     [
       'upload',
       'Voeg video toe',
-      'Open de training en kies Video’s toevoegen. Selecteer de opnamen en het perspectief waaruit is gefilmd. Houd de pagina open tot het uploaden klaar is. Verwerken kan even duren; de training ververst de voortgang. Speel de video af zodra deze klaar is. Uploadknoppen verschijnen alleen als je de training mag bewerken.',
+      'Open de training en kies Video’s toevoegen. Selecteer de opnamen en het perspectief waaruit is gefilmd. Houd de pagina open tot het uploaden klaar is. Verwerken kan even duren; de training ververst de voortgang. Speel de video af zodra deze klaar is. Uploadknoppen verschijnen alleen als je de training mag bewerken. Via Bestaande video toevoegen kun je waar beschikbaar een toegankelijke opname van dezelfde club hergebruiken; feedback en analyse blijven van je eigen training. Gekoppelde bronfeedback is alleen te bekijken zolang je toegang tot de bron houdt.',
     ],
     [
       'playback',

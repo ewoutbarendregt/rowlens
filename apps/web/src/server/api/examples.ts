@@ -34,7 +34,12 @@ export const exampleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
       if (!scope) return notFound(reply);
       const [v] = await withTenant(db, scope, (tx) =>
         tx
-          .select({ id: video.id, status: video.status, renditions: video.renditions })
+          .select({
+            id: video.id,
+            assetId: video.assetId,
+            status: video.status,
+            renditions: video.renditions,
+          })
           .from(video)
           .where(and(eq(video.id, p.data.videoId), eq(video.sessionId, p.data.id))),
       );

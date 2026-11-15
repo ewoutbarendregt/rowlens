@@ -1,3 +1,23 @@
+### [BUG-062] Rower training visibility exceeds creator/participant scope — medium
+**Location**: apps/web/src/server/db/migrations/0019_club_training_permissions.sql
+**Status**: fixed
+**Found**: 2026-11-15
+**Description**: The earlier approved club-wide read policy does not meet the revised requirement:
+rowers must see only trainings they created or participate in. Parent feedback checks must enforce
+this even for old own/shared feedback. Staff access and deliberately published examples are separate.
+**Fix**: ADR-0028/migration 0029 adds creator/lineup read scope, parent feedback checks and isolated
+read-only authenticated example access, with API/SQL and browser regressions.
+
+### [BUG-063] Lineup browser fixture submits before asynchronous rower selection — low
+**Location**: apps/web/e2e/lineup.spec.ts
+**Status**: fixed
+**Found**: 2026-11-15
+**Description**: A typed name satisfies the input-value assertion before inline account creation
+selects the rower. The captured save request contained seat 1 only, so the server correctly saved
+one seat and the reload assertion failed.
+**Fix**: Wait for the picker to close after completed selection before saving; desktop/mobile
+focused checks pass. No product behavior change was needed for this test race.
+
 # BUGS
 
 Known issues and fix status. Format: see `~/.claude/CLAUDE.md`.

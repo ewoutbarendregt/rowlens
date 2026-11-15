@@ -1,10 +1,19 @@
-# Training visibility and help proposal (2026-11-15)
+# Training visibility, primary club and Help — implemented (2026-11-15)
 
-Prepared `docs/plans/training-visibility-help.md` for creator/participant-only rower reads,
-central primary-club settings, authenticated cross-club read-only administrator examples and a
-permanent NL/EN Help page. Architectural approval is pending for the coordinated migration and
-narrow example-access exception. No functional code or database has changed. Original unrelated
-club-editor and local analysis edits remain untouched in the original checkout.
+Owner approved the proposal with “ja”. ADR-0028/migration 0029 implement creator/participant-only
+rower reading (including cox), central primary-club defaults, authenticated cross-club read-only
+administrator examples and a permanent NL/EN Help page. Existing staff/edit/private-feedback
+boundaries and shared media assets are preserved. The branch is rebased onto current origin/main
+without the original checkout's unrelated analysis/club-editor changes. Local review runs at
+http://127.0.0.1:5175/projects/rowlens/ on a separate copy of the development database/media
+(API 3101, DB 5436; 29 migrations); original ports 5174/5434 are unchanged. No production change.
+
+Validation: 677 full web/DB tests plus 32 final settings/example tests, 6 new browser scenarios
+(1000x540, 1440x900, iPhone13 WebKit), 34 unified browser cases, 6 reuse browser cases, 50 worker
+and 77 deployment-script checks pass. General browser validation: initial 48 pass/3 fail; updated
+old permission expectations and waited for asynchronous lineup selection, then focused 4/4 pass;
+final complete general browser rerun passes **51/51** (97 environment-specific cases skipped). Formatting/lint/typecheck/build checked.
+Next: owner reviews locally; PR/CI follows normal workflow. Merge/deploy require an explicit request.
 
 # PLAN
 

@@ -26,3 +26,14 @@ for platform administration. Administrative actions retain the real actor and cl
 audit records; a club administrator cannot confer platform authority. No new external processor is
 introduced. Historical name-only sporting references remain preserved until explicitly linked to
 real verified accounts; no fabricated accounts or automatic name-based matching is used.
+
+## Authenticated training examples (ADR-0028)
+
+Trainings created by a RowLens platform administrator are examples visible to every verified,
+signed-in account, including people without club membership or from other clubs. The dedicated
+viewer exposes example video, training/crew display information and technique measurements.
+Private notes/drawings, assignments/shares, source feedback references, account email addresses,
+original filenames and administrative directories are excluded. Examples remain read-only outside
+their normal club management context. Archiving the owning club removes access. Administrators
+must use footage and crew details suitable for this example audience. No data is sent to an
+external AI service by this feature. Existing ordinary club and feedback boundaries still apply.

@@ -1,6 +1,6 @@
 # Training visibility, primary club and help
 
-Status: approved by Ewout with “ja” (2026-11-15); implementation and verification in progress.
+Status: approved by Ewout with “ja” (2026-11-15); implemented with migration 0029 and ADR-0028; verified locally; ready for owner review.
 Branch: `codex/feat/training-visibility-help`.
 
 ## Findings
@@ -50,11 +50,10 @@ untouched in the original checkout; this proposal is isolated in a managed workt
   club selection and primary club. Describe only implemented capabilities and role-appropriate
   controls. Use screenshots/media only if synthetic or explicitly approved for this purpose.
 
-## Architecture requiring approval
+## Approved architecture
 
 Add one coordinated additive migration for the primary-club preference, persisted example
-classification and protected read policies/functions. Follow the migration number at implementation
- time; the original checkout already contains an unrelated uncommitted migration 0027.
+classification and protected read policies/functions. The final migration is 0029, following main’s video-reuse migration 0028; the original checkout already contains an unrelated uncommitted migration 0027.
 
 Ordinary content retains `TenantContext` plus restrictive RLS. Example discovery exposes only
 published example IDs and owning club IDs through a narrow protected function. Resolve each example

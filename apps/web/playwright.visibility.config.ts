@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 import base from './playwright.unified.config.ts';
+const server = base.webServer;
+if (!server || Array.isArray(server))
+  throw new Error('Visibility tests require the isolated local server');
 export default defineConfig({
   ...base,
   testMatch: 'training-visibility.spec.ts',
@@ -15,11 +18,5 @@ export default defineConfig({
     },
     { name: 'iphone-webkit', use: { ...devices['iPhone 13'] } },
   ],
-  webServer: {
-    ...(!Array.isArray(base.webServer) ? base.webServer : {}),
-    env: {
-      ...(!Array.isArray(base.webServer) ? base.webServer?.env : {}),
-      E2E_TRAINING_VISIBILITY: 'true',
-    },
-  },
+  webServer: { ...server, env: { ...server.env, E2E_TRAINING_VISIBILITY: 'true' } },
 });

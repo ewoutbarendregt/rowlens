@@ -1,3 +1,10 @@
+## [2026-11-15] — Complete training visibility, primary club, examples and Help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: .github/workflows/ci.yml, .gitignore, apps/web/package.json, apps/web/tsconfig.json, apps/web/playwright.visibility.config.ts, apps/web/e2e/{server,visibility-fixture,training-visibility,unified-users,training-permissions,lineup}, apps/web/src/client/{help,sessions,settings,ui,auth,admin}, apps/web/src/server/{api,auth,db,repositories}, apps/web/src/shared/user-settings.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, docs/adr/{0028-training-visibility-and-examples.md,README.md}, docs/plans/training-visibility-help.md, docs/privacy/processors.md, DOCUMENTATION.md
+**Summary**: Implemented the approved creator/participant-only rower boundary, primary-club setting/default, read-only examples for all signed-in accounts and permanent NL/EN Help. Rebased only this work onto current main and integrated physical shared-video assets; isolated local review uses a copied DB/media on 127.0.0.1:5175 (29 migrations), preserving the original checkout/stack. Validation: 677 full web/DB plus 32 final focused settings/example tests, 6 new/34 unified/6 reuse browser cases, 50 worker and 77 deploy-script checks pass; general first48/3fail then focused4/4 pass, complete general rerun51/51 passes. No production action.
+**Prompts used**: ja
+
 ## [2026-11-15] — Implement approved training visibility and usage help
 
 **Session**: codex/feat/training-visibility-help

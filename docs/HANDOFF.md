@@ -1,12 +1,28 @@
-# Pending training visibility and Help proposal — 2026-11-15
+# Training visibility, primary club and Help — 2026-11-15
 
-Branch `codex/feat/training-visibility-help`, isolated managed worktree. Read
-`docs/plans/training-visibility-help.md`: owner requests own/participating trainings only for
-rowers, default primary membership filter, globally visible administrator examples and usage help.
-Existing ADR-0020 deliberately allows club-wide reads; primary-club persistence and example access
-require migration/architecture approval. Proposal uses signed-in read-only examples in a separate
-filter-independent section and a header Help link. Await approval before implementation; no
-functional changes, tests or production actions. Original dirty checkout was left untouched.
+Owner approved the proposal with “ja”. Implemented on `codex/feat/training-visibility-help` in
+`/Users/ewout/.codex/worktrees/training-visibility-plan/rowlens`, rebased onto current `origin/main`
+(dd617c6); the original dirty checkout and its experiments were preserved. Read ADR-0028 and
+`docs/plans/training-visibility-help.md`. Migration 0029 follows main's shared-video migration 0028.
+
+Rower-only accounts read creator/actual participant trainings (cox included); staff retain current
+club scope. Primary membership preference controls the initial filter; explicit URL choices win.
+Platform-created trainings are stamped as examples, including a narrow existing-creator backfill;
+all verified accounts can view them through dedicated read-only routes, regardless of club or
+membership. Private feedback/account information is excluded. Help is a permanent NL/EN header link.
+
+Local review: http://127.0.0.1:5175/projects/rowlens/ with a separate copied database/media, API3101,
+DB5436, compose project `rowlens-visibility`, 29 migrations, readiness DB ok. SMTP is disabled so
+local OTPs appear only in `/tmp/rowlens-training-visibility-dev.log`. The ignored `.env` and
+`/tmp/rowlens-visibility-compose.json` support restart; see BUILD.md. Original localhost5174/DB5434
+and production are unchanged. Review data is independent: local edits do not change the original.
+
+Checks: 677 full web/DB plus 32 focused final settings/example tests, six new visibility browser
+scenarios, 34 unified and six shared-video browser cases, 50 worker and 77 deploy-script checks pass.
+General suite initially 48 pass/3 fail; expectations/async fixture corrected and focused4/4 pass;
+final complete general rerun **51/51** passes. See TEST.md for exact evidence. Code is ready for local review;
+PR status/last verification is recorded in the newest DOCUMENTATION.md entry. No merge/deploy is
+authorized; new production action needs the owner's explicit request.
 
 # RowLens handoff — 2026-11-10
 

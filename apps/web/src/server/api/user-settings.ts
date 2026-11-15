@@ -31,7 +31,11 @@ export const userSettingsRoutes: FastifyPluginCallback<ClubRouteOptions> = (app,
   });
   app.patch('/api/me/settings', { preHandler: guard }, async (req, reply) => {
     const body = bodySchema.safeParse(req.body);
-    if (!body.success || !preferences.safeParse(body.data.changes).success)
+    if (
+      !body.success ||
+      !preferences.safeParse(body.data.changes).success ||
+      (body.data.importLegacy === true && 'primaryClubId' in body.data.changes)
+    )
       return reply.code(400).send({ error: 'invalid_settings' });
     const tenant = tenantOf(req);
     if (tenant.userId === null) return notFound(reply);
