@@ -1,3 +1,13 @@
+# Pending training visibility and Help proposal — 2026-11-15
+
+Branch `codex/feat/training-visibility-help`, isolated managed worktree. Read
+`docs/plans/training-visibility-help.md`: owner requests own/participating trainings only for
+rowers, default primary membership filter, globally visible administrator examples and usage help.
+Existing ADR-0020 deliberately allows club-wide reads; primary-club persistence and example access
+require migration/architecture approval. Proposal uses signed-in read-only examples in a separate
+filter-independent section and a header Help link. Await approval before implementation; no
+functional changes, tests or production actions. Original dirty checkout was left untouched.
+
 # RowLens handoff — 2026-11-10
 
 ## CI feedback improvement (2026-11-10)

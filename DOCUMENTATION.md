@@ -1,3 +1,10 @@
+## [2026-11-15] — Propose training visibility, primary club and usage help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: docs/plans/training-visibility-help.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected current database visibility, per-club overview aggregation, settings and navigation. Prepared a reviewable architecture/migration proposal for restricted rower visibility, primary-club defaults and read-only signed-in examples with Help; implementation awaits approval under AGENTS.md. No runtime changes or tests; unrelated pre-existing edits remain untouched in the original checkout.
+**Prompts used**: als ik me aanmeld als roeier mag ik alleen de trainingen zie die ik zelf heb aangemeld of waarin ik voorkom. verder moet default in het filter de club aangekozen zijn waarvan ik lid ben. als ik lid ben van meer clubs dan wordt de club getoond die heb aangemerkt als primair in mijn settings. de trainingen die worden aangemaakt door de Rowlens admin kunnen in elk geval altijd door iedereen worden gezien omdat die worden gebruikt als voorbeeld van het gebruik van Rowlens. er moet ook een uitleg van het gebruik komen die je op een logische plek kunt aankiezen
+
 ## [2026-11-10] — Shorten CI feedback without removing application coverage
 
 **Session**: codex/ci/shorten-feedback

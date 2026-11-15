@@ -1,3 +1,11 @@
+# Training visibility and help proposal (2026-11-15)
+
+Prepared `docs/plans/training-visibility-help.md` for creator/participant-only rower reads,
+central primary-club settings, authenticated cross-club read-only administrator examples and a
+permanent NL/EN Help page. Architectural approval is pending for the coordinated migration and
+narrow example-access exception. No functional code or database has changed. Original unrelated
+club-editor and local analysis edits remain untouched in the original checkout.
+
 # PLAN
 
 ## Shorten CI feedback (2026-11-10)
