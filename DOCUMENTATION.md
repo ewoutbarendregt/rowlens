@@ -1,3 +1,10 @@
+## [2026-11-15] — Open training visibility review #184
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened [PR #184](https://github.com/ewoutbarendregt/rowlens/pull/184) against main with the security review note. All local checks are green: 677 full web/DB plus 32 final focused checks, 97 browser cases (51 general, 34 unified, six reuse, six new), 50 worker and 77 deployment-script checks; format/lint/typecheck/build pass. Review runs at http://127.0.0.1:5175/projects/rowlens/ (isolated copied data/media, readiness DB ok). Remote CI is pending; no merge or production deployment was performed or authorized.
+**Prompts used**: ja
+
 ## [2026-11-15] — Complete training visibility, primary club, examples and Help
 
 **Session**: codex/feat/training-visibility-help

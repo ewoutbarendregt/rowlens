@@ -1,5 +1,7 @@
 # Training visibility, primary club and Help — 2026-11-15
 
+Review: [PR #184](https://github.com/ewoutbarendregt/rowlens/pull/184), targeting main; remote CI pending. Local checks pass. No merge/deploy authorized.
+
 Owner approved the proposal with “ja”. Implemented on `codex/feat/training-visibility-help` in
 `/Users/ewout/.codex/worktrees/training-visibility-plan/rowlens`, rebased onto current `origin/main`
 (dd617c6); the original dirty checkout and its experiments were preserved. Read ADR-0028 and
