@@ -1,3 +1,31 @@
+## [2026-11-15] — Open training visibility review #184
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened [PR #184](https://github.com/ewoutbarendregt/rowlens/pull/184) against main with the security review note. All local checks are green: 677 full web/DB plus 32 final focused checks, 97 browser cases (51 general, 34 unified, six reuse, six new), 50 worker and 77 deployment-script checks; format/lint/typecheck/build pass. Review runs at http://127.0.0.1:5175/projects/rowlens/ (isolated copied data/media, readiness DB ok). Remote CI is pending; no merge or production deployment was performed or authorized.
+**Prompts used**: ja
+
+## [2026-11-15] — Complete training visibility, primary club, examples and Help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: .github/workflows/ci.yml, .gitignore, apps/web/package.json, apps/web/tsconfig.json, apps/web/playwright.visibility.config.ts, apps/web/e2e/{server,visibility-fixture,training-visibility,unified-users,training-permissions,lineup}, apps/web/src/client/{help,sessions,settings,ui,auth,admin}, apps/web/src/server/{api,auth,db,repositories}, apps/web/src/shared/user-settings.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, docs/adr/{0028-training-visibility-and-examples.md,README.md}, docs/plans/training-visibility-help.md, docs/privacy/processors.md, DOCUMENTATION.md
+**Summary**: Implemented the approved creator/participant-only rower boundary, primary-club setting/default, read-only examples for all signed-in accounts and permanent NL/EN Help. Rebased only this work onto current main and integrated physical shared-video assets; isolated local review uses a copied DB/media on 127.0.0.1:5175 (29 migrations), preserving the original checkout/stack. Validation: 677 full web/DB plus 32 final focused settings/example tests, 6 new/34 unified/6 reuse browser cases, 50 worker and 77 deploy-script checks pass; general first48/3fail then focused4/4 pass, complete general rerun51/51 passes. No production action.
+**Prompts used**: ja
+
+## [2026-11-15] — Implement approved training visibility and usage help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: apps/web/src/client/{help,sessions,settings,ui,auth,admin}, apps/web/src/server/{api,auth,db,repositories}, apps/web/src/shared/user-settings.ts, apps/web/e2e, apps/web/playwright.visibility.config.ts, .gitignore, docs/plans/training-visibility-help.md, DOCUMENTATION.md
+**Summary**: Implemented the approved creator/participant rower boundary, primary-club preference/default, authenticated read-only example projection/player and NL/EN Help. Initial validation passes 639/640 checks (remaining expected media-cache assertion), 14 new API/SQL tests and all three primary-club browser cases; final validation and integration onto current main are still in progress. No production action.
+**Prompts used**: ja
+
+## [2026-11-15] — Propose training visibility, primary club and usage help
+
+**Session**: codex/feat/training-visibility-help
+**Changed**: docs/plans/training-visibility-help.md, PLAN.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Inspected current database visibility, per-club overview aggregation, settings and navigation. Prepared a reviewable architecture/migration proposal for restricted rower visibility, primary-club defaults and read-only signed-in examples with Help; implementation awaits approval under AGENTS.md. No runtime changes or tests; unrelated pre-existing edits remain untouched in the original checkout.
+**Prompts used**: als ik me aanmeld als roeier mag ik alleen de trainingen zie die ik zelf heb aangemeld of waarin ik voorkom. verder moet default in het filter de club aangekozen zijn waarvan ik lid ben. als ik lid ben van meer clubs dan wordt de club getoond die heb aangemerkt als primair in mijn settings. de trainingen die worden aangemaakt door de Rowlens admin kunnen in elk geval altijd door iedereen worden gezien omdat die worden gebruikt als voorbeeld van het gebruik van Rowlens. er moet ook een uitleg van het gebruik komen die je op een logische plek kunt aankiezen
+
 ## [2026-11-10] — Shorten CI feedback without removing application coverage
 
 **Session**: codex/ci/shorten-feedback

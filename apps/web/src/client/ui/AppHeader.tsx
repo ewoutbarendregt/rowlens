@@ -1,3 +1,4 @@
+import { helpStrings } from '../help/strings.ts';
 import { clubStrings } from '../clubs/strings.ts';
 import { AccountPreferences } from '../settings/AccountPreferences.tsx';
 import { useState } from 'react';
@@ -77,6 +78,7 @@ export function AppHeader({
             <NavLink to="/users">{adminStrings().users}</NavLink>
           )}
           {state.unified && <NavLink to="/clubs">{clubStrings().clubs}</NavLink>}
+          <NavLink to="/help">{helpStrings().help}</NavLink>
         </nav>
         <details className="account" data-testid="account-menu">
           <summary aria-label={t.account}>

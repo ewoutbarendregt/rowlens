@@ -7,6 +7,8 @@ import type { Database, Tx } from './client.ts';
 export interface TenantContext {
   clubId: string;
   unifiedUsers?: boolean;
+  /** Read-only scope installed only by the authenticated example repository. */
+  exampleSessionId?: string;
   /** Server-verified platform actor; SQL rechecks the persisted grant, never trusts role snapshots. */
   platformAdmin?: boolean;
   /** Authenticated user; `null` only for the legacy pilot-code rollback path. */
@@ -21,6 +23,7 @@ export interface TenantContext {
 
 const contextSchema = z.object({
   unifiedUsers: z.boolean().optional(),
+  exampleSessionId: z.uuid().optional(),
   platformAdmin: z.boolean().optional(),
   clubId: z.uuid(),
   userId: z.uuid().nullable(),
@@ -38,14 +41,22 @@ export async function withTenant<T>(
   ctx: TenantContext,
   fn: (tx: Tx) => Promise<T>,
 ): Promise<T> {
-  const { clubId, userId, role, roles: assigned, unifiedUsers } = contextSchema.parse(ctx);
-  const roles = ctx.platformAdmin ? [] : (assigned ?? (role == null ? [] : [role]));
+  const {
+    clubId,
+    userId,
+    role,
+    roles: assigned,
+    unifiedUsers,
+    exampleSessionId,
+  } = contextSchema.parse(ctx);
+  const roles =
+    ctx.platformAdmin || exampleSessionId ? [] : (assigned ?? (role == null ? [] : [role]));
   const service = userId === null && role == null && assigned === undefined;
   // Fixed server capability, never request input: only handlers with pre-media write checks
   // opt into the new read/write split. Older images retain their aligned legacy scope (ADR-0020).
   return db.transaction(async (tx) => {
     await tx.execute(
-      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${roles.length ? primaryRole(roles) : ''}, true), set_config('app.roles', ${JSON.stringify(roles)}, true), set_config('app.service', ${service ? 'true' : 'false'}, true), set_config('app.training_permissions', 'owner-or-staff', true), set_config('app.video_assets', 'isolated', true), set_config('app.unified_users', ${unifiedUsers ? 'true' : 'false'}, true)`,
+      sql`select set_config('app.club_id', ${clubId}, true), set_config('app.user_id', ${userId ?? ''}, true), set_config('app.role', ${roles.length ? primaryRole(roles) : ''}, true), set_config('app.roles', ${JSON.stringify(roles)}, true), set_config('app.service', ${service ? 'true' : 'false'}, true), set_config('app.training_permissions', 'owner-or-staff', true), set_config('app.video_assets', 'isolated', true), set_config('app.example_session', ${exampleSessionId ?? ''}, true), set_config('app.unified_users', ${unifiedUsers ? 'true' : 'false'}, true)`,
     );
     return fn(tx);
   });

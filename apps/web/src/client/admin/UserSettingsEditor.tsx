@@ -14,6 +14,7 @@ import { settingsStrings } from '../settings/strings.ts';
 type Draft = Record<keyof SettingsPatch, string | number | boolean | null>;
 const flat = (s: UserSettings): Draft => ({
   ...s.preferences,
+  primaryClubId: s.primaryClubId ?? null,
   firstName: s.firstName,
   lastName: s.lastName,
   defaultBoatType: s.defaultBoatType,

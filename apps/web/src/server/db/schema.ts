@@ -69,12 +69,33 @@ const me = sql`rowlens_user_id()`;
 const seesAll = sql`rowlens_sees_all()`;
 
 export function tenantPolicy(name: string, clubId: SQLWrapper) {
-  return pgPolicy(name, {
-    for: 'all',
-    to: appRole,
-    using: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
-    withCheck: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
-  });
+  const table = name.replace(/_tenant$/, '');
+  const column = (c: string) => sql.raw(`"${table}"."${c}"`);
+  const read =
+    table === 'rowing_session'
+      ? sql`rowlens_example_session(${column('id')})`
+      : table === 'video' || table === 'lineup_seat'
+        ? sql`rowlens_example_session(${column('session_id')})`
+        : ['stroke_mark', 'angle_measure', 'video_boat_line', 'video_auto_boat_line'].includes(
+              table,
+            )
+          ? sql`rowlens_example_video(${column('video_id')})`
+          : table === 'rower'
+            ? sql`rowlens_example_rower(${column('id')})`
+            : sql`false`;
+  const ordinary = sql`nullif(current_setting('app.example_session', true), '') is null`;
+  return [
+    pgPolicy(name, {
+      for: 'all',
+      to: appRole,
+      using: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
+      withCheck: sql`${clubId} = ${currentClubId} and rowlens_club_active()`,
+    }),
+    rolePolicy(`${table}_example_read`, 'select', sql`${ordinary} or ${read}`),
+    rolePolicy(`${table}_example_add`, 'insert', ordinary),
+    rolePolicy(`${table}_example_edit`, 'update', ordinary),
+    rolePolicy(`${table}_example_delete`, 'delete', ordinary),
+  ];
 }
 
 export const club = pgTable(
@@ -114,6 +135,7 @@ export const appUser = pgTable(
     lastName: text('last_name'),
     /** The boat a new session starts with; null: C4x+. */
     defaultBoatType: text('default_boat_type'),
+    primaryClubId: uuid('primary_club_id').references(() => club.id),
     language: text('language'),
     theme: text('theme'),
     notesVisible: boolean('notes_visible'),
@@ -183,7 +205,7 @@ export const membership = pgTable(
     unique('membership_club_user_unique').on(t.clubId, t.userId),
     index('membership_user_idx').on(t.userId),
     check('membership_roles_check', sql`rowlens_valid_roles(${t.roles})`),
-    tenantPolicy('membership_tenant', t.clubId),
+    ...tenantPolicy('membership_tenant', t.clubId),
     ...resourcePolicies(
       'membership_role',
       sql`${t.userId}=rowlens_user_id() or rowlens_admin_member() or rowlens_service()`,
@@ -213,7 +235,7 @@ export const loginCode = pgTable(
       foreignColumns: [membership.clubId, membership.userId],
     }).onDelete('cascade'),
     index('login_code_user_created_idx').on(t.userId, t.createdAt),
-    tenantPolicy('login_code_tenant', t.clubId),
+    ...tenantPolicy('login_code_tenant', t.clubId),
   ],
 ).enableRLS();
 
@@ -238,7 +260,7 @@ export const userSession = pgTable(
       foreignColumns: [membership.clubId, membership.userId],
     }).onDelete('cascade'),
     index('user_session_user_idx').on(t.userId),
-    tenantPolicy('user_session_tenant', t.clubId),
+    ...tenantPolicy('user_session_tenant', t.clubId),
   ],
 ).enableRLS();
 
@@ -268,7 +290,7 @@ export const rower = pgTable(
     unique('rower_club_user_unique').on(t.clubId, t.userId),
     check('rower_name_check', sql`char_length(${t.displayName}) between 1 and 60`),
     check('rower_email_check', sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`),
-    tenantPolicy('rower_tenant', t.clubId),
+    ...tenantPolicy('rower_tenant', t.clubId),
     rolePolicy(
       'rower_read',
       'select',
@@ -294,6 +316,7 @@ export const rowingSession = pgTable(
     boatType: text('boat_type'),
     /** Who made it: a rower sees the sessions they created, even before a lineup (#40). */
     createdByUserId: uuid('created_by_user_id'),
+    isExample: boolean('is_example').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -304,11 +327,11 @@ export const rowingSession = pgTable(
     // Target of video's (club_id, session_id) key: a video can't point into another club's session.
     unique('rowing_session_club_id_id_unique').on(t.clubId, t.id),
     index('rowing_session_club_date_idx').on(t.clubId, t.sessionDate),
-    tenantPolicy('rowing_session_tenant', t.clubId),
+    ...tenantPolicy('rowing_session_tenant', t.clubId),
     rolePolicy(
       'rowing_session_role_read',
       'select',
-      sql`rowlens_can_read_trainings() and (current_setting('app.training_permissions', true) = 'owner-or-staff' or ${seesAll} or ${t.createdByUserId} = ${me} or rowlens_session_reachable(${t.id}))`,
+      sql`rowlens_can_read_training_row(${t.id}, ${t.createdByUserId})`,
     ),
     rolePolicy(
       'rowing_session_role_add',
@@ -355,7 +378,7 @@ export const lineupSeat = pgTable(
     }).onDelete('restrict'),
     index('lineup_seat_rower_idx').on(t.rowerId),
     check('lineup_seat_seat_check', sql`${t.seat} between 0 and 8`),
-    tenantPolicy('lineup_seat_tenant', t.clubId),
+    ...tenantPolicy('lineup_seat_tenant', t.clubId),
     ...resourcePolicies(
       'lineup_seat_role',
       sql`rowlens_can_see_session(${t.sessionId})`,
@@ -393,7 +416,7 @@ export const videoAsset = pgTable(
   },
   (t) => [
     unique('video_asset_club_id_id_unique').on(t.clubId, t.id),
-    tenantPolicy('video_asset_tenant', t.clubId),
+    ...tenantPolicy('video_asset_tenant', t.clubId),
     rolePolicy('video_asset_role', 'all', sql`false`),
   ],
 ).enableRLS();
@@ -458,7 +481,7 @@ export const video = pgTable(
     // Target of annotation's (club_id, video_id) key, like rowing_session's for video.
     unique('video_club_id_id_unique').on(t.clubId, t.id),
     unique('video_session_seq_unique').on(t.sessionId, t.seq),
-    tenantPolicy('video_tenant', t.clubId),
+    ...tenantPolicy('video_tenant', t.clubId),
     ...resourcePolicies(
       'video_role',
       sql`rowlens_can_see_session(${t.sessionId})`,
@@ -494,7 +517,7 @@ export const job = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
   },
-  (t) => [index('job_ready_idx').on(t.status, t.runAfter), tenantPolicy('job_tenant', t.clubId)],
+  (t) => [index('job_ready_idx').on(t.status, t.runAfter), ...tenantPolicy('job_tenant', t.clubId)],
 ).enableRLS();
 
 /** What an annotation is: a text note (#59); line, arrow and angle drawings follow with #60. */
@@ -532,11 +555,11 @@ export const annotation = pgTable(
     check('annotation_frame_check', sql`${t.frame} >= 0`),
     check('annotation_body_check', sql`char_length(${t.body}) <= 2000`),
     check('annotation_author_check', sql`char_length(${t.authorName}) between 1 and 60`),
-    tenantPolicy('annotation_tenant', t.clubId),
+    ...tenantPolicy('annotation_tenant', t.clubId),
     rolePolicy(
       'annotation_role_read',
       'select',
-      sql`rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me}`,
+      sql`rowlens_can_see_video(${t.videoId}) and (rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me})`,
     ),
     rolePolicy(
       'annotation_role_add',
@@ -585,7 +608,7 @@ export const strokeMark = pgTable(
     }).onDelete('cascade'),
     unique('stroke_mark_video_frame_unique').on(t.videoId, t.frame),
     check('stroke_mark_frame_check', sql`${t.frame} >= 0`),
-    tenantPolicy('stroke_mark_tenant', t.clubId),
+    ...tenantPolicy('stroke_mark_tenant', t.clubId),
     rolePolicy('stroke_mark_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
     rolePolicy(
       'stroke_mark_role_add',
@@ -643,7 +666,7 @@ export const angleMeasure = pgTable(
     unique('angle_measure_unique').on(t.videoId, t.frame, t.rowerId, t.joint),
     index('angle_measure_rower_idx').on(t.rowerId),
     check('angle_measure_frame_check', sql`${t.frame} >= 0`),
-    tenantPolicy('angle_measure_tenant', t.clubId),
+    ...tenantPolicy('angle_measure_tenant', t.clubId),
     rolePolicy('angle_measure_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
     rolePolicy(
       'angle_measure_role_add',
@@ -688,7 +711,7 @@ export const videoBoatLine = pgTable(
       columns: [t.clubId, t.videoId],
       foreignColumns: [video.clubId, video.id],
     }).onDelete('cascade'),
-    tenantPolicy('video_boat_line_tenant', t.clubId),
+    ...tenantPolicy('video_boat_line_tenant', t.clubId),
     rolePolicy('video_boat_line_role_read', 'select', sql`rowlens_can_see_video(${t.videoId})`),
     rolePolicy(
       'video_boat_line_role_add',
@@ -739,7 +762,7 @@ export const videoAutoBoatLine = pgTable(
       columns: [t.clubId, t.videoId],
       foreignColumns: [video.clubId, video.id],
     }).onDelete('cascade'),
-    tenantPolicy('video_auto_boat_line_tenant', t.clubId),
+    ...tenantPolicy('video_auto_boat_line_tenant', t.clubId),
     rolePolicy(
       'video_auto_boat_line_role_read',
       'select',
@@ -782,7 +805,7 @@ export const moment = pgTable(
       foreignColumns: [video.clubId, video.id],
     }).onDelete('cascade'),
     check('moment_frame_check', sql`${t.frame} >= 0`),
-    tenantPolicy('moment_tenant', t.clubId),
+    ...tenantPolicy('moment_tenant', t.clubId),
     ...resourcePolicies(
       'moment_role',
       sql`rowlens_can_see_moment(${t.videoId}, ${t.frame})`,
@@ -816,7 +839,7 @@ export const momentRower = pgTable(
       foreignColumns: [rower.clubId, rower.id],
     }).onDelete('restrict'),
     index('moment_rower_rower_idx').on(t.rowerId),
-    tenantPolicy('moment_rower_tenant', t.clubId),
+    ...tenantPolicy('moment_rower_tenant', t.clubId),
     ...resourcePolicies(
       'moment_rower_role',
       sql`rowlens_can_see_moment_id(${t.momentId})`,
@@ -862,7 +885,7 @@ export const momentShare = pgTable(
       .where(sql`${t.scope} = 'crew'`),
     check('moment_share_scope_check', sql`(${t.scope} = 'rower') = (${t.rowerId} is not null)`),
     index('moment_share_rower_idx').on(t.rowerId),
-    tenantPolicy('moment_share_tenant', t.clubId),
+    ...tenantPolicy('moment_share_tenant', t.clubId),
     ...resourcePolicies(
       'moment_share_role',
       sql`rowlens_can_see_moment_id(${t.momentId})`,
@@ -899,7 +922,7 @@ export const momentRowerLog = pgTable(
       foreignColumns: [moment.clubId, moment.id],
     }).onDelete('cascade'),
     index('moment_rower_log_moment_idx').on(t.momentId, t.at),
-    tenantPolicy('moment_rower_log_tenant', t.clubId),
+    ...tenantPolicy('moment_rower_log_tenant', t.clubId),
     ...resourcePolicies(
       'moment_rower_log_role',
       sql`rowlens_can_see_moment_id(${t.momentId})`,
@@ -932,7 +955,7 @@ export const clubAccess = pgTable(
       'club_access_email_check',
       sql`${t.email} = lower(${t.email}) and ${t.email} like '%_@_%'`,
     ),
-    tenantPolicy('club_access_tenant', t.clubId),
+    ...tenantPolicy('club_access_tenant', t.clubId),
     rolePolicy('club_access_admin', 'all', sql`rowlens_admin_member() or rowlens_service()`),
   ],
 ).enableRLS();
@@ -956,7 +979,7 @@ export const clubAccessLog = pgTable(
   },
   (t) => [
     index('club_access_log_club_at_idx').on(t.clubId, t.at),
-    tenantPolicy('club_access_log_tenant', t.clubId),
+    ...tenantPolicy('club_access_log_tenant', t.clubId),
     rolePolicy('club_access_log_admin', 'all', sql`rowlens_admin_member() or rowlens_service()`),
   ],
 ).enableRLS();
@@ -977,7 +1000,7 @@ export const userSettingsAudit = pgTable(
   },
   (t) => [
     index('user_settings_audit_club_at_idx').on(t.clubId, t.at),
-    tenantPolicy('user_settings_audit_tenant', t.clubId),
+    ...tenantPolicy('user_settings_audit_tenant', t.clubId),
     rolePolicy('user_settings_audit_read', 'select', sql`rowlens_has_role('admin')`),
     rolePolicy(
       'user_settings_audit_add',
@@ -1053,7 +1076,7 @@ export const membershipApplication = pgTable(
       'membership_application_status_check',
       sql`${t.status} in ('pending','approved','rejected','cancelled')`,
     ),
-    tenantPolicy('membership_application_tenant', t.clubId),
+    ...tenantPolicy('membership_application_tenant', t.clubId),
     rolePolicy(
       'membership_application_read',
       'select',
@@ -1100,7 +1123,7 @@ export const clubApplicationNotice = pgTable(
   },
   (t) => [
     unique('club_notice_recipient_unique').on(t.applicationId, t.recipientId),
-    tenantPolicy('club_notice_tenant', t.clubId),
+    ...tenantPolicy('club_notice_tenant', t.clubId),
     rolePolicy('club_notice_private', 'all', sql`false`),
   ],
 ).enableRLS();
@@ -1138,7 +1161,7 @@ export const videoAnnotationReference = pgTable(
       columns: [t.clubId, t.annotationId],
       foreignColumns: [annotation.clubId, annotation.id],
     }).onDelete('cascade'),
-    tenantPolicy('video_annotation_reference_tenant', t.clubId),
+    ...tenantPolicy('video_annotation_reference_tenant', t.clubId),
     rolePolicy(
       'video_annotation_reference_read',
       'select',

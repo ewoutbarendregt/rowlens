@@ -1,3 +1,5 @@
+import { HelpPage } from './help/HelpPage.tsx';
+import { ExamplePage } from './help/ExamplePage.tsx';
 import { AdmissionPage } from './admin/AdmissionPage.tsx';
 import { ClubsPage } from './clubs/ClubsPage.tsx';
 import { lazy, Suspense } from 'react';
@@ -27,6 +29,24 @@ export function App() {
   return (
     <Routes>
       <Route index element={<HomePage />} />
+      <Route
+        path="help"
+        element={
+          <RequireAuth accountOnly>
+            <HelpPage />
+          </RequireAuth>
+        }
+      />
+      {UNIFIED_USERS && (
+        <Route
+          path="examples/:id"
+          element={
+            <RequireAuth accountOnly>
+              <ExamplePage />
+            </RequireAuth>
+          }
+        />
+      )}
       {UNIFIED_USERS && <Route path="admission/:id" element={<AdmissionPage />} />}
       {UNIFIED_USERS && <Route path="email-change/:id" element={<EmailChangePage />} />}
       {UNIFIED_USERS && (
@@ -52,7 +72,7 @@ export function App() {
       <Route
         path="sessions"
         element={
-          <RequireAuth>
+          <RequireAuth allowClubless>
             <SessionsPage />
           </RequireAuth>
         }

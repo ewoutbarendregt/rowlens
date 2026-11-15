@@ -159,7 +159,7 @@ test('account request, admission, history-free user selection and club switching
 
   await page.reload();
   await page.getByRole('button', { name: 'Huidige club', exact: true }).click();
-  await expect(page).toHaveURL(/\/sessions$/);
+  await expect(page).toHaveURL(/\/sessions(?:\?|$)/);
   await page.getByRole('link', { name: 'Clubs', exact: true }).click();
   await layout(page);
   await page.screenshot({ path: testInfo.outputPath('account-clubs.png'), fullPage: true });
@@ -197,7 +197,7 @@ test('platform management at phone/laptop sizes has no Rowers route', async ({
   await layout(page);
   await page.screenshot({ path: testInfo.outputPath('platform.png'), fullPage: true });
   await page.goto('./rowers');
-  await expect(page).toHaveURL(/\/sessions$/);
+  await expect(page).toHaveURL(/\/sessions(?:\?|$)/);
 });
 
 test('long club names fit the header without horizontal overflow', async ({ page }, info) => {
@@ -837,8 +837,6 @@ test('training overview filters accessible clubs and participation and opens the
   ).data as { id: string };
   const first = `Accessible A ${randomUUID().slice(0, 8)}`,
     second = `Accessible B ${randomUUID().slice(0, 8)}`;
-  await json(page, '/api/sessions', { title: first, date: '2026-11-08', boatType: 'C4x+' }, c1.id);
-  await json(page, '/api/sessions', { title: second, date: '2026-11-08', boatType: 'C4x+' }, c2.id);
   const context = await browser.newContext({ baseURL: new URL('.', page.url()).toString() }),
     member = await context.newPage();
   const address = `overview-${randomUUID()}@example.test`;
@@ -847,8 +845,24 @@ test('training overview filters accessible clubs and participation and opens the
   await json(page, '/api/admin/access', { email: address, roles: ['rower'] }, c2.id);
   const ownTitle = `Created by member ${randomUUID().slice(0, 8)}`;
   await json(member, '/api/sessions', { title: ownTitle, date: '2026-11-09' }, c1.id);
+  await json(
+    member,
+    '/api/sessions',
+    { title: first, date: '2026-11-08', boatType: 'C4x+' },
+    c1.id,
+  );
+  await json(
+    member,
+    '/api/sessions',
+    { title: second, date: '2026-11-08', boatType: 'C4x+' },
+    c2.id,
+  );
   await member.goto('./sessions');
   await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
+  await member.getByTestId('filters').evaluate((el) => {
+    (el as HTMLDetailsElement).open = true;
+  });
+  await member.getByLabel('Club', { exact: true }).selectOption('');
   await expect(member.getByRole('link', { name: second, exact: true })).toBeVisible();
   await member.getByTestId('filters').evaluate((el) => {
     (el as HTMLDetailsElement).open = true;
@@ -858,7 +872,7 @@ test('training overview filters accessible clubs and participation and opens the
   await expect(member.getByRole('link', { name: second, exact: true })).toHaveCount(0);
   await member.getByLabel('Door mij aangemaakt', { exact: true }).check();
   await expect(member.getByRole('link', { name: ownTitle, exact: true })).toBeVisible();
-  await expect(member.getByRole('link', { name: first, exact: true })).toHaveCount(0);
+  await expect(member.getByRole('link', { name: first, exact: true })).toBeVisible();
   await member.reload();
   await expect(member.getByLabel('Door mij aangemaakt', { exact: true })).toBeChecked();
   await member.getByLabel('Door mij aangemaakt', { exact: true }).uncheck();
@@ -877,6 +891,6 @@ test('training overview filters accessible clubs and participation and opens the
   );
   await expect(member.locator('.app-header').getByText('focus on rowing')).toBeVisible();
   await member.locator('.app-header').getByRole('link', { name: 'RowLens', exact: true }).click();
-  await expect(member).toHaveURL(/\/sessions$/);
+  await expect(member).toHaveURL(/\/sessions(?:\?|$)/);
   await context.close();
 });

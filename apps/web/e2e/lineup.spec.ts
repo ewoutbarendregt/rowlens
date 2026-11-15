@@ -34,6 +34,8 @@ test('fill a coastal double, adding a rower inline, and keep it after a reload',
   const stroke = lineup.getByRole('combobox', { name: /^(Stroke|Slag) \(2\)$/ });
   await stroke.fill(`Bram ${tag}`);
   await page.getByRole('option', { name: new RegExp(`Bram ${tag}`) }).click();
+  // Typing the name already changes the input; await the completed asynchronous selection too.
+  await expect(stroke).toHaveAttribute('aria-expanded', 'false');
   await expect(stroke).toHaveValue(`Bram ${tag}`);
 
   await lineup.getByRole('button', { name: /^(Save lineup|Opstelling opslaan)$/ }).click();

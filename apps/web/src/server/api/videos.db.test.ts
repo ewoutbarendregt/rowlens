@@ -121,7 +121,7 @@ describe('GET /api/videos/:id/media/:name', () => {
     expect(whole.headers).toMatchObject({
       'content-type': 'video/mp4',
       'accept-ranges': 'bytes',
-      'cache-control': 'private, max-age=3600',
+      'cache-control': 'private, no-store',
       'content-length': '1000',
     });
 

@@ -1,0 +1,208 @@
+import { angleStrings } from '../angles/strings.ts';
+import { useAuth } from '../auth/useAuth.ts';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams } from 'react-router';
+import { api } from '../api.ts';
+import { appUrl } from '../env.ts';
+import { Player, type PlayerHandle } from '../player/Player.tsx';
+import { StrokesPanel } from '../strokes/StrokesPanel.tsx';
+import { AnglesPanel, type AutoBoatLineState } from '../angles/AnglesPanel.tsx';
+import {
+  angleTables,
+  phaseOf,
+  type AngleMeasure,
+  type FrameBoatLine,
+} from '../../shared/angles.ts';
+import { strokesFrom, type StrokeMark } from '../../shared/strokes.ts';
+import { strokeStrings } from '../strokes/strings.ts';
+import { sessionStrings, type Perspective } from '../sessions/strings.ts';
+import { lineupStrings } from '../lineup/strings.ts';
+import { helpStrings } from './strings.ts';
+interface Clip {
+  id: string;
+  seq: number | null;
+  status: string;
+  fpsNum: number | null;
+  fpsDen: number | null;
+  width: number | null;
+  height: number | null;
+  perspective: Perspective;
+  renditions: string[];
+  marks: StrokeMark[];
+  measures: AngleMeasure[];
+  boatLines: FrameBoatLine[];
+  auto: AutoBoatLineState | null;
+}
+interface Example {
+  clubId: string;
+  id: string;
+  title: string;
+  lineup: { seat: number; rower: { id: string; displayName: string } }[];
+  videos: Clip[];
+}
+const noop = () => undefined;
+export function ExamplePage() {
+  const { id = '' } = useParams();
+  const t = helpStrings();
+  const { state: auth } = useAuth();
+  const st = strokeStrings();
+  const [data, setData] = useState<Example | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [chosen, setChosen] = useState<string | null>(null);
+  const [frame, setFrame] = useState(0);
+  const [middle, setMiddle] = useState(false);
+  const player = useRef<PlayerHandle>(null);
+  useEffect(() => {
+    let stale = false;
+    setData(null);
+    setFailed(false);
+    void api(`/api/examples/${id}`, { clubId: null })
+      .then(async (r) => {
+        if (!r.ok) throw new Error();
+        const result = (await r.json()) as Example;
+        if (!stale) setData(result);
+      })
+      .catch(() => {
+        if (!stale) setFailed(true);
+      });
+    return () => {
+      stale = true;
+    };
+  }, [id]);
+  const ready = data?.videos.filter((v) => v.status === 'ready' && v.renditions.length > 0) ?? [];
+  const v = ready.find((v) => v.id === chosen) ?? ready[0];
+  const fps = v?.fpsNum && v.fpsDen ? v.fpsNum / v.fpsDen : 30;
+  const size = { width: v?.width ?? 1, height: v?.height ?? 1 };
+  const summary = strokesFrom(v?.marks ?? [], fps);
+  const phase = phaseOf(frame, summary);
+  const computed = middle
+    ? summary.strokes.flatMap((s) =>
+        s.driveMiddle === null || s.halfSlideDrive !== null
+          ? []
+          : [
+              {
+                frame: s.driveMiddle,
+                kind: 'drive_middle' as const,
+                label: st.markLabel(st.driveMiddle, s.number, s.driveMiddle),
+              },
+            ],
+      )
+    : [];
+  const jump = (f: number) => player.current?.seekToFrame(f);
+  return (
+    <main className="page page--wide example-viewer">
+      <p>
+        <Link to="/sessions">{sessionStrings().sessions}</Link> · <Link to="/help">{t.help}</Link>
+      </p>
+      <h1>{data?.title ?? t.example}</h1>
+      <p className="callout">{t.readOnly}</p>
+      {data &&
+        auth.kind === 'open' &&
+        (auth.user.platformAdmin ||
+          auth.clubs?.some(
+            (c) => c.id === data.clubId && c.roles.some((r) => r === 'admin' || r === 'coach'),
+          )) && (
+          <p>
+            <a
+              href={(() => {
+                const target = new URL(appUrl(`/sessions/${data.id}`), window.location.origin);
+                target.searchParams.set('club', data.clubId);
+                return target.pathname + target.search;
+              })()}
+            >
+              {t.manageOriginal}
+            </a>
+          </p>
+        )}
+      {failed && <p role="alert">{sessionStrings().loadFailed}</p>}
+      {data && ready.length === 0 && <p>{t.noVideo}</p>}
+      {v && (
+        <>
+          <label>
+            {sessionStrings().columns.videos}
+            <select
+              value={v.id}
+              onChange={(e) => {
+                setChosen(e.target.value);
+                setFrame(0);
+              }}
+            >
+              {ready.map((c, i) => (
+                <option key={c.id} value={c.id}>
+                  {t.video(c.seq ?? i + 1)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Player
+            key={v.id}
+            src={appUrl(
+              `/api/examples/${id}/videos/${v.id}/media/${v.renditions.includes('play-540') ? 'play-540' : (v.renditions[0] ?? 'play-540')}`,
+              null,
+            )}
+            poster={appUrl(`/api/examples/${id}/videos/${v.id}/media/poster`, null)}
+            fps={fps}
+            onFrame={setFrame}
+            handle={player}
+            strokeMarks={[
+              ...v.marks.map((m) => ({
+                ...m,
+                label: st.markLabel(st.kinds[m.kind], null, m.frame),
+              })),
+              ...computed,
+            ].sort((a, b) => a.frame - b.frame)}
+          />
+          <h2>{st.strokes}</h2>
+          <StrokesPanel
+            summary={summary}
+            marks={v.marks}
+            fps={fps}
+            frame={frame}
+            canMark={false}
+            busy={false}
+            failed={false}
+            onMark={noop}
+            onRemove={noop}
+            onJump={jump}
+            onLoop={(a, b) => player.current?.setLoop(a, b)}
+            driveMiddle={middle}
+            onDriveMiddleChange={setMiddle}
+          />
+          <h2>{angleStrings().angles}</h2>
+          <AnglesPanel
+            tables={angleTables(
+              v.measures,
+              summary,
+              size,
+              v.boatLines,
+              (data?.lineup ?? []).map((s) => s.rower.id),
+              v.auto,
+            )}
+            measures={v.measures}
+            boatLines={v.boatLines}
+            auto={v.auto}
+            fps={fps}
+            size={size}
+            rowers={(data?.lineup ?? []).map((s) => ({
+              id: s.rower.id,
+              name: s.rower.displayName,
+              label: lineupStrings().seatLabel(s.seat === 0 ? 'cox' : 'middle', s.seat),
+            }))}
+            here={phase === null ? null : { phase, stroke: null }}
+            frame={frame}
+            canMeasure={false}
+            notFromTheSide={v.perspective !== 'bank'}
+            measuring={null}
+            busy={false}
+            failed={false}
+            onMeasure={noop}
+            onDelete={noop}
+            onRemoveBoatLine={noop}
+            onBowSide={noop}
+            onJump={jump}
+          />
+        </>
+      )}
+    </main>
+  );
+}

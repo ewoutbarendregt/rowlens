@@ -641,6 +641,15 @@ describe('initial admission notifications and platform decisions', () => {
       "insert into rowing_session(club_id,title,session_date,created_by_user_id) select $1::uuid,'Multi '||n,'2026-11-08'::date,$3::uuid from generate_series(1,102) n union all select $2::uuid,'Other club','2026-11-07'::date,$3::uuid",
       [c.a, c.b, other.id],
     );
+    // A different creator preserves read-only coverage; the viewer actually participates in each.
+    await asOwner(
+      "insert into rower(club_id,user_id,display_name) values($1,$3,'Synthetic'),($2,$3,'Synthetic')",
+      [c.a, c.b, u.id],
+    );
+    await asOwner(
+      'insert into lineup_seat(club_id,session_id,seat,rower_id) select s.club_id,s.id,0,r.id from rowing_session s join rower r on r.club_id=s.club_id and r.user_id=$3 where s.club_id in ($1,$2)',
+      [c.a, c.b, u.id],
+    );
     const r = (await call('GET', '/api/account/sessions', undefined, u.cookies)).json<{
       sessions: { id: string; clubId: string; canEdit: boolean }[];
       next: string | null;

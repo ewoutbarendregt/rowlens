@@ -50,10 +50,14 @@ export interface SessionRow {
 const isoDate = (value: string | null) =>
   value !== null && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
 
-export function readFilters(params: URLSearchParams): Filters {
+export function readFilters(params: URLSearchParams, defaultClub: string | null = null): Filters {
   const sort = params.get('sort');
   return {
-    club: params.get('clubFilter') || null,
+    club: params.has('clubFilter')
+      ? params.get('clubFilter') === 'all'
+        ? null
+        : params.get('clubFilter') || null
+      : defaultClub,
     participating: params.get('participating') === '1',
     created: params.get('created') === '1',
     from: isoDate(params.get('from')),
@@ -67,9 +71,10 @@ export function readFilters(params: URLSearchParams): Filters {
 }
 
 /** Only what differs from the defaults, so a plain list keeps a plain URL. */
-export function writeFilters(f: Filters): URLSearchParams {
+export function writeFilters(f: Filters, explicitClub = false): URLSearchParams {
   const params = new URLSearchParams();
   if (f.club) params.set('clubFilter', f.club);
+  else if (explicitClub) params.set('clubFilter', 'all');
   if (f.participating) params.set('participating', '1');
   if (f.created) params.set('created', '1');
   if (f.from !== null) params.set('from', f.from);
@@ -160,4 +165,18 @@ export function crewText(
   return names === ''
     ? `${coxLabel} ${first(cox.displayName)}`
     : `${names} · ${coxLabel} ${first(cox.displayName)}`;
+}
+
+/** Primary membership, then a stable alphabetical fallback; never use an admin's virtual membership. */
+export function defaultClubId(
+  clubs: readonly { id: string; name: string; member: boolean }[],
+  primary?: string | null,
+): string | null {
+  const memberships = clubs.filter((c) => c.member);
+  return (
+    memberships.find((c) => c.id === primary)?.id ??
+    [...memberships].sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id))[0]
+      ?.id ??
+    null
+  );
 }

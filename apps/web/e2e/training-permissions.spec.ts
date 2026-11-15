@@ -19,7 +19,7 @@ async function mutate(page: Page, method: string, path: string, data?: unknown) 
   });
 }
 
-test('rowers browse other trainings read-only; coach/admin roles can manage every club training', async ({
+test('rowers view participating trainings read-only; coach/admin roles can manage every club training', async ({
   page,
   browser,
 }, info) => {
@@ -94,6 +94,14 @@ test('rowers browse other trainings read-only; coach/admin roles can manage ever
       expect(created.status()).toBe(201);
       sessionId = ((await created.json()) as { id: string }).id;
     }
+    expect(
+      (
+        await mutate(page, 'PUT', `/api/sessions/${sessionId}/lineup`, {
+          boatType: 'C1x',
+          seats: [{ seat: 1, rowerId: rower.id }],
+        })
+      ).status(),
+    ).toBe(200);
     await signIn(viewer, a);
     await viewer.goto('./sessions');
     await expect(viewer.getByTestId('session-list')).toContainText(title);

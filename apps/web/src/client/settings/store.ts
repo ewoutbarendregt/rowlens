@@ -10,19 +10,20 @@ export interface SettingsState {
   saving: boolean;
   failed: boolean;
 }
+type PreferencePatch = Partial<Preferences> & { primaryClubId?: string | null };
 interface Dependencies {
   load: (userId: string) => Promise<UserSettings>;
   save: (
     userId: string,
     revision: number,
-    changes: Partial<Preferences>,
+    changes: PreferencePatch,
     importLegacy: boolean,
   ) => Promise<UserSettings>;
   apply: (settings: UserSettings | null) => void;
   cache: (userId: string, settings: UserSettings) => void;
   cached: (userId: string) => UserSettings | null;
 }
-type Write = { changes: Partial<Preferences>; importLegacy: boolean; done: (ok: boolean) => void };
+type Write = { changes: PreferencePatch; importLegacy: boolean; done: (ok: boolean) => void };
 /** Account ownership, stale-response cancellation and serialized, revision-checked preference writes. */
 export function createSettingsStore(deps: Dependencies) {
   let state: SettingsState = {
@@ -49,8 +50,14 @@ export function createSettingsStore(deps: Dependencies) {
   const display = () => {
     if (persisted === null) return null;
     let preferences = { ...persisted.preferences };
-    for (const w of queue) if (!w.importLegacy) preferences = { ...preferences, ...w.changes };
-    return { ...persisted, preferences };
+    let primaryClubId = persisted.primaryClubId ?? null;
+    for (const w of queue)
+      if (!w.importLegacy) {
+        const { primaryClubId: club, ...prefs } = w.changes;
+        preferences = { ...preferences, ...prefs };
+        if (club !== undefined) primaryClubId = club;
+      }
+    return { ...persisted, primaryClubId, preferences };
   };
   const load = async () => {
     if (state.userId === null) return;
@@ -152,7 +159,7 @@ export function createSettingsStore(deps: Dependencies) {
       if (userId !== null) void load();
     },
     refresh: load,
-    save: async (changes: Partial<Preferences>, importLegacy = false): Promise<boolean> => {
+    save: async (changes: PreferencePatch, importLegacy = false): Promise<boolean> => {
       const generation = epoch;
       if (state.userId === null) return false;
       if (loading !== null) await loading;

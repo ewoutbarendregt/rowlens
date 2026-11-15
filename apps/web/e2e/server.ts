@@ -48,6 +48,10 @@ process.env['AUTH_REGISTRATION_DIRECTORY_PER_IP_MINUTE'] = '1000';
 process.env['AUTH_VERIFY_PER_IP_15M'] = '1000';
 const media = await mkdtemp(join(tmpdir(), 'rowlens-e2e-media-'));
 process.env['MEDIA_DIR'] = media;
+if (process.env['E2E_TRAINING_VISIBILITY'] === 'true') {
+  const { seedVisibility } = await import('./visibility-fixture.ts');
+  await seedVisibility(ownerUrl, media);
+}
 // CI runners' disks are often > 85 % full; production keeps the 85 % pause (ADR-0006).
 process.env['DISK_PAUSE_RATIO'] = '0.99';
 

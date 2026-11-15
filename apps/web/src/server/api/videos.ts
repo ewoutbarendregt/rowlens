@@ -1,9 +1,9 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { FastifyPluginCallback } from 'fastify';
+import type { FastifyReply, FastifyRequest, FastifyPluginCallback } from 'fastify';
 import { z } from 'zod';
 import { rowingSession, video } from '../db/schema.ts';
 import { withTenant } from '../db/tenant.ts';
-import { videoKey } from '../media/store.ts';
+import { MediaStore, videoKey } from '../media/store.ts';
 import { lineupOf } from './lineups.ts';
 import type { TenantContext } from '../db/tenant.ts';
 import { type ClubRouteOptions, notFound, tenantOf } from './route-helpers.ts';
@@ -86,48 +86,59 @@ export const videoRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
     const row = await readyVideo(tenantOf(req), params.data.id);
     if (row?.status !== 'ready') return notFound(reply);
 
-    const { name } = params.data;
-    let key: string;
-    let contentType: string;
-    if (name === 'poster') {
-      key = `${videoKey(clubId, row.assetId)}/poster`;
-      contentType = 'image/jpeg';
-    } else {
-      const rendition = ((row.renditions ?? []) as Rendition[]).find((r) => r.name === name);
-      if (rendition === undefined) return notFound(reply);
-      key = rendition.key;
-      contentType = rendition.contentType;
-    }
-    // The stored key must be this video's own; never trust a path from the database blindly.
-    if (!key.startsWith(`${videoKey(clubId, row.assetId)}/`)) return notFound(reply);
-    const size = await media.size(key);
-    if (size === 0) return notFound(reply);
-
-    void reply
-      .header('content-type', contentType)
-      .header('accept-ranges', 'bytes')
-      // Renditions never change for a video id; the cookie still gates every request.
-      .header('cache-control', 'private, max-age=3600')
-      .header('content-disposition', 'inline');
-    const range = parseRange(req.headers.range, size);
-    if (range === 'unsatisfiable') {
-      return reply
-        .code(416)
-        .header('content-range', `bytes */${String(size)}`)
-        .send();
-    }
-    if (range === null) {
-      return reply.code(200).header('content-length', String(size)).send(media.read(key));
-    }
-    return reply
-      .code(206)
-      .header('content-range', `bytes ${String(range.start)}-${String(range.end)}/${String(size)}`)
-      .header('content-length', String(range.end - range.start + 1))
-      .send(media.read(key, range));
+    return streamVideoMedia(req, reply, media, clubId, row, params.data.name);
   });
 
   done();
 };
+
+/** Shared authenticated rendition streaming, including read-only example playback. */
+export async function streamVideoMedia(
+  req: FastifyRequest,
+  reply: FastifyReply,
+  media: MediaStore,
+  clubId: string,
+  row: { assetId: string; renditions: unknown },
+  name: 'poster' | 'play-1080' | 'play-540',
+) {
+  let key: string;
+  let contentType: string;
+  if (name === 'poster') {
+    key = `${videoKey(clubId, row.assetId)}/poster`;
+    contentType = 'image/jpeg';
+  } else {
+    const rendition = ((row.renditions ?? []) as Rendition[]).find((r) => r.name === name);
+    if (rendition === undefined) return notFound(reply);
+    key = rendition.key;
+    contentType = rendition.contentType;
+  }
+  // The stored key must be this video's own; never trust a path from the database blindly.
+  if (!key.startsWith(`${videoKey(clubId, row.assetId)}/`)) return notFound(reply);
+  const size = await media.size(key);
+  if (size === 0) return notFound(reply);
+
+  void reply
+    .header('content-type', contentType)
+    .header('accept-ranges', 'bytes')
+    // Revalidate access on every request after lineup/membership changes.
+    .header('cache-control', 'private, no-store')
+    .header('content-disposition', 'inline');
+  const range = parseRange(req.headers.range, size);
+  if (range === 'unsatisfiable') {
+    return reply
+      .code(416)
+      .header('content-range', `bytes */${String(size)}`)
+      .send();
+  }
+  if (range === null) {
+    return reply.code(200).header('content-length', String(size)).send(media.read(key));
+  }
+  return reply
+    .code(206)
+    .header('content-range', `bytes ${String(range.start)}-${String(range.end)}/${String(size)}`)
+    .header('content-length', String(range.end - range.start + 1))
+    .send(media.read(key, range));
+}
 
 /**
  * A single `bytes=` range (what video elements send). `null`: no or unsupported Range header, so the

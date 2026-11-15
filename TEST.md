@@ -1,3 +1,30 @@
+## 2026-11-15 — Training visibility, primary club, examples and Help
+
+- Full web/unit/database run: **677/677**, 64 files. After the final invalid legacy-import guard,
+  the focused settings/example API/SQL set passes **32/32** (includes the additional regression).
+- All seven role sets, creator/participant/cox/unrelated reads, parent feedback denial, foreign
+  example discovery/playback, invalid scopes/accounts, private projections, forbidden writes,
+  stable example classification, archive withdrawal and primary settings/conflicts covered.
+- Upgrade test seeds pre-0029 platform/club-admin/ownerless trainings, verifies only platform-created
+  examples, unchanged primary preferences, identity reassignment/grant withdrawal and retry stability.
+- New visibility browser set: **6/6**, 1000x540 and 1440x900 Chromium plus iPhone13 WebKit. Checks
+  primary defaults/save/reset, explicit all-clubs reload, cox participation, denied unrelated sessions,
+  filter-independent examples, actual synthetic video decode, membership-free viewer and Help anchors.
+  Screenshots visually inspected; document overflow measured. Synthetic fixture media/data only.
+- Existing unified browser suite: **34/34**. Existing shared-video reuse browser suite: **6/6**.
+- General browsers: first run **48 passed/3 failed**. Two cases expected old club-wide rower reads;
+  fixtures now include actual participation. The lineup test submitted only seat 1 while asynchronous
+  rower creation was pending (confirmed from the request trace); it now awaits selection completion.
+  Focused rerun **4/4** desktop/mobile cases passes. Final complete general rerun passes **51/51** (97 environment-specific cases skipped).
+- Worker Ruff/format/mypy and **50/50** pytest; deployment script **77/77**. Lint, typecheck,
+  formatting and unified/reuse/player-demo build pass. Existing >500KB bundle warning remains.
+- Rebased only this change onto current main; conflict-marker scan clean. Migration is **0029**,
+  preserving main's 0028 shared-media schema and its regression fixtures. Local isolated review DB
+  has **29 migrations**, readiness DB ok; production and the original local stack are unchanged.
+- Earlier expected permission/cache/URL assertions were corrected; an unstable WebKit registration
+  substep in the viewer test was replaced with authenticated same-origin synthetic fixture setup.
+  New browser cases are skipped by the general/legacy suite and run explicitly in CI.
+
 ## 2026-11-10 — CI feedback selection and independent jobs
 
 - 13 selector regressions pass: documentation, mixed code/configuration, unknown paths, empty or

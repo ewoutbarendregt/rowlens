@@ -131,6 +131,11 @@ beforeAll(async () => {
     [club, ids.a],
   );
   rower = r?.id ?? '';
+  await asOwner('insert into lineup_seat(club_id,session_id,seat,rower_id) values($1,$2,0,$3)', [
+    club,
+    sourceSession,
+    rower,
+  ]);
   const [m] = await asOwner<{ id: string }>(
     `insert into moment(club_id,video_id,frame) values($1,$2,20) returning id`,
     [club, source],
@@ -402,6 +407,11 @@ describe('independent reused video entries', () => {
   it('serializes reuse against source deletion and preserves the asset when reuse wins', async () => {
     const s = await training(ids.b);
     const original = await ready(s);
+    await asOwner('insert into lineup_seat(club_id,session_id,seat,rower_id) values($1,$2,0,$3)', [
+      club,
+      s,
+      rower,
+    ]);
     const dest = await training(ids.a);
     const results = await Promise.all([
       reuseVideo(handle.db, ctx('a'), dest, original),
@@ -417,6 +427,11 @@ describe('independent reused video entries', () => {
   it('deleting the original training preserves reused playback/local feedback; last-entry and tus deletion reclaim bytes', async () => {
     const s = await training(ids.b);
     const original = await ready(s);
+    await asOwner('insert into lineup_seat(club_id,session_id,seat,rower_id) values($1,$2,0,$3)', [
+      club,
+      s,
+      rower,
+    ]);
     const dest = await training(ids.a);
     const entry = await reuseVideo(handle.db, ctx('a'), dest, original);
     const id = entry?.id ?? '';

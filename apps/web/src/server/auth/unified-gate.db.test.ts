@@ -1257,10 +1257,9 @@ describe('unified accounts and club admission', () => {
       [clubs.b, vid],
     );
     expect(
-      (
-        await call('GET', `/api/videos/${vid}/annotations`, undefined, rower.cookies, clubs.b)
-      ).json<{ annotations: unknown[] }>().annotations,
-    ).toEqual([]);
+      (await call('GET', `/api/videos/${vid}/annotations`, undefined, rower.cookies, clubs.b))
+        .statusCode,
+    ).toBe(404);
     await asOwner('insert into platform_admin(user_id) values($1)', [u.id]);
     expect(
       (await call('GET', `/api/videos/${vid}/annotations`, undefined, u.cookies, clubs.b)).json<{

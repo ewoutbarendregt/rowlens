@@ -21,7 +21,9 @@ it('backfills existing media without changing paths or feedback and supports old
     const journal = JSON.parse(await readFile(journalPath, 'utf8')) as {
       entries: { tag: string }[];
     };
-    journal.entries = journal.entries.filter((e) => e.tag !== '0028_training_video_reuse');
+    journal.entries = journal.entries.filter(
+      (e) => e.tag.localeCompare('0028_training_video_reuse') < 0,
+    );
     await writeFile(journalPath, JSON.stringify(journal));
     await migrateDatabase({
       ownerUrl: container.getConnectionUri(),

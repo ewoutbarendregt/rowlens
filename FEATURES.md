@@ -1,3 +1,11 @@
+## 2026-11-15 — Restricted rower trainings, primary club and usage guide
+
+Implemented locally: rowers read their own/participating trainings only, including cox; staff keep
+club access. Primary club is an account preference and the initial training filter. Administrator
+examples have a separate authenticated, cross-club read-only player independent of filters.
+Private feedback stays private. Permanent NL/EN Help navigation explains current functionality.
+ADR-0028/migration 0029; local review http://127.0.0.1:5175/projects/rowlens/. Not deployed.
+
 # FEATURES
 
 ## CI feedback (2026-11-10)

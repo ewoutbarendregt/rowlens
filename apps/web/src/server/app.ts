@@ -1,3 +1,4 @@
+import { exampleRoutes } from './api/examples.ts';
 import {
   smtpAdmissionDelivery,
   startAdmissionDispatcher,
@@ -199,6 +200,7 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
       basePath: base,
       unifiedUsers: config.unifiedUsers,
     };
+    if (config.unifiedUsers) await app.register(exampleRoutes, { prefix: base, ...clubOpts });
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });
     await app.register(videoReuseRoutes, { prefix: base, ...clubOpts });

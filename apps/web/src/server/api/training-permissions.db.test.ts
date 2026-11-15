@@ -156,13 +156,13 @@ afterAll(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 describe('club training read/write separation (#154)', () => {
-  it('lets every role browse all club trainings, including unrelated and ownerless ones, without crossing clubs', async () => {
+  it('restricts rowers to creation/participation and keeps staff club-wide without crossing clubs', async () => {
     for (const who of Object.keys(emails) as (keyof typeof emails)[]) {
       const list = (await send(who, 'GET', '/api/sessions'))
         .json<{ sessions: { id: string }[] }>()
         .sessions.map((s) => s.id);
       expect(list).toContain(session);
-      expect(list).toContain(legacy);
+      expect(list.includes(legacy)).toBe(who === 'coach' || who === 'admin');
       expect(list).not.toContain(other);
       expect((await send(who, 'GET', `/api/sessions/${other}`)).statusCode).toBe(404);
       const detail = await send(who, 'GET', `/api/sessions/${session}`);

@@ -197,6 +197,13 @@
       "when": 1794220000000,
       "tag": "0028_training_video_reuse",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794741343113,
+      "tag": "0029_training_visibility_examples",
+      "breakpoints": true
     }
   ]
 }
