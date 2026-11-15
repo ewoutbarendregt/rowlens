@@ -51,6 +51,10 @@ process.env['MEDIA_DIR'] = media;
 if (process.env['E2E_TRAINING_VISIBILITY'] === 'true') {
   const { seedVisibility } = await import('./visibility-fixture.ts');
   await seedVisibility(ownerUrl, media);
+  if (process.env['E2E_TRAINING_SHARING'] === 'true') {
+    const { seedSharing } = await import('./sharing-fixture.ts');
+    await seedSharing(ownerUrl, media);
+  }
 }
 // CI runners' disks are often > 85 % full; production keeps the 85 % pause (ADR-0006).
 process.env['DISK_PAUSE_RATIO'] = '0.99';

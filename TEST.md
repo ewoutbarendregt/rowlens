@@ -1,3 +1,26 @@
+## 2026-11-15 — Whole-training sharing, privacy, races and mobile controls
+
+- Full web/unit/database run: **694/694**, 65 files. New focused sharing set **16/16**.
+  Initial three definition tests failed before the new functions existed, then passed.
+- SQL/API: individual/club-wide coexistence and independent revoke; creator/all seven role sets;
+  live coach revocation; member search across all roles without emails; duplicate/foreign/oversized
+  revision rejection; stale saves; read-only children/media; explicit feedback versus private notes;
+  future members/pending/foreign denial; membership removal/rejoin and revision/event retention;
+  forged direct grants/audit writes; old-image/example/archive denial; creator transfer; concurrent
+  revision saves; real deferred parent-lock authority recheck; retained events after training deletion.
+- New sharing browser suite: **9/9** on 1000x540/1440x900 Chromium and iPhone13 WebKit. Rowers select
+  recipients, save/reload, combine club-wide sharing, withdraw independent grants and revoke inline;
+  recipient video decodes while private feedback/editing/forwarding are denied. Coaches manage
+  another creator's training; stale changes require reload. Delayed settings preserve manual club
+  choices and subsequent navigation. Screenshots inspected; visible controls >=44px and no overflow.
+- Existing general suite **51/51** (103 mode-specific cases skipped), reuse **6/6**, visibility
+  **6/6**; unified first **33/34**, with a captured filter-navigation race fixed by a live-path guard
+  and dedicated regression. Final full sharing **9/9** and unified **34/34** reruns pass; all **106** browser cases are green.
+- Worker Ruff/format/mypy and **50/50** pytest, plus **77/77** deploy-script checks pass. Format/lint/typecheck/build checked; expected
+  bundle-size warning remains. Required final results and PR links are in DOCUMENTATION.md.
+- Approved migration applied only to the copied local review DB: **30 migrations**, readiness DB ok,
+  http://127.0.0.1:5175/projects/rowlens/. No original DB/media or production change; no messages sent.
+
 ## 2026-11-15 — Training visibility, primary club, examples and Help
 
 - Full web/unit/database run: **677/677**, 64 files. After the final invalid legacy-import guard,

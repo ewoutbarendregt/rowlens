@@ -1,12 +1,22 @@
-# Pending training sharing proposal — 2026-11-15
+# Whole-training sharing implementation — 2026-11-15
 
-New branch `codex/feat/training-sharing`, stacked on open PR #184. Owner requests sharing whole
-trainings with all club members or individual members. Read `docs/plans/training-sharing.md`:
-proposed rower creator/staff management, same-club read-only recipients, private feedback preserved,
-revocation, membership-bound grants, append-only audit and sharing revision. Await architectural
-approval for the new tables/migration before implementation; no application/database change.
-Parent PR #184 is now green: all nine jobs in CI run 43709685832 pass. It is not merged/deployed.
-Its copied local test stack at http://127.0.0.1:5175/projects/rowlens/ remains unchanged.
+Owner approved `docs/plans/training-sharing.md` with “ja”. Implemented on
+`codex/feat/training-sharing`, based on open PR #184 (nine parent CI checks green). Read ADR-0029:
+migration0030 adds tenant member/club read grants, compare-and-set sharing revision and retained
+append-only events. Creator/staff-only management rechecks live authority after locks; grants never
+widen edit or private-feedback rights. Club-wide sharing includes future actual members; individual
+grants disappear with membership. Global examples and source-feedback rules remain independent.
+
+NL/EN Sharing card below training facts supports audience/search/save/conflict reload/inline revoke;
+recipients have a shared label and read-only pages. Help updated. BUG-064 fixes delayed settings
+clobbering an early manual club choice or navigation away from Sessions.
+
+Local copied stack remains http://127.0.0.1:5175/projects/rowlens/, API3101, DB5436, **30 migrations**,
+readiness DB ok. Original checkout/local stack and production are unchanged. SMTP remains disabled.
+Checks: 694 full web/DB, 16 focused sharing, nine new browser cases, 51 general/six reuse/six visibility,
+50 worker pass. A captured unified WebKit navigation race was fixed; final browser checks are green (106 cases);
+PR status are recorded in the newest DOCUMENTATION.md entry. No merge/deploy authorized. Keep a
+separate stacked PR on #184; follow the repository's parent-branch retention/retargeting instructions.
 
 # Training visibility, primary club and Help — 2026-11-15
 

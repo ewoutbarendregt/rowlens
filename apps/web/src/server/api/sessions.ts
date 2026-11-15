@@ -98,6 +98,8 @@ export const sessionRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts
       const [session] = await tx
         .select({
           id: rowingSession.id,
+          canShare: sql<boolean>`rowlens_can_manage_session_sharing(${rowingSession.id})`,
+          sharedWithMe: sql<boolean>`rowlens_session_shared(${rowingSession.id})`,
           title: rowingSession.title,
           date: rowingSession.sessionDate,
           createdAt: rowingSession.createdAt,

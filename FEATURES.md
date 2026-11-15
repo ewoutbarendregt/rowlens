@@ -1,3 +1,11 @@
+## 2026-11-15 — Whole-training sharing within the club
+
+Implemented locally: rowers share their own trainings and coaches/admins share club trainings with
+all current/future club members or selected individual accounts. Recipients remain read-only and
+private feedback keeps its own permissions. Saving, conflict reload and inline revocation are in a
+collapsed Training sharing card, with current club/audience and NL/EN Help. ADR-0029/migration0030;
+local review http://127.0.0.1:5175/projects/rowlens/. New PR is stacked on #184; not deployed.
+
 ## 2026-11-15 — Restricted rower trainings, primary club and usage guide
 
 Implemented locally: rowers read their own/participating trainings only, including cox; staff keep

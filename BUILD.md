@@ -1,3 +1,30 @@
+## Explicit training sharing (2026-11-15)
+
+ADR-0029/migration 0030 add tenant-scoped `session_share` and append-only `session_share_event`,
+plus a parent sharing revision. Read grants combine club-wide and selected current account members;
+parent/membership composite keys prevent cross-club targets and remove grants on membership loss.
+A pinned mutation locks current actor/recipient authority and the parent, rechecks permission after
+waiting, validates a compare-and-set revision and writes only differences. The grant trigger records
+real changes (including membership cascades) and advances the revision; historical UUID events
+survive membership/grant/training deletion. Direct app mutations of grants/events are denied.
+
+`rowlens_session_shared` widens only modern ordinary read scope; no write/feedback/legacy/example
+capability is widened. New tables use tenant/restrictive/example policies. `/api/sessions/:id/sharing`
+GET/PUT is manager-only; its `/members?q=` search returns at most 20 names/IDs plus `more` for that
+club and training, across all roles, without emails. The shared label does not imply participation,
+ownership or private-note access. Read-only recipient pages keep existing resource capabilities.
+
+`client/sharing/SharingCard.tsx` names the club and shows the saved audience in a collapsed card,
+with member search, club-wide selection, explicit save/conflict reload and `ConfirmInline` revocation.
+Primary defaults do not overwrite early manual club choices; the URL mirror checks the live route
+before replacing query parameters, preventing delayed preferences from navigating back from Clubs.
+The NL/EN Help page describes sharing and the independent feedback/example audience.
+
+`pnpm --filter @rowlens/web e2e:sharing` runs nine synthetic sharing/race cases on low/normal laptop
+Chromium and iPhone13 WebKit. It follows visibility/unified checks in CI. Local copied review stack
+remains at http://127.0.0.1:5175/projects/rowlens/, now 30 migrations; original DB/media/ports and
+production are untouched. No email/notification or new dependency/provider is introduced.
+
 ## Authenticated examples and primary club (2026-11-15)
 
 ADR-0028/migration 0029 supersede club-wide rower reads. `rowlens_can_read_training_row` uses creator

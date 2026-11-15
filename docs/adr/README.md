@@ -41,3 +41,5 @@ New ADR: copy `0000-template.md` to the next number.
 | [0027](0027-sequential-numeric-versions.md) | Sequential numeric user-facing build versions | accepted |
 
 | [0028](0028-training-visibility-and-examples.md) | Participant training visibility, primary club and authenticated examples | accepted |
+
+| [0029](0029-training-sharing.md) | Explicit read-only training sharing within a club | accepted |

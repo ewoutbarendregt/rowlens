@@ -37,3 +37,15 @@ original filenames and administrative directories are excluded. Examples remain 
 their normal club management context. Archiving the owning club removes access. Administrators
 must use footage and crew details suitable for this example audience. No data is sent to an
 external AI service by this feature. Existing ordinary club and feedback boundaries still apply.
+
+## Explicit training sharing within a club (ADR-0029)
+
+A training creator or current club coach/administrator may grant viewing access to chosen current
+club members or all club members (including future approved members). This exposes that training's
+video, lineup and permitted technique measurements. It does not automatically share private
+feedback, create membership, grant editing/forwarding rights or expose other clubs. Private notes
+and source references keep their independent checks. Individual grants disappear with membership;
+club-wide grants require current membership on every read. Revoking a share removes that grant,
+while creator, participant, staff or another explicit grant may still authorize access. Recorded
+sharing/revocation events retain UUIDs, scope, action and time for review, with no names/emails or
+media in the event. No new external processor, message or AI transfer is involved.

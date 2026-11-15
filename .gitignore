@@ -31,6 +31,7 @@ playwright-report/
 test-results/
 test-results-unified/
 test-results-visibility/
+test-results-sharing/
 
 # OS / editor
 .DS_Store

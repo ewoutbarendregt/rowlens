@@ -1,11 +1,19 @@
-## Training sharing proposal — awaiting approval (2026-11-15)
+## Whole-training sharing — implemented locally (2026-11-15)
 
-Owner requests sharing a whole training with all club members or selected members. Prepared
-`docs/plans/training-sharing.md`: creator/staff-controlled read grants, private feedback preserved,
-revocation, membership-bound recipients, audit and revision checks. New grant/audit storage and
-permission migration require architectural approval before implementation. Branch
-`codex/feat/training-sharing`, based on PR #184 (CI 43709685832: all nine checks green).
-No application/database changes; the existing local review stack is unchanged.
+Owner approved `docs/plans/training-sharing.md` with “ja”. ADR-0029/migration 0030 add creator/staff
+managed read-only club/member grants, revision conflict checks and retained grant/revocation events.
+Members see shared trainings within their normal filters; private feedback, creator/crew/staff
+rights and global examples remain independent. Sharing UI and Help are available in NL/EN, with
+an explicit owning-club label, member search, save and inline revoke. Early club-filter choices and
+navigation now survive delayed primary preference initialization (BUG-064).
+
+Branch `codex/feat/training-sharing` is stacked on open PR #184 (parent CI nine checks green).
+Local copy: http://127.0.0.1:5175/projects/rowlens/, API3101/DB5436, **30 migrations**, readiness DB ok;
+original local stack and production are unchanged. Current full web/DB **694/694**, focused sharing
+**16/16**, new browser sharing/race **9/9**, general **51/51**, reuse **6/6**, visibility **6/6** and
+worker **50/50** pass. The final full unified suite passes **34/34** after the delayed filter-navigation guard/regression;
+all **106** browser cases are green. Final checks/PR are recorded in DOCUMENTATION.md.
+No merge/deploy authorization is implied.
 
 # Training visibility, primary club and Help — implemented (2026-11-15)
 

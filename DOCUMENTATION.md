@@ -1,3 +1,10 @@
+## [2026-11-15] — Implement whole-training sharing within the club
+
+**Session**: codex/feat/training-sharing
+**Changed**: .github/workflows/ci.yml, .gitignore, apps/web/package.json, apps/web/tsconfig.json, apps/web/playwright.sharing.config.ts, apps/web/e2e/{server,sharing-fixture,training-sharing}, apps/web/src/client/{sharing,sessions,styles.css,help/strings.ts}, apps/web/src/server/{api/session-sharing,api/sessions.ts,api/visibility.db.test.ts,app.ts,db/schema.ts,db/migrations/0030_session_sharing.sql,db/migrations/meta,repositories/session-sharing.ts,repositories/session-list.ts}, apps/web/src/shared/session-sharing.ts, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, docs/HANDOFF.md, docs/adr/{0029-training-sharing.md,README.md}, docs/plans/training-sharing.md, docs/privacy/processors.md, DOCUMENTATION.md
+**Summary**: Implemented approved creator/staff-controlled club-wide and individual training read grants, live membership/authority checks, private-feedback separation, revision conflicts and retained grant/revocation audit. Added NL/EN Sharing UI/Help and shared-recipient labels; corrected delayed preference/filter navigation races found by browser checks. Full web/DB694 and focused sharing16, new browser9, general51/reuse6/visibility6 and worker50 pass; final full sharing9/unified34 reruns pass (106 total browser cases); deploy-script77 also pass. Only the copied local stack was migrated (30 migrations, readiness DB ok); no original stack, production or message change.
+**Prompts used**: ja
+
 ## [2026-11-15] — Propose whole-training sharing within a club
 
 **Session**: codex/feat/training-sharing

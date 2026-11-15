@@ -1,6 +1,6 @@
 # Sharing a training with club members
 
-Status: proposed; awaiting architectural approval from Ewout (2026-11-15).
+Status: approved by Ewout with “ja” (2026-11-15); implemented with migration 0030 and ADR-0029; verified locally and ready for review.
 Branch: `codex/feat/training-sharing`, stacked on visibility/Help PR #184.
 
 ## Request
@@ -53,7 +53,7 @@ stack is still available at http://127.0.0.1:5175/projects/rowlens/.
 - Update the NL/EN Help sections and permission explanations alongside the UI. No emails,
   notifications, anonymous links, new provider or dependencies are part of this request.
 
-## Architecture requiring approval
+## Approved architecture
 
 One additive migration (expected 0030 after 0029), containing:
 

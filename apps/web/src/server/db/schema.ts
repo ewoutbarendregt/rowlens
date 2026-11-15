@@ -317,6 +317,7 @@ export const rowingSession = pgTable(
     /** Who made it: a rower sees the sessions they created, even before a lineup (#40). */
     createdByUserId: uuid('created_by_user_id'),
     isExample: boolean('is_example').notNull().default(false),
+    sharingRevision: integer('sharing_revision').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -1177,6 +1178,83 @@ export const videoAnnotationReference = pgTable(
       'video_annotation_reference_delete',
       'delete',
       sql`rowlens_can_edit_video(${t.videoId})`,
+    ),
+  ],
+).enableRLS();
+
+/** Explicit training audiences never imply mutation or private-feedback rights. */
+export const sessionShare = pgTable(
+  'session_share',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    sessionId: uuid('session_id').notNull(),
+    scope: text('scope').notNull(),
+    recipientUserId: uuid('recipient_user_id'),
+    sharedByUserId: uuid('shared_by_user_id')
+      .notNull()
+      .references(() => appUser.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'session_share_session_fk',
+      columns: [t.clubId, t.sessionId],
+      foreignColumns: [rowingSession.clubId, rowingSession.id],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'session_share_member_fk',
+      columns: [t.clubId, t.recipientUserId],
+      foreignColumns: [membership.clubId, membership.userId],
+    }).onDelete('cascade'),
+    check(
+      'session_share_scope_check',
+      sql`(${t.scope}='club' and ${t.recipientUserId} is null) or (${t.scope}='member' and ${t.recipientUserId} is not null)`,
+    ),
+    uniqueIndex('session_share_club_unique')
+      .on(t.clubId, t.sessionId)
+      .where(sql`${t.scope}='club'`),
+    uniqueIndex('session_share_member_unique')
+      .on(t.clubId, t.sessionId, t.recipientUserId)
+      .where(sql`${t.scope}='member'`),
+    ...tenantPolicy('session_share_tenant', t.clubId),
+    ...resourcePolicies(
+      'session_share_role',
+      sql`rowlens_can_manage_session_sharing(${t.sessionId})`,
+      sql`false`,
+    ),
+  ],
+).enableRLS();
+
+/** Retain grant/revocation history even after a membership or training disappears. */
+export const sessionShareEvent = pgTable(
+  'session_share_event',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    clubId: uuid('club_id')
+      .notNull()
+      .references(() => club.id),
+    sessionId: uuid('session_id').notNull(),
+    actorUserId: uuid('actor_user_id').references(() => appUser.id),
+    recipientUserId: uuid('recipient_user_id'),
+    scope: text('scope').notNull(),
+    action: text('action').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check(
+      'session_share_event_scope_check',
+      sql`(${t.scope}='club' and ${t.recipientUserId} is null) or (${t.scope}='member' and ${t.recipientUserId} is not null)`,
+    ),
+    check('session_share_event_action_check', sql`${t.action} in ('grant','revoke')`),
+    index('session_share_event_session_idx').on(t.clubId, t.sessionId, t.at),
+    ...tenantPolicy('session_share_event_tenant', t.clubId),
+    ...resourcePolicies(
+      'session_share_event_role',
+      sql`rowlens_admin_member() or rowlens_can_manage_session_sharing(${t.sessionId})`,
+      sql`false`,
     ),
   ],
 ).enableRLS();
