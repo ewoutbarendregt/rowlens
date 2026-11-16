@@ -1,3 +1,10 @@
+## Example notes and drawings — local review (2026-11-16)
+
+Approved publisher-authored example feedback is now included read-only, with fixed publisher
+attribution across creator transfers, drawing/boat-line overlays, text overlays and frame navigation.
+Other authors/private metadata remain excluded. NL/EN management notices explain publication.
+ADR-0030/migration0031; no production rollout yet. Validation is green: 700 web/DB,109 browser and42 edge cases; see TEST.md.
+
 ## 2026-11-15 — Whole-training sharing within the club
 
 Implemented locally: rowers share their own trainings and coaches/admins share club trainings with

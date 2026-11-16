@@ -1,3 +1,10 @@
+## [2026-11-16] — Show approved publisher notes and drawing overlays in examples
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/{help,sessions,styles.css}, apps/web/src/server/{api,db/schema.ts,db/migrations/0031_example_feedback.sql,db/migrations/meta,db/training-visibility-upgrade.db.test.ts,repositories/examples.ts}, apps/web/e2e/{visibility-fixture.ts,training-visibility.spec.ts}, docs/adr/{0030-example-publisher-feedback.md,README.md}, docs/plans/example-feedback.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented the approved publisher-only example feedback rule with immutable attribution, narrow restrictive RLS and a safe read-only projection. Examples now show the maker's own notes/drawings, frame navigation and boat-line/measurement overlays; NL/EN management notices explain publication, while other authors, assignments and source feedback remain private. Full web/DB700, focused API/upgrade20, final browser109 plus edge42, worker50, deploy-script77 and real Docker rollout/rollback rehearsal pass; screenshots/geometry checked on low/normal laptop and iPhone WebKit. Earlier browser/selector/build-order failures and the remaining intermittent helper concern (BUG-069) are recorded in TEST.md, with complete quiet reruns green. An additional example9 rerun verifies a long-lived new client against older responses without annotations after rollback. Only the copied review DB was migrated to31; local API/client are ready at port3101/5175. No production/configuration/message change or merge/deploy; PR/CI status is recorded in the next entry when available.
+**Prompts used**: Ja
+
 ## [2026-11-15] — Diagnose missing example notes and propose publisher-only feedback
 
 **Session**: codex/fix/example-feedback

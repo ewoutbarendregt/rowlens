@@ -3718,3 +3718,14 @@ a.list__item {
 .session-sharing .filters__check {
   min-height: 44px;
 }
+
+.example-notes ol {
+  padding-inline-start: 1.5rem;
+}
+.example-notes li + li {
+  margin-block-start: 1rem;
+}
+.example-notes p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

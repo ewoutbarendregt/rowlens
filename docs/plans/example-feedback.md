@@ -1,6 +1,6 @@
 # Example training notes and drawing overlays
 
-Status: proposed; awaiting Ewout's approval of the cross-account publication rule.
+Status: approved by Ewout with “Ja” (2026-11-16); implemented and verified locally; PR preparation.
 Branch: `codex/fix/example-feedback`. Related: ADR-0028, ADR-0029; BUG-068.
 
 ## Confirmed cause
@@ -29,7 +29,7 @@ automatic boat-line data and measurements, but its player has no overlay.
 - Explain in NL/EN on the example-management surface that the example maker's own notes/drawings
   are visible to every signed-in example viewer. This is a publication rule for examples only.
 
-## Permission design to approve
+## Approved permission design
 
 Record an immutable example-publisher account ID when classifying an example. This prevents later
 creator reassignment from silently publishing a different person's private annotations. Add an
@@ -45,7 +45,7 @@ Return only drawing/text/frame identifiers and read-only capabilities, without a
 emails, timestamps or private recipient metadata. Do not return sibling authors through a shared
 frame. Withdrawn/archived examples and unrelated video IDs remain inaccessible.
 
-## Verification after approval
+## Verification
 
 Tests first: publisher note/line/arrow/angle inclusion, other-author/private/source exclusion,
 creator-transfer stability, missing/legacy-author denial, cross-club/clubless authenticated reads,

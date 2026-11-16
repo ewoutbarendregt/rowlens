@@ -94,6 +94,14 @@ export async function seedVisibility(ownerUrl: string, mediaRoot: string) {
       [gamma, clip.id],
     );
     await db.query(
+      "insert into annotation(club_id,video_id,frame,kind,body,author_user_id,author_name,shape) values($1,$2,10,'note','Voorbeeld: rustig inzetten',$3,'Hidden publisher identity',null),($1,$2,10,'line','',$3,'Hidden publisher identity','{\"points\":[[0.1,0.2],[0.8,0.3]]}'),($1,$2,10,'arrow','',$3,'Hidden publisher identity','{\"points\":[[0.2,0.5],[0.6,0.6]]}'),($1,$2,10,'angle','',$3,'Hidden publisher identity','{\"points\":[[0.2,0.2],[0.5,0.7],[0.8,0.2]]}'),($1,$2,10,'note','Hidden other author',$4,'Hidden other identity',null)",
+      [gamma, clip.id, platform.id, other.id],
+    );
+    await db.query(
+      "insert into video_boat_line(club_id,video_id,frame,points) values($1,$2,0,'[[0.1,0.8],[0.9,0.8]]')",
+      [gamma, clip.id],
+    );
+    await db.query(
       "insert into annotation(club_id,video_id,frame,kind,body,author_name) values($1,$2,10,'note','Hidden private fixture','Synthetic')",
       [gamma, clip.id],
     );

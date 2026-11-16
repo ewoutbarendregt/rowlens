@@ -1,5 +1,8 @@
 import { lang } from '../i18n/language.ts';
 const en = {
+  exampleExplanation: 'Example explanation',
+  publicationNotice:
+    'This is a public example for signed-in users. The original example maker’s own notes and drawings are included; feedback by other authors stays private.',
   manageOriginal: 'Manage original training',
   help: 'Help',
   examples: 'Example trainings',
@@ -7,7 +10,8 @@ const en = {
   noExamples: 'No examples are available yet.',
   exampleIntro:
     'Explore how RowLens works. These examples are available to every signed-in user, independently of your club filters.',
-  readOnly: 'This example is read-only. Private feedback is not included.',
+  readOnly:
+    'This example is read-only. It includes the original maker’s example notes and drawings; feedback by other authors stays private.',
   noClub:
     'You do not have an active club membership yet. You can explore the examples below or choose a club under Clubs.',
   video: (n: number) => `Video ${String(n)}`,
@@ -62,7 +66,7 @@ const en = {
     [
       'feedback',
       'Discuss feedback',
-      'Use Notes for comments and drawings at specific frames. Feedback is private by default. Assign or share it explicitly with individual rowers or the crew when the controls allow it. Rowers see feedback intended for them or written by them within accessible trainings. Private feedback is excluded from the example viewer.',
+      'Use Notes for comments and drawings at specific frames. Feedback is private by default. Assign or share it explicitly with individual rowers or the crew when the controls allow it. Rowers see feedback intended for them or written by them within accessible trainings. In example trainings, the original example maker’s own notes and drawings are visible to every signed-in viewer. Feedback by other authors stays private.',
     ],
     [
       'rights',
@@ -77,6 +81,9 @@ const en = {
   ] as [string, string, string][],
 };
 const nl: typeof en = {
+  exampleExplanation: 'Toelichting bij het voorbeeld',
+  publicationNotice:
+    'Dit is een voorbeeld voor alle ingelogde gebruikers. De eigen notities en tekeningen van de oorspronkelijke maker zijn daarin zichtbaar; feedback van andere auteurs blijft privé.',
   manageOriginal: 'Originele training beheren',
   help: 'Uitleg',
   examples: 'Voorbeeldtrainingen',
@@ -84,7 +91,8 @@ const nl: typeof en = {
   noExamples: 'Er zijn nog geen voorbeelden beschikbaar.',
   exampleIntro:
     'Ontdek hoe RowLens werkt. Deze voorbeelden zijn beschikbaar voor iedereen die is ingelogd, ongeacht je clubfilters.',
-  readOnly: 'Dit voorbeeld kun je alleen bekijken. Privéfeedback wordt niet getoond.',
+  readOnly:
+    'Dit voorbeeld kun je alleen bekijken. De voorbeeldnotities en tekeningen van de oorspronkelijke maker zijn zichtbaar; feedback van andere auteurs blijft privé.',
   noClub:
     'Je bent nog geen lid van een actieve club. Bekijk de voorbeelden hieronder of kies een club via Clubs.',
   video: (n: number) => `Video ${String(n)}`,
@@ -139,7 +147,7 @@ const nl: typeof en = {
     [
       'feedback',
       'Bespreek feedback',
-      'Gebruik Notities voor opmerkingen en tekeningen bij een specifiek beeld. Feedback is standaard privé. Wijs deze expliciet toe of deel deze met afzonderlijke roeiers of de ploeg wanneer de knoppen dat toestaan. Roeiers zien binnen toegankelijke trainingen feedback voor henzelf of van henzelf. Privéfeedback ontbreekt in de voorbeeldspeler.',
+      'Gebruik Notities voor opmerkingen en tekeningen bij een specifiek beeld. Feedback is standaard privé. Wijs deze expliciet toe of deel deze met afzonderlijke roeiers of de ploeg wanneer de knoppen dat toestaan. Roeiers zien binnen toegankelijke trainingen feedback voor henzelf of van henzelf. Bij voorbeeldtrainingen zijn de eigen notities en tekeningen van de oorspronkelijke voorbeeldmaker zichtbaar voor alle ingelogde kijkers. Feedback van andere auteurs blijft privé.',
     ],
     [
       'rights',

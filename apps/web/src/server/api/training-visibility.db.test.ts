@@ -297,3 +297,110 @@ describe('authenticated example API', () => {
     }
   });
 });
+
+describe('published example feedback', () => {
+  const published = Array.from({ length: 4 }, () => randomUUID());
+  const hidden = randomUUID();
+  const scope = () => tenant(['rower'], { clubId: clubs.b, exampleSessionId: example });
+  it('exposes only the original publisher annotations, including drawings, across clubs', async () => {
+    for (const [i, kind] of ['note', 'line', 'arrow', 'angle'].entries()) {
+      await asOwner(
+        'insert into annotation(id,club_id,video_id,frame,kind,body,shape,author_user_id,author_name) values($1,$2,$3,10,$4,$5,$6::jsonb,$7,$8)',
+        [
+          published[i],
+          clubs.b,
+          video,
+          kind,
+          `Published ${kind}`,
+          kind === 'note'
+            ? null
+            : JSON.stringify({
+                ignoredPrivateMetadata: 'Hidden shape metadata',
+                points: [[0.1, 0.2], [0.5, 0.6], ...(kind === 'angle' ? [[0.8, 0.2]] : [])],
+              }),
+          platform,
+          'Private author label',
+        ],
+      );
+    }
+    await asOwner(
+      "insert into annotation(id,club_id,video_id,frame,body,author_user_id,author_name) values($1,$2,$3,10,'Hidden sibling',$4,'Hidden author'),(gen_random_uuid(),$2,$3,20,'Hidden legacy',null,'Hidden legacy author')",
+      [hidden, clubs.b, video, maker],
+    );
+    await asOwner('insert into moment(club_id,video_id,frame) values($1,$2,10)', [clubs.b, video]);
+    const snapshot = await call(`/api/examples/${example}`);
+    expect(snapshot.statusCode).toBe(200);
+    const rows = snapshot.json<{ videos: { annotations: { id: string; canEdit: boolean }[] }[] }>()
+      .videos[0]?.annotations;
+    expect(rows?.map((a) => a.id).sort()).toEqual([...published].sort());
+    expect(rows?.every((a) => !a.canEdit)).toBe(true);
+    expect(Object.keys(rows?.[0] ?? {}).sort()).toEqual([
+      'body',
+      'canEdit',
+      'frame',
+      'id',
+      'kind',
+      'shape',
+    ]);
+    expect(snapshot.body).not.toMatch(
+      /Hidden|Private author|authorUserId|authorName|createdAt|examplePublisher/,
+    );
+    const direct = await withTenant(h.db, scope(), async (tx) => ({
+      notes: (await tx.execute<{ id: string }>(sql`select id from annotation`)).rows
+        .map((r) => r.id)
+        .sort(),
+      moments: (await tx.execute(sql`select * from moment`)).rows,
+      references: (await tx.execute(sql`select * from video_annotation_reference`)).rows,
+    }));
+    expect(direct).toEqual({ notes: [...published].sort(), moments: [], references: [] });
+  });
+  it('freezes publisher attribution through creator transfer and forged updates', async () => {
+    await asOwner(
+      'update rowing_session set created_by_user_id=$1,example_publisher_user_id=$1 where id=$2',
+      [maker, example],
+    );
+    const [row] = await asOwner<{ example_publisher_user_id: string }>(
+      'select example_publisher_user_id from rowing_session where id=$1',
+      [example],
+    );
+    expect(row?.example_publisher_user_id).toBe(platform);
+    const snapshot = await call(`/api/examples/${example}`);
+    expect(snapshot.body).toContain('Published note');
+    expect(snapshot.body).not.toContain('Hidden sibling');
+    const [forged] = await withTenant(
+      h.db,
+      tenant(),
+      async (tx) =>
+        (
+          await tx.execute<{ is_example: boolean; example_publisher_user_id: string | null }>(
+            sql`insert into rowing_session(club_id,title,session_date,created_by_user_id,is_example,example_publisher_user_id) values(${clubs.a},'Forged','2026-11-16',${viewer},true,${platform}) returning is_example,example_publisher_user_id`,
+          )
+        ).rows,
+    );
+    expect(forged).toEqual({ is_example: false, example_publisher_user_id: null });
+  });
+  it('denies published-feedback writes even when example scope contains staff roles', async () => {
+    const changes = await withTenant(
+      h.db,
+      { ...scope(), roles: ['admin', 'coach'] },
+      async (tx) => ({
+        updated: (
+          await tx.execute(sql`update annotation set body='Denied' where video_id=${video}`)
+        ).rowCount,
+        deleted: (await tx.execute(sql`delete from annotation where video_id=${video}`)).rowCount,
+      }),
+    );
+    expect(changes).toEqual({ updated: 0, deleted: 0 });
+    await expect(
+      withTenant(h.db, scope(), (tx) =>
+        tx.execute(
+          sql`insert into annotation(club_id,video_id,frame,body,author_name,author_user_id) values(${clubs.b},${video},20,'Denied','Synthetic',${viewer})`,
+        ),
+      ),
+    ).rejects.toThrow();
+    expect(
+      (await call(`/api/annotations/${published[0] ?? ''}`, 'PATCH', { body: 'Denied' }))
+        .statusCode,
+    ).toBe(404);
+  });
+});

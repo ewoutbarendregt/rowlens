@@ -127,3 +127,63 @@ test('example playback and Help work for a club member and a clubless account', 
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
   await layout(page);
 });
+
+test('example publisher notes, drawings and boat line are read-only and follow the video frame', async ({
+  page,
+}, info) => {
+  await signIn(page);
+  await page.goto('./help');
+  await page
+    .getByTestId('examples')
+    .getByRole('link', { name: 'RowLens voorbeeld', exact: true })
+    .click();
+  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  const notes = page.getByTestId('example-notes');
+  await expect(notes).toContainText('Voorbeeld: rustig inzetten');
+  await expect(page.locator('body')).not.toContainText(
+    /Hidden private fixture|Hidden other author|Hidden publisher identity/,
+  );
+  await notes.getByRole('button', { name: /Notitie bij frame 10/ }).click();
+  await expect(page.getByTestId('player-frame')).toHaveText('10');
+  const layer = page.locator('.drawing-layer');
+  await expect(layer.locator('[data-kind]')).toHaveCount(4);
+  await expect(layer.locator('.drawing--boat')).toHaveCount(1);
+  await expect(page.getByTestId('video-note-overlay')).toContainText('Voorbeeld: rustig inzetten');
+  await expect(page.locator('.drawing--pickable')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Opslaan|Verwijderen|Delen/ })).toHaveCount(0);
+  await page.getByTestId('zoom').getByRole('button', { name: 'Inzoomen', exact: true }).click();
+  const picture = await layer.boundingBox();
+  expect(picture?.width).toBeGreaterThan(100);
+  const savedLine = layer.locator('g[data-kind="line"]:not(.drawing--boat) line.drawing__line');
+  await expect(savedLine).toHaveAttribute('x1', '64');
+  await expect(savedLine).toHaveAttribute('y1', '72');
+  await expect(savedLine).toHaveAttribute('x2', '512');
+  await expect(savedLine).toHaveAttribute('y2', '108');
+  await expect(layer).not.toHaveAttribute('viewBox', '0 0 640 360');
+  await layout(page);
+  await page.screenshot({ path: info.outputPath('example-feedback-zoom.png'), fullPage: true });
+  await page.getByRole('button', { name: /Volledig scherm/, exact: true }).click();
+  await expect(page.locator('.player')).toHaveClass(/player--fullscreen/);
+  await expect(page.locator('.player .drawing-layer [data-kind]')).toHaveCount(4);
+  await expect(page.locator('.player [data-testid="video-note-overlay"]')).toBeVisible();
+  await page.screenshot({
+    path: info.outputPath('example-feedback-fullscreen.png'),
+    fullPage: true,
+  });
+  await page.getByRole('button', { name: 'Volgende frame', exact: true }).click();
+  await expect(page.getByTestId('player-frame')).toHaveText('11');
+  await expect(layer.locator('[data-kind]')).toHaveCount(1);
+  await expect(layer.locator('.drawing--boat')).toHaveCount(1);
+  await expect(page.getByTestId('video-note-overlay')).toContainText('Voorbeeld: rustig inzetten');
+  // A long-lived new client can briefly meet an older server after a rollback.
+  await page.route('**/api/examples/*', async (route) => {
+    const response = await route.fetch();
+    const body = (await response.json()) as { videos?: { annotations?: unknown }[] };
+    if (body.videos) for (const clip of body.videos) delete clip.annotations;
+    await route.fulfill({ response, json: body });
+  });
+  await page.reload();
+  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  await expect(page.getByTestId('example-notes').locator('li')).toHaveCount(0);
+  await expect(page.locator('.drawing--boat')).toHaveCount(1);
+});

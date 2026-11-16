@@ -32,7 +32,10 @@ real verified accounts; no fabricated accounts or automatic name-based matching 
 Trainings created by a RowLens platform administrator are examples visible to every verified,
 signed-in account, including people without club membership or from other clubs. The dedicated
 viewer exposes example video, training/crew display information and technique measurements.
-Private notes/drawings, assignments/shares, source feedback references, account email addresses,
+ADR-0030 also publishes the original example maker’s own notes/drawings, including existing and
+future items; immutable publisher attribution prevents creator reassignment from exposing another
+author. Other authors’ feedback, legacy/unknown authors, assignments/shares, source references,
+account email addresses,
 original filenames and administrative directories are excluded. Examples remain read-only outside
 their normal club management context. Archiving the owning club removes access. Administrators
 must use footage and crew details suitable for this example audience. No data is sent to an

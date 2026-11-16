@@ -43,3 +43,5 @@ New ADR: copy `0000-template.md` to the next number.
 | [0028](0028-training-visibility-and-examples.md) | Participant training visibility, primary club and authenticated examples | accepted |
 
 | [0029](0029-training-sharing.md) | Explicit read-only training sharing within a club | accepted |
+
+| [0030](0030-example-publisher-feedback.md) | Read-only publisher feedback in training examples | accepted |

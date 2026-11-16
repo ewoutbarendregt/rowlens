@@ -1,9 +1,16 @@
+### [BUG-069] Browser helper readiness can intermittently expire during account/filter navigation — severity: low
+**Location**: apps/web/e2e/unified-users.spec.ts:81; apps/web/e2e/helpers.ts
+**Status**: open
+**Found**: 2026-11-16
+**Description**: An initial WebKit directory run reached the Users page but its newly added filter was absent; a separate heavily loaded run completed login verification while the status response remained pending beyond the helper's 5-second account-menu assertion. No product access defect was reproduced. Targeted and complete serialized reruns pass (34 unified, 9 sharing).
+**Fix**: Preserve initial traces under /tmp/rowlens-example-unified-initial and /tmp/rowlens-example-sharing-delayed; investigate readiness if it recurs. No unrelated product or timeout change in the example-feedback fix.
+
 ### [BUG-068] Example viewer omits saved notes and drawing overlays — severity: medium
 **Location**: apps/web/src/client/help/ExamplePage.tsx; apps/web/src/server/repositories/examples.ts
-**Status**: open
+**Status**: fixed
 **Found**: 2026-11-15
 **Description**: User found examples in Help but cannot see their notes/lines. Example API intentionally excludes annotations under restrictive RLS; the example player also lacks drawing/note overlays, even for already supplied boat lines.
-**Fix**: Proposed publisher-only read-only example feedback and player overlays in docs/plans/example-feedback.md. Cross-account publication/permission change awaits approval; no production change.
+**Fix**: Approved ADR-0030/migration0031 freeze the original publisher and admit only their own example annotations under restrictive RLS. Safe projection and read-only drawing/text/boat-line overlays with frame navigation are implemented; 700 web/DB and 109 browser cases pass locally. No production rollout yet.
 
 ### [BUG-064] Delayed primary-club initialization overwrites manual choices or navigation — medium
 **Location**: apps/web/src/client/sessions/SessionsPage.tsx

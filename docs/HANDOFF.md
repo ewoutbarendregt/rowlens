@@ -1,3 +1,26 @@
+# Example feedback implemented locally — 2026-11-16
+
+Ewout approved the example-feedback proposal with “Ja”. ADR-0030/migration0031 freeze the
+original example publisher; only that author's own annotations are public example material.
+Creator transfer cannot publish somebody else's feedback. Existing uncertain/null publishers fail
+closed; other authors (including same-frame notes), assignments and source references stay hidden.
+The API projects only ID/frame/kind/body/validated shape/canEdit:false. Example player now renders
+notes/drawings/boat-line/measurement overlays, read-only frame navigation and zoom/fullscreen.
+NL/EN notices on original training/video management pages explain the audience. A missing
+annotation field in an older server response is tolerated after rollback (example9 rerun pass).
+
+Local review: http://127.0.0.1:5175/projects/rowlens/help, API3101/copied DB5436, **31 migrations**,
+DB readiness ok (one known publisher in that older local copy). API log: /tmp/rowlens-example-api.log;
+existing Vite listener was reused. SMTP remains disabled. Original stack/media and production were
+not modified. Last production rollout is 0.0.63/sha-4ec6e71 (deployment evidence remains PR #187).
+
+Checks: full web/DB700; focused API/upgrade20 and overlay2; final browser109 (9 examples,9 sharing,
+34 unified,51 general,6 reuse), edge42, worker50, deploy77 and real Docker rehearsal pass. Initial
+browser failures, invalidated build-order run and an intermittent unrelated helper readiness issue
+(BUG-069) are documented with final full quiet reruns green. BUG-068 is fixed locally. No merge or
+new production deploy is authorized. Next: owner local review/PR CI, then await explicit rollout.
+Older proposal/status entries below are historical and superseded by this entry.
+
 # Example feedback proposal awaiting approval — 2026-11-15
 
 Ewout found examples through Help and accepts that location; no discovery fix needed. They report
