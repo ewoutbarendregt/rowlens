@@ -1,3 +1,10 @@
+## 2026-11-16 — Linux WebKit BUG-070 root repair
+
+- Matching Playwright1.64.1 Noble Linux image: all9 visibility/example cases pass in27.1s, including iPhone WebKit. Synthetic canvas fingerprint verifies the decoded picture really changes on the paused frame10 jump; following frame11 removes the old drawings. Fullscreen/zoom and clubless examples remain covered.
+- Eight new unit cases fail before/pass after the quarter-interval seek offset; all32 frames cases pass. Cover every frame over10s at24/25/30/50/60/59.94/120/240fps, real PTS and millisecond-rounded seek timestamps.
+- Earlier Linux probes compared native/app controls and actual pixel fingerprints: source, codec, poster and CSS removal did not fix the stalled picture. Revealing then waiting for a paint does; the callback then reports seek time rather than frame PTS, exposing the midpoint round-up. The counter still derives from rVFC, not the requested frame.
+- Parent full708/708 in66 files (67.84s), format/lint/typecheck/build pass; remote CI pending a new push. No production change.
+
 ## 2026-11-16 — Reveal the example stage before frame jumps (BUG-070)
 
 - Parent CI43896501068: eight jobs passed; web failed both Linux iPhone WebKit attempts when the

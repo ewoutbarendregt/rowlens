@@ -1,3 +1,10 @@
+## [2026-11-16] — Resolve Linux WebKit off-screen paused seeks
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/{frames.ts,frames.test.ts}, apps/web/e2e/training-visibility.spec.ts, docs/adr/0007-upload-transcode-playback.md, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Reproduced parent CI BUG-070 in the matching Linux Playwright1.64.1 image and compared actual decoded pixel fingerprints: scroll+seek in the same click kept the old image, despite seeked/currentTime advancing. Wait for an intervening paint before seeking; cancel superseded/unmounted jumps. Linux then reports the seek time as mediaTime, so amended the seek offset to the first quarter of the CFR interval, avoiding midpoint round-up while preserving timestamp margins through240fps. Eight new arithmetic regressions fail before/pass after; all32 frame unit tests and Linux browser9 pass, including actual decoded-image change, next-frame overlays, zoom/fullscreen and iPhone WebKit. Full parent708/66 files, format/lint/typecheck/build pass before push; no production change. Child Help management #191 remains fully locally verified709/browser15 and will receive this parent correction.
+**Prompts used**: Ga verder
+
 ## [2026-11-16] — Reveal example video before seeking from notes
 
 **Session**: codex/fix/example-feedback

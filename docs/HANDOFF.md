@@ -1,3 +1,14 @@
+# Parent BUG-070 root repair verified in Linux — 2026-11-16
+
+Current codex/fix/example-feedback: cancellable reveal/paint/seek in ExamplePage and quarter-interval
+CFR seeks. All32 frame unit and Linux browser9 pass (Playwright1.64.1 Noble/iPhone WebKit included);
+new decoded-pixel fingerprint rejects a frozen picture despite currentTime changes. Parent full708/66 files and static
+checks/build pass before commit/push. Then switch to codex/feat/help-example-management, merge this
+parent repair (preserve both doc histories), scan conflict markers and rerun combined checks. Child
+implementation3859fc0 is already locally verified709/browser15 and pushed in draft#191. User approved
+existing publication with “Ga verder”; no implementation approval pending. No merge/deploy authorized.
+Synthetic probe servers4186 are stopped. Original local stack/production unchanged.
+
 # Parent #190 frame-jump CI repair — 2026-11-16
 
 CI43896501068 passed eight jobs but failed web twice on Linux iPhone WebKit: frame0 after the

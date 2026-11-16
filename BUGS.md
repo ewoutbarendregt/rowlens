@@ -1,9 +1,9 @@
-### [BUG-070] Example note jumps leave the player off-screen and stall WebKit presentation — severity: medium
-**Location**: apps/web/src/client/help/ExamplePage.tsx
+### [BUG-070] Paused example note jumps stall the decoded picture in Linux WebKit — severity: medium
+**Location**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/frames.ts
 **Status**: fixed
 **Found**: 2026-11-16
-**Description**: Parent PR #190's Linux WebKit CI failed twice: clicking the below-video note's frame link left the presented frame at0 instead of10. The example jump did not reveal the player, unlike ordinary video note navigation. A new local visibility assertion reproduces the off-screen stage (viewport ratio0).
-**Fix**: Reveal the scoped player stage immediately before seeking from example notes/analysis. Visibility/frame/overlay regressions pass9/9 on low/normal Chromium and iPhone WebKit; remote CI revalidation pending.
+**Description**: Clicking below-video notes scrolls the paused picture out of view. A synchronous scroll-back and seek acknowledges currentTime.35 but leaves the decoded image and rVFC metadata at0. After allowing a paint, GStreamer reports the seek time.35, which the former midpoint rule rounds to11 instead of10.
+**Fix**: Reveal the stage, allow an intervening paint using cancellable animation-frame callbacks, then seek. Use the first quarter of the CFR interval rather than its midpoint, retaining a timestamp boundary margin through240fps. Display remains callback-derived. All eight new arithmetic regressions fail before/pass after; actual picture fingerprint and all nine browser tests pass in matching Linux Playwright1.64.1, including iPhone WebKit. Remote CI still needs to verify the repair.
 
 ### [BUG-069] Browser helper readiness can intermittently expire during account/filter navigation — severity: low
 **Location**: apps/web/e2e/unified-users.spec.ts:81; apps/web/e2e/helpers.ts

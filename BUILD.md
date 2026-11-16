@@ -1,3 +1,11 @@
+## Paused example seek painting (2026-11-16)
+
+Example note/analysis jumps reveal the stage, allow an intervening paint via cancellable animation
+frames, and then seek. Linux WebKit can otherwise acknowledge seeked without changing the decoded
+picture. CFR seeks now use the first quarter of a frame interval: this retains timestamp margin
+through240fps while resolving both true PTS and Linux GStreamer's reported paused seek time to the
+same callback-derived frame. ADR-0007 documents the measured repair and regressions.
+
 ## Publisher feedback in examples (2026-11-16)
 
 ADR-0030/migration 0031 add immutable `example_publisher_user_id`, stamped with example creation

@@ -1,7 +1,7 @@
 /**
  * Frame arithmetic for constant-frame-rate renditions (ADR-0007). Frame n is presented from n/fps
- * until (n+1)/fps; we seek to the middle of that interval so rounding in the browser or the
- * container timescale can never land on a neighbouring frame.
+ * until (n+1)/fps; seek inside its first half, away from timestamp boundaries. This also keeps
+ * WebKit/GStreamer callbacks that report the seek time from rounding into the following frame.
  */
 
 // Absorbs float error in presentation timestamps (e.g. 0.2999999 for frame 18 at 60 fps).
@@ -21,7 +21,7 @@ export function presentedFrame(mediaTime: number, fps: number): number {
 }
 
 export function frameToTime(frame: number, fps: number): number {
-  return (frame + 0.5) / fps;
+  return (frame + 0.25) / fps;
 }
 
 /** Number of frames in a clip of `duration` seconds (at least 1). */

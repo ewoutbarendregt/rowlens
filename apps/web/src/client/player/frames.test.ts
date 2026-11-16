@@ -24,6 +24,20 @@ describe('timeToFrame / frameToTime', () => {
     },
   );
 
+  it.each([24, 25, 30, 50, 60, 60000 / 1001, 120, 240])(
+    'keeps paused seek timestamps inside their frame at %d fps, including WebM precision',
+    (fps) => {
+      // Linux WebKit/GStreamer may report the seek time as mediaTime rather than the frame PTS.
+      // A midpoint then rounds to the following frame; stay safely inside the first half.
+      for (let frame = 0; frame < frameCount(10, fps); frame++) {
+        const seek = frameToTime(frame, fps);
+        expect(seek - frame / fps).toBeGreaterThan(0.001);
+        expect(presentedFrame(seek, fps)).toBe(frame);
+        expect(presentedFrame(Math.round(seek * 1000) / 1000, fps)).toBe(frame);
+      }
+    },
+  );
+
   it('absorbs float error just below a frame boundary', () => {
     expect(timeToFrame(0.29999999, 60)).toBe(18);
     expect(timeToFrame(18 / 60 - 1e-9, 60)).toBe(18);

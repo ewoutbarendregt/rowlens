@@ -62,6 +62,7 @@ export function ExamplePage() {
   const [middle, setMiddle] = useState(false);
   const player = useRef<PlayerHandle>(null);
   const playerArea = useRef<HTMLDivElement>(null);
+  const pendingJump = useRef<number | null>(null);
   const actor = auth.kind === 'open' ? auth.user.id : null;
   useEffect(() => {
     let stale = false;
@@ -101,13 +102,25 @@ export function ExamplePage() {
             ],
       )
     : [];
+  useEffect(
+    () => () => {
+      if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+    },
+    [v?.id],
+  );
   const jump = (f: number) => {
-    // WebKit may defer paused-frame presentation while the video is outside the viewport.
-    // Bring the picture back before seeking from the notes/analysis panels below it.
+    // WebKit suspends presentation off-screen. Reveal, then allow a paint before seeking:
+    // a synchronous seek in the scrolling click handler can complete without decoding a new frame.
     playerArea.current
       ?.querySelector('.player__stage')
       ?.scrollIntoView({ block: 'center', behavior: 'instant' });
-    player.current?.seekToFrame(f);
+    if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+    pendingJump.current = requestAnimationFrame(() => {
+      pendingJump.current = requestAnimationFrame(() => {
+        pendingJump.current = null;
+        player.current?.seekToFrame(f);
+      });
+    });
   };
   const moments = videoMoments(
     (v?.annotations ?? []).map((a) => ({ ...a, authorName: t.exampleExplanation })),
