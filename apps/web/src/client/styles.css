@@ -3766,3 +3766,16 @@ a.list__item {
   height: 44px;
   max-width: 100%;
 }
+
+.examples__picker {
+  margin-block: var(--space-4, 1rem);
+}
+.examples__picker select,
+.examples__picker input {
+  height: 44px;
+  min-height: 44px;
+  max-width: 100%;
+}
+.page .examples__picker button {
+  min-height: 44px;
+}

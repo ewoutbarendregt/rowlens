@@ -281,3 +281,62 @@ test('RowLens admin creates, renames and opens examples from Help in their ownin
     expect(height).toBeGreaterThanOrEqual(43.5);
   await page.screenshot({ path: info.outputPath('help-example-management.png'), fullPage: true });
 });
+
+test('RowLens admin publishes an existing training with explicit confirmation and retains ownership', async ({
+  page,
+}, info) => {
+  await signIn(page, adminEmail);
+  await page.goto('./help');
+  const examples = page.getByTestId('examples');
+  const title = `Bestaand voorbeeld ${info.project.name}`;
+  await expect(examples.getByRole('link', { name: title, exact: true })).toHaveCount(0);
+  await examples
+    .getByRole('button', { name: 'Bestaande training selecteren', exact: true })
+    .click();
+  const picker = examples.locator('.examples__picker');
+  await picker
+    .getByLabel('Club van de voorbeeldtraining', { exact: true })
+    .selectOption({ label: 'Alpha testclub' });
+  await picker.getByLabel('Naam van de training', { exact: true }).fill(title);
+  await picker.getByRole('button', { name: 'Trainingen zoeken', exact: true }).click();
+  await expect(picker.locator('li')).toHaveCount(1);
+  // Repeating the same search must retain results.
+  await picker.getByRole('button', { name: 'Trainingen zoeken', exact: true }).click();
+  await expect(picker.locator('li')).toHaveCount(1);
+  await picker.getByRole('button', { name: title, exact: true }).click();
+  const confirm = picker.getByTestId('confirm');
+  await expect(confirm).toContainText('Alle ingelogde gebruikers');
+  await expect(confirm).toContainText('jouw eigen bestaande en toekomstige notities');
+  await confirm.getByRole('button', { name: 'Annuleren', exact: true }).click();
+  await expect(confirm).toHaveCount(0);
+  await expect(examples.getByRole('link', { name: title, exact: true })).toHaveCount(0);
+  await picker.getByRole('button', { name: title, exact: true }).click();
+  await page.route('**/api/example-management/*/publish*', (route) =>
+    route.fulfill({ status: 503, json: { error: 'synthetic_failure' } }),
+  );
+  await confirm.getByRole('button', { name: 'Voorbeeld publiceren', exact: true }).click();
+  await expect(picker.getByRole('alert')).toBeVisible();
+  await page.unroute('**/api/example-management/*/publish*');
+  for (const height of await picker
+    .locator('input, select, button')
+    .evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height)))
+    expect(height).toBeGreaterThanOrEqual(43.5);
+  await layout(page);
+  await picker.screenshot({ path: info.outputPath('help-existing-confirm.png') });
+  await confirm.getByRole('button', { name: 'Voorbeeld publiceren', exact: true }).click();
+  const link = examples.getByRole('link', { name: title, exact: true });
+  await expect(link).toBeVisible();
+  const href = await link.getAttribute('href');
+  const id = href?.split('/').at(-1);
+  expect(id).toBeTruthy();
+  await page.context().clearCookies();
+  await signIn(page);
+  await page.goto('./help');
+  await expect(examples.getByRole('button')).toHaveCount(0);
+  await examples.getByRole('link', { name: title, exact: true }).click();
+  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  await expect(page.getByTestId('example-notes')).toContainText('Gepubliceerd door beheerder');
+  await expect(page.locator('body')).not.toContainText('Hidden original creator feedback');
+  await expect(page.getByRole('button', { name: /Opslaan|Verwijderen|Delen/ })).toHaveCount(0);
+  await layout(page);
+});

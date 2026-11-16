@@ -1,8 +1,7 @@
 # Manage examples from Help, including existing trainings
 
-Status: existing-training selection requested by Ewout (2026-11-16); publication rule below awaits
-architectural approval under AGENTS.md. Branch: `codex/feat/help-example-management`, stacked on
-`codex/fix/example-feedback` / PR #190. Existing create/edit/rename shortcuts are implemented separately.
+Status: approved by Ewout with “Ga verder” (2026-11-16), following the explicit publication/privacy
+proposal. Branch: `codex/feat/help-example-management`, stacked on #190. Implementation in progress.
 
 ## Existing behavior and reusable work
 

@@ -218,6 +218,13 @@
       "when": 1794840556831,
       "tag": "0031_example_feedback",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794861433532,
+      "tag": "0032_example_publication",
+      "breakpoints": true
     }
   ]
 }

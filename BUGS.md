@@ -1,3 +1,10 @@
+### [BUG-072] Help management controls duplicate after catalog loading — severity: low
+**Location**: apps/web/src/client/help/Examples.tsx
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Create and existing-picker siblings reused the same actor key, causing React reconciliation to duplicate the create button after catalog state changed. The new picker confirmation also inherited34px global controls despite a44px scoped rule.
+**Fix**: Use distinct actor-scoped sibling keys and a more specific44px picker confirmation rule. Browser regressions failed on all three viewports before the correction; final verification is recorded in TEST.md.
+
 ### [BUG-071] Native example-creation selects are too short for touch — severity: low
 **Location**: apps/web/src/client/styles.css
 **Status**: fixed
@@ -7,10 +14,12 @@
 
 ### [BUG-070] Example note jumps leave the player off-screen and stall WebKit presentation — severity: medium
 **Location**: apps/web/src/client/help/ExamplePage.tsx
-**Status**: fixed
+**Status**: in-progress
 **Found**: 2026-11-16
 **Description**: Parent PR #190's Linux WebKit CI failed twice: clicking the below-video note's frame link left the presented frame at0 instead of10. The example jump did not reveal the player, unlike ordinary video note navigation. A new local visibility assertion reproduces the off-screen stage (viewport ratio0).
 **Fix**: Reveal the scoped player stage immediately before seeking from example notes/analysis. Visibility/frame/overlay regressions pass9/9 on low/normal Chromium and iPhone WebKit; remote CI revalidation pending.
+
+**Remaining**: Linux CI43902061152 still reports frame0 after paused seeking despite viewport visibility passing. Local macOS WebKit passes; root-cause investigation remains open.
 
 ### [BUG-069] Browser helper readiness can intermittently expire during account/filter navigation — severity: low
 **Location**: apps/web/e2e/unified-users.spec.ts:81; apps/web/e2e/helpers.ts

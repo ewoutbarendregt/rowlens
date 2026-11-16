@@ -1,3 +1,13 @@
+## Explicit Help example publication (2026-11-16)
+
+ADR-0031/migration0032 add live-verified tenant management and a pinned publication function.
+Share locks protect actor/global grant/active club through an exact-club parent lock and mutation.
+An invoker classification trigger only accepts the trusted function owner context plus matching
+transaction marker/tenant/current authority; ordinary SQL cannot forge promotion. Candidate lists
+are literal-search, keyset-paged20 rows with no private feedback. Help confirmation publishes the
+original live training and selecting admin annotations while preserving ownership and prior examples.
+The owning-club editor and existing automatic new-example stamp remain in force.
+
 ## Example management shortcuts in Help (2026-11-16)
 
 Help opts into `Examples manage`; only the verified auth state's platform administrator sees

@@ -1,3 +1,12 @@
+## 2026-11-16 — Approved existing Help publication
+
+- Focused DB/API8/8: bounded20+5 pagination and literal search, role/forged-context denial, correct tenant, publisher-only feedback, immutable ownership/classification, forged marker denial even for a real global admin, competing publishers, and grant/archive withdrawals starting before publication locks. Added an automatic-example publisher-retention ninth regression for the full run.
+- Browser final15/15 on1000×540 and1440×900 Chromium and iPhone13 WebKit. Includes creation, rename, ordinary-club editor, existing selection, repeated search, confirmation/cancel, failure/retry, publication visible to a rower, hidden owner feedback and absent rower management controls. Measured44px controls and no horizontal overflow; inspected low-laptop and phone confirmation screenshots.
+- First browser run9/15 exposed BUG-072 (duplicate actor sibling keys and34px inherited confirmation controls); corrected and reran all15 successfully.
+- Format/lint/typecheck/build pass. Full web/DB initial run interrupted after an existing video-assets migration test exceeded30s amid overlapping Docker workloads; isolated full rerun in progress. Do not count that interrupted run as passing.
+- Copied local DB5436 migration32 applied; API3101 readiness DB ok. Production and original local stack unchanged.
+- Parent CI43902061152 remains red only on Linux WebKit frame0/10 (BUG-070), even with stage visibility passing. This remains an explicit merge blocker.
+
 ## 2026-11-16 — Combined Help controls and touch-target verification
 
 - Parent ad359b5 was merged into the child; code merged cleanly and both documentation histories

@@ -32,13 +32,17 @@ real verified accounts; no fabricated accounts or automatic name-based matching 
 Trainings created by a RowLens platform administrator are examples visible to every verified,
 signed-in account, including people without club membership or from other clubs. The dedicated
 viewer exposes example video, training/crew display information and technique measurements.
-ADR-0030 also publishes the original example maker’s own notes/drawings, including existing and
+ADR-0030 also publishes the publishing administrator’s own notes/drawings, including existing and
 future items; immutable publisher attribution prevents creator reassignment from exposing another
 author. Other authors’ feedback, legacy/unknown authors, assignments/shares, source references,
 account email addresses,
 original filenames and administrative directories are excluded. Examples remain read-only outside
 their normal club management context. Archiving the owning club removes access. Administrators
-must use footage and crew details suitable for this example audience. No data is sent to an
+must use footage and crew details suitable for this example audience. ADR-0031 adds explicit
+publication of existing ordinary trainings from Help after an inline audience confirmation. The
+selecting global administrator becomes the immutable publisher; ownership stays with the original
+creator, whose own feedback remains private. Publication includes future training changes and only
+the publisher’s own existing/future feedback; it is not a frozen copy. No data is sent to an
 external AI service by this feature. Existing ordinary club and feedback boundaries still apply.
 
 ## Explicit training sharing within a club (ADR-0029)

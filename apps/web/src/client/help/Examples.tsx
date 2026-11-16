@@ -1,3 +1,4 @@
+import { ExamplePicker } from './ExamplePicker.tsx';
 import { ExampleActions, ExampleCreate } from './ExampleManagement.tsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
@@ -16,6 +17,8 @@ export function Examples({ manage = false }: { manage?: boolean }) {
   const { state } = useAuth();
   const manager = manage && state.kind === 'open' && state.user.platformAdmin === true;
   const actor = state.kind === 'open' ? state.user.id : null;
+  const [revision, setRevision] = useState(0);
+  const [published, setPublished] = useState(false);
   const [rows, setRows] = useState<Example[]>([]);
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,7 @@ export function Examples({ manage = false }: { manage?: boolean }) {
     return () => {
       stale = true;
     };
-  }, [actor]);
+  }, [actor, revision]);
   const t = helpStrings();
   return (
     <section className="card examples" data-testid="examples">
@@ -54,12 +57,24 @@ export function Examples({ manage = false }: { manage?: boolean }) {
       {!loading && !failed && rows.length === 0 && <p className="muted">{t.noExamples}</p>}
       {manager && (
         <ExampleCreate
-          key={actor}
+          key={`create:${actor ?? ''}`}
           clubs={state.clubs ?? []}
           initialClub={state.club.id ?? ''}
           defaultBoat={state.user.defaultBoatType}
         />
       )}
+      {manager && (
+        <ExamplePicker
+          key={`picker:${actor ?? ''}`}
+          clubs={state.clubs ?? []}
+          initialClub={state.club.id ?? ''}
+          onPublished={() => {
+            setPublished(true);
+            setRevision((value) => value + 1);
+          }}
+        />
+      )}
+      {manager && published && <p role="status">{t.examplePublished}</p>}
       <ul className="examples__list">
         {rows.map((s) => (
           <li key={s.id} className="examples__item">

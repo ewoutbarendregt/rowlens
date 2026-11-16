@@ -1,3 +1,12 @@
+## [2026-11-16] — Implement approved existing-training publication from Help
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/{client/help/ExamplePicker.tsx,client/help/Examples.tsx,client/help/strings.ts,client/styles.css,shared/example-management.ts,server/api/example-management.ts,server/api/example-management.db.test.ts,server/repositories/example-management.ts,server/app.ts,server/db/migrations/0032_example_publication.sql,server/db/migrations/meta}, apps/web/e2e/{visibility-fixture.ts,training-visibility.spec.ts}, docs/adr/0031-explicit-example-publication.md, docs/adr/README.md, docs/plans/help-example-management.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout approved the publication/privacy proposal with “Ga verder”. Added bounded club-scoped existing-training selection, explicit inline audience confirmation, protected and audited publication with live-authority lock/rechecks, immutable selecting publisher and retained original ownership. Only that publisher’s annotations join the example; other feedback remains private. Focused security8 and final browser15 pass across iPhone WebKit and both laptop sizes; a ninth automatic-publication regression is included in the full rerun. First combined browser run exposed duplicate sibling keys and undersized confirmation buttons (BUG-072), now fixed; full web/DB rerun follows an older upgrade-test timeout during overlapping local work. Static checks/build pass. Copied local DB5436 migrated32 and API3101 readiness DB ok. #191 remains draft while checks/parent BUG-070 are resolved; no production action or merge/deploy authorization.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
+Ga verder
+
 ## [2026-11-16] — Open partial Help-management draft #191
 
 **Session**: codex/feat/help-example-management

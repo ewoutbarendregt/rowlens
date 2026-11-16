@@ -1,3 +1,10 @@
+## Existing Help training selection — approved and implemented (2026-11-16)
+
+Ewout approved the publication proposal with “Ga verder”. ADR-0031/migration0032 add explicit
+global-admin publication, immutable selecting publisher, original ownership retention and bounded
+club search. Help now provides selection and inline audience confirmation alongside create/edit/rename.
+Security races pass8 targeted tests; combined checks are ongoing. No merge/deploy is authorized.
+
 ## Help example management — ongoing (2026-11-16)
 
 New-example creation, ordinary-editor links and inline title changes are implemented for RowLens

@@ -1,3 +1,16 @@
+# Existing Help publication approved and implemented — 2026-11-16
+
+Ewout approved docs/plans/help-example-management.md with “Ga verder”; prior pending-approval
+instructions below are superseded. Current codex/feat/help-example-management implements the
+existing-training picker and protected migration0032 publication (ADR-0031). Original owner stays;
+selecting global admin is immutable publisher; other-author feedback remains private. Focused8
+security tests pass, including forged direct writes and withdrawal/archive lock races; ninth
+automatic-publication test added. Full web/browser/static validation is in progress. Local copied
+review DB5436 migrated32, API3101 readiness DB ok; original stack and production untouched.
+
+Parent #190 remains CI-red on Linux WebKit paused-frame metadata (BUG-070); viewport reveal alone
+does not resolve it. No production/merge/deploy authorization. Finish checks and update #191's draft.
+
 Draft review: [PR #191](https://github.com/ewoutbarendregt/rowlens/pull/191), base #190's branch.
 Create/edit/rename work is tested and committed; existing-training publication still awaits the
 pending explicit architecture/privacy approval. Do not merge the draft as full completion.
