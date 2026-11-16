@@ -1,3 +1,15 @@
+## 2026-11-16 — Reveal the example stage before frame jumps (BUG-070)
+
+- Parent CI43896501068: eight jobs passed; web failed both Linux iPhone WebKit attempts when the
+  example note frame jump stayed at0 instead of10. Artifact saved in /tmp/rowlens-example-parent-ci-artifact.
+- New test asserts the video is at least half in view after the note jump. Before the correction,
+  local iPhone WebKit fails with viewport ratio **0**, reproducing the missing reveal separately
+  from Linux's deferred frame presentation. Bring the scoped picture into view before seeking.
+- Final local visibility/example suite **9/9** on Chromium1000×540/1440×900 and iPhone13 WebKit,
+  including correct frame10, read-only drawings, zoom/fullscreen and old-response compatibility.
+  Format/lint/typecheck/build checked; adjusted the callback's void syntax after its return type changed.
+  No permissions, schema, media, common player timing logic or production change.
+
 ## 2026-11-16 — Publisher feedback and read-only example overlays
 
 - Tests first: the three new feedback tests initially failed (missing projection/publisher column;

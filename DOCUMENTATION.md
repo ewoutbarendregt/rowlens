@@ -1,3 +1,10 @@
+## [2026-11-16] — Reveal example video before seeking from notes
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Investigated #190's failed web CI43896501068 (other eight jobs green): Linux WebKit kept frame0 after an off-screen note jump. A new visibility regression reproduces viewport ratio0 locally; example notes/analysis now reveal their scoped player stage before seeking. The nine local browser cases pass across low/normal Chromium and iPhone WebKit, with format/lint/typecheck/build. Parent-only repair preserves the separately committed Help management work on codex/feat/help-example-management; its existing-training publication proposal still awaits owner approval. No schema/permission or production change.
+**Prompts used**: Ja
+
 ## [2026-11-16] — Open example-feedback review #190
 
 **Session**: codex/fix/example-feedback

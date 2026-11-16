@@ -144,6 +144,7 @@ test('example publisher notes, drawings and boat line are read-only and follow t
     /Hidden private fixture|Hidden other author|Hidden publisher identity/,
   );
   await notes.getByRole('button', { name: /Notitie bij frame 10/ }).click();
+  await expect(page.locator('video')).toBeInViewport({ ratio: 0.5 });
   await expect(page.getByTestId('player-frame')).toHaveText('10');
   const layer = page.locator('.drawing-layer');
   await expect(layer.locator('[data-kind]')).toHaveCount(4);

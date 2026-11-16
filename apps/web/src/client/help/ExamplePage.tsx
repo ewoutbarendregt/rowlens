@@ -61,6 +61,7 @@ export function ExamplePage() {
   const [frame, setFrame] = useState(0);
   const [middle, setMiddle] = useState(false);
   const player = useRef<PlayerHandle>(null);
+  const playerArea = useRef<HTMLDivElement>(null);
   const actor = auth.kind === 'open' ? auth.user.id : null;
   useEffect(() => {
     let stale = false;
@@ -100,7 +101,14 @@ export function ExamplePage() {
             ],
       )
     : [];
-  const jump = (f: number) => player.current?.seekToFrame(f);
+  const jump = (f: number) => {
+    // WebKit may defer paused-frame presentation while the video is outside the viewport.
+    // Bring the picture back before seeking from the notes/analysis panels below it.
+    playerArea.current
+      ?.querySelector('.player__stage')
+      ?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    player.current?.seekToFrame(f);
+  };
   const moments = videoMoments(
     (v?.annotations ?? []).map((a) => ({ ...a, authorName: t.exampleExplanation })),
     null,
@@ -154,57 +162,65 @@ export function ExamplePage() {
               ))}
             </select>
           </label>
-          <Player
-            key={v.id}
-            src={appUrl(
-              `/api/examples/${id}/videos/${v.id}/media/${v.renditions.includes('play-540') ? 'play-540' : (v.renditions[0] ?? 'play-540')}`,
-              null,
-            )}
-            poster={appUrl(`/api/examples/${id}/videos/${v.id}/media/poster`, null)}
-            fps={fps}
-            onFrame={setFrame}
-            handle={player}
-            markers={moments.map((m) => ({
-              id: String(m.frame),
-              frame: m.frame,
-              label: nt.marker(
-                m.frame,
-                [
-                  ...m.drawings.map((d) => nt.tools[d.kind as keyof typeof nt.tools]),
-                  ...m.notes.map((n) => n.body.slice(0, 80)),
-                ].join(' · '),
-              ),
-            }))}
-            overlay={
-              <>
-                <DrawingLayer
-                  size={size}
-                  drawings={drawings}
-                  tool={null}
-                  onComplete={() => Promise.resolve(false)}
-                  onDelete={() => Promise.resolve(false)}
-                  onCancel={noop}
-                  onMove={noop}
-                  controlsTarget={null}
-                />
-                {active && <VideoNotesOverlay moment={active} />}
-              </>
-            }
-            strokeMarks={[
-              ...v.marks.map((m) => ({
-                ...m,
-                label: st.markLabel(st.kinds[m.kind], null, m.frame),
-              })),
-              ...computed,
-            ].sort((a, b) => a.frame - b.frame)}
-          />
+          <div ref={playerArea}>
+            <Player
+              key={v.id}
+              src={appUrl(
+                `/api/examples/${id}/videos/${v.id}/media/${v.renditions.includes('play-540') ? 'play-540' : (v.renditions[0] ?? 'play-540')}`,
+                null,
+              )}
+              poster={appUrl(`/api/examples/${id}/videos/${v.id}/media/poster`, null)}
+              fps={fps}
+              onFrame={setFrame}
+              handle={player}
+              markers={moments.map((m) => ({
+                id: String(m.frame),
+                frame: m.frame,
+                label: nt.marker(
+                  m.frame,
+                  [
+                    ...m.drawings.map((d) => nt.tools[d.kind as keyof typeof nt.tools]),
+                    ...m.notes.map((n) => n.body.slice(0, 80)),
+                  ].join(' · '),
+                ),
+              }))}
+              overlay={
+                <>
+                  <DrawingLayer
+                    size={size}
+                    drawings={drawings}
+                    tool={null}
+                    onComplete={() => Promise.resolve(false)}
+                    onDelete={() => Promise.resolve(false)}
+                    onCancel={noop}
+                    onMove={noop}
+                    controlsTarget={null}
+                  />
+                  {active && <VideoNotesOverlay moment={active} />}
+                </>
+              }
+              strokeMarks={[
+                ...v.marks.map((m) => ({
+                  ...m,
+                  label: st.markLabel(st.kinds[m.kind], null, m.frame),
+                })),
+                ...computed,
+              ].sort((a, b) => a.frame - b.frame)}
+            />
+          </div>
           <section className="card example-notes" data-testid="example-notes">
             <h2>{nt.notes}</h2>
             {moments.length === 0 && <p className="muted">{nt.noneReadOnly}</p>}
             <ol>
               {moments.map((m) => (
                 <li key={m.frame}>
-                  <button type="button" className="button--quiet" onClick={() => jump(m.frame)}>
+                  <button
+                    type="button"
+                    className="button--quiet"
+                    onClick={() => {
+                      jump(m.frame);
+                    }}
+                  >
                     {nt.atFrame(m.frame, formatFrameTime(m.frame, fps))}
                   </button>
                   {m.drawings.map((d) => (
