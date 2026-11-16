@@ -1,3 +1,10 @@
+## [2026-11-16] — Prepare a current Claude handoff
+
+**Session**: codex/docs/help-examples-deploy-20261116
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Replaced the accumulated historical HANDOFF checkpoints with a single current Claude entry point: deployed0.0.65/a42e2f1, merged#190/#191, open documentation-only#192, exact rollout/test evidence, publication/privacy and playback invariants, local-stack ports, known backlog and the scope of future approvals. Historical detail remains in this work log and the prior HANDOFF at5f9f385. Fresh public readiness/build-info and local review web/API checks pass. No product or production change; format/diff checks only. Commit/push the documentation on#192 and leave the worktree clean for Claude.
+**Prompts used**: Maak je klaar voor handover naar claude
+
 ## [2026-11-16] — Deploy Help example management and publisher feedback
 
 **Session**: codex/docs/help-examples-deploy-20261116
