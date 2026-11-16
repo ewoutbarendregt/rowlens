@@ -30,7 +30,7 @@ rate limit per user. Upload completion enqueues a `video.probe` → `video.trans
 - Technical metadata (fps, resolution, duration, codec, rotation, VFR flag) stored on `video`.
 
 **Playback** — native `<video>` with custom controls:
-- Frame stepping: seek to `(n + 0.5) / fps`, read exact presented frame via
+- Frame stepping: seek to `(n + 0.25) / fps` (amended for BUG-070 below), read exact presented frame via
   `requestVideoFrameCallback` (`mediaTime`), all modern Safari/Chrome support it; fall back to time-based
   stepping with a visible "approximate" indicator.
 - Buttons ±1 frame, ±0.1 s, ±1 s sized ≥ 44 px; keyboard `,`/`.` (frame), `←`/`→` (0.1 s / 1 s with Shift),
@@ -134,3 +134,18 @@ cancellation and keyboard/assistive click support. The following compatibility m
 required and cannot activate the same control twice. Drawing drags explicitly release pointer
 capture. A regression models the ignored-button symptom by suppressing compatibility clicks;
 confirmation of the original physical iPhone sequence remains necessary.
+
+### Paused off-screen seeks (BUG-070, 2026-11-16)
+
+Linux WebKit/GStreamer can acknowledge a seek after a scroll-back in the same click handler while
+still displaying the old decoded picture. Example note/analysis jumps now reveal the stage and allow
+one intervening paint (two animation-frame callbacks) before seeking; a newer jump or unmount
+cancels pending work. This is not a timer and does not set the displayed frame from the requested
+number. A synthetic canvas fingerprint checks that the actual decoded image changes.
+
+For paused seeks GStreamer can report the requested time as rVFC `mediaTime`, e.g.0.35 instead of
+frame10's0.333 PTS at30fps. The previous midpoint then rounded to11. Seek to `(n+0.25)/fps` instead:
+still inside the CFR frame with over1ms boundary margin through240fps, and in its first half so both
+actual rounded PTS and a reported seek time resolve to the same frame. The display still comes from
+the callback. Eight regression cases cover every frame over10s at24/25/30/50/60/59.94/120/240fps,
+including WebM millisecond quantization; all eight fail before and pass after this correction.

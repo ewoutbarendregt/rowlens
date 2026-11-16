@@ -1,3 +1,22 @@
+# Complete Help management with Linux repair integrated — 2026-11-16
+
+Current codex/feat/help-example-management includes parent #190/bfd5ae8's measured BUG-070 repair.
+Parent708 and matching Linux browser9 pass; child before integration709/browser15 passed. Combined
+full/browser/static recheck is next. Both histories retained; no production change. No main merge
+or deployment is authorized. Existing-publication approval with “Ga verder” remains satisfied.
+Review port5175/API3101/copied DB5436 (32 migrations); synthetic probe4186 is stopped.
+
+# Parent BUG-070 root repair verified in Linux — 2026-11-16
+
+Current codex/fix/example-feedback: cancellable reveal/paint/seek in ExamplePage and quarter-interval
+CFR seeks. All32 frame unit and Linux browser9 pass (Playwright1.64.1 Noble/iPhone WebKit included);
+new decoded-pixel fingerprint rejects a frozen picture despite currentTime changes. Parent full708/66 files and static
+checks/build pass before commit/push. Then switch to codex/feat/help-example-management, merge this
+parent repair (preserve both doc histories), scan conflict markers and rerun combined checks. Child
+implementation3859fc0 is already locally verified709/browser15 and pushed in draft#191. User approved
+existing publication with “Ga verder”; no implementation approval pending. No merge/deploy authorized.
+Synthetic probe servers4186 are stopped. Original local stack/production unchanged.
+
 # Complete Help management verified locally — 2026-11-16
 
 Current branch codex/feat/help-example-management, implementation027e623, draft #191 stacked on

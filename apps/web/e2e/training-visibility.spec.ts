@@ -148,9 +148,26 @@ test('example publisher notes, drawings and boat line are read-only and follow t
   await expect(page.locator('body')).not.toContainText(
     /Hidden private fixture|Hidden other author|Hidden publisher identity/,
   );
+  const fingerprint = () =>
+    page.locator('video').evaluate((video) => {
+      if (!(video instanceof HTMLVideoElement)) throw new Error('Missing synthetic video');
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 36;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Missing synthetic frame canvas');
+      context.drawImage(video, 0, 0, 64, 36);
+      return Array.from(context.getImageData(0, 0, 64, 36).data).reduce(
+        (hash, value) => (Math.imul(hash, 31) + value) | 0,
+        0,
+      );
+    });
+  const initialPicture = await fingerprint();
   await notes.getByRole('button', { name: /Notitie bij frame 10/ }).click();
   await expect(page.locator('video')).toBeInViewport({ ratio: 0.5 });
   await expect(page.getByTestId('player-frame')).toHaveText('10');
+  // A correct counter alone must not hide a decoder that is still displaying the initial picture.
+  expect(await fingerprint()).not.toBe(initialPicture);
   const layer = page.locator('.drawing-layer');
   await expect(layer.locator('[data-kind]')).toHaveCount(4);
   await expect(layer.locator('.drawing--boat')).toHaveCount(1);
