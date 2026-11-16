@@ -7,8 +7,9 @@ parent Linux9 pass. Final format/lint/types/builds green. Copied review DB5436 m
 API3101 readiness DB ok, http://127.0.0.1:5175/projects/rowlens/help. Demo/unified/reuse review build
 restored; original local stack and production untouched. Synthetic probe servers are stopped.
 
-Review #191 remains stacked on #190; publish combined branch and check its new CI. Parent remote
-CI43955969645 (bfd5ae8) pending at this entry, with all jobs except web already successful. Retain
+PR#191 is ready for review (not draft), stacked on#190. All implementation and validation logs
+are committed and pushed; remote CI for the latest combined push is pending. Parent remote
+CI43955969645 (bfd5ae8) is also pending at this entry, with all jobs except web already successful. Retain
 the parent branch when eventually merging. Do not merge main/deploy without a new explicit request.
 Use existing-session selection -> exact owning club -> search -> inline audience confirmation;
 original owner stays, only selecting publisher annotations become public, existing publishers freeze.
