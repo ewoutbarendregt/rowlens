@@ -1,3 +1,10 @@
+Draft review: [PR #191](https://github.com/ewoutbarendregt/rowlens/pull/191), base #190's branch.
+Create/edit/rename work is tested and committed; existing-training publication still awaits the
+pending explicit architecture/privacy approval. Do not merge the draft as full completion.
+Parent CI43902061152 fails frame0 vs10 on Linux WebKit even after revealing the video (visibility
+now passes). Linux media/callback diagnosis is ongoing; parent is not CI-green. A matching
+Playwright Linux image is being pulled for a concrete reproduction. No production action.
+
 # Help management ready for draft review — 2026-11-16
 
 codex/feat/help-example-management includes parent #190/ad359b5 and the new Help create/rename/

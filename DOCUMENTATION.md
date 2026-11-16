@@ -1,3 +1,10 @@
+## [2026-11-16] — Open partial Help-management draft #191
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened draft [PR #191](https://github.com/ewoutbarendregt/rowlens/pull/191), stacked on #190, for the complete independent create/edit/rename shortcuts and the reviewable existing-publication proposal. The latter remains unimplemented pending the explicitly requested architectural/privacy approval. Full child web700/browser12, focused screenshots3 and final format/lint/typecheck/build pass. Parent CI43902061152 still fails the Linux WebKit presented-frame assertion despite the now-passing visibility check; further Linux media diagnosis is in progress separately. No merge/deploy, schema change or production action.
+**Prompts used**: Ook bestaande trainingen selecteren
+
 ## [2026-11-16] — Verify combined Help controls and correct phone select targets
 
 **Session**: codex/feat/help-example-management
