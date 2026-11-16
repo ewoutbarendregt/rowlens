@@ -1,9 +1,47 @@
+## 2026-11-16 — Final combined Help/publication/playback validation
+
+- Full web/DB717/717 in67 files (101.64s), including publication9 and the8 new seek timestamp regressions.
+- All115 local browser cases pass after the parent repair: visibility/Help15 (30.2s), unified34 (59.1s), sharing9 (25.1s), general51 (1.8m;109 expected mode skips), reuse6 (24.5s). Builds/test servers run serially to avoid stale asset indexes and overloaded migration containers.
+- Matching Linux Playwright1.64.1 parent visibility9 passes (27.1s), including actual decoded-picture changes on the paused note jump and iPhone WebKit; this reproduces the previously CI-only failure before the correction.
+- Final format/lint/typecheck and demo/general/reuse/unified builds pass. Restored the unified/reuse review bundle. Phone/low-laptop screenshots and44px controls checked in the focused UI run. Copied DB32 and API3101 readiness DB ok; original stack/production untouched.
+- Parent remote CI43955969645 pending; combined child CI follows push. No merge/deploy authorization.
+
 ## 2026-11-16 — Linux WebKit BUG-070 root repair
 
 - Matching Playwright1.64.1 Noble Linux image: all9 visibility/example cases pass in27.1s, including iPhone WebKit. Synthetic canvas fingerprint verifies the decoded picture really changes on the paused frame10 jump; following frame11 removes the old drawings. Fullscreen/zoom and clubless examples remain covered.
 - Eight new unit cases fail before/pass after the quarter-interval seek offset; all32 frames cases pass. Cover every frame over10s at24/25/30/50/60/59.94/120/240fps, real PTS and millisecond-rounded seek timestamps.
 - Earlier Linux probes compared native/app controls and actual pixel fingerprints: source, codec, poster and CSS removal did not fix the stalled picture. Revealing then waiting for a paint does; the callback then reports seek time rather than frame PTS, exposing the midpoint round-up. The counter still derives from rVFC, not the requested frame.
 - Parent full708/708 in66 files (67.84s), format/lint/typecheck/build pass; remote CI pending a new push. No production change.
+
+## 2026-11-16 — Complete Help publication local checks
+
+Final full web/DB709/709 in67 files (103.49s); includes publication9 and existing migration-upgrade
+regressions. Combined browser15/15 (2.1m), final format/lint/typecheck/build green. Phone/low-laptop
+screenshots and44px controls checked. First overlapping full run was interrupted after an older
+upgrade test timed out; the independent complete rerun passes. Remote CI43954406682 pending;
+parent Linux WebKit BUG-070 remains open. Local copied DB32/readiness ok, no production change.
+
+## 2026-11-16 — Approved existing Help publication
+
+- Focused DB/API8/8: bounded20+5 pagination and literal search, role/forged-context denial, correct tenant, publisher-only feedback, immutable ownership/classification, forged marker denial even for a real global admin, competing publishers, and grant/archive withdrawals starting before publication locks. Added an automatic-example publisher-retention ninth regression for the full run.
+- Browser final15/15 on1000×540 and1440×900 Chromium and iPhone13 WebKit. Includes creation, rename, ordinary-club editor, existing selection, repeated search, confirmation/cancel, failure/retry, publication visible to a rower, hidden owner feedback and absent rower management controls. Measured44px controls and no horizontal overflow; inspected low-laptop and phone confirmation screenshots.
+- First browser run9/15 exposed BUG-072 (duplicate actor sibling keys and34px inherited confirmation controls); corrected and reran all15 successfully.
+- Format/lint/typecheck/build pass. Full web/DB initial run interrupted after an existing video-assets migration test exceeded30s amid overlapping Docker workloads; isolated full rerun in progress. Do not count that interrupted run as passing.
+- Copied local DB5436 migration32 applied; API3101 readiness DB ok. Production and original local stack unchanged.
+- Parent CI43902061152 remains red only on Linux WebKit frame0/10 (BUG-070), even with stage visibility passing. This remains an explicit merge blocker.
+
+## 2026-11-16 — Combined Help controls and touch-target verification
+
+- Parent ad359b5 was merged into the child; code merged cleanly and both documentation histories
+  were preserved. Full combined visibility/examples suite **12/12** passes; additional admin card
+  screenshot run **3/3** passes. Low/normal laptop and iPhone WebKit screenshots were inspected.
+- Review found native form selects at **24px**. A new measured test failed before the correction;
+  scoped44px select styles fix BUG-071. Final complete browser suite **12/12** passes and measures
+  every create input/select/button, as well as example action buttons and horizontal overflow.
+- Existing child full web/DB **700/700** and format/lint/typecheck/build results remain recorded
+  above/below; final static validation is rerun before the review commit. No backend permission,
+  new schema or production change. Existing-training publication remains unimplemented pending
+  the concrete architecture/privacy approval question; its proposal is reviewable in the draft.
 
 ## 2026-11-16 — Reveal the example stage before frame jumps (BUG-070)
 
@@ -16,6 +54,22 @@
   including correct frame10, read-only drawings, zoom/fullscreen and old-response compatibility.
   Format/lint/typecheck/build checked; adjusted the callback's void syntax after its return type changed.
   No permissions, schema, media, common player timing logic or production change.
+
+## 2026-11-16 — Help management shortcuts, existing publication pending
+
+- A first admin Help test failed against the old built UI (new-example button absent), then passed
+  after implementation. Full web/unit/DB **700/700**, 66 files, and visibility/examples **12/12**:
+  low/normal laptop Chromium and iPhone13 WebKit, including new admin create/rename/edit flows.
+- Tests cover whitespace-title rejection, cancel without changing the title, persisted rename,
+  foreign-owning-club editor/rename context, selected club/date/boat creation and resulting example
+  visibility, no horizontal overflow, >=43.5px button heights, and no management controls for rowers.
+- Format/lint/typecheck/build pass after removing a redundant narrowed auth-state condition.
+  No schema/migration change; copied local review remains DB31/API3101/client5175.
+- Parent #190 remote CI43896501068 has eight jobs green but web fails on Linux iPhone WebKit:
+  example frame jump remains at 0 instead of10 while the player is off-screen (both attempts).
+  Artifact retained under /tmp/rowlens-example-parent-ci-artifact. Repair is tracked separately
+  on the parent so this UI branch does not silently bury its failed CI. Existing publication picker
+  tests cannot run until that architectural operation is approved and implemented.
 
 ## 2026-11-16 — Publisher feedback and read-only example overlays
 

@@ -6,6 +6,26 @@ picture. CFR seeks now use the first quarter of a frame interval: this retains t
 through240fps while resolving both true PTS and Linux GStreamer's reported paused seek time to the
 same callback-derived frame. ADR-0007 documents the measured repair and regressions.
 
+## Explicit Help example publication (2026-11-16)
+
+ADR-0031/migration0032 add live-verified tenant management and a pinned publication function.
+Share locks protect actor/global grant/active club through an exact-club parent lock and mutation.
+An invoker classification trigger only accepts the trusted function owner context plus matching
+transaction marker/tenant/current authority; ordinary SQL cannot forge promotion. Candidate lists
+are literal-search, keyset-paged20 rows with no private feedback. Help confirmation publishes the
+original live training and selecting admin annotations while preserving ownership and prior examples.
+The owning-club editor and existing automatic new-example stamp remain in force.
+
+## Example management shortcuts in Help (2026-11-16)
+
+Help opts into `Examples manage`; only the verified auth state's platform administrator sees
+new-example, ordinary-editor and inline-rename controls. Create/rename reuse existing tenant-scoped
+session APIs and their server permissions. Catalog rows now expose their already-discoverable club
+ID; every mutation/editor link explicitly names the owning club, independent of the active club.
+New creation retains the protected automatic example/publisher stamp and selected default boat.
+No schema/permission/provider change is introduced by these shortcuts. Existing-training publication
+uses the protected ADR-0031/migration0032 operation described above.
+
 ## Publisher feedback in examples (2026-11-16)
 
 ADR-0030/migration 0031 add immutable `example_publisher_user_id`, stamped with example creation

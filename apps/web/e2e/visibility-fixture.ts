@@ -89,6 +89,35 @@ export async function seedVisibility(ownerUrl: string, mediaRoot: string) {
       ]),
       clip.id,
     ]);
+    for (const viewport of ['laptop-low', 'laptop', 'iphone-webkit']) {
+      const existing = await create(alpha, `Bestaand voorbeeld ${viewport}`, member.id);
+      const candidate = (
+        await db.query<{ id: string; asset_id: string }>(
+          "insert into video(club_id,session_id,original_filename,content_type,perspective,size_bytes,status,frame_count,fps_num,fps_den,width,height,duration_ms) values($1,$2,'synthetic.webm','video/webm','bank',1,'ready',120,30,1,640,360,4000) returning id,asset_id",
+          [alpha, existing],
+        )
+      ).rows[0];
+      if (!candidate) throw new Error('Missing candidate clip');
+      const candidateKey = videoKey(alpha, candidate.asset_id) + '/play-540';
+      await new MediaStore(mediaRoot).append(candidateKey, Readable.from(bytes), bytes.length);
+      await db.query('update video set renditions=$1::jsonb where id=$2', [
+        JSON.stringify([
+          {
+            name: 'play-540',
+            key: candidateKey,
+            width: 640,
+            height: 360,
+            bytes: bytes.length,
+            contentType: 'video/webm',
+          },
+        ]),
+        candidate.id,
+      ]);
+      await db.query(
+        "insert into annotation(club_id,video_id,frame,kind,body,author_user_id,author_name) values($1,$2,10,'note','Gepubliceerd door beheerder',$3,'Synthetic'),($1,$2,10,'note','Hidden original creator feedback',$4,'Synthetic')",
+        [alpha, candidate.id, platform.id, member.id],
+      );
+    }
     await db.query(
       "insert into stroke_mark(club_id,video_id,frame,kind) values($1,$2,10,'catch'),($1,$2,25,'finish'),($1,$2,55,'catch')",
       [gamma, clip.id],

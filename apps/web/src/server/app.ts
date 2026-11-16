@@ -1,3 +1,4 @@
+import { exampleManagementRoutes } from './api/example-management.ts';
 import { sessionSharingRoutes } from './api/session-sharing.ts';
 import { exampleRoutes } from './api/examples.ts';
 import {
@@ -202,6 +203,8 @@ export async function buildApp(opts: BuildAppOptions): Promise<FastifyInstance> 
       unifiedUsers: config.unifiedUsers,
     };
     if (config.unifiedUsers) await app.register(exampleRoutes, { prefix: base, ...clubOpts });
+    if (config.unifiedUsers)
+      await app.register(exampleManagementRoutes, { prefix: base, ...clubOpts });
     await app.register(sessionSharingRoutes, { prefix: base, ...clubOpts });
     await app.register(sessionRoutes, { prefix: base, ...clubOpts });
     await app.register(uploadRoutes, { prefix: base, ...clubOpts });

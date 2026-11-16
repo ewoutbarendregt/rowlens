@@ -1,3 +1,17 @@
+## Help example management (2026-11-16)
+
+RowLens admins can create, rename, open the original editor and select existing club trainings
+from Help. Existing publication requires inline audience confirmation and keeps the original owner;
+only the selecting administrator’s annotations join the example. NL/EN controls and notices included.
+Final combined web717/browser115 and parent Linux9 pass; no production rollout.
+
+## Help example management — partially implemented locally (2026-11-16)
+
+RowLens administrators can create a new example from Help, change its actual training title inline,
+and open the normal training editor in the correct club. These reuse existing permissions and
+publication behavior. Selecting an existing ordinary training is requested and awaits approval of
+the proposed publication boundary. Stacked on example-feedback PR #190; no production rollout.
+
 ## Example notes and drawings — local review (2026-11-16)
 
 Approved publisher-authored example feedback is now included read-only, with fixed publisher

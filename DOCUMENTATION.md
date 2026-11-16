@@ -1,3 +1,24 @@
+## [2026-11-16] — Prepare approved stacked merge and production rollout
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested “Merge en deploy”. Both reviewed heads passed all nine CI checks (#190/run43955969645; #191/run43957585658). Squash-merged #190 as ece7f78 while retaining its branch, retargeted #191 to main, and resolved the expected squash-history conflicts by restoring the complete already-tested child tree ba97907. No implementation change; scanned for conflict markers. Rerun #191 CI before its squash merge, then wait for final main CI/images and deploy only the complete combined release. Record production verification in the next deployment-log PR.
+**Prompts used**: Merge en deploy
+
+## [2026-11-16] — Complete existing Help selection and combined playback verification
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, TEST.md, PLAN.md, BUILD.md, FEATURES.md, docs/plans/help-example-management.md, docs/HANDOFF.md
+**Summary**: Final combined full web/DB717/67 files and all115 local browser cases pass (visibility/Help15, unified34, sharing9, general51, reuse6). Parent correction additionally passes9 Linux browser cases with decoded-picture fingerprints. Final format/lint/types and feature-mode builds pass; rebuilt the unified/reuse-enabled local review bundle after serialized testing. Copied DB5436 remains32 migrations, API3101 readiness DB ok, review port5175. All approved Help create/edit/rename/existing-publication scope is complete; original ownership and publisher-only feedback are preserved. Parent #190/bfd5ae8 remote CI43955969645 is pending at this entry; Published the combined branch and marked #191 ready for review; its latest-push remote CI is pending. No main merge/deploy. No production/configuration/message changes.
+**Prompts used**: Ga verder
+
+## [2026-11-16] — Integrate measured Linux playback repair into Help management
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/{frames.ts,frames.test.ts}, apps/web/e2e/training-visibility.spec.ts, docs/adr/0007-upload-transcode-playback.md, BUILD.md, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Merged parent #190/bfd5ae8 into the complete existing-publication branch. Code merged cleanly; retained both work histories and the corrected BUG-070 status. Parent full708 and Linux browser9 pass independently; child combined recheck is next. No main merge, production action or deploy authorization.
+**Prompts used**: Ga verder
+
 ## [2026-11-16] — Resolve Linux WebKit off-screen paused seeks
 
 **Session**: codex/fix/example-feedback
@@ -5,12 +26,57 @@
 **Summary**: Reproduced parent CI BUG-070 in the matching Linux Playwright1.64.1 image and compared actual decoded pixel fingerprints: scroll+seek in the same click kept the old image, despite seeked/currentTime advancing. Wait for an intervening paint before seeking; cancel superseded/unmounted jumps. Linux then reports the seek time as mediaTime, so amended the seek offset to the first quarter of the CFR interval, avoiding midpoint round-up while preserving timestamp margins through240fps. Eight new arithmetic regressions fail before/pass after; all32 frame unit tests and Linux browser9 pass, including actual decoded-image change, next-frame overlays, zoom/fullscreen and iPhone WebKit. Full parent708/66 files, format/lint/typecheck/build pass before push; no production change. Child Help management #191 remains fully locally verified709/browser15 and will receive this parent correction.
 **Prompts used**: Ga verder
 
+## [2026-11-16] — Verify complete local Help management
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, TEST.md, docs/HANDOFF.md
+**Summary**: All709 web/DB tests pass in67 files on an isolated rerun, including the nine publication regressions and older migration upgrades. Combined browser15/15 and static format/lint/typecheck/build pass; phone and low-laptop confirmation screenshots inspected. Initial full run was interrupted after the older video-assets upgrade timed out while other Docker/browser workloads overlapped; it is not counted as passing. Implementation is pushed as027e623 in draft #191, remote CI43954406682 pending. Local copied review32 migrations/readiness ok; production unchanged. Parent Linux WebKit BUG-070 remains under investigation and blocks merge; no merge/deploy requested.
+**Prompts used**: Ga verder
+
+## [2026-11-16] — Implement approved existing-training publication from Help
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/{client/help/ExamplePicker.tsx,client/help/Examples.tsx,client/help/strings.ts,client/styles.css,shared/example-management.ts,server/api/example-management.ts,server/api/example-management.db.test.ts,server/repositories/example-management.ts,server/app.ts,server/db/migrations/0032_example_publication.sql,server/db/migrations/meta}, apps/web/e2e/{visibility-fixture.ts,training-visibility.spec.ts}, docs/adr/0031-explicit-example-publication.md, docs/adr/README.md, docs/plans/help-example-management.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout approved the publication/privacy proposal with “Ga verder”. Added bounded club-scoped existing-training selection, explicit inline audience confirmation, protected and audited publication with live-authority lock/rechecks, immutable selecting publisher and retained original ownership. Only that publisher’s annotations join the example; other feedback remains private. Focused security8 and final browser15 pass across iPhone WebKit and both laptop sizes; a ninth automatic-publication regression is included in the full rerun. First combined browser run exposed duplicate sibling keys and undersized confirmation buttons (BUG-072), now fixed; full web/DB rerun follows an older upgrade-test timeout during overlapping local work. Static checks/build pass. Copied local DB5436 migrated32 and API3101 readiness DB ok. #191 remains draft while checks/parent BUG-070 are resolved; no production action or merge/deploy authorization.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
+Ga verder
+
+## [2026-11-16] — Open partial Help-management draft #191
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Opened draft [PR #191](https://github.com/ewoutbarendregt/rowlens/pull/191), stacked on #190, for the complete independent create/edit/rename shortcuts and the reviewable existing-publication proposal. The latter remains unimplemented pending the explicitly requested architectural/privacy approval. Full child web700/browser12, focused screenshots3 and final format/lint/typecheck/build pass. Parent CI43902061152 still fails the Linux WebKit presented-frame assertion despite the now-passing visibility check; further Linux media diagnosis is in progress separately. No merge/deploy, schema change or production action.
+**Prompts used**: Ook bestaande trainingen selecteren
+
+## [2026-11-16] — Verify combined Help controls and correct phone select targets
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/styles.css, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Combined parent frame-reveal correction with the admin Help controls; the full twelve-case suite and three focused screenshot cases pass. Visual/measured review found24px native selects; added scoped44px targets, a failing-before/passing-after regression and final complete12/12 across iPhone WebKit and both laptop sizes. Earlier full web/DB700 passes; final static validation is next. Existing-training publication is deliberately still pending the owner's approval of docs/plans/help-example-management.md; prepare a draft review of the concrete independent work. No production/configuration/message change.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
+
+## [2026-11-16] — Integrate parent example frame-reveal repair
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Merged parent #190's ad359b5 into the Help management branch without force push. Code merged cleanly; retained both documentation histories and removed all conflict markers. Parent local example9 and child web700/browser12 checks are recorded separately; combined UI recheck is next. Existing-training publication remains pending the requested architecture/privacy approval; no production action.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
 ## [2026-11-16] — Reveal example video before seeking from notes
 
 **Session**: codex/fix/example-feedback
 **Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
 **Summary**: Investigated #190's failed web CI43896501068 (other eight jobs green): Linux WebKit kept frame0 after an off-screen note jump. A new visibility regression reproduces viewport ratio0 locally; example notes/analysis now reveal their scoped player stage before seeking. The nine local browser cases pass across low/normal Chromium and iPhone WebKit, with format/lint/typecheck/build. Parent-only repair preserves the separately committed Help management work on codex/feat/help-example-management; its existing-training publication proposal still awaits owner approval. No schema/permission or production change.
 **Prompts used**: Ja
+
+## [2026-11-16] — Add Help create/edit/rename controls and propose existing selection
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/help/{ExampleManagement.tsx,example-links.ts,Examples.tsx,ExamplePage.tsx,HelpPage.tsx,strings.ts}, apps/web/src/client/styles.css, apps/web/src/server/repositories/examples.ts, apps/web/e2e/training-visibility.spec.ts, docs/plans/help-example-management.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Added RowLens-admin-only Help controls for creating new examples, renaming the actual training and opening its normal editor with explicit owning-club context. Reuses existing session APIs/permissions; 700 web/DB and12 browser cases pass with phone/low-laptop checks, plus format/lint/typecheck/build. Owner clarified that existing trainings must also be selectable; prepared the concrete publication/publisher boundary and requested approval under the architectural workflow before adding that operation. Parent #190's failed Linux WebKit frame-jump CI is being repaired separately. No new migration, production action or message delivery.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
 
 ## [2026-11-16] — Open example-feedback review #190
 

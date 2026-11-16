@@ -1,3 +1,37 @@
+# Merge and deploy explicitly authorized — 2026-11-16
+
+Ewout requested “Merge en deploy”. Both #190 and #191 previously had all nine checks green.
+#190 squash-merged as ece7f78, parent branch retained; #191 retargeted main. Expected squash-history
+conflicts resolved with the exact already-tested child tree ba97907 (no code changes), plus this
+handoff/log. Push and wait for renewed #191 CI; then squash-merge #191, wait for final main CI/images,
+deploy its sha tag with public URL verification and check readiness, both image tags,32 migrations,
+publisher backfill and unchanged neighboring containers/HTTP200s. No server config/one-off writes.
+Log the final deployment in a separate next PR; production currently sha-4ec6e71 /0.0.63.
+
+# Help management complete; final combined checks green locally — 2026-11-16
+
+Current codex/feat/help-example-management includes parent bfd5ae8 and approved publication0032.
+All requested create/edit/rename/existing-selection scope is complete; no approval is pending.
+Final combined web/DB717/67 files, browser115 (Help15/unified34/sharing9/general51/reuse6), plus
+parent Linux9 pass. Final format/lint/types/builds green. Copied review DB5436 migrated32;
+API3101 readiness DB ok, http://127.0.0.1:5175/projects/rowlens/help. Demo/unified/reuse review build
+restored; original local stack and production untouched. Synthetic probe servers are stopped.
+
+PR#191 is ready for review (not draft), stacked on#190. All implementation and validation logs
+are committed and pushed; remote CI for the latest combined push is pending. Parent remote
+CI43955969645 (bfd5ae8) is also pending at this entry, with all jobs except web already successful. Retain
+the parent branch when eventually merging. Do not merge main/deploy without a new explicit request.
+Use existing-session selection -> exact owning club -> search -> inline audience confirmation;
+original owner stays, only selecting publisher annotations become public, existing publishers freeze.
+
+# Complete Help management with Linux repair integrated — 2026-11-16
+
+Current codex/feat/help-example-management includes parent #190/bfd5ae8's measured BUG-070 repair.
+Parent708 and matching Linux browser9 pass; child before integration709/browser15 passed. Combined
+full/browser/static recheck is next. Both histories retained; no production change. No main merge
+or deployment is authorized. Existing-publication approval with “Ga verder” remains satisfied.
+Review port5175/API3101/copied DB5436 (32 migrations); synthetic probe4186 is stopped.
+
 # Parent BUG-070 root repair verified in Linux — 2026-11-16
 
 Current codex/fix/example-feedback: cancellable reveal/paint/seek in ExamplePage and quarter-interval
@@ -8,6 +42,64 @@ parent repair (preserve both doc histories), scan conflict markers and rerun com
 implementation3859fc0 is already locally verified709/browser15 and pushed in draft#191. User approved
 existing publication with “Ga verder”; no implementation approval pending. No merge/deploy authorized.
 Synthetic probe servers4186 are stopped. Original local stack/production unchanged.
+
+# Complete Help management verified locally — 2026-11-16
+
+Current branch codex/feat/help-example-management, implementation027e623, draft #191 stacked on
+#190. User “Ga verder” approved the existing-publication plan; no clarification/approval remains
+pending for implementation. Create/edit/rename and existing selection/publication all implemented.
+Final local web/DB709/67 files and browser15 pass; format/lint/types/build green, low-laptop/phone
+screenshots and44px targets inspected. API3101 and copied DB5436 migrated32/readiness ok; review
+URL http://127.0.0.1:5175/projects/rowlens/help. Original local stack and production unchanged.
+
+Remote CI43954406682 pending. Parent #190's Linux WebKit BUG-070 still blocks merge: paused seek
+reports currentTime.35 but callback mediaTime0/counter0. Initial-poster omission also fails on Linux;
+initial-CSS removal probe is in progress on synthetic server4186/session52958. Stop that probe server
+when done. No merge/deploy authorized. Earlier pending-approval instructions below are historical.
+
+# Existing Help publication approved and implemented — 2026-11-16
+
+Ewout approved docs/plans/help-example-management.md with “Ga verder”; prior pending-approval
+instructions below are superseded. Current codex/feat/help-example-management implements the
+existing-training picker and protected migration0032 publication (ADR-0031). Original owner stays;
+selecting global admin is immutable publisher; other-author feedback remains private. Focused8
+security tests pass, including forged direct writes and withdrawal/archive lock races; ninth
+automatic-publication test added. Full web/browser/static validation is in progress. Local copied
+review DB5436 migrated32, API3101 readiness DB ok; original stack and production untouched.
+
+Parent #190 remains CI-red on Linux WebKit paused-frame metadata (BUG-070); viewport reveal alone
+does not resolve it. No production/merge/deploy authorization. Finish checks and update #191's draft.
+
+Draft review: [PR #191](https://github.com/ewoutbarendregt/rowlens/pull/191), base #190's branch.
+Create/edit/rename work is tested and committed; existing-training publication still awaits the
+pending explicit architecture/privacy approval. Do not merge the draft as full completion.
+Parent CI43902061152 fails frame0 vs10 on Linux WebKit even after revealing the video (visibility
+now passes). Linux media/callback diagnosis is ongoing; parent is not CI-green. A matching
+Playwright Linux image is being pulled for a concrete reproduction. No production action.
+
+# Help management ready for draft review — 2026-11-16
+
+codex/feat/help-example-management includes parent #190/ad359b5 and the new Help create/rename/
+ordinary-editor controls. Full web/DB700, combined browser12 and focused screenshots3 pass;
+phone/low-laptop views checked and native select targets corrected to44px (BUG-071). Current
+parent CI43902061152 is still running; prior failed web CI was the separately fixed BUG-070.
+Local review: http://127.0.0.1:5175/projects/rowlens/help, API3101/copied DB5436 at31 migrations.
+No production/schema change beyond the already-reviewed parent; original local stack untouched.
+
+Owner requested existing training selection too. An explicit architectural/publication approval
+question is still pending for docs/plans/help-example-management.md: signed-in global video/crew/
+analysis access, publisher=current selecting admin's own notes only, original ownership preserved,
+other feedback private. Do not implement that promotion capability until approved. Publish this
+partial independent work as a DRAFT stacked on #190, then await the decision. No merge/deploy approval.
+Older instructions/history below are superseded by this current status.
+
+# Current Help management task — parent repair integrated (2026-11-16)
+
+Active branch codex/feat/help-example-management now includes parent #190's ad359b5 frame-reveal
+repair. Only documentation conflicted; both histories were retained. Create/rename/editor controls
+are implemented; existing-training publication still awaits the explicit async approval question
+for docs/plans/help-example-management.md. New parent CI is pending. Combined UI validation is next.
+No production change or merge/deploy authorization. Older integration instructions below are historical.
 
 # Parent #190 frame-jump CI repair — 2026-11-16
 
@@ -22,6 +114,21 @@ preserving both sets of docs. Owner clarified “Ook bestaande trainingen select
 docs/plans/help-example-management.md contains the concrete promotion/publication proposal.
 An async approval question for that architecture/privacy change is pending. Create/rename/editor
 shortcuts already pass700 web/DB and12 browser cases locally. No production change (last0.0.63).
+
+# Help management work in progress — 2026-11-16
+
+Branch codex/feat/help-example-management is based on #190's codex/fix/example-feedback. New
+Help create/rename/editor shortcuts are implemented with existing permissions; web/DB700 and
+browser12 pass plus format/lint/typecheck/build. Owner clarified existing training selection too;
+docs/plans/help-example-management.md is the concrete publication proposal. An async approval
+question is pending; do not implement its new publication capability before approval. Independent
+UI work is complete. No new schema or production change; local copied review remains port5175.
+
+Parent #190 remote CI43896501068: eight jobs green, web fails twice on Linux iPhone WebKit when
+jumping from below-video example notes (frame remains0). Its normal-video counterpart reveals
+the stage; the example does not. Repair that parent separately, then merge parent into this child
+(no force push) and preserve both sets of changes. Artifact: /tmp/rowlens-example-parent-ci-artifact.
+Local output/logs: /tmp/rowlens-help-management-{browser,full,lint,types}.log. No merge/deploy approval.
 
 Review: [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190), targeting main.
 All local validation passes; remote CI pending. No merge/deploy is authorized for this change.

@@ -3729,3 +3729,53 @@ a.list__item {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.examples__list {
+  list-style: none;
+  padding: 0;
+}
+.examples__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+.examples__description {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.examples__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.examples__rename {
+  grid-column: 1 / -1;
+}
+.examples__create {
+  margin-block: var(--space-3);
+}
+@media (max-width: 600px) {
+  .examples__item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.examples__create select {
+  min-height: 44px;
+  height: 44px;
+  max-width: 100%;
+}
+
+.examples__picker {
+  margin-block: var(--space-4, 1rem);
+}
+.examples__picker select,
+.examples__picker input {
+  height: 44px;
+  min-height: 44px;
+  max-width: 100%;
+}
+.page .examples__picker button {
+  min-height: 44px;
+}

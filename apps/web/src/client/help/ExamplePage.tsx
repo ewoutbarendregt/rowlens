@@ -1,3 +1,4 @@
+import { originalTrainingUrl } from './example-links.ts';
 import { angleStrings } from '../angles/strings.ts';
 import { useAuth } from '../auth/useAuth.ts';
 import { useEffect, useRef, useState } from 'react';
@@ -144,15 +145,7 @@ export function ExamplePage() {
             (c) => c.id === data.clubId && c.roles.some((r) => r === 'admin' || r === 'coach'),
           )) && (
           <p>
-            <a
-              href={(() => {
-                const target = new URL(appUrl(`/sessions/${data.id}`), window.location.origin);
-                target.searchParams.set('club', data.clubId);
-                return target.pathname + target.search;
-              })()}
-            >
-              {t.manageOriginal}
-            </a>
+            <a href={originalTrainingUrl(data.id, data.clubId)}>{t.manageOriginal}</a>
           </p>
         )}
       {failed && <p role="alert">{sessionStrings().loadFailed}</p>}

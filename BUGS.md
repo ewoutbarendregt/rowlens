@@ -1,3 +1,17 @@
+### [BUG-072] Help management controls duplicate after catalog loading — severity: low
+**Location**: apps/web/src/client/help/Examples.tsx
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Create and existing-picker siblings reused the same actor key, causing React reconciliation to duplicate the create button after catalog state changed. The new picker confirmation also inherited34px global controls despite a44px scoped rule.
+**Fix**: Use distinct actor-scoped sibling keys and a more specific44px picker confirmation rule. Browser regressions failed on all three viewports before the correction; final verification is recorded in TEST.md.
+
+### [BUG-071] Native example-creation selects are too short for touch — severity: low
+**Location**: apps/web/src/client/styles.css
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Visual review and a measured iPhone WebKit regression found 24px club/boat selects in the new Help creation form, below the required forgiving touch target.
+**Fix**: Scope minimum/actual 44px select height to the example-creation form. Tests measure every input/select/button and the complete final twelve-case browser run passes on iPhone and both laptop sizes.
+
 ### [BUG-070] Paused example note jumps stall the decoded picture in Linux WebKit — severity: medium
 **Location**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/frames.ts
 **Status**: fixed

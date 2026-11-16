@@ -1,8 +1,33 @@
 import { lang } from '../i18n/language.ts';
 const en = {
+  selectExisting: 'Select existing training',
+  searchExisting: 'Training title',
+  searchExamples: 'Search trainings',
+  moreCandidates: 'More trainings',
+  noCandidates: 'No unpublished trainings found in this club.',
+  candidateVideos: (n: number) => `${String(n)} video(s)`,
+  selectedExample: (title: string, club: string) => `Publish “${title}” from ${club}?`,
+  confirmPublication:
+    'All signed-in users will be able to view this training, its videos, crew and analysis, including future changes. Your own existing and future notes and drawings become visible too; other authors’ feedback stays private. The original creator keeps ownership. Publication cannot be withdrawn here. Publish as an example?',
+  publishExample: 'Publish example',
+  publishingExample: 'Publishing example…',
+  publishFailed: 'Could not publish. Check your permissions and connection, then try again.',
+  examplePublished:
+    'The training is available in the examples. If it was already published, its original publishing administrator is retained.',
+
   exampleExplanation: 'Example explanation',
   publicationNotice:
-    'This is a public example for signed-in users. The original example maker’s own notes and drawings are included; feedback by other authors stays private.',
+    'This is a public example for signed-in users. The publishing administrator’s own notes and drawings are included; feedback by other authors stays private.',
+  newExample: 'New example training',
+  createExample: 'Create example training',
+  createExampleFailed:
+    'Could not create the example. Check the club and your connection, then try again.',
+  editExample: 'Edit training',
+  renameExample: (title: string) => `Rename ${title}`,
+  exampleClub: 'Example training’s club',
+  chooseExampleClub: 'Choose a club',
+  exampleClubRequired:
+    'An active club is needed to create an example training. Add a club under Clubs first.',
   manageOriginal: 'Manage original training',
   help: 'Help',
   examples: 'Example trainings',
@@ -11,7 +36,7 @@ const en = {
   exampleIntro:
     'Explore how RowLens works. These examples are available to every signed-in user, independently of your club filters.',
   readOnly:
-    'This example is read-only. It includes the original maker’s example notes and drawings; feedback by other authors stays private.',
+    'This example is read-only. It includes the publishing administrator’s example notes and drawings; feedback by other authors stays private.',
   noClub:
     'You do not have an active club membership yet. You can explore the examples below or choose a club under Clubs.',
   video: (n: number) => `Video ${String(n)}`,
@@ -66,7 +91,7 @@ const en = {
     [
       'feedback',
       'Discuss feedback',
-      'Use Notes for comments and drawings at specific frames. Feedback is private by default. Assign or share it explicitly with individual rowers or the crew when the controls allow it. Rowers see feedback intended for them or written by them within accessible trainings. In example trainings, the original example maker’s own notes and drawings are visible to every signed-in viewer. Feedback by other authors stays private.',
+      'Use Notes for comments and drawings at specific frames. Feedback is private by default. Assign or share it explicitly with individual rowers or the crew when the controls allow it. Rowers see feedback intended for them or written by them within accessible trainings. In example trainings, the publishing administrator’s own notes and drawings are visible to every signed-in viewer. Feedback by other authors stays private.',
     ],
     [
       'rights',
@@ -81,9 +106,35 @@ const en = {
   ] as [string, string, string][],
 };
 const nl: typeof en = {
+  selectExisting: 'Bestaande training selecteren',
+  searchExisting: 'Naam van de training',
+  searchExamples: 'Trainingen zoeken',
+  moreCandidates: 'Meer trainingen',
+  noCandidates: 'Geen ongepubliceerde trainingen gevonden in deze club.',
+  candidateVideos: (n: number) => `${String(n)} video(’s)`,
+  selectedExample: (title: string, club: string) => `“${title}” van ${club} publiceren?`,
+  confirmPublication:
+    'Alle ingelogde gebruikers kunnen deze training, video’s, opstelling en analyse bekijken, ook na latere wijzigingen. Ook jouw eigen bestaande en toekomstige notities en tekeningen worden zichtbaar; feedback van andere auteurs blijft privé. De oorspronkelijke maker blijft eigenaar. Je kunt de publicatie hier niet intrekken. Als voorbeeld publiceren?',
+  publishExample: 'Voorbeeld publiceren',
+  publishingExample: 'Voorbeeld publiceren…',
+  publishFailed:
+    'Publiceren is niet gelukt. Controleer je rechten en verbinding en probeer opnieuw.',
+  examplePublished:
+    'De training staat bij de voorbeelden. Was deze al gepubliceerd, dan blijft de oorspronkelijke publicerende beheerder behouden.',
+
   exampleExplanation: 'Toelichting bij het voorbeeld',
   publicationNotice:
-    'Dit is een voorbeeld voor alle ingelogde gebruikers. De eigen notities en tekeningen van de oorspronkelijke maker zijn daarin zichtbaar; feedback van andere auteurs blijft privé.',
+    'Dit is een voorbeeld voor alle ingelogde gebruikers. De eigen notities en tekeningen van de publicerende beheerder zijn daarin zichtbaar; feedback van andere auteurs blijft privé.',
+  newExample: 'Nieuwe voorbeeldtraining',
+  createExample: 'Voorbeeldtraining maken',
+  createExampleFailed:
+    'Het voorbeeld kon niet worden gemaakt. Controleer de club en je verbinding en probeer opnieuw.',
+  editExample: 'Training bewerken',
+  renameExample: (title: string) => `Naam wijzigen van ${title}`,
+  exampleClub: 'Club van de voorbeeldtraining',
+  chooseExampleClub: 'Kies een club',
+  exampleClubRequired:
+    'Voor een voorbeeldtraining is een actieve club nodig. Voeg eerst een club toe via Clubs.',
   manageOriginal: 'Originele training beheren',
   help: 'Uitleg',
   examples: 'Voorbeeldtrainingen',
@@ -92,7 +143,7 @@ const nl: typeof en = {
   exampleIntro:
     'Ontdek hoe RowLens werkt. Deze voorbeelden zijn beschikbaar voor iedereen die is ingelogd, ongeacht je clubfilters.',
   readOnly:
-    'Dit voorbeeld kun je alleen bekijken. De voorbeeldnotities en tekeningen van de oorspronkelijke maker zijn zichtbaar; feedback van andere auteurs blijft privé.',
+    'Dit voorbeeld kun je alleen bekijken. De voorbeeldnotities en tekeningen van de publicerende beheerder zijn zichtbaar; feedback van andere auteurs blijft privé.',
   noClub:
     'Je bent nog geen lid van een actieve club. Bekijk de voorbeelden hieronder of kies een club via Clubs.',
   video: (n: number) => `Video ${String(n)}`,
@@ -147,7 +198,7 @@ const nl: typeof en = {
     [
       'feedback',
       'Bespreek feedback',
-      'Gebruik Notities voor opmerkingen en tekeningen bij een specifiek beeld. Feedback is standaard privé. Wijs deze expliciet toe of deel deze met afzonderlijke roeiers of de ploeg wanneer de knoppen dat toestaan. Roeiers zien binnen toegankelijke trainingen feedback voor henzelf of van henzelf. Bij voorbeeldtrainingen zijn de eigen notities en tekeningen van de oorspronkelijke voorbeeldmaker zichtbaar voor alle ingelogde kijkers. Feedback van andere auteurs blijft privé.',
+      'Gebruik Notities voor opmerkingen en tekeningen bij een specifiek beeld. Feedback is standaard privé. Wijs deze expliciet toe of deel deze met afzonderlijke roeiers of de ploeg wanneer de knoppen dat toestaan. Roeiers zien binnen toegankelijke trainingen feedback voor henzelf of van henzelf. Bij voorbeeldtrainingen zijn de eigen notities en tekeningen van de publicerende beheerder zichtbaar voor alle ingelogde kijkers. Feedback van andere auteurs blijft privé.',
     ],
     [
       'rights',
