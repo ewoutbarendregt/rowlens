@@ -1,3 +1,38 @@
+## [2026-11-16] — Resolve Linux WebKit off-screen paused seeks
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/{frames.ts,frames.test.ts}, apps/web/e2e/training-visibility.spec.ts, docs/adr/0007-upload-transcode-playback.md, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Reproduced parent CI BUG-070 in the matching Linux Playwright1.64.1 image and compared actual decoded pixel fingerprints: scroll+seek in the same click kept the old image, despite seeked/currentTime advancing. Wait for an intervening paint before seeking; cancel superseded/unmounted jumps. Linux then reports the seek time as mediaTime, so amended the seek offset to the first quarter of the CFR interval, avoiding midpoint round-up while preserving timestamp margins through240fps. Eight new arithmetic regressions fail before/pass after; all32 frame unit tests and Linux browser9 pass, including actual decoded-image change, next-frame overlays, zoom/fullscreen and iPhone WebKit. Full parent708/66 files, format/lint/typecheck/build pass before push; no production change. Child Help management #191 remains fully locally verified709/browser15 and will receive this parent correction.
+**Prompts used**: Ga verder
+
+## [2026-11-16] — Reveal example video before seeking from notes
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Investigated #190's failed web CI43896501068 (other eight jobs green): Linux WebKit kept frame0 after an off-screen note jump. A new visibility regression reproduces viewport ratio0 locally; example notes/analysis now reveal their scoped player stage before seeking. The nine local browser cases pass across low/normal Chromium and iPhone WebKit, with format/lint/typecheck/build. Parent-only repair preserves the separately committed Help management work on codex/feat/help-example-management; its existing-training publication proposal still awaits owner approval. No schema/permission or production change.
+**Prompts used**: Ja
+
+## [2026-11-16] — Open example-feedback review #190
+
+**Session**: codex/fix/example-feedback
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/plans/example-feedback.md
+**Summary**: Opened [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190) against main with the explicit security/publication review note. All local checks pass: web/DB700, browser109 plus edge42, worker50, deploy77, Docker rehearsal and format/lint/typecheck/build; a final example9 rerun confirms older-server rollback compatibility. CI is pending. Local review is ready at http://127.0.0.1:5175/projects/rowlens/help (31 copied-DB migrations); production was verified read-only at 0.0.63/sha-4ec6e71, DB ok. No merge/deploy or production write/message was performed.
+**Prompts used**: Ja
+
+## [2026-11-16] — Show approved publisher notes and drawing overlays in examples
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/{help,sessions,styles.css}, apps/web/src/server/{api,db/schema.ts,db/migrations/0031_example_feedback.sql,db/migrations/meta,db/training-visibility-upgrade.db.test.ts,repositories/examples.ts}, apps/web/e2e/{visibility-fixture.ts,training-visibility.spec.ts}, docs/adr/{0030-example-publisher-feedback.md,README.md}, docs/plans/example-feedback.md, docs/privacy/processors.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Implemented the approved publisher-only example feedback rule with immutable attribution, narrow restrictive RLS and a safe read-only projection. Examples now show the maker's own notes/drawings, frame navigation and boat-line/measurement overlays; NL/EN management notices explain publication, while other authors, assignments and source feedback remain private. Full web/DB700, focused API/upgrade20, final browser109 plus edge42, worker50, deploy-script77 and real Docker rollout/rollback rehearsal pass; screenshots/geometry checked on low/normal laptop and iPhone WebKit. Earlier browser/selector/build-order failures and the remaining intermittent helper concern (BUG-069) are recorded in TEST.md, with complete quiet reruns green. An additional example9 rerun verifies a long-lived new client against older responses without annotations after rollback. Only the copied review DB was migrated to31; local API/client are ready at port3101/5175. No production/configuration/message change or merge/deploy; PR/CI status is recorded in the next entry when available.
+**Prompts used**: Ja
+
+## [2026-11-15] — Diagnose missing example notes and propose publisher-only feedback
+
+**Session**: codex/fix/example-feedback
+**Changed**: docs/plans/example-feedback.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: User confirmed that Help's example location is acceptable; the earlier discovery report is resolved. Confirmed missing DrawingLayer/note overlays and deliberate annotation denial/projection omission in ADR-0028. Read-only production counts show 167 drawings authored by the recorded platform example creator and 7 boat lines; no bodies/identities/media were read. Prepared a concrete publisher-only feedback proposal with immutable attribution, restrictive RLS, safe read-only projection and browser/security acceptance checks. This requires architectural permission/publication approval under AGENTS.md; no schema/code/configuration/production change or new deployment performed. BUG-068 tracks this separate omission; deployment evidence remains in PR #187.
+**Prompts used**: ik heb de voorbeeld trainingen gevonden onder 'uitleg'. prima zo, alleen zie ik de notities en lijnen niet die ik daar gezet heb
+
 ## [2026-11-15] — Explain the local 0.0.0 version label
 
 **Session**: codex/feat/training-sharing

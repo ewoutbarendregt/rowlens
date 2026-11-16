@@ -18,6 +18,12 @@ import { strokeStrings } from '../strokes/strings.ts';
 import { sessionStrings, type Perspective } from '../sessions/strings.ts';
 import { lineupStrings } from '../lineup/strings.ts';
 import { helpStrings } from './strings.ts';
+import { exampleDrawings, type ExampleAnnotation } from './example-feedback.ts';
+import { DrawingLayer } from '../drawing/DrawingLayer.tsx';
+import { activeVideoMoment, videoMoments } from '../notes/overlay.ts';
+import { VideoNotesOverlay } from '../notes/VideoNotesOverlay.tsx';
+import { notesStrings } from '../notes/strings.ts';
+import { formatFrameTime } from '../player/frames.ts';
 interface Clip {
   id: string;
   seq: number | null;
@@ -32,6 +38,8 @@ interface Clip {
   measures: AngleMeasure[];
   boatLines: FrameBoatLine[];
   auto: AutoBoatLineState | null;
+  /** Older server images omit feedback; keep a rolling rollback readable. */
+  annotations?: ExampleAnnotation[];
 }
 interface Example {
   clubId: string;
@@ -44,6 +52,7 @@ const noop = () => undefined;
 export function ExamplePage() {
   const { id = '' } = useParams();
   const t = helpStrings();
+  const nt = notesStrings();
   const { state: auth } = useAuth();
   const st = strokeStrings();
   const [data, setData] = useState<Example | null>(null);
@@ -52,10 +61,15 @@ export function ExamplePage() {
   const [frame, setFrame] = useState(0);
   const [middle, setMiddle] = useState(false);
   const player = useRef<PlayerHandle>(null);
+  const playerArea = useRef<HTMLDivElement>(null);
+  const pendingJump = useRef<number | null>(null);
+  const actor = auth.kind === 'open' ? auth.user.id : null;
   useEffect(() => {
     let stale = false;
     setData(null);
     setFailed(false);
+    setChosen(null);
+    setFrame(0);
     void api(`/api/examples/${id}`, { clubId: null })
       .then(async (r) => {
         if (!r.ok) throw new Error();
@@ -68,7 +82,7 @@ export function ExamplePage() {
     return () => {
       stale = true;
     };
-  }, [id]);
+  }, [id, actor]);
   const ready = data?.videos.filter((v) => v.status === 'ready' && v.renditions.length > 0) ?? [];
   const v = ready.find((v) => v.id === chosen) ?? ready[0];
   const fps = v?.fpsNum && v.fpsDen ? v.fpsNum / v.fpsDen : 30;
@@ -88,7 +102,34 @@ export function ExamplePage() {
             ],
       )
     : [];
-  const jump = (f: number) => player.current?.seekToFrame(f);
+  useEffect(
+    () => () => {
+      if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+    },
+    [v?.id],
+  );
+  const jump = (f: number) => {
+    // WebKit suspends presentation off-screen. Reveal, then allow a paint before seeking:
+    // a synchronous seek in the scrolling click handler can complete without decoding a new frame.
+    playerArea.current
+      ?.querySelector('.player__stage')
+      ?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+    pendingJump.current = requestAnimationFrame(() => {
+      pendingJump.current = requestAnimationFrame(() => {
+        pendingJump.current = null;
+        player.current?.seekToFrame(f);
+      });
+    });
+  };
+  const moments = videoMoments(
+    (v?.annotations ?? []).map((a) => ({ ...a, authorName: t.exampleExplanation })),
+    null,
+  );
+  const active = activeVideoMoment(moments, frame, fps);
+  const drawings = v
+    ? exampleDrawings(frame, v.annotations ?? [], v.measures, v.boatLines, v.auto)
+    : [];
   return (
     <main className="page page--wide example-viewer">
       <p>
@@ -134,24 +175,80 @@ export function ExamplePage() {
               ))}
             </select>
           </label>
-          <Player
-            key={v.id}
-            src={appUrl(
-              `/api/examples/${id}/videos/${v.id}/media/${v.renditions.includes('play-540') ? 'play-540' : (v.renditions[0] ?? 'play-540')}`,
-              null,
-            )}
-            poster={appUrl(`/api/examples/${id}/videos/${v.id}/media/poster`, null)}
-            fps={fps}
-            onFrame={setFrame}
-            handle={player}
-            strokeMarks={[
-              ...v.marks.map((m) => ({
-                ...m,
-                label: st.markLabel(st.kinds[m.kind], null, m.frame),
-              })),
-              ...computed,
-            ].sort((a, b) => a.frame - b.frame)}
-          />
+          <div ref={playerArea}>
+            <Player
+              key={v.id}
+              src={appUrl(
+                `/api/examples/${id}/videos/${v.id}/media/${v.renditions.includes('play-540') ? 'play-540' : (v.renditions[0] ?? 'play-540')}`,
+                null,
+              )}
+              poster={appUrl(`/api/examples/${id}/videos/${v.id}/media/poster`, null)}
+              fps={fps}
+              onFrame={setFrame}
+              handle={player}
+              markers={moments.map((m) => ({
+                id: String(m.frame),
+                frame: m.frame,
+                label: nt.marker(
+                  m.frame,
+                  [
+                    ...m.drawings.map((d) => nt.tools[d.kind as keyof typeof nt.tools]),
+                    ...m.notes.map((n) => n.body.slice(0, 80)),
+                  ].join(' · '),
+                ),
+              }))}
+              overlay={
+                <>
+                  <DrawingLayer
+                    size={size}
+                    drawings={drawings}
+                    tool={null}
+                    onComplete={() => Promise.resolve(false)}
+                    onDelete={() => Promise.resolve(false)}
+                    onCancel={noop}
+                    onMove={noop}
+                    controlsTarget={null}
+                  />
+                  {active && <VideoNotesOverlay moment={active} />}
+                </>
+              }
+              strokeMarks={[
+                ...v.marks.map((m) => ({
+                  ...m,
+                  label: st.markLabel(st.kinds[m.kind], null, m.frame),
+                })),
+                ...computed,
+              ].sort((a, b) => a.frame - b.frame)}
+            />
+          </div>
+          <section className="card example-notes" data-testid="example-notes">
+            <h2>{nt.notes}</h2>
+            {moments.length === 0 && <p className="muted">{nt.noneReadOnly}</p>}
+            <ol>
+              {moments.map((m) => (
+                <li key={m.frame}>
+                  <button
+                    type="button"
+                    className="button--quiet"
+                    onClick={() => {
+                      jump(m.frame);
+                    }}
+                  >
+                    {nt.atFrame(m.frame, formatFrameTime(m.frame, fps))}
+                  </button>
+                  {m.drawings.map((d) => (
+                    <p key={d.id}>
+                      {nt.tools[d.kind as keyof typeof nt.tools]}
+                      {d.body && <> · {d.body}</>}
+                    </p>
+                  ))}
+                  {m.notes.map((n) => (
+                    <p key={n.id}>{n.body}</p>
+                  ))}
+                </li>
+              ))}
+            </ol>
+          </section>
           <h2>{st.strokes}</h2>
           <StrokesPanel
             summary={summary}

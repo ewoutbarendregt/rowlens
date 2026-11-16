@@ -80,9 +80,11 @@ export function tenantPolicy(name: string, clubId: SQLWrapper) {
               table,
             )
           ? sql`rowlens_example_video(${column('video_id')})`
-          : table === 'rower'
-            ? sql`rowlens_example_rower(${column('id')})`
-            : sql`false`;
+          : table === 'annotation'
+            ? sql`rowlens_example_annotation(${column('video_id')}, ${column('author_user_id')})`
+            : table === 'rower'
+              ? sql`rowlens_example_rower(${column('id')})`
+              : sql`false`;
   const ordinary = sql`nullif(current_setting('app.example_session', true), '') is null`;
   return [
     pgPolicy(name, {
@@ -317,6 +319,8 @@ export const rowingSession = pgTable(
     /** Who made it: a rower sees the sessions they created, even before a lineup (#40). */
     createdByUserId: uuid('created_by_user_id'),
     isExample: boolean('is_example').notNull().default(false),
+    /** Frozen publisher: creator reassignment must never publish another author's private notes. */
+    examplePublisherUserId: uuid('example_publisher_user_id').references(() => appUser.id),
     sharingRevision: integer('sharing_revision').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -560,7 +564,7 @@ export const annotation = pgTable(
     rolePolicy(
       'annotation_role_read',
       'select',
-      sql`rowlens_can_see_video(${t.videoId}) and (rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me})`,
+      sql`case when nullif(current_setting('app.example_session', true), '') is not null then rowlens_example_annotation(${t.videoId}, ${t.authorUserId}) else rowlens_can_see_video(${t.videoId}) and (rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me}) end`,
     ),
     rolePolicy(
       'annotation_role_add',

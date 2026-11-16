@@ -1,3 +1,68 @@
+# Parent BUG-070 root repair verified in Linux — 2026-11-16
+
+Current codex/fix/example-feedback: cancellable reveal/paint/seek in ExamplePage and quarter-interval
+CFR seeks. All32 frame unit and Linux browser9 pass (Playwright1.64.1 Noble/iPhone WebKit included);
+new decoded-pixel fingerprint rejects a frozen picture despite currentTime changes. Parent full708/66 files and static
+checks/build pass before commit/push. Then switch to codex/feat/help-example-management, merge this
+parent repair (preserve both doc histories), scan conflict markers and rerun combined checks. Child
+implementation3859fc0 is already locally verified709/browser15 and pushed in draft#191. User approved
+existing publication with “Ga verder”; no implementation approval pending. No merge/deploy authorized.
+Synthetic probe servers4186 are stopped. Original local stack/production unchanged.
+
+# Parent #190 frame-jump CI repair — 2026-11-16
+
+CI43896501068 passed eight jobs but failed web twice on Linux iPhone WebKit: frame0 after the
+below-video example note jump. BUG-070: reveal the scoped stage before seeking. New local visibility
+regression first fails with viewport ratio0; final example9 passes all three viewports. Format/lint/
+typecheck/build checked. Push this repair and let #190 CI rerun; no merge/deploy authorization.
+
+The ongoing user request is Help example management, separately committed as16af51b on
+codex/feat/help-example-management. Return there and merge this parent repair without force push,
+preserving both sets of docs. Owner clarified “Ook bestaande trainingen selecteren”; that branch's
+docs/plans/help-example-management.md contains the concrete promotion/publication proposal.
+An async approval question for that architecture/privacy change is pending. Create/rename/editor
+shortcuts already pass700 web/DB and12 browser cases locally. No production change (last0.0.63).
+
+Review: [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190), targeting main.
+All local validation passes; remote CI pending. No merge/deploy is authorized for this change.
+
+# Example feedback implemented locally — 2026-11-16
+
+Ewout approved the example-feedback proposal with “Ja”. ADR-0030/migration0031 freeze the
+original example publisher; only that author's own annotations are public example material.
+Creator transfer cannot publish somebody else's feedback. Existing uncertain/null publishers fail
+closed; other authors (including same-frame notes), assignments and source references stay hidden.
+The API projects only ID/frame/kind/body/validated shape/canEdit:false. Example player now renders
+notes/drawings/boat-line/measurement overlays, read-only frame navigation and zoom/fullscreen.
+NL/EN notices on original training/video management pages explain the audience. A missing
+annotation field in an older server response is tolerated after rollback (example9 rerun pass).
+
+Local review: http://127.0.0.1:5175/projects/rowlens/help, API3101/copied DB5436, **31 migrations**,
+DB readiness ok (one known publisher in that older local copy). API log: /tmp/rowlens-example-api.log;
+existing Vite listener was reused. SMTP remains disabled. Original stack/media and production were
+not modified. Last production rollout is 0.0.63/sha-4ec6e71 (deployment evidence remains PR #187).
+
+Checks: full web/DB700; focused API/upgrade20 and overlay2; final browser109 (9 examples,9 sharing,
+34 unified,51 general,6 reuse), edge42, worker50, deploy77 and real Docker rehearsal pass. Initial
+browser failures, invalidated build-order run and an intermittent unrelated helper readiness issue
+(BUG-069) are documented with final full quiet reruns green. BUG-068 is fixed locally. No merge or
+new production deploy is authorized. Next: owner local review/PR CI, then await explicit rollout.
+Older proposal/status entries below are historical and superseded by this entry.
+
+# Example feedback proposal awaiting approval — 2026-11-15
+
+Ewout found examples through Help and accepts that location; no discovery fix needed. They report
+missing their own notes/lines. ExamplePage lacks drawing/text overlays; example API/RLS deliberately
+exclude annotations. Production read-only counts: 167 maker-authored drawings (162 lines, 4 angles,
+1 arrow), 7 manual boat lines. No personal content inspected or production write performed.
+
+Read docs/plans/example-feedback.md (BUG-068). Proposed: show the original publisher's own example
+notes/drawings to authenticated viewers, other authors/source/private feedback stays excluded;
+immutable publisher attribution prevents creator-transfer leakage. This needs an additive migration,
+restrictive RLS/safe projection and read-only player/frame UI. Await explicit architectural/publication
+approval before implementation. Production remains 0.0.63 / sha-4ec6e71, 30 migrations; deployment
+log PR #187 is separate. Original local stack remains untouched; copied local review is port5175.
+
 # Whole-training sharing implementation — 2026-11-15
 
 Local version-label finding: APP_RELEASE is unset in the test stack, so the client falls back to the package.json base 0.0.0. Production image numbering is supplied by GITHUB_RUN_NUMBER. No version/configuration change was made; the local label is not a build identifier.

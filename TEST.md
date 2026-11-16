@@ -1,3 +1,60 @@
+## 2026-11-16 — Linux WebKit BUG-070 root repair
+
+- Matching Playwright1.64.1 Noble Linux image: all9 visibility/example cases pass in27.1s, including iPhone WebKit. Synthetic canvas fingerprint verifies the decoded picture really changes on the paused frame10 jump; following frame11 removes the old drawings. Fullscreen/zoom and clubless examples remain covered.
+- Eight new unit cases fail before/pass after the quarter-interval seek offset; all32 frames cases pass. Cover every frame over10s at24/25/30/50/60/59.94/120/240fps, real PTS and millisecond-rounded seek timestamps.
+- Earlier Linux probes compared native/app controls and actual pixel fingerprints: source, codec, poster and CSS removal did not fix the stalled picture. Revealing then waiting for a paint does; the callback then reports seek time rather than frame PTS, exposing the midpoint round-up. The counter still derives from rVFC, not the requested frame.
+- Parent full708/708 in66 files (67.84s), format/lint/typecheck/build pass; remote CI pending a new push. No production change.
+
+## 2026-11-16 — Reveal the example stage before frame jumps (BUG-070)
+
+- Parent CI43896501068: eight jobs passed; web failed both Linux iPhone WebKit attempts when the
+  example note frame jump stayed at0 instead of10. Artifact saved in /tmp/rowlens-example-parent-ci-artifact.
+- New test asserts the video is at least half in view after the note jump. Before the correction,
+  local iPhone WebKit fails with viewport ratio **0**, reproducing the missing reveal separately
+  from Linux's deferred frame presentation. Bring the scoped picture into view before seeking.
+- Final local visibility/example suite **9/9** on Chromium1000×540/1440×900 and iPhone13 WebKit,
+  including correct frame10, read-only drawings, zoom/fullscreen and old-response compatibility.
+  Format/lint/typecheck/build checked; adjusted the callback's void syntax after its return type changed.
+  No permissions, schema, media, common player timing logic or production change.
+
+## 2026-11-16 — Publisher feedback and read-only example overlays
+
+- Tests first: the three new feedback tests initially failed (missing projection/publisher column;
+  the write test also needed to inspect Drizzle's wrapped rejection). Existing 15 tests passed.
+- Final full web/unit/database suite: **700/700**, **66 files**, compared with 694 previously.
+  Focused visibility/API + upgrade **20/20**, overlay frame tests **2/2**; final API **18/18** after
+  adding shape-metadata stripping. These sets overlap with the full suite; do not add their counts.
+- Security coverage: publisher note/line/arrow/angle inclusion; same-frame other-author/legacy
+  exclusion; direct restrictive RLS; no moment/source metadata; exact safe response keys; forged
+  publisher insert/update denial; creator-transfer stability; staff-shaped example scopes cannot
+  mutate; archived/unauthenticated/wrong-resource denial; uncertain upgrade rows keep null publisher.
+- Browser final, serialized after Docker builds: **9/9** visibility/examples, **9/9** sharing,
+  **34/34** unified accounts, **51/51** general (105 mode-specific skips), **6/6** reuse: **109**
+  cases. Production feature flags were enabled together for the example/sharing/unified runs.
+  Chromium1000×540/1440×900 and iPhone13 WebKit: saved lines/arrows/angles, manual boat line,
+  note overlay/frame list/jump markers, exact-frame disappearance with normal text hold, zoom,
+  fullscreen, private-author exclusion and no edit controls. SVG coordinates were measured;
+  screenshots inspected and no horizontal overflow. Final example rerun also checks that a new client
+  tolerates an older server omitting annotations after rollback: **9/9** pass. The earliest example set also passed 9/9.
+- Earlier browser diagnostics: unified first 33/34 (WebKit filter input absent), then targeted 1/1
+  and final full 34/34 pass. One targeted command lacked its mode flag and skipped; not a pass.
+  An invalidated sharing run fetched old cached-shell JS/CSS filenames (trace: asset404) because
+  this session rebuilt dist during the run; aborted and repeated with serialized builds. Under
+  heavy local Docker load, sharing next had 8/9 (5-second account-menu wait; verify204, pending
+  status request); final unloaded 9/9 passes. A newly added frame-step assertion initially used
+  visible text rather than the button's accessible name; corrected selector, final 9/9 passes.
+  BUG-069 tracks the intermittent broader helper readiness concern; no unrelated product fix.
+- Worker Ruff/check/format/mypy and **50/50** pytest pass. Deploy-script **77/77** checks pass;
+  real local Docker deploy/backup/broken-release rollback/manual rollback rehearsal passes.
+  Edge/Caddy with real worker: **42/42** desktop cases (36 mode skips); stack stopped afterwards.
+- Format/lint/typecheck/build checked. Initial lint errors corrected; a concurrent lint traversal
+  hit a Playwright-deleted output directory, then the sequential final check passed. Build retains
+  the existing >500KB bundle warning. No new dependency, worker logic or external provider.
+- Only copied local DB5436 migrated: **31 migrations**, **1** known example publisher in that
+  historical copy. Readiness API3101 DB ok; client5175 responds200 with no Vite error overlay.
+  Starting both dev processes collided with an existing Vite listener; reused it and restarted
+  only this checkout's API. Original stack and production unchanged; no message/OTP sent.
+
 ## 2026-11-15 — Whole-training sharing, privacy, races and mobile controls
 
 - Full web/unit/database run: **694/694**, 65 files. New focused sharing set **16/16**.

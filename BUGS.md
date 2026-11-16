@@ -1,3 +1,24 @@
+### [BUG-070] Paused example note jumps stall the decoded picture in Linux WebKit — severity: medium
+**Location**: apps/web/src/client/help/ExamplePage.tsx, apps/web/src/client/player/frames.ts
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Clicking below-video notes scrolls the paused picture out of view. A synchronous scroll-back and seek acknowledges currentTime.35 but leaves the decoded image and rVFC metadata at0. After allowing a paint, GStreamer reports the seek time.35, which the former midpoint rule rounds to11 instead of10.
+**Fix**: Reveal the stage, allow an intervening paint using cancellable animation-frame callbacks, then seek. Use the first quarter of the CFR interval rather than its midpoint, retaining a timestamp boundary margin through240fps. Display remains callback-derived. All eight new arithmetic regressions fail before/pass after; actual picture fingerprint and all nine browser tests pass in matching Linux Playwright1.64.1, including iPhone WebKit. Remote CI still needs to verify the repair.
+
+### [BUG-069] Browser helper readiness can intermittently expire during account/filter navigation — severity: low
+**Location**: apps/web/e2e/unified-users.spec.ts:81; apps/web/e2e/helpers.ts
+**Status**: open
+**Found**: 2026-11-16
+**Description**: An initial WebKit directory run reached the Users page but its newly added filter was absent; a separate heavily loaded run completed login verification while the status response remained pending beyond the helper's 5-second account-menu assertion. No product access defect was reproduced. Targeted and complete serialized reruns pass (34 unified, 9 sharing).
+**Fix**: Preserve initial traces under /tmp/rowlens-example-unified-initial and /tmp/rowlens-example-sharing-delayed; investigate readiness if it recurs. No unrelated product or timeout change in the example-feedback fix.
+
+### [BUG-068] Example viewer omits saved notes and drawing overlays — severity: medium
+**Location**: apps/web/src/client/help/ExamplePage.tsx; apps/web/src/server/repositories/examples.ts
+**Status**: fixed
+**Found**: 2026-11-15
+**Description**: User found examples in Help but cannot see their notes/lines. Example API intentionally excludes annotations under restrictive RLS; the example player also lacks drawing/note overlays, even for already supplied boat lines.
+**Fix**: Approved ADR-0030/migration0031 freeze the original publisher and admit only their own example annotations under restrictive RLS. Safe projection and read-only drawing/text/boat-line overlays with frame navigation are implemented; 700 web/DB and 109 browser cases pass locally. No production rollout yet.
+
 ### [BUG-064] Delayed primary-club initialization overwrites manual choices or navigation — medium
 **Location**: apps/web/src/client/sessions/SessionsPage.tsx
 **Status**: fixed

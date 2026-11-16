@@ -1,3 +1,4 @@
+import { helpStrings } from '../help/strings.ts';
 import { saveOwnPreference, useOwnSettings } from '../settings/controller.ts';
 import { settingsStrings } from '../settings/strings.ts';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -63,6 +64,7 @@ interface VideoDetail {
   sessionId: string;
   canEdit: boolean;
   sessionTitle: string;
+  isExample: boolean;
   filename: string;
   seq: number | null;
   recordedAt: string | null;
@@ -784,6 +786,9 @@ export function VideoPage() {
           <Link className="video-head__back" to={`/sessions/${video.sessionId}`}>
             <Icon name="arrowLeft" size={14} /> {t.backToSession(video.sessionTitle)}
           </Link>
+          {video.isExample && video.canEdit && (
+            <p className="callout">{helpStrings().publicationNotice}</p>
+          )}
           <h1 className="video-title">{videoDisplayName(video)}</h1>
           <p className="muted video-facts">
             {t.perspectives[video.perspective]}

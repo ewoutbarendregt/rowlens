@@ -1,3 +1,11 @@
+## Example publisher feedback — approved and implemented locally (2026-11-16)
+
+Ewout approved docs/plans/example-feedback.md with “Ja”. ADR-0030/migration0031 freeze the original
+example publisher and allow only that author's notes/drawings through restrictive example RLS.
+Read-only player overlays, notes/frame navigation and NL/EN publication notices are implemented.
+Other authors, same-frame private feedback and source layers remain excluded. Local validation is green (700 web/DB,109 browser,42 edge);
+production stays 0.0.63 / sha-4ec6e71 until a separately requested merge/deploy.
+
 ## Whole-training sharing — implemented locally (2026-11-15)
 
 Owner approved `docs/plans/training-sharing.md` with “ja”. ADR-0029/migration 0030 add creator/staff

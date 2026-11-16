@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { asc, eq, sql } from 'drizzle-orm';
 import type { Database } from '../db/client.ts';
 import { withTenant, type TenantContext } from '../db/tenant.ts';
@@ -9,8 +10,16 @@ import {
   angleMeasure,
   videoBoatLine,
   videoAutoBoatLine,
+  annotation,
 } from '../db/schema.ts';
 import { lineupOf } from '../api/lineups.ts';
+
+const exampleShape = z.object({
+  points: z
+    .array(z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]))
+    .min(2)
+    .max(3),
+});
 
 /** Discovery returns no content, identity or staff authority. Each subsequent read uses tenant RLS. */
 export async function exampleContext(
@@ -103,6 +112,18 @@ export async function readExample(db: Database, scope: TenantContext, id: string
       .orderBy(asc(video.createdAt));
     const clips = [];
     for (const v of videos) {
+      const annotations = await tx
+        .select({
+          id: annotation.id,
+          frame: annotation.frame,
+          kind: annotation.kind,
+          body: annotation.body,
+          shape: annotation.shape,
+          canEdit: sql<boolean>`false`,
+        })
+        .from(annotation)
+        .where(eq(annotation.videoId, v.id))
+        .orderBy(asc(annotation.frame), asc(annotation.createdAt), asc(annotation.id));
       const marks = await tx
         .select({ frame: strokeMark.frame, kind: strokeMark.kind })
         .from(strokeMark)
@@ -133,6 +154,10 @@ export async function readExample(db: Database, scope: TenantContext, id: string
         .where(eq(videoAutoBoatLine.videoId, v.id));
       clips.push({
         ...v,
+        annotations: annotations.map((a) => {
+          const shape = exampleShape.safeParse(a.shape);
+          return { ...a, shape: a.kind !== 'note' && shape.success ? shape.data : null };
+        }),
         renditions: ((v.renditions ?? []) as { name: string }[])
           .map((r) => r.name)
           .filter((n) => n === 'play-540' || n === 'play-1080'),

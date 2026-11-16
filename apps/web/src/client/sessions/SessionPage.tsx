@@ -1,3 +1,4 @@
+import { helpStrings } from '../help/strings.ts';
 import { SharingCard } from '../sharing/SharingCard.tsx';
 import { sharingStrings } from '../sharing/strings.ts';
 import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
@@ -49,6 +50,7 @@ const POLL_MS = 3000;
 const BUSY: VideoStatus[] = ['uploaded', 'processing'];
 
 interface SessionDetail {
+  isExample: boolean;
   id: string;
   title: string;
   date: string;
@@ -229,6 +231,9 @@ export function SessionPage() {
         {session.creatorName !== null && <> {t.createdBy(session.creatorName)}</>}
       </p>
 
+      {session.isExample && session.canEdit && (
+        <p className="callout">{helpStrings().publicationNotice}</p>
+      )}
       {session.sharedWithMe && !session.createdByMe && (
         <p className="badge">{sharingStrings().sharedWithMe}</p>
       )}

@@ -1,3 +1,24 @@
+## Paused example seek painting (2026-11-16)
+
+Example note/analysis jumps reveal the stage, allow an intervening paint via cancellable animation
+frames, and then seek. Linux WebKit can otherwise acknowledge seeked without changing the decoded
+picture. CFR seeks now use the first quarter of a frame interval: this retains timestamp margin
+through240fps while resolving both true PTS and Linux GStreamer's reported paused seek time to the
+same callback-derived frame. ADR-0007 documents the measured repair and regressions.
+
+## Publisher feedback in examples (2026-11-16)
+
+ADR-0030/migration 0031 add immutable `example_publisher_user_id`, stamped with example creation
+and backfilled only for current recorded platform creators. Creator transfer cannot publish a new
+author's feedback. `rowlens_example_annotation` narrows both annotation role/example RLS to the
+selected verified example and original publisher; ordinary moment/source/recipient rules are unchanged.
+The example API projects only ID/frame/kind/body/validated shape and false edit capability. Other
+authors (including same-frame siblings), null authors, private assignments and references stay hidden.
+The example player now draws annotations/measurements and applicable boat lines via DrawingLayer,
+shows notes via VideoNotesOverlay with normal hold semantics, and offers read-only frame navigation.
+Training/video management pages explain that the maker's own example annotations are published.
+No production rollout is authorized. Local review uses port5175/API3101/copied DB5436 (31 migrations).
+
 ## Explicit training sharing (2026-11-15)
 
 ADR-0029/migration 0030 add tenant-scoped `session_share` and append-only `session_share_event`,
