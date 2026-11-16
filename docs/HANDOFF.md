@@ -1,3 +1,19 @@
+# Help management ready for draft review — 2026-11-16
+
+codex/feat/help-example-management includes parent #190/ad359b5 and the new Help create/rename/
+ordinary-editor controls. Full web/DB700, combined browser12 and focused screenshots3 pass;
+phone/low-laptop views checked and native select targets corrected to44px (BUG-071). Current
+parent CI43902061152 is still running; prior failed web CI was the separately fixed BUG-070.
+Local review: http://127.0.0.1:5175/projects/rowlens/help, API3101/copied DB5436 at31 migrations.
+No production/schema change beyond the already-reviewed parent; original local stack untouched.
+
+Owner requested existing training selection too. An explicit architectural/publication approval
+question is still pending for docs/plans/help-example-management.md: signed-in global video/crew/
+analysis access, publisher=current selecting admin's own notes only, original ownership preserved,
+other feedback private. Do not implement that promotion capability until approved. Publish this
+partial independent work as a DRAFT stacked on #190, then await the decision. No merge/deploy approval.
+Older instructions/history below are superseded by this current status.
+
 # Current Help management task — parent repair integrated (2026-11-16)
 
 Active branch codex/feat/help-example-management now includes parent #190's ad359b5 frame-reveal

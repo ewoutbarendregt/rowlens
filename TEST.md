@@ -1,3 +1,16 @@
+## 2026-11-16 — Combined Help controls and touch-target verification
+
+- Parent ad359b5 was merged into the child; code merged cleanly and both documentation histories
+  were preserved. Full combined visibility/examples suite **12/12** passes; additional admin card
+  screenshot run **3/3** passes. Low/normal laptop and iPhone WebKit screenshots were inspected.
+- Review found native form selects at **24px**. A new measured test failed before the correction;
+  scoped44px select styles fix BUG-071. Final complete browser suite **12/12** passes and measures
+  every create input/select/button, as well as example action buttons and horizontal overflow.
+- Existing child full web/DB **700/700** and format/lint/typecheck/build results remain recorded
+  above/below; final static validation is rerun before the review commit. No backend permission,
+  new schema or production change. Existing-training publication remains unimplemented pending
+  the concrete architecture/privacy approval question; its proposal is reviewable in the draft.
+
 ## 2026-11-16 — Reveal the example stage before frame jumps (BUG-070)
 
 - Parent CI43896501068: eight jobs passed; web failed both Linux iPhone WebKit attempts when the

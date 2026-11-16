@@ -1,3 +1,10 @@
+### [BUG-071] Native example-creation selects are too short for touch — severity: low
+**Location**: apps/web/src/client/styles.css
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Visual review and a measured iPhone WebKit regression found 24px club/boat selects in the new Help creation form, below the required forgiving touch target.
+**Fix**: Scope minimum/actual 44px select height to the example-creation form. Tests measure every input/select/button and the complete final twelve-case browser run passes on iPhone and both laptop sizes.
+
 ### [BUG-070] Example note jumps leave the player off-screen and stall WebKit presentation — severity: medium
 **Location**: apps/web/src/client/help/ExamplePage.tsx
 **Status**: fixed

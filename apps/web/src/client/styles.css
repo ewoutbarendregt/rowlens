@@ -3761,3 +3761,8 @@ a.list__item {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.examples__create select {
+  min-height: 44px;
+  height: 44px;
+  max-width: 100%;
+}

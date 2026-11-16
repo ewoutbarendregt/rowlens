@@ -1,3 +1,11 @@
+## [2026-11-16] — Verify combined Help controls and correct phone select targets
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/styles.css, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Combined parent frame-reveal correction with the admin Help controls; the full twelve-case suite and three focused screenshot cases pass. Visual/measured review found24px native selects; added scoped44px targets, a failing-before/passing-after regression and final complete12/12 across iPhone WebKit and both laptop sizes. Earlier full web/DB700 passes; final static validation is next. Existing-training publication is deliberately still pending the owner's approval of docs/plans/help-example-management.md; prepare a draft review of the concrete independent work. No production/configuration/message change.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
+
 ## [2026-11-16] — Integrate parent example frame-reveal repair
 
 **Session**: codex/feat/help-example-management

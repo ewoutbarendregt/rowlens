@@ -251,8 +251,13 @@ test('RowLens admin creates, renames and opens examples from Help in their ownin
   await create.getByLabel('Titel', { exact: true }).fill(`Nieuw voorbeeld ${info.project.name}`);
   await create.getByLabel('Datum', { exact: true }).fill('2026-11-16');
   await create.getByLabel('Boot', { exact: true }).selectOption('C2x');
+  for (const height of await create
+    .locator('input, select, button')
+    .evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height)))
+    expect(height).toBeGreaterThanOrEqual(43.5);
   await layout(page);
   await page.screenshot({ path: info.outputPath('help-example-create.png'), fullPage: true });
+  await examples.screenshot({ path: info.outputPath('help-example-create-card.png') });
   const createResponse = page.waitForResponse(
     (r) => r.url().includes('/api/sessions') && r.request().method() === 'POST',
   );
