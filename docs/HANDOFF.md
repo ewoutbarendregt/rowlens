@@ -1,3 +1,13 @@
+# Merge and deploy explicitly authorized — 2026-11-16
+
+Ewout requested “Merge en deploy”. Both #190 and #191 previously had all nine checks green.
+#190 squash-merged as ece7f78, parent branch retained; #191 retargeted main. Expected squash-history
+conflicts resolved with the exact already-tested child tree ba97907 (no code changes), plus this
+handoff/log. Push and wait for renewed #191 CI; then squash-merge #191, wait for final main CI/images,
+deploy its sha tag with public URL verification and check readiness, both image tags,32 migrations,
+publisher backfill and unchanged neighboring containers/HTTP200s. No server config/one-off writes.
+Log the final deployment in a separate next PR; production currently sha-4ec6e71 /0.0.63.
+
 # Help management complete; final combined checks green locally — 2026-11-16
 
 Current codex/feat/help-example-management includes parent bfd5ae8 and approved publication0032.

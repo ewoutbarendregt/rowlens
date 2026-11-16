@@ -1,3 +1,10 @@
+## [2026-11-16] — Prepare approved stacked merge and production rollout
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Ewout requested “Merge en deploy”. Both reviewed heads passed all nine CI checks (#190/run43955969645; #191/run43957585658). Squash-merged #190 as ece7f78 while retaining its branch, retargeted #191 to main, and resolved the expected squash-history conflicts by restoring the complete already-tested child tree ba97907. No implementation change; scanned for conflict markers. Rerun #191 CI before its squash merge, then wait for final main CI/images and deploy only the complete combined release. Record production verification in the next deployment-log PR.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-16] — Complete existing Help selection and combined playback verification
 
 **Session**: codex/feat/help-example-management
