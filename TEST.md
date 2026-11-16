@@ -1,3 +1,11 @@
+## 2026-11-16 — Final combined Help/publication/playback validation
+
+- Full web/DB717/717 in67 files (101.64s), including publication9 and the8 new seek timestamp regressions.
+- All115 local browser cases pass after the parent repair: visibility/Help15 (30.2s), unified34 (59.1s), sharing9 (25.1s), general51 (1.8m;109 expected mode skips), reuse6 (24.5s). Builds/test servers run serially to avoid stale asset indexes and overloaded migration containers.
+- Matching Linux Playwright1.64.1 parent visibility9 passes (27.1s), including actual decoded-picture changes on the paused note jump and iPhone WebKit; this reproduces the previously CI-only failure before the correction.
+- Final format/lint/typecheck and demo/general/reuse/unified builds pass. Restored the unified/reuse review bundle. Phone/low-laptop screenshots and44px controls checked in the focused UI run. Copied DB32 and API3101 readiness DB ok; original stack/production untouched.
+- Parent remote CI43955969645 pending; combined child CI follows push. No merge/deploy authorization.
+
 ## 2026-11-16 — Linux WebKit BUG-070 root repair
 
 - Matching Playwright1.64.1 Noble Linux image: all9 visibility/example cases pass in27.1s, including iPhone WebKit. Synthetic canvas fingerprint verifies the decoded picture really changes on the paused frame10 jump; following frame11 removes the old drawings. Fullscreen/zoom and clubless examples remain covered.

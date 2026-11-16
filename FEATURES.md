@@ -3,7 +3,7 @@
 RowLens admins can create, rename, open the original editor and select existing club trainings
 from Help. Existing publication requires inline audience confirmation and keeps the original owner;
 only the selecting administrator’s annotations join the example. NL/EN controls and notices included.
-Local combined validation in progress; no production rollout.
+Final combined web717/browser115 and parent Linux9 pass; no production rollout.
 
 ## Help example management — partially implemented locally (2026-11-16)
 

@@ -1,7 +1,7 @@
 # Manage examples from Help, including existing trainings
 
 Status: approved by Ewout with “Ga verder” (2026-11-16), following the explicit publication/privacy
-proposal. Branch: `codex/feat/help-example-management`, stacked on #190. Implementation in progress.
+proposal. Branch: `codex/feat/help-example-management`, stacked on #190. Implemented locally: final combined web717/browser115 and parent Linux9 pass. No rollout is authorized.
 
 ## Existing behavior and reusable work
 

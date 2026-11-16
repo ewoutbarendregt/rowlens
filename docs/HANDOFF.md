@@ -1,3 +1,18 @@
+# Help management complete; final combined checks green locally — 2026-11-16
+
+Current codex/feat/help-example-management includes parent bfd5ae8 and approved publication0032.
+All requested create/edit/rename/existing-selection scope is complete; no approval is pending.
+Final combined web/DB717/67 files, browser115 (Help15/unified34/sharing9/general51/reuse6), plus
+parent Linux9 pass. Final format/lint/types/builds green. Copied review DB5436 migrated32;
+API3101 readiness DB ok, http://127.0.0.1:5175/projects/rowlens/help. Demo/unified/reuse review build
+restored; original local stack and production untouched. Synthetic probe servers are stopped.
+
+Review #191 remains stacked on #190; publish combined branch and check its new CI. Parent remote
+CI43955969645 (bfd5ae8) pending at this entry, with all jobs except web already successful. Retain
+the parent branch when eventually merging. Do not merge main/deploy without a new explicit request.
+Use existing-session selection -> exact owning club -> search -> inline audience confirmation;
+original owner stays, only selecting publisher annotations become public, existing publishers freeze.
+
 # Complete Help management with Linux repair integrated — 2026-11-16
 
 Current codex/feat/help-example-management includes parent #190/bfd5ae8's measured BUG-070 repair.
