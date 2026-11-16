@@ -1,3 +1,6 @@
+Review: [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190), targeting main.
+All local validation passes; remote CI pending. No merge/deploy is authorized for this change.
+
 # Example feedback implemented locally — 2026-11-16
 
 Ewout approved the example-feedback proposal with “Ja”. ADR-0030/migration0031 freeze the

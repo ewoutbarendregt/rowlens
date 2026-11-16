@@ -1,3 +1,10 @@
+## [2026-11-16] — Open example-feedback review #190
+
+**Session**: codex/fix/example-feedback
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/plans/example-feedback.md
+**Summary**: Opened [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190) against main with the explicit security/publication review note. All local checks pass: web/DB700, browser109 plus edge42, worker50, deploy77, Docker rehearsal and format/lint/typecheck/build; a final example9 rerun confirms older-server rollback compatibility. CI is pending. Local review is ready at http://127.0.0.1:5175/projects/rowlens/help (31 copied-DB migrations); production was verified read-only at 0.0.63/sha-4ec6e71, DB ok. No merge/deploy or production write/message was performed.
+**Prompts used**: Ja
+
 ## [2026-11-16] — Show approved publisher notes and drawing overlays in examples
 
 **Session**: codex/fix/example-feedback

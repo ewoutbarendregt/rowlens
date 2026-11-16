@@ -1,6 +1,6 @@
 # Example training notes and drawing overlays
 
-Status: approved by Ewout with “Ja” (2026-11-16); implemented and verified locally; PR preparation.
+Status: approved by Ewout with “Ja” (2026-11-16); implemented and verified locally; review PR #190, remote CI pending.
 Branch: `codex/fix/example-feedback`. Related: ADR-0028, ADR-0029; BUG-068.
 
 ## Confirmed cause
