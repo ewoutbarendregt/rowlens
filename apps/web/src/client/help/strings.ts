@@ -3,6 +3,16 @@ const en = {
   exampleExplanation: 'Example explanation',
   publicationNotice:
     'This is a public example for signed-in users. The original example maker’s own notes and drawings are included; feedback by other authors stays private.',
+  newExample: 'New example training',
+  createExample: 'Create example training',
+  createExampleFailed:
+    'Could not create the example. Check the club and your connection, then try again.',
+  editExample: 'Edit training',
+  renameExample: (title: string) => `Rename ${title}`,
+  exampleClub: 'Example training’s club',
+  chooseExampleClub: 'Choose a club',
+  exampleClubRequired:
+    'An active club is needed to create an example training. Add a club under Clubs first.',
   manageOriginal: 'Manage original training',
   help: 'Help',
   examples: 'Example trainings',
@@ -84,6 +94,16 @@ const nl: typeof en = {
   exampleExplanation: 'Toelichting bij het voorbeeld',
   publicationNotice:
     'Dit is een voorbeeld voor alle ingelogde gebruikers. De eigen notities en tekeningen van de oorspronkelijke maker zijn daarin zichtbaar; feedback van andere auteurs blijft privé.',
+  newExample: 'Nieuwe voorbeeldtraining',
+  createExample: 'Voorbeeldtraining maken',
+  createExampleFailed:
+    'Het voorbeeld kon niet worden gemaakt. Controleer de club en je verbinding en probeer opnieuw.',
+  editExample: 'Training bewerken',
+  renameExample: (title: string) => `Naam wijzigen van ${title}`,
+  exampleClub: 'Club van de voorbeeldtraining',
+  chooseExampleClub: 'Kies een club',
+  exampleClubRequired:
+    'Voor een voorbeeldtraining is een actieve club nodig. Voeg eerst een club toe via Clubs.',
   manageOriginal: 'Originele training beheren',
   help: 'Uitleg',
   examples: 'Voorbeeldtrainingen',

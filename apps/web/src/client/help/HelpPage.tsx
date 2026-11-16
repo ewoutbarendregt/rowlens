@@ -16,7 +16,7 @@ export function HelpPage() {
           ))}
         </ul>
       </nav>
-      {UNIFIED_USERS && <Examples />}
+      {UNIFIED_USERS && <Examples manage />}
       {t.sections.map(([id, title, body]) => (
         <section className="card" id={id} key={id}>
           <h2>{title}</h2>

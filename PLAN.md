@@ -1,3 +1,11 @@
+## Help example management — ongoing (2026-11-16)
+
+New-example creation, ordinary-editor links and inline title changes are implemented for RowLens
+administrators in Help; rower/clubless controls stay absent. Local web/DB700 and browser12 pass.
+Ewout clarified “Ook bestaande trainingen selecteren”. The cross-account publication rule is
+concretely proposed in docs/plans/help-example-management.md; explicit architectural approval is
+pending while independent UI work and parent-PR CI repair continue. No production action.
+
 ## Example publisher feedback — approved and implemented locally (2026-11-16)
 
 Ewout approved docs/plans/example-feedback.md with “Ja”. ADR-0030/migration0031 freeze the original

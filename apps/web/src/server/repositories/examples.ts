@@ -68,6 +68,7 @@ export async function listExamples(db: Database, actor: TenantContext) {
         const [s] = await tx
           .select({
             id: rowingSession.id,
+            clubId: rowingSession.clubId,
             title: rowingSession.title,
             date: rowingSession.sessionDate,
             clubName: club.name,

@@ -1,3 +1,4 @@
+import { adminEmail } from './env.ts';
 import { withBasePath } from '../src/shared/base-path.ts';
 import { expect, test } from '@playwright/test';
 import { signIn } from './helpers.ts';
@@ -87,6 +88,10 @@ test('example playback and Help work for a club member and a clubless account', 
   await page.screenshot({ path: info.outputPath('example-playback.png'), fullPage: true });
   await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Uitleg', exact: true })).toBeVisible();
+  await expect(page.getByTestId('examples').getByRole('button')).toHaveCount(0);
+  await expect(
+    page.getByTestId('examples').getByRole('link', { name: 'Training bewerken', exact: true }),
+  ).toHaveCount(0);
   await page.getByRole('link', { name: 'Kies je club', exact: true }).click();
   await expect(page.locator('#clubs')).toBeInViewport();
   await layout(page);
@@ -186,4 +191,87 @@ test('example publisher notes, drawings and boat line are read-only and follow t
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
   await expect(page.getByTestId('example-notes').locator('li')).toHaveCount(0);
   await expect(page.locator('.drawing--boat')).toHaveCount(1);
+});
+
+test('RowLens admin creates, renames and opens examples from Help in their owning club', async ({
+  page,
+}, info) => {
+  await signIn(page, adminEmail);
+  await page.goto('./help');
+  const examples = page.getByTestId('examples');
+  await expect(
+    examples.getByRole('button', { name: 'Nieuwe voorbeeldtraining', exact: true }),
+  ).toBeVisible({ timeout: 3000 });
+  let row = examples.locator('li', {
+    has: page.getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
+  });
+  const detail = await page.evaluate(
+    async (url) =>
+      (await (await fetch(url)).json()) as {
+        examples: { id: string; clubId: string; title: string }[];
+      },
+    withBasePath('/projects/rowlens', '/api/examples'),
+  );
+  const example = detail.examples.find((s) => s.title === 'RowLens voorbeeld');
+  expect(example?.clubId).toBeTruthy();
+  await expect(row.getByRole('link', { name: 'Training bewerken', exact: true })).toHaveAttribute(
+    'href',
+    `${withBasePath('/projects/rowlens', `/sessions/${example?.id ?? ''}`)}?club=${example?.clubId ?? ''}`,
+  );
+  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
+  await row.getByLabel('Naam van de training', { exact: true }).fill('   ');
+  await expect(row.getByRole('button', { name: 'Opslaan', exact: true })).toBeDisabled();
+  await row.getByRole('button', { name: 'Annuleren', exact: true }).click();
+  await expect(row.getByRole('link', { name: 'RowLens voorbeeld', exact: true })).toBeVisible();
+  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
+  const name = `Uitleg ${info.project.name}`;
+  await row.getByLabel('Naam van de training', { exact: true }).fill(name);
+  await row.getByRole('button', { name: 'Opslaan', exact: true }).click();
+  row = examples.locator('li', { has: page.getByRole('link', { name, exact: true }) });
+  await expect(row.getByRole('link', { name, exact: true })).toBeVisible();
+  await page.reload();
+  await expect(row.getByRole('link', { name, exact: true })).toBeVisible();
+  await row.getByRole('link', { name: 'Training bewerken', exact: true }).click();
+  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('club')).toBe(example?.clubId);
+  await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
+  row = examples.locator('li', { has: page.getByRole('link', { name, exact: true }) });
+  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
+  await row.getByLabel('Naam van de training', { exact: true }).fill('RowLens voorbeeld');
+  await row.getByRole('button', { name: 'Opslaan', exact: true }).click();
+  await expect(
+    examples.getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
+  ).toBeVisible();
+  await examples.getByRole('button', { name: 'Nieuwe voorbeeldtraining', exact: true }).click();
+  const create = examples.getByRole('form', { name: 'Nieuwe voorbeeldtraining', exact: true });
+  await create
+    .getByLabel('Club van de voorbeeldtraining')
+    .selectOption({ label: 'Gamma voorbeeldclub' });
+  await create.getByLabel('Titel', { exact: true }).fill(`Nieuw voorbeeld ${info.project.name}`);
+  await create.getByLabel('Datum', { exact: true }).fill('2026-11-16');
+  await create.getByLabel('Boot', { exact: true }).selectOption('C2x');
+  await layout(page);
+  await page.screenshot({ path: info.outputPath('help-example-create.png'), fullPage: true });
+  const createResponse = page.waitForResponse(
+    (r) => r.url().includes('/api/sessions') && r.request().method() === 'POST',
+  );
+  await create.getByRole('button', { name: 'Voorbeeldtraining maken', exact: true }).click();
+  expect((await createResponse).status()).toBe(201);
+  await expect(
+    page.getByRole('heading', { name: `Nieuw voorbeeld ${info.project.name}`, exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Dit is een voorbeeld voor alle ingelogde gebruikers.', { exact: false }),
+  ).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('club')).toBe(example?.clubId);
+  await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
+  await expect(
+    examples.getByRole('link', { name: `Nieuw voorbeeld ${info.project.name}`, exact: true }),
+  ).toBeVisible();
+  await layout(page);
+  for (const height of await examples
+    .getByRole('button')
+    .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().height)))
+    expect(height).toBeGreaterThanOrEqual(43.5);
+  await page.screenshot({ path: info.outputPath('help-example-management.png'), fullPage: true });
 });

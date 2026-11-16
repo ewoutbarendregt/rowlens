@@ -1,3 +1,13 @@
+## Example management shortcuts in Help (2026-11-16)
+
+Help opts into `Examples manage`; only the verified auth state's platform administrator sees
+new-example, ordinary-editor and inline-rename controls. Create/rename reuse existing tenant-scoped
+session APIs and their server permissions. Catalog rows now expose their already-discoverable club
+ID; every mutation/editor link explicitly names the owning club, independent of the active club.
+New creation retains the protected automatic example/publisher stamp and selected default boat.
+No schema/permission/provider change is introduced by these shortcuts. Existing-training promotion
+is a separate pending proposal in docs/plans/help-example-management.md.
+
 ## Publisher feedback in examples (2026-11-16)
 
 ADR-0030/migration 0031 add immutable `example_publisher_user_id`, stamped with example creation

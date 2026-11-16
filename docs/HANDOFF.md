@@ -1,3 +1,18 @@
+# Help management work in progress — 2026-11-16
+
+Branch codex/feat/help-example-management is based on #190's codex/fix/example-feedback. New
+Help create/rename/editor shortcuts are implemented with existing permissions; web/DB700 and
+browser12 pass plus format/lint/typecheck/build. Owner clarified existing training selection too;
+docs/plans/help-example-management.md is the concrete publication proposal. An async approval
+question is pending; do not implement its new publication capability before approval. Independent
+UI work is complete. No new schema or production change; local copied review remains port5175.
+
+Parent #190 remote CI43896501068: eight jobs green, web fails twice on Linux iPhone WebKit when
+jumping from below-video example notes (frame remains0). Its normal-video counterpart reveals
+the stage; the example does not. Repair that parent separately, then merge parent into this child
+(no force push) and preserve both sets of changes. Artifact: /tmp/rowlens-example-parent-ci-artifact.
+Local output/logs: /tmp/rowlens-help-management-{browser,full,lint,types}.log. No merge/deploy approval.
+
 Review: [PR #190](https://github.com/ewoutbarendregt/rowlens/pull/190), targeting main.
 All local validation passes; remote CI pending. No merge/deploy is authorized for this change.
 

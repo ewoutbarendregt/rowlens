@@ -1,3 +1,19 @@
+## 2026-11-16 — Help management shortcuts, existing publication pending
+
+- A first admin Help test failed against the old built UI (new-example button absent), then passed
+  after implementation. Full web/unit/DB **700/700**, 66 files, and visibility/examples **12/12**:
+  low/normal laptop Chromium and iPhone13 WebKit, including new admin create/rename/edit flows.
+- Tests cover whitespace-title rejection, cancel without changing the title, persisted rename,
+  foreign-owning-club editor/rename context, selected club/date/boat creation and resulting example
+  visibility, no horizontal overflow, >=43.5px button heights, and no management controls for rowers.
+- Format/lint/typecheck/build pass after removing a redundant narrowed auth-state condition.
+  No schema/migration change; copied local review remains DB31/API3101/client5175.
+- Parent #190 remote CI43896501068 has eight jobs green but web fails on Linux iPhone WebKit:
+  example frame jump remains at 0 instead of10 while the player is off-screen (both attempts).
+  Artifact retained under /tmp/rowlens-example-parent-ci-artifact. Repair is tracked separately
+  on the parent so this UI branch does not silently bury its failed CI. Existing publication picker
+  tests cannot run until that architectural operation is approved and implemented.
+
 ## 2026-11-16 — Publisher feedback and read-only example overlays
 
 - Tests first: the three new feedback tests initially failed (missing projection/publisher column;

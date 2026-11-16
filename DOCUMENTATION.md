@@ -1,3 +1,11 @@
+## [2026-11-16] — Add Help create/edit/rename controls and propose existing selection
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/help/{ExampleManagement.tsx,example-links.ts,Examples.tsx,ExamplePage.tsx,HelpPage.tsx,strings.ts}, apps/web/src/client/styles.css, apps/web/src/server/repositories/examples.ts, apps/web/e2e/training-visibility.spec.ts, docs/plans/help-example-management.md, PLAN.md, BUILD.md, FEATURES.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Added RowLens-admin-only Help controls for creating new examples, renaming the actual training and opening its normal editor with explicit owning-club context. Reuses existing session APIs/permissions; 700 web/DB and12 browser cases pass with phone/low-laptop checks, plus format/lint/typecheck/build. Owner clarified that existing trainings must also be selectable; prepared the concrete publication/publisher boundary and requested approval under the architectural workflow before adding that operation. Parent #190's failed Linux WebKit frame-jump CI is being repaired separately. No new migration, production action or message delivery.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+Ook bestaande trainingen selecteren
+
 ## [2026-11-16] — Open example-feedback review #190
 
 **Session**: codex/fix/example-feedback

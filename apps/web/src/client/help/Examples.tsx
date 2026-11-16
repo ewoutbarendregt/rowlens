@@ -1,3 +1,4 @@
+import { ExampleActions, ExampleCreate } from './ExampleManagement.tsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { api } from '../api.ts';
@@ -9,9 +10,11 @@ interface Example {
   title: string;
   date: string;
   clubName: string;
+  clubId: string;
 }
-export function Examples() {
+export function Examples({ manage = false }: { manage?: boolean }) {
   const { state } = useAuth();
+  const manager = manage && state.kind === 'open' && state.user.platformAdmin === true;
   const actor = state.kind === 'open' ? state.user.id : null;
   const [rows, setRows] = useState<Example[]>([]);
   const [failed, setFailed] = useState(false);
@@ -49,14 +52,35 @@ export function Examples() {
       </p>
       {failed && <p role="alert">{sessionStrings().loadFailed}</p>}
       {!loading && !failed && rows.length === 0 && <p className="muted">{t.noExamples}</p>}
-      <ul>
+      {manager && (
+        <ExampleCreate
+          key={actor}
+          clubs={state.clubs ?? []}
+          initialClub={state.club.id ?? ''}
+          defaultBoat={state.user.defaultBoatType}
+        />
+      )}
+      <ul className="examples__list">
         {rows.map((s) => (
-          <li key={s.id}>
-            <Link to={`/examples/${s.id}`}>{s.title}</Link>
-            <span className="muted">
-              {' '}
-              · {formatDate(s.date)} · {s.clubName}
-            </span>
+          <li key={s.id} className="examples__item">
+            <div className="examples__description">
+              <Link to={`/examples/${s.id}`}>{s.title}</Link>
+              <span className="muted">
+                {' '}
+                · {formatDate(s.date)} · {s.clubName}
+              </span>
+            </div>
+            {manager && (
+              <ExampleActions
+                key={`${actor ?? ''}:${s.id}`}
+                example={s}
+                onRenamed={(title) => {
+                  setRows((current) =>
+                    current.map((row) => (row.id === s.id ? { ...row, title } : row)),
+                  );
+                }}
+              />
+            )}
           </li>
         ))}
       </ul>
