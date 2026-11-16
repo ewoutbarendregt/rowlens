@@ -1,3 +1,17 @@
+# Complete Help management verified locally — 2026-11-16
+
+Current branch codex/feat/help-example-management, implementation027e623, draft #191 stacked on
+#190. User “Ga verder” approved the existing-publication plan; no clarification/approval remains
+pending for implementation. Create/edit/rename and existing selection/publication all implemented.
+Final local web/DB709/67 files and browser15 pass; format/lint/types/build green, low-laptop/phone
+screenshots and44px targets inspected. API3101 and copied DB5436 migrated32/readiness ok; review
+URL http://127.0.0.1:5175/projects/rowlens/help. Original local stack and production unchanged.
+
+Remote CI43954406682 pending. Parent #190's Linux WebKit BUG-070 still blocks merge: paused seek
+reports currentTime.35 but callback mediaTime0/counter0. Initial-poster omission also fails on Linux;
+initial-CSS removal probe is in progress on synthetic server4186/session52958. Stop that probe server
+when done. No merge/deploy authorized. Earlier pending-approval instructions below are historical.
+
 # Existing Help publication approved and implemented — 2026-11-16
 
 Ewout approved docs/plans/help-example-management.md with “Ga verder”; prior pending-approval

@@ -1,3 +1,11 @@
+## 2026-11-16 — Complete Help publication local checks
+
+Final full web/DB709/709 in67 files (103.49s); includes publication9 and existing migration-upgrade
+regressions. Combined browser15/15 (2.1m), final format/lint/typecheck/build green. Phone/low-laptop
+screenshots and44px controls checked. First overlapping full run was interrupted after an older
+upgrade test timed out; the independent complete rerun passes. Remote CI43954406682 pending;
+parent Linux WebKit BUG-070 remains open. Local copied DB32/readiness ok, no production change.
+
 ## 2026-11-16 — Approved existing Help publication
 
 - Focused DB/API8/8: bounded20+5 pagination and literal search, role/forged-context denial, correct tenant, publisher-only feedback, immutable ownership/classification, forged marker denial even for a real global admin, competing publishers, and grant/archive withdrawals starting before publication locks. Added an automatic-example publisher-retention ninth regression for the full run.

@@ -1,3 +1,10 @@
+## [2026-11-16] — Verify complete local Help management
+
+**Session**: codex/feat/help-example-management
+**Changed**: DOCUMENTATION.md, TEST.md, docs/HANDOFF.md
+**Summary**: All709 web/DB tests pass in67 files on an isolated rerun, including the nine publication regressions and older migration upgrades. Combined browser15/15 and static format/lint/typecheck/build pass; phone and low-laptop confirmation screenshots inspected. Initial full run was interrupted after the older video-assets upgrade timed out while other Docker/browser workloads overlapped; it is not counted as passing. Implementation is pushed as027e623 in draft #191, remote CI43954406682 pending. Local copied review32 migrations/readiness ok; production unchanged. Parent Linux WebKit BUG-070 remains under investigation and blocks merge; no merge/deploy requested.
+**Prompts used**: Ga verder
+
 ## [2026-11-16] — Implement approved existing-training publication from Help
 
 **Session**: codex/feat/help-example-management
