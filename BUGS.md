@@ -1,3 +1,10 @@
+### [BUG-070] Example note jumps leave the player off-screen and stall WebKit presentation — severity: medium
+**Location**: apps/web/src/client/help/ExamplePage.tsx
+**Status**: fixed
+**Found**: 2026-11-16
+**Description**: Parent PR #190's Linux WebKit CI failed twice: clicking the below-video note's frame link left the presented frame at0 instead of10. The example jump did not reveal the player, unlike ordinary video note navigation. A new local visibility assertion reproduces the off-screen stage (viewport ratio0).
+**Fix**: Reveal the scoped player stage immediately before seeking from example notes/analysis. Visibility/frame/overlay regressions pass9/9 on low/normal Chromium and iPhone WebKit; remote CI revalidation pending.
+
 ### [BUG-069] Browser helper readiness can intermittently expire during account/filter navigation — severity: low
 **Location**: apps/web/e2e/unified-users.spec.ts:81; apps/web/e2e/helpers.ts
 **Status**: open

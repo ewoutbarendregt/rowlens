@@ -1,3 +1,25 @@
+# Current Help management task — parent repair integrated (2026-11-16)
+
+Active branch codex/feat/help-example-management now includes parent #190's ad359b5 frame-reveal
+repair. Only documentation conflicted; both histories were retained. Create/rename/editor controls
+are implemented; existing-training publication still awaits the explicit async approval question
+for docs/plans/help-example-management.md. New parent CI is pending. Combined UI validation is next.
+No production change or merge/deploy authorization. Older integration instructions below are historical.
+
+# Parent #190 frame-jump CI repair — 2026-11-16
+
+CI43896501068 passed eight jobs but failed web twice on Linux iPhone WebKit: frame0 after the
+below-video example note jump. BUG-070: reveal the scoped stage before seeking. New local visibility
+regression first fails with viewport ratio0; final example9 passes all three viewports. Format/lint/
+typecheck/build checked. Push this repair and let #190 CI rerun; no merge/deploy authorization.
+
+The ongoing user request is Help example management, separately committed as16af51b on
+codex/feat/help-example-management. Return there and merge this parent repair without force push,
+preserving both sets of docs. Owner clarified “Ook bestaande trainingen selecteren”; that branch's
+docs/plans/help-example-management.md contains the concrete promotion/publication proposal.
+An async approval question for that architecture/privacy change is pending. Create/rename/editor
+shortcuts already pass700 web/DB and12 browser cases locally. No production change (last0.0.63).
+
 # Help management work in progress — 2026-11-16
 
 Branch codex/feat/help-example-management is based on #190's codex/fix/example-feedback. New

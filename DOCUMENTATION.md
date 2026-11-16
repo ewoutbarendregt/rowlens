@@ -1,3 +1,17 @@
+## [2026-11-16] — Integrate parent example frame-reveal repair
+
+**Session**: codex/feat/help-example-management
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Merged parent #190's ad359b5 into the Help management branch without force push. Code merged cleanly; retained both documentation histories and removed all conflict markers. Parent local example9 and child web700/browser12 checks are recorded separately; combined UI recheck is next. Existing-training publication remains pending the requested architecture/privacy approval; no production action.
+**Prompts used**: Als rowlens admin wil ik trainingen kunnen toevoegen/ wijzigen in de uitleg. Ook de namen van de trainingen moet ik kunnen aanpassen
+
+## [2026-11-16] — Reveal example video before seeking from notes
+
+**Session**: codex/fix/example-feedback
+**Changed**: apps/web/src/client/help/ExamplePage.tsx, apps/web/e2e/training-visibility.spec.ts, BUGS.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Investigated #190's failed web CI43896501068 (other eight jobs green): Linux WebKit kept frame0 after an off-screen note jump. A new visibility regression reproduces viewport ratio0 locally; example notes/analysis now reveal their scoped player stage before seeking. The nine local browser cases pass across low/normal Chromium and iPhone WebKit, with format/lint/typecheck/build. Parent-only repair preserves the separately committed Help management work on codex/feat/help-example-management; its existing-training publication proposal still awaits owner approval. No schema/permission or production change.
+**Prompts used**: Ja
+
 ## [2026-11-16] — Add Help create/edit/rename controls and propose existing selection
 
 **Session**: codex/feat/help-example-management
