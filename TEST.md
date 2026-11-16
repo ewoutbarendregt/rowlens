@@ -1,3 +1,11 @@
+## 2026-11-16 — Approved production deployment verification
+
+- #190 original CI43955969645 and #191 original CI43957585658 all9 pass. After squash-history synchronization, #191 CI43959546925 all9 pass with unchanged implementation tree.
+- Final main a42e2f1: CI43961095292 and images43961095148 success; deploy43962861520 success at21:43:25 UTC (backup/migration/readiness/public URL).
+- Public readiness SHAa42e2f1/DB ok, build-info0.0.65; web/worker tags match.32 migrations;3 examples/3 publishers; pre/post stored aggregates162 lines/1 arrow/4 angles match. Trusted function ownership and invoker classification trigger verified.
+- All7 other container image/start-time tuples unchanged; trustable.nl, API health and AudioScribe HTTP200. No production auth request or content write was used for verification.
+- Interactive regression evidence remains717 web/DB,115 local browser and matching Linux9 passes. Deployment-log-only change: formatting/diff checks; no implementation or further production change.
+
 ## 2026-11-16 — Final combined Help/publication/playback validation
 
 - Full web/DB717/717 in67 files (101.64s), including publication9 and the8 new seek timestamp regressions.

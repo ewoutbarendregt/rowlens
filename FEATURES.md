@@ -1,3 +1,10 @@
+## Help management and example feedback — deployed (2026-11-16)
+
+Production **0.0.65 /sha-a42e2f1**, approved with “Merge en deploy”; #190/#191 merged and
+CI/images/deploy green. Help create/edit/rename/existing-selection and publisher-only example
+feedback are live. Readiness/DB32, retained publisher material and unchanged neighboring services
+verified. Details: docs/runbooks/server-setup.md and DOCUMENTATION.md.
+
 ## Help example management (2026-11-16)
 
 RowLens admins can create, rename, open the original editor and select existing club trainings

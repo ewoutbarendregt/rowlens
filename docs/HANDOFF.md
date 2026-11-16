@@ -1,3 +1,22 @@
+# Production0.0.65 deployed and verified — 2026-11-16
+
+Ewout explicitly requested “Merge en deploy”. #190 merged as ece7f78; #191 merged as a42e2f1 after
+retarget/main synchronization and all9 renewed checks (CI43959546925). Final main CI43961095292
+and images43961095148 succeeded. Deploy43962861520 completed21:43:25 UTC, **0.0.65 /sha-a42e2f1**.
+Production readiness new SHA/DB ok, public build-info0.0.65; web/worker both new tag. Database32
+migrations,3 examples/3 frozen publishers; stored publisher drawings preserved (162 lines,1 arrow,
+4 angles). All7 other containers keep exact images and start times. Site/API/AudioScribe HTTP200.
+Automatic backup: pre-deploy-20261116T214314Z-sha-a42e2f1.dump. No configuration/one-off DB writes.
+
+Requested Help create/edit/rename/existing-selection and published example feedback are now live.
+Current branch codex/docs/help-examples-deploy-20261116 contains only the deployment logs for a
+separate next PR; do not redeploy these docs. Local review remains5175/API3101/copied DB5436 at32;
+original local stack unchanged. Latest implementation validation717 web/DB,115 browser and Linux9
+passes. Authenticated production UI interactions were not part of the read-only rollout checks.
+Existing publication preserves original ownership; only immutable publisher feedback is exposed.
+Older no-deploy/pending-CI instructions below are historical and superseded. A later production
+change still requires a new explicit deployment request.
+
 # Merge and deploy explicitly authorized — 2026-11-16
 
 Ewout requested “Merge en deploy”. Both #190 and #191 previously had all nine checks green.
