@@ -1,3 +1,10 @@
+### [BUG-073] Admin creator select overflows the training page on iPhone — severity: low
+**Location**: apps/web/src/client/styles.css (`.creator`)
+**Status**: fixed
+**Found**: 2026-11-17
+**Description**: On a training page as RowLens/club admin, the "Maker" select (coach e-mail addresses) and its hint were 448px wide on a 390px iPhone 13 screen, so the page scrolled sideways. Found by the new publish-from-training browser test.
+**Fix**: Constrain the creator label, select and hint to the container width (`max-width: 100%`, `min-width: 0`, wrapping). The iPhone WebKit visibility case now passes the no-horizontal-scroll check.
+
 ### [BUG-072] Help management controls duplicate after catalog loading — severity: low
 **Location**: apps/web/src/client/help/Examples.tsx
 **Status**: fixed

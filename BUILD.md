@@ -1,3 +1,18 @@
+## Examples in the normal pages (2026-11-17)
+
+`SessionsPage` merges `/api/examples` into `/api/account/sessions` (`withExamples` in
+`sessions/filter.ts`): a training the viewer already reads through a club keeps its own row and rights
+and is only marked; other examples become rows with `foreignExample`, which link to `/examples/:id`.
+`applyFilters` skips only the club filter for `isExample` rows. `SessionPage` and `VideoPage` take an
+`example` prop: they load `/api/examples/:id` once (`help/example-data.ts`), map it to their usual
+detail shapes with every `can*` false, and use example media URLs. In this mode they call no club
+endpoint (roster, notes, strokes, angles, auto line, source annotations are all fed from the one
+read). `PublishExample` on a training (RowLens admins, not yet an example) posts the existing
+ADR-0031 publish endpoint with inline confirmation. The Help example list, creator, picker and the
+separate `ExamplePage` were removed; `/api/example-management/candidates` is no longer used by the
+client but kept on the server for now. Note jumps from the notes panel follow BUG-070's order on
+every video: reveal instantly, two animation frames, then seek (cancellable).
+
 ## Paused example seek painting (2026-11-16)
 
 Example note/analysis jumps reveal the stage, allow an intervening paint via cancellable animation

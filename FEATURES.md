@@ -1,3 +1,11 @@
+## Examples in the training list — local, not deployed (2026-11-17)
+
+RowLens examples appear as normal cards (label Voorbeeld) in every signed-in user's training list,
+under any club filter; search, dates, rower, boat and the checkboxes apply to them. Viewers outside
+the owning club open them read-only in the normal training and video pages. Uitleg is text only;
+RowLens admins publish an existing training from the training page. Plan:
+docs/plans/examples-in-training-list.md.
+
 ## Help management and example feedback — deployed (2026-11-16)
 
 Production **0.0.65 /sha-a42e2f1**, approved with “Merge en deploy”; #190/#191 merged and

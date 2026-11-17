@@ -1,3 +1,11 @@
+## 2026-11-17 — Examples in the training list (claude/feat/examples-in-training-list)
+
+- Full web/DB **717/717** in 66 files (new: 2 list/filter merge cases and the example list projection key/privacy assertion; removed: the separate viewer's drawing helper cases). A first run failed the ADR-0030 privacy assertion because `createdAt` was added to the projection; removed again (no timestamps).
+- Browser, local macOS, run serially per build: visibility **15/15** (5 rewritten cases × Chromium 1000×540, 1440×900, iPhone 13 WebKit), unified **34/34**, sharing **9/9**, general **51/51** (109 expected mode skips), reuse **6/6**. Visibility asserts no club endpoint (`/api/videos|sessions|annotations|angles|rowers|source-annotations/`) is called on the example pages, the decoded-picture fingerprint after a note jump, no horizontal scroll, and 44px publish controls.
+- One unified iPhone WebKit run timed out on the Users page filter (`waitForResponse`, unrelated to this change); it passed on an isolated rerun and in the next full run.
+- Format, lint, typecheck: pass. Local review stack (web :5185, API :3125, copied DB :5436 with 32 migrations): example list badge, example training/video pages, network calls and 375px width checked by hand.
+- Not verified: Linux WebKit (CI) for the normal-page note jump; physical iPhone.
+
 ## 2026-11-16 — Approved production deployment verification
 
 - #190 original CI43955969645 and #191 original CI43957585658 all9 pass. After squash-history synchronization, #191 CI43959546925 all9 pass with unchanged implementation tree.

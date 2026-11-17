@@ -2774,6 +2774,15 @@ a.list__item {
 
 .creator {
   margin-block: var(--space-3);
+  min-width: 0;
+}
+/* Coach e-mail addresses can be long: the select and its hint stay within a phone screen (BUG-073). */
+.creator label,
+.creator select,
+.creator .hint {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 /* ---------------------------------------------------------------- admin panel (#108) */
@@ -3646,37 +3655,25 @@ a.list__item {
   margin-block-end: 0.5rem;
 }
 
-/* Help and examples remain readable and easy to select on phones. */
+/* Help remains readable and easy to select on phones. */
 .help-page section {
   scroll-margin-top: 1rem;
 }
-.help-page nav a,
-.examples li a {
+.help-page nav a {
   display: inline-block;
   min-height: 44px;
   padding-block: 0.6rem;
 }
-.help-page .card,
-.examples {
+.help-page .card {
   margin-block: 1.25rem;
 }
-.help-page p,
-.examples p {
+.help-page p {
   max-width: 70ch;
 }
-.example-viewer select,
 .account-preferences select {
   min-height: 44px;
   height: 44px;
   max-width: 100%;
-}
-.example-viewer > label {
-  display: grid;
-  gap: 0.5rem;
-  margin-block: 1rem;
-}
-.example-viewer > .card {
-  margin-block: 1rem;
 }
 
 /* Training sharing stays compact until opened and uses forgiving member controls. */
@@ -3719,63 +3716,9 @@ a.list__item {
   min-height: 44px;
 }
 
-.example-notes ol {
-  padding-inline-start: 1.5rem;
+.publish-example {
+  margin-block: 1rem;
 }
-.example-notes li + li {
-  margin-block-start: 1rem;
-}
-.example-notes p {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.examples__list {
-  list-style: none;
-  padding: 0;
-}
-.examples__item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-2);
-  padding-block: var(--space-2);
-}
-.examples__description {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.examples__actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.examples__rename {
-  grid-column: 1 / -1;
-}
-.examples__create {
-  margin-block: var(--space-3);
-}
-@media (max-width: 600px) {
-  .examples__item {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.examples__create select {
-  min-height: 44px;
-  height: 44px;
-  max-width: 100%;
-}
-
-.examples__picker {
-  margin-block: var(--space-4, 1rem);
-}
-.examples__picker select,
-.examples__picker input {
-  height: 44px;
-  min-height: 44px;
-  max-width: 100%;
-}
-.page .examples__picker button {
+.page .publish-example button {
   min-height: 44px;
 }

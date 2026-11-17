@@ -63,3 +63,14 @@ example-appropriate footage and crew information. Private feedback stays outside
 The nullable column and extra classification are additive for old images. The restrictive rower
 boundary applies immediately after migration, including to old images; it is never relaxed for
 rollback. Feature-off legacy builds keep their existing UI without the unified example routes.
+
+## Amendment — examples in the normal list and pages (2026-11-17)
+
+Ewout corrected the UI: examples belong in the ordinary training list with ordinary functionality.
+The overview now merges the discovery list into the ordinary list (badge, any club filter, other
+filters apply, de-duplicated with club-readable trainings). Instead of a dedicated player, the normal
+training and video pages render a foreign example read-only at `/examples/:id[/videos/:videoId]`,
+fed only by the example API; they never call club APIs with a foreign example context, so the
+reasoning above still holds. The list projection adds boat type, crew display data and a video count
+(already part of the example detail); it still has no authors, e-mails or timestamps. No database,
+RLS or permission change. Plan: docs/plans/examples-in-training-list.md.

@@ -8,6 +8,7 @@ import {
   groupByMonth,
   type Filters,
   readFilters,
+  withExamples,
   writeFilters,
 } from './filter.ts';
 
@@ -188,5 +189,39 @@ describe('primary club default', () => {
     expect(readFilters(new URLSearchParams(), 'b').club).toBe('b');
     expect(readFilters(new URLSearchParams('clubFilter=a'), 'b').club).toBe('a');
     expect(readFilters(writeFilters(DEFAULT_FILTERS, true), 'b').club).toBeNull();
+  });
+});
+
+describe('examples in the training list', () => {
+  const own = [
+    { ...row('Own', '2026-11-01', { boat: 'C2x' }), id: 'own', clubId: 'a' },
+    { ...row('Own example', '2026-11-01'), id: 'shared-example', clubId: 'a', isExample: false },
+  ];
+  const examples = [
+    { id: 'shared-example', title: 'Own example' },
+    { id: 'foreign', title: 'Foreign example' },
+  ];
+  const list = withExamples(own, examples, (e) => ({
+    ...row(e.title, '2026-10-01', { boat: 'C4x+' }),
+    id: e.id,
+    clubId: 'b',
+  }));
+
+  it('keeps a readable club training as its own row and adds the other examples once', () => {
+    expect(list.map((r) => [r.id, r.isExample === true, r.foreignExample === true])).toEqual([
+      ['own', false, false],
+      ['shared-example', true, false],
+      ['foreign', true, true],
+    ]);
+  });
+
+  it('lists examples under any club filter while the other filters still apply', () => {
+    const shown = (f: Partial<Filters>) =>
+      applyFilters(list, { ...DEFAULT_FILTERS, ...f }).map((r) => r.id);
+    expect(shown({ club: 'a' })).toEqual(['own', 'shared-example', 'foreign']);
+    expect(shown({ club: 'c' })).toEqual(['shared-example', 'foreign']);
+    expect(shown({ club: 'c', boat: 'C4x+' })).toEqual(['foreign']);
+    expect(shown({ club: 'c', q: 'foreign' })).toEqual(['foreign']);
+    expect(shown({ club: 'c', created: true })).toEqual([]);
   });
 });

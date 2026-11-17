@@ -1,6 +1,4 @@
 import { helpStrings } from './strings.ts';
-import { Examples } from './Examples.tsx';
-import { UNIFIED_USERS } from '../features.ts';
 export function HelpPage() {
   const t = helpStrings();
   return (
@@ -16,7 +14,6 @@ export function HelpPage() {
           ))}
         </ul>
       </nav>
-      {UNIFIED_USERS && <Examples manage />}
       {t.sections.map(([id, title, body]) => (
         <section className="card" id={id} key={id}>
           <h2>{title}</h2>

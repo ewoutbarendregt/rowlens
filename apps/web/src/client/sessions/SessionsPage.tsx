@@ -1,5 +1,4 @@
 import { sharingStrings } from '../sharing/strings.ts';
-import { Examples } from '../help/Examples.tsx';
 import { helpStrings } from '../help/strings.ts';
 import { useOwnSettings } from '../settings/controller.ts';
 import { defaultClubId } from './filter.ts';
@@ -23,6 +22,7 @@ import {
   readFilters,
   type SessionRow,
   SORTS,
+  withExamples,
   writeFilters,
 } from './filter.ts';
 import {
@@ -37,6 +37,8 @@ import { DEFAULT_BOAT } from '../ui/ProfileForm.tsx';
 interface SessionSummary extends SessionRow {
   id: string;
   isExample?: boolean;
+  /** An example from a club the viewer can't read through: opens the read-only example view. */
+  foreignExample?: boolean;
   sharedWithMe?: boolean;
   clubId?: string;
   clubName?: string;
@@ -47,6 +49,28 @@ interface SessionSummary extends SessionRow {
   mySeat: number | null;
   lineup: { seat: number; rowerId: string; displayName: string }[];
 }
+
+/** `/api/examples`: the same safe projection the example view uses (ADR-0028). */
+interface ExampleSummary {
+  id: string;
+  clubId: string;
+  clubName: string;
+  title: string;
+  date: string;
+  boatType: BoatClass | null;
+  videoCount: number;
+  lineup: { seat: number; rowerId: string; displayName: string }[];
+}
+
+const exampleRow = (e: ExampleSummary): SessionSummary => ({
+  ...e,
+  // No timestamps in the example projection (ADR-0030); sorting falls back to date and title.
+  createdAt: '',
+  creatorName: null,
+  createdByMe: false,
+  mySeat: null,
+  notesForMe: 0,
+});
 
 const today = () => new Date().toISOString().slice(0, 10);
 const WIDE = '(min-width: 768px)';
@@ -130,7 +154,18 @@ export function SessionsPage() {
         rows.push(...body.sessions);
         cursor.next = body.next ?? null;
       } while (cursor.next);
-      setSessions(unified ? rows.filter((s) => !s.isExample) : rows);
+      if (!unified) {
+        setSessions(rows);
+        return;
+      }
+      // Examples belong in the same list (Ewout, 2026-11-17), not in a separate corner.
+      const r = await api('/api/examples', { clubId: null });
+      if (!r.ok) throw new Error();
+      const { examples } = (await r.json()) as { examples: ExampleSummary[] };
+      // A newer load may have started while the examples were on their way.
+      const stale = (signal: AbortSignal) => signal.aborted;
+      if (stale(load.signal)) return;
+      setSessions(withExamples(rows, examples, exampleRow));
     })().catch(() => {
       if (!load.signal.aborted) setFailed(true);
     });
@@ -139,6 +174,7 @@ export function SessionsPage() {
     };
   }, [actor, clubSignature, unified]);
   const sessionUrl = (s: SessionSummary) => {
+    if (s.foreignExample === true) return appUrl(`/examples/${s.id}`, null);
     const url = new URL(appUrl(`/sessions/${s.id}`), window.location.origin);
     if (s.clubId) url.searchParams.set('club', s.clubId);
     return url.pathname + url.search;
@@ -517,17 +553,24 @@ export function SessionsPage() {
                           <a href={sessionUrl(s)} data-testid="session">
                             {s.title}
                           </a>
+                          {s.isExample === true && (
+                            <span className="badge" data-testid="example-badge">
+                              {helpStrings().exampleBadge}
+                            </span>
+                          )}
                           {s.sharedWithMe && !s.createdByMe && (
                             <span className="badge">{sharingStrings().sharedWithMe}</span>
                           )}
                           {s.clubName && <span className="muted">{s.clubName}</span>}
-                          <span className="muted">
-                            {s.creatorName !== null && <>{s.creatorName} · </>}
-                            {t.createdOn(
-                              formatCreatedDay(s.createdAt),
-                              formatCreatedTime(s.createdAt),
-                            )}
-                          </span>
+                          {s.createdAt !== '' && (
+                            <span className="muted">
+                              {s.creatorName !== null && <>{s.creatorName} · </>}
+                              {t.createdOn(
+                                formatCreatedDay(s.createdAt),
+                                formatCreatedTime(s.createdAt),
+                              )}
+                            </span>
+                          )}
                         </td>
                         <td className="sessions-table__boat">{s.boatType ?? '—'}</td>
                         <td className="sessions-table__crew">
@@ -560,7 +603,6 @@ export function SessionsPage() {
           ))}
         </div>
       )}
-      {unified && <Examples />}
     </main>
   );
 }
