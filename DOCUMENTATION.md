@@ -1,3 +1,10 @@
+## [2026-11-17] — Deploy examples in the training list (0.0.67)
+
+**Session**: claude/docs/193-deploy
+**Changed**: DOCUMENTATION.md, docs/runbooks/server-setup.md, docs/HANDOFF.md, FEATURES.md, BUGS.md
+**Summary**: Merged #193 as 66b4692 and deployed sha-66b4692 (0.0.67, run 44169494655) on Ewout's "merge en deploy" / "Ja, merge en deploy", accepting the red dependency-audit step (BUG-074). Verified readiness/DB, 32 migrations, 3 examples, backup, unchanged neighbouring containers and HTTP 200s.
+**Prompts used**: "merge en deploy maar"; "Ja, merge en deploy"
+
 ## [2026-11-17] — Linux WebKit note jump on the normal video page
 
 **Session**: claude/feat/examples-in-training-list
