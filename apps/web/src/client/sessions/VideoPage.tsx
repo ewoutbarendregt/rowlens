@@ -177,33 +177,77 @@ export function VideoPage({ example = false }: { example?: boolean }) {
   const [angleBusy, setAngleBusy] = useState(false);
   const [angleFailed, setAngleFailed] = useState(false);
   const [driveMiddle, setDriveMiddle] = useState(storedDriveMiddle);
-  const pendingJump = useRef<number | null>(null);
+  const pendingJump = useRef<(() => void) | null>(null);
   useEffect(
     () => () => {
-      if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+      pendingJump.current?.();
     },
     [id],
   );
   /**
-   * A note's jump: when the picture is scrolled away, bring it back first and allow one paint before
-   * seeking. Linux WebKit can acknowledge a seek made in the same click as the scroll while still
-   * showing the old picture (BUG-070, ADR-0007). A newer jump or leaving the page cancels it.
+   * A note's jump: when the picture is scrolled away, bring it back, seek once the video presents a
+   * frame again (at the latest after 300 ms), and seek again if the player still doesn't show the
+   * target after `seeked` and a paint (at most twice). Linux WebKit can acknowledge a seek made right
+   * after the reveal while keeping the old picture (BUG-070, ADR-0007; measured on Playwright's Linux
+   * WebKit). A newer jump or leaving the page cancels it; the frame shown still comes from the
+   * presented-frame callback, never from the requested number.
    */
   const jumpToNote = useCallback((f: number, reveal: boolean) => {
-    if (pendingJump.current !== null) cancelAnimationFrame(pendingJump.current);
+    pendingJump.current?.();
     pendingJump.current = null;
-    const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
-    if (!reveal || stage === undefined || (stage.top >= 0 && stage.bottom <= window.innerHeight)) {
+    const stage = document.querySelector('.player__stage');
+    const box = stage?.getBoundingClientRect();
+    if (!reveal || box === undefined || (box.top >= 0 && box.bottom <= window.innerHeight)) {
       player.current?.seekToFrame(f);
       return;
     }
     window.scrollTo({ top: 0, behavior: 'instant' });
-    pendingJump.current = requestAnimationFrame(() => {
-      pendingJump.current = requestAnimationFrame(() => {
-        pendingJump.current = null;
-        player.current?.seekToFrame(f);
+    const media = stage?.querySelector('video') ?? null;
+    let cancelled = false;
+    let timer: number | null = null;
+    let callback: number | null = null;
+    let paint: number | null = null;
+    let retries = 2;
+    const clear = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      if (callback !== null) media?.cancelVideoFrameCallback(callback);
+      if (paint !== null) cancelAnimationFrame(paint);
+      media?.removeEventListener('seeked', onSeeked);
+      timer = callback = paint = null;
+    };
+    const seek = (again = false) => {
+      if (cancelled) return;
+      clear();
+      media?.addEventListener('seeked', onSeeked, { once: true });
+      // A repeated seek moves 0.1 ms within the same frame (well inside its first quarter, also at
+      // 240 fps), so WebKit performs it instead of treating it as the position it already has.
+      if (again && media) media.currentTime += 0.0001;
+      else player.current?.seekToFrame(f);
+    };
+    function onSeeked() {
+      paint = requestAnimationFrame(() => {
+        paint = requestAnimationFrame(() => {
+          paint = null;
+          if (cancelled || frame.current === f || retries === 0) {
+            pendingJump.current = null;
+            return;
+          }
+          retries -= 1;
+          seek(true);
+        });
       });
-    });
+    }
+    timer = window.setTimeout(() => {
+      seek();
+    }, 300);
+    if (media && typeof media.requestVideoFrameCallback === 'function')
+      callback = media.requestVideoFrameCallback(() => {
+        seek();
+      });
+    pendingJump.current = () => {
+      cancelled = true;
+      clear();
+    };
   }, []);
   useEffect(() => {
     setNotesVisible(personal.preferences.notesVisible);

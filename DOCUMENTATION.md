@@ -1,3 +1,10 @@
+## [2026-11-17] — Linux WebKit note jump on the normal video page
+
+**Session**: claude/feat/examples-in-training-list
+**Changed**: apps/web/src/client/sessions/VideoPage.tsx, TEST.md, DOCUMENTATION.md
+**Summary**: CI failed the example note jump on Linux iPhone WebKit (frame stayed 0). Reproduced locally in the Playwright Linux image and probed: two animation frames after the reveal are not enough. The jump now waits for a re-presented frame (max 300 ms) and re-seeks once or twice when the target isn't shown after `seeked`. Pushed for CI.
+**Prompts used**: Auto-fix CI event; then "merge en deploy maar".
+
 ## [2026-11-17] — Examples in the normal training list and pages
 
 **Session**: claude/feat/examples-in-training-list
