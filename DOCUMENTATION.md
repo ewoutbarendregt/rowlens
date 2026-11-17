@@ -1,3 +1,17 @@
+## [2026-11-16] — Prepare a current Claude handoff
+
+**Session**: codex/docs/help-examples-deploy-20261116
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Replaced the accumulated historical HANDOFF checkpoints with a single current Claude entry point: deployed0.0.65/a42e2f1, merged#190/#191, open documentation-only#192, exact rollout/test evidence, publication/privacy and playback invariants, local-stack ports, known backlog and the scope of future approvals. Historical detail remains in this work log and the prior HANDOFF at5f9f385. Fresh public readiness/build-info and local review web/API checks pass. No product or production change; format/diff checks only. Commit/push the documentation on#192 and leave the worktree clean for Claude.
+**Prompts used**: Maak je klaar voor handover naar claude
+
+## [2026-11-16] — Deploy Help example management and publisher feedback
+
+**Session**: codex/docs/help-examples-deploy-20261116
+**Changed**: DOCUMENTATION.md, docs/HANDOFF.md, docs/runbooks/server-setup.md, TEST.md, PLAN.md, FEATURES.md
+**Summary**: On Ewout’s explicit “Merge en deploy”, merged #190 as ece7f78, retained its branch, retargeted/synchronized #191 without implementation changes and merged it as a42e2f1 after renewed CI43959546925 passed all9 checks. Final main CI43961095292 and images43961095148 passed; deploy43962861520 successfully released **0.0.65 / sha-a42e2f1** at21:43:25 UTC. Automatic pre-deploy backup completed;32 migrations applied and all3 examples now retain their publisher. Pre/post aggregates match162 lines,1 arrow and4 angles; stored material is preserved. Public readiness reports the new SHA and DB ok, build-info reports0.0.65, web/worker use the new image, and all7 other containers retain exact images/start times. trustable.nl, API health and AudioScribe return HTTP200. Production checks were read-only after the approved deployment; interactive flows are covered by717 web/DB and115 browser tests plus the Linux9 reproduction. No server configuration, one-off database write, email or neighboring service change. Record this rollout in a separate next PR; no additional deployment is needed for these logs.
+**Prompts used**: Merge en deploy
+
 ## [2026-11-16] — Prepare approved stacked merge and production rollout
 
 **Session**: codex/feat/help-example-management

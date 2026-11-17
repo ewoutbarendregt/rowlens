@@ -3,6 +3,28 @@
 What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
 component is approved by Ewout first (CLAUDE.md). Newest changes first.
 
+## Help examples and publisher feedback deployed — 2026-11-16 21:43 UTC
+
+Ewout requested “Merge en deploy”. #190/ece7f78 and #191/a42e2f1 are merged. #191's renewed
+CI43959546925 passed all9 checks; final main CI43961095292 and images43961095148 succeeded.
+[Deploy43962861520](https://github.com/ewoutbarendregt/rowlens/actions/runs/43962861520) released
+**0.0.65 /sha-a42e2f1**, ready21:43:25 UTC. Automatic DB backup completed at
+`/opt/rowlens/backups/pre-deploy-20261116T214314Z-sha-a42e2f1.dump`; migrations advanced30→32.
+Both RowLens web/worker use the new tag; readiness reports DB ok and build-info reports0.0.65.
+
+Migration0031 synchronously attributed all3 existing examples to their recorded publishers;0032
+adds protected existing-training publication. Pre/post stored publisher-material aggregates are
+unchanged:162 lines,1 arrow,4 angles. No asynchronous backfill was introduced. Publication functions
+have the trusted table owner; the classification trigger is invoker-context as designed. Help now
+supports create/edit/rename/existing-selection and examples show publisher feedback read-only.
+
+All7 other containers, including RowLens DB, Caddy, trustable.nl, API, AudioScribe and Feelz, retain
+identical images and start times. Site/API health/AudioScribe return200. No shared/server configuration,
+manual database mutation, production OTP or email was used. Production verification covers public
+health/version, container metadata and read-only DB aggregates; interactive behavior is covered by
+local/CI717 web/DB and115 browser cases plus Linux9. The known release-PR workflow failure is
+unchanged; required CI/images/deploy succeeded. These records belong to the next documentation PR.
+
 ## Numeric release metadata prepared locally — 2026-11-10
 
 No server change or additional deployment. The image workflow now prepares a numeric visible
