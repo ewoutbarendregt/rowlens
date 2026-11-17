@@ -1,3 +1,22 @@
+# Handoff — 2026-11-17 (Claude)
+
+## Current work: examples in the normal training list
+
+- Branch `claude/feat/examples-in-training-list` (worktree `/Users/ewout/src/rowlens-examples-in-list`),
+  based on main 5c2b4d8; PR opened from it. Not merged, not deployed; production stays 0.0.65 /
+  sha-a42e2f1.
+- Ewout's correction: admin example videos belong in the normal training list with the normal
+  (read-only) pages, not in a separate corner under Uitleg. Answers and approval ("Ja, bouwen") are in
+  docs/plans/examples-in-training-list.md; ADR-0028/0031 carry amendments. No migration.
+- Local review stack for this branch: web http://localhost:5185/projects/rowlens/, API :3125, on the
+  copied DB :5436 (32 migrations) that Codex's review stack (5175/3101) also uses. Its env file is an
+  ignored copy of Codex's. The launch entry `rowlens-examples-review` was added to the original
+  checkout's `.claude/launch.json` for this; remove it when done.
+- Not verified: Linux WebKit (CI) for the normal-page note jump (BUG-070 order now applied there);
+  a physical iPhone.
+
+The 2026-11-16 Codex handoff below still describes production, invariants and the backlog.
+
 # Handoff to Claude — 2026-11-16
 
 This is the current handoff. Older pending-approval, CI and deploy checkpoints are superseded.

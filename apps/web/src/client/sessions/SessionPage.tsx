@@ -1,4 +1,7 @@
 import { helpStrings } from '../help/strings.ts';
+import { exampleMedia, loadExample, playable, type ExampleDetail } from '../help/example-data.ts';
+import { originalTrainingUrl } from '../help/example-links.ts';
+import { PublishExample } from '../help/PublishExample.tsx';
 import { SharingCard } from '../sharing/SharingCard.tsx';
 import { sharingStrings } from '../sharing/strings.ts';
 import { type SubmitEvent, useCallback, useEffect, useId, useState } from 'react';
@@ -73,7 +76,48 @@ interface SessionDetail {
 
 const PERSPECTIVES: Perspective[] = ['boat', 'bank', 'drone'];
 
-export function SessionPage() {
+/** A RowLens example seen from outside its club: the same page, read-only (Ewout, 2026-11-17). */
+function exampleSession(e: ExampleDetail): SessionDetail {
+  return {
+    isExample: true,
+    id: e.id,
+    title: e.title,
+    date: e.date,
+    // No timestamps in the example projection (ADR-0030): the page leaves out "created on".
+    createdAt: '',
+    boatType: e.boatType,
+    lineup: e.lineup,
+    videos: e.videos.filter(playable).map((v) => ({
+      id: v.id,
+      filename: '',
+      seq: v.seq,
+      recordedAt: null,
+      perspective: v.perspective,
+      status: v.status,
+      statusReason: null,
+      processingProgress: null,
+      fpsNum: v.fpsNum,
+      fpsDen: v.fpsDen,
+      width: v.width,
+      height: v.height,
+      durationMs: v.durationMs ?? null,
+      sizeBytes: 0,
+      uploadedBytes: 0,
+    })),
+    creatorName: null,
+    canRename: false,
+    canEdit: false,
+    canShare: false,
+    sharedWithMe: false,
+    createdByMe: false,
+  };
+}
+
+/**
+ * A training: the club's own (`/sessions/:id`), or with `example` a RowLens example read through the
+ * example API only (`/examples/:id`), so viewers from any club or without one can open it.
+ */
+export function SessionPage({ example = false }: { example?: boolean }) {
   const t = sessionStrings();
   const { state: auth } = useAuth();
   const rolesKey = auth.kind === 'open' ? auth.user.roles.join(',') : '';
@@ -86,8 +130,20 @@ export function SessionPage() {
   // Renaming in place (2026-11-03): null while not editing.
   const [newTitle, setNewTitle] = useState<string | null>(null);
   const [renameFailed, setRenameFailed] = useState(false);
+  const [exampleClub, setExampleClub] = useState<string | null>(null);
 
   const load = useCallback(() => {
+    if (example) {
+      loadExample(id)
+        .then((e) => {
+          setExampleClub(e.clubId);
+          setSession(exampleSession(e));
+        })
+        .catch(() => {
+          setFailed(true);
+        });
+      return;
+    }
     api(`/api/sessions/${id}`)
       .then((res) =>
         res.ok ? (res.json() as Promise<SessionDetail>) : Promise.reject(new Error()),
@@ -96,7 +152,7 @@ export function SessionPage() {
       .catch(() => {
         setFailed(true);
       });
-  }, [id, rolesKey]);
+  }, [id, rolesKey, example]);
   useEffect(load, [load]);
 
   const busy = session?.videos.some((v) => BUSY.includes(v.status)) ?? false;
@@ -169,6 +225,20 @@ export function SessionPage() {
     );
   }
   if (session === null) return null;
+  const videoPath = (v: SessionVideo) =>
+    example ? `/examples/${session.id}/videos/${v.id}` : `/videos/${v.id}`;
+  const poster = (v: SessionVideo) =>
+    example ? exampleMedia(session.id, v.id, 'poster') : appUrl(`/api/videos/${v.id}/media/poster`);
+  const platformAdmin = auth.kind === 'open' && auth.user.platformAdmin === true;
+  // The owning club's staff and RowLens admins can still go to the original to change it.
+  const manages =
+    example &&
+    exampleClub !== null &&
+    auth.kind === 'open' &&
+    (platformAdmin ||
+      auth.clubs?.some(
+        (c) => c.id === exampleClub && c.roles.some((r) => r === 'admin' || r === 'coach'),
+      ) === true);
 
   return (
     <main className="page">
@@ -226,10 +296,27 @@ export function SessionPage() {
         </form>
       )}
       <p className="muted">
-        {formatDate(session.date)} ·{' '}
-        {t.createdOn(formatCreatedDay(session.createdAt), formatCreatedTime(session.createdAt))}
+        {formatDate(session.date)}
+        {session.createdAt !== '' && (
+          <>
+            {' '}
+            ·{' '}
+            {t.createdOn(formatCreatedDay(session.createdAt), formatCreatedTime(session.createdAt))}
+          </>
+        )}
         {session.creatorName !== null && <> {t.createdBy(session.creatorName)}</>}
       </p>
+
+      {example && (
+        <p className="callout" data-testid="example-read-only">
+          {helpStrings().readOnly}
+        </p>
+      )}
+      {manages && (
+        <p>
+          <a href={originalTrainingUrl(session.id, exampleClub)}>{helpStrings().manageOriginal}</a>
+        </p>
+      )}
 
       {session.isExample && session.canEdit && (
         <p className="callout">{helpStrings().publicationNotice}</p>
@@ -244,7 +331,7 @@ export function SessionPage() {
           clubName={auth.kind === 'open' ? auth.club.name : ''}
         />
       )}
-      {!session.canEdit && (
+      {!session.canEdit && !example && (
         <p className="muted" data-testid="training-read-only">
           {t.readOnly}
         </p>
@@ -291,29 +378,21 @@ export function SessionPage() {
             return (
               <li key={v.id} className="list__item video" data-testid="video">
                 {v.status === 'ready' && (
-                  <Link
-                    to={`/videos/${v.id}`}
-                    className="video__thumb"
-                    aria-label={t.watch(nameOf(v))}
-                  >
-                    <img
-                      src={appUrl(`/api/videos/${v.id}/media/poster`)}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
+                  <Link to={videoPath(v)} className="video__thumb" aria-label={t.watch(nameOf(v))}>
+                    <img src={poster(v)} alt="" loading="lazy" decoding="async" />
                   </Link>
                 )}
                 <div>
                   {v.status === 'ready' ? (
-                    <Link to={`/videos/${v.id}`} className="video__name">
+                    <Link to={videoPath(v)} className="video__name">
                       <strong>{nameOf(v)}</strong>
                     </Link>
                   ) : (
                     <strong>{nameOf(v)}</strong>
                   )}
                   <span className="muted">
-                    {t.perspectives[v.perspective]} · {formatBytes(v.sizeBytes)}
+                    {t.perspectives[v.perspective]}
+                    {!example && <> · {formatBytes(v.sizeBytes)}</>}
                     {/* The file's own name only helps while it is on its way or refused. */}
                     {v.status !== 'ready' && <> · {v.filename}</>}
                   </span>
@@ -477,6 +556,10 @@ export function SessionPage() {
           <LineupSummary boatType={session.boatType} lineup={session.lineup} />
         )}
       </details>
+
+      {!example && !session.isExample && platformAdmin && (
+        <PublishExample sessionId={session.id} onPublished={load} />
+      )}
 
       {session.canEdit && (
         <section className="card danger-zone" aria-labelledby={`${inputId}-delete-h`}>

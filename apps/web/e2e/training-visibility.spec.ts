@@ -1,9 +1,10 @@
 import { adminEmail } from './env.ts';
 import { withBasePath } from '../src/shared/base-path.ts';
+import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { signIn } from './helpers.ts';
 test.skip(process.env['E2E_UNIFIED'] !== 'true', 'Requires the isolated visibility configuration');
-async function layout(page: import('@playwright/test').Page) {
+async function layout(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 test('primary club, participation boundary, examples and saved filter choices', async ({
@@ -24,10 +25,24 @@ test('primary club, participation boundary, examples and saved filter choices', 
   await expect(page.getByRole('link', { name: 'Onzichtbare training', exact: true })).toHaveCount(
     0,
   );
-  await expect(
-    page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
-  ).toBeVisible();
+  // The example lives in a club the viewer is not in, and still shows under their own club filter.
+  const exampleLink = page
+    .getByTestId('session-list')
+    .getByRole('link', { name: 'RowLens voorbeeld', exact: true });
+  await expect(exampleLink).toBeVisible();
+  const exampleRow = page.getByTestId('session-list').locator('tr', {
+    has: page.getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
+  });
+  await expect(exampleRow.getByTestId('example-badge')).toHaveText('Voorbeeld');
+  await expect(page.getByTestId('examples')).toHaveCount(0);
+  // The other filters apply to examples as well.
+  await page.getByPlaceholder('Woorden in de titel', { exact: true }).fill('niet bestaand');
+  await expect(exampleLink).toHaveCount(0);
+  await page.getByPlaceholder('Woorden in de titel', { exact: true }).fill('voorbeeld');
+  await expect(exampleLink).toBeVisible();
+  await page.getByPlaceholder('Woorden in de titel', { exact: true }).fill('');
   await club.selectOption({ label: 'Alpha testclub' });
+  await expect(exampleLink).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'Deelname als stuurman', exact: true }),
   ).toBeVisible();
@@ -37,9 +52,8 @@ test('primary club, participation boundary, examples and saved filter choices', 
   await expect(
     page.getByRole('link', { name: 'Deelname als stuurman', exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
-  ).toBeVisible();
+  // The viewer is not in the example's crew, so "only where I take part" leaves it out.
+  await expect(exampleLink).toHaveCount(0);
   await page.getByRole('button', { name: 'Filters wissen', exact: true }).click();
   await expect(club.locator('option:checked')).toHaveText('Beta testclub');
   await club.selectOption('');
@@ -57,9 +71,7 @@ test('primary club, participation boundary, examples and saved filter choices', 
   await page.goto('./sessions');
   await expect(club.locator('option:checked')).toHaveText('Alpha testclub');
   await expect(page.getByRole('link', { name: 'Eigen Alpha', exact: true })).toBeVisible();
-  await expect(
-    page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
-  ).toBeVisible();
+  await expect(exampleLink).toBeVisible();
   await layout(page);
   await page.screenshot({ path: info.outputPath('primary-club.png'), fullPage: true });
   // Reset to the initial preference so every viewport starts with the same fixture.
@@ -70,33 +82,80 @@ test('primary club, participation boundary, examples and saved filter choices', 
   await primary.selectOption({ label: 'Beta testclub' });
   expect((await reset).ok()).toBe(true);
 });
-test('example playback and Help work for a club member and a clubless account', async ({
+/** The example's id and club, as every signed-in account can discover them. */
+async function exampleNamed(page: Page, title: string) {
+  const list = await page.evaluate(
+    async (url) =>
+      (await (await fetch(url)).json()) as {
+        examples: { id: string; clubId: string; title: string }[];
+      },
+    withBasePath('/projects/rowlens', '/api/examples'),
+  );
+  const found = list.examples.find((s) => s.title === title);
+  if (!found) throw new Error(`Missing example ${title}`);
+  return found;
+}
+
+/** Opens a training's first video from the normal training page. */
+async function openFirstVideo(page: Page) {
+  await page.getByTestId('video-list').locator('a.video__name').first().click();
+  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+}
+
+test('examples open read-only in the normal pages, for a member of another club and a clubless account', async ({
   page,
 }, info) => {
   await signIn(page);
   await page.goto('./sessions');
+  await expect(page.getByTestId('session-list')).toBeVisible();
+  // From here on, the example pages may only use the example API, never a club endpoint.
+  const clubCalls: string[] = [];
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (/\/api\/(videos|sessions|annotations|angles|rowers|source-annotations)\//.test(path))
+      clubCalls.push(path);
+  });
   await page
-    .getByTestId('examples')
+    .getByTestId('session-list')
     .getByRole('link', { name: 'RowLens voorbeeld', exact: true })
     .click();
+  // The normal training page, fed by the example API only.
   await expect(page.getByRole('heading', { name: 'RowLens voorbeeld', exact: true })).toBeVisible();
-  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  await expect(page.getByTestId('example-read-only')).toBeVisible();
+  await expect(page.getByTestId('video-list').getByTestId('video')).toHaveCount(1);
+  await expect(page.getByText('synthetic.webm')).toHaveCount(0);
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: /Naam aanpassen|Verwijderen|Training delen/ }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId('publish-example')).toHaveCount(0);
+  await expect(page.getByText('Originele training beheren')).toHaveCount(0);
+  await layout(page);
+  await page.screenshot({ path: info.outputPath('example-training.png'), fullPage: true });
+  await openFirstVideo(page);
+  expect(new URL(page.url()).pathname).toMatch(/\/examples\/[^/]+\/videos\/[^/]+$/);
+  await expect(page.getByTestId('example-read-only')).toBeVisible();
   await expect(page.getByText('Hidden private fixture')).toHaveCount(0);
+  await expect(page.locator('.draw')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Opslaan|Verwijderen/ })).toHaveCount(0);
   await page.getByTestId('player-frame').waitFor();
   await layout(page);
   await page.screenshot({ path: info.outputPath('example-playback.png'), fullPage: true });
+  await page.getByRole('link', { name: /Terug naar RowLens voorbeeld/ }).click();
+  await expect(page.getByTestId('example-read-only')).toBeVisible();
+  await expect(page.getByText(/Annotaties uit andere trainingen/)).toHaveCount(0);
+  expect(clubCalls).toEqual([]);
+  // Uitleg is text only again.
   await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Uitleg', exact: true })).toBeVisible();
-  await expect(page.getByTestId('examples').getByRole('button')).toHaveCount(0);
-  await expect(
-    page.getByTestId('examples').getByRole('link', { name: 'Training bewerken', exact: true }),
-  ).toHaveCount(0);
+  await expect(page.getByTestId('examples')).toHaveCount(0);
+  await expect(page.locator('main video, main button')).toHaveCount(0);
   await page.getByRole('link', { name: 'Kies je club', exact: true }).click();
   await expect(page.locator('#clubs')).toBeInViewport();
   await layout(page);
   await page.screenshot({ path: info.outputPath('help.png'), fullPage: true });
-  // Unnamed clubless registrations can open Help/examples without inventing a membership.
+  const example = await exampleNamed(page, 'RowLens voorbeeld');
+  // Unnamed clubless registrations can open an example link without inventing a membership.
   await page.context().clearCookies();
   await page.goto('./');
   const statuses = await page.evaluate(
@@ -121,15 +180,9 @@ test('example playback and Help work for a club member and a clubless account', 
     },
   );
   expect(statuses).toEqual([202, 204]);
-  await page.goto('./help');
-  await expect(
-    page.getByTestId('examples').getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
-  ).toBeVisible();
-  await page
-    .getByTestId('examples')
-    .getByRole('link', { name: 'RowLens voorbeeld', exact: true })
-    .click();
-  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
+  await page.goto(`./examples/${example.id}`);
+  await expect(page.getByRole('heading', { name: 'RowLens voorbeeld', exact: true })).toBeVisible();
+  await openFirstVideo(page);
   await layout(page);
 });
 
@@ -137,13 +190,10 @@ test('example publisher notes, drawings and boat line are read-only and follow t
   page,
 }, info) => {
   await signIn(page);
-  await page.goto('./help');
-  await page
-    .getByTestId('examples')
-    .getByRole('link', { name: 'RowLens voorbeeld', exact: true })
-    .click();
-  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
-  const notes = page.getByTestId('example-notes');
+  const example = await exampleNamed(page, 'RowLens voorbeeld');
+  await page.goto(`./examples/${example.id}`);
+  await openFirstVideo(page);
+  const notes = page.getByTestId('notes');
   await expect(notes).toContainText('Voorbeeld: rustig inzetten');
   await expect(page.locator('body')).not.toContainText(
     /Hidden private fixture|Hidden other author|Hidden publisher identity/,
@@ -163,17 +213,21 @@ test('example publisher notes, drawings and boat line are read-only and follow t
       );
     });
   const initialPicture = await fingerprint();
-  await notes.getByRole('button', { name: /Notitie bij frame 10/ }).click();
+  await notes.getByRole('button', { name: /Naar frame 10/ }).click();
   await expect(page.locator('video')).toBeInViewport({ ratio: 0.5 });
   await expect(page.getByTestId('player-frame')).toHaveText('10');
   // A correct counter alone must not hide a decoder that is still displaying the initial picture.
-  expect(await fingerprint()).not.toBe(initialPicture);
+  await expect.poll(fingerprint).not.toBe(initialPicture);
   const layer = page.locator('.drawing-layer');
-  await expect(layer.locator('[data-kind]')).toHaveCount(4);
-  await expect(layer.locator('.drawing--boat')).toHaveCount(1);
+  // The publisher's line, arrow and angle, like on any video's frame.
+  await expect(layer.locator('[data-kind]')).toHaveCount(3);
   await expect(page.getByTestId('video-note-overlay')).toContainText('Voorbeeld: rustig inzetten');
   await expect(page.locator('.drawing--pickable')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Opslaan|Verwijderen|Delen/ })).toHaveCount(0);
+  // As on every video, the boat line is shown with the Angles tab.
+  await page.getByRole('tab', { name: /Hoeken/ }).click();
+  await expect(layer.locator('.drawing--boat')).toHaveCount(1);
+  await expect(layer.locator('[data-kind]')).toHaveCount(4);
   await page.getByTestId('zoom').getByRole('button', { name: 'Inzoomen', exact: true }).click();
   const picture = await layer.boundingBox();
   expect(picture?.width).toBeGreaterThan(100);
@@ -197,7 +251,6 @@ test('example publisher notes, drawings and boat line are read-only and follow t
   await expect(page.getByTestId('player-frame')).toHaveText('11');
   await expect(layer.locator('[data-kind]')).toHaveCount(1);
   await expect(layer.locator('.drawing--boat')).toHaveCount(1);
-  await expect(page.getByTestId('video-note-overlay')).toContainText('Voorbeeld: rustig inzetten');
   // A long-lived new client can briefly meet an older server after a rollback.
   await page.route('**/api/examples/*', async (route) => {
     const response = await route.fetch();
@@ -207,152 +260,111 @@ test('example publisher notes, drawings and boat line are read-only and follow t
   });
   await page.reload();
   await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
-  await expect(page.getByTestId('example-notes').locator('li')).toHaveCount(0);
-  await expect(page.locator('.drawing--boat')).toHaveCount(1);
+  await expect(page.getByTestId('notes').getByTestId('moment')).toHaveCount(0);
+  await expect(page.getByText('Geen notities om te tonen.')).toBeVisible();
 });
 
-test('RowLens admin creates, renames and opens examples from Help in their owning club', async ({
+test('a training a RowLens admin creates is an example in the list; rename uses the normal title edit', async ({
   page,
 }, info) => {
   await signIn(page, adminEmail);
-  await page.goto('./help');
-  const examples = page.getByTestId('examples');
-  await expect(
-    examples.getByRole('button', { name: 'Nieuwe voorbeeldtraining', exact: true }),
-  ).toBeVisible({ timeout: 3000 });
-  let row = examples.locator('li', {
-    has: page.getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
+  await page.goto('./sessions');
+  await page.getByRole('button', { name: 'Nieuwe training', exact: true }).click();
+  const create = page.locator('form', {
+    has: page.getByRole('heading', { name: 'Nieuwe training', exact: true }),
   });
-  const detail = await page.evaluate(
-    async (url) =>
-      (await (await fetch(url)).json()) as {
-        examples: { id: string; clubId: string; title: string }[];
-      },
-    withBasePath('/projects/rowlens', '/api/examples'),
-  );
-  const example = detail.examples.find((s) => s.title === 'RowLens voorbeeld');
-  expect(example?.clubId).toBeTruthy();
-  await expect(row.getByRole('link', { name: 'Training bewerken', exact: true })).toHaveAttribute(
-    'href',
-    `${withBasePath('/projects/rowlens', `/sessions/${example?.id ?? ''}`)}?club=${example?.clubId ?? ''}`,
-  );
-  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
-  await row.getByLabel('Naam van de training', { exact: true }).fill('   ');
-  await expect(row.getByRole('button', { name: 'Opslaan', exact: true })).toBeDisabled();
-  await row.getByRole('button', { name: 'Annuleren', exact: true }).click();
-  await expect(row.getByRole('link', { name: 'RowLens voorbeeld', exact: true })).toBeVisible();
-  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
-  const name = `Uitleg ${info.project.name}`;
-  await row.getByLabel('Naam van de training', { exact: true }).fill(name);
-  await row.getByRole('button', { name: 'Opslaan', exact: true }).click();
-  row = examples.locator('li', { has: page.getByRole('link', { name, exact: true }) });
-  await expect(row.getByRole('link', { name, exact: true })).toBeVisible();
-  await page.reload();
-  await expect(row.getByRole('link', { name, exact: true })).toBeVisible();
-  await row.getByRole('link', { name: 'Training bewerken', exact: true }).click();
-  await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
-  expect(new URL(page.url()).searchParams.get('club')).toBe(example?.clubId);
-  await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
-  row = examples.locator('li', { has: page.getByRole('link', { name, exact: true }) });
-  await row.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
-  await row.getByLabel('Naam van de training', { exact: true }).fill('RowLens voorbeeld');
-  await row.getByRole('button', { name: 'Opslaan', exact: true }).click();
-  await expect(
-    examples.getByRole('link', { name: 'RowLens voorbeeld', exact: true }),
-  ).toBeVisible();
-  await examples.getByRole('button', { name: 'Nieuwe voorbeeldtraining', exact: true }).click();
-  const create = examples.getByRole('form', { name: 'Nieuwe voorbeeldtraining', exact: true });
   await create
-    .getByLabel('Club van de voorbeeldtraining')
+    .getByRole('combobox', { name: 'Club', exact: true })
     .selectOption({ label: 'Gamma voorbeeldclub' });
-  await create.getByLabel('Titel', { exact: true }).fill(`Nieuw voorbeeld ${info.project.name}`);
+  const title = `Nieuw voorbeeld ${info.project.name}`;
+  await create.getByLabel('Titel', { exact: true }).fill(title);
   await create.getByLabel('Datum', { exact: true }).fill('2026-11-16');
   await create.getByLabel('Boot', { exact: true }).selectOption('C2x');
-  for (const height of await create
-    .locator('input, select, button')
-    .evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height)))
-    expect(height).toBeGreaterThanOrEqual(43.5);
-  await layout(page);
-  await page.screenshot({ path: info.outputPath('help-example-create.png'), fullPage: true });
-  await examples.screenshot({ path: info.outputPath('help-example-create-card.png') });
-  const createResponse = page.waitForResponse(
+  const created = page.waitForResponse(
     (r) => r.url().includes('/api/sessions') && r.request().method() === 'POST',
   );
-  await create.getByRole('button', { name: 'Voorbeeldtraining maken', exact: true }).click();
-  expect((await createResponse).status()).toBe(201);
-  await expect(
-    page.getByRole('heading', { name: `Nieuw voorbeeld ${info.project.name}`, exact: true }),
-  ).toBeVisible();
+  await create.getByRole('button', { name: 'Training aanmaken', exact: true }).click();
+  expect((await created).status()).toBe(201);
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
   await expect(
     page.getByText('Dit is een voorbeeld voor alle ingelogde gebruikers.', { exact: false }),
   ).toBeVisible();
-  expect(new URL(page.url()).searchParams.get('club')).toBe(example?.clubId);
-  await page.locator('.app-header__nav').getByRole('link', { name: 'Uitleg', exact: true }).click();
-  await expect(
-    examples.getByRole('link', { name: `Nieuw voorbeeld ${info.project.name}`, exact: true }),
-  ).toBeVisible();
+  // Already an example, so there is nothing to publish.
+  await expect(page.getByTestId('publish-example')).toHaveCount(0);
+  const renamed = `${title} hernoemd`;
+  await page.getByRole('button', { name: 'Naam aanpassen', exact: true }).click();
+  await page.getByLabel('Naam van de training', { exact: true }).fill(renamed);
+  await page.getByRole('button', { name: 'Opslaan', exact: true }).click();
+  await expect(page.getByRole('heading', { name: renamed, exact: true })).toBeVisible();
   await layout(page);
-  for (const height of await examples
-    .getByRole('button')
-    .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().height)))
-    expect(height).toBeGreaterThanOrEqual(43.5);
-  await page.screenshot({ path: info.outputPath('help-example-management.png'), fullPage: true });
+  await page.screenshot({ path: info.outputPath('admin-example-training.png'), fullPage: true });
+  // Members of other clubs find it in their own list, under their own club filter.
+  await page.context().clearCookies();
+  await signIn(page);
+  await page.goto('./sessions');
+  const link = page.getByTestId('session-list').getByRole('link', { name: renamed, exact: true });
+  await expect(link).toBeVisible();
+  await expect(
+    page
+      .getByTestId('session-list')
+      .locator('tr', { has: page.getByRole('link', { name: renamed, exact: true }) })
+      .getByTestId('example-badge'),
+  ).toBeVisible();
+  await link.click();
+  await expect(page.getByTestId('example-read-only')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Naam aanpassen', exact: true })).toHaveCount(0);
 });
 
-test('RowLens admin publishes an existing training with explicit confirmation and retains ownership', async ({
+test('RowLens admin publishes an existing training from the training itself, with confirmation', async ({
   page,
 }, info) => {
   await signIn(page, adminEmail);
-  await page.goto('./help');
-  const examples = page.getByTestId('examples');
   const title = `Bestaand voorbeeld ${info.project.name}`;
-  await expect(examples.getByRole('link', { name: title, exact: true })).toHaveCount(0);
-  await examples
-    .getByRole('button', { name: 'Bestaande training selecteren', exact: true })
-    .click();
-  const picker = examples.locator('.examples__picker');
-  await picker
-    .getByLabel('Club van de voorbeeldtraining', { exact: true })
-    .selectOption({ label: 'Alpha testclub' });
-  await picker.getByLabel('Naam van de training', { exact: true }).fill(title);
-  await picker.getByRole('button', { name: 'Trainingen zoeken', exact: true }).click();
-  await expect(picker.locator('li')).toHaveCount(1);
-  // Repeating the same search must retain results.
-  await picker.getByRole('button', { name: 'Trainingen zoeken', exact: true }).click();
-  await expect(picker.locator('li')).toHaveCount(1);
-  await picker.getByRole('button', { name: title, exact: true }).click();
-  const confirm = picker.getByTestId('confirm');
+  await page.goto(`./sessions?clubFilter=all&q=${encodeURIComponent(title)}`);
+  const row = page.getByTestId('session-list').getByRole('link', { name: title, exact: true });
+  await expect(row).toBeVisible();
+  await row.click();
+  await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+  const publish = page.getByTestId('publish-example');
+  await publish.getByRole('button', { name: 'Publiceren als voorbeeld', exact: true }).click();
+  const confirm = publish.getByTestId('confirm');
   await expect(confirm).toContainText('Alle ingelogde gebruikers');
   await expect(confirm).toContainText('jouw eigen bestaande en toekomstige notities');
   await confirm.getByRole('button', { name: 'Annuleren', exact: true }).click();
   await expect(confirm).toHaveCount(0);
-  await expect(examples.getByRole('link', { name: title, exact: true })).toHaveCount(0);
-  await picker.getByRole('button', { name: title, exact: true }).click();
+  await publish.getByRole('button', { name: 'Publiceren als voorbeeld', exact: true }).click();
   await page.route('**/api/example-management/*/publish*', (route) =>
     route.fulfill({ status: 503, json: { error: 'synthetic_failure' } }),
   );
   await confirm.getByRole('button', { name: 'Voorbeeld publiceren', exact: true }).click();
-  await expect(picker.getByRole('alert')).toBeVisible();
+  await expect(publish.getByRole('alert')).toBeVisible();
   await page.unroute('**/api/example-management/*/publish*');
-  for (const height of await picker
-    .locator('input, select, button')
-    .evaluateAll((controls) => controls.map((control) => control.getBoundingClientRect().height)))
+  for (const height of await publish
+    .getByRole('button')
+    .evaluateAll((buttons) => buttons.map((b) => b.getBoundingClientRect().height)))
     expect(height).toBeGreaterThanOrEqual(43.5);
   await layout(page);
-  await picker.screenshot({ path: info.outputPath('help-existing-confirm.png') });
+  await publish.screenshot({ path: info.outputPath('publish-confirm.png') });
   await confirm.getByRole('button', { name: 'Voorbeeld publiceren', exact: true }).click();
-  const link = examples.getByRole('link', { name: title, exact: true });
-  await expect(link).toBeVisible();
-  const href = await link.getAttribute('href');
-  const id = href?.split('/').at(-1);
-  expect(id).toBeTruthy();
+  await expect(publish).toHaveCount(0);
+  await expect(
+    page.getByText('Dit is een voorbeeld voor alle ingelogde gebruikers.', { exact: false }),
+  ).toBeVisible();
+  const example = await exampleNamed(page, title);
+  // The creator keeps their own training (with the badge); the example view shows only the
+  // publisher's notes, as any other signed-in account sees them.
   await page.context().clearCookies();
   await signIn(page);
-  await page.goto('./help');
-  await expect(examples.getByRole('button')).toHaveCount(0);
-  await examples.getByRole('link', { name: title, exact: true }).click();
-  await expect(page.locator('video')).toHaveJSProperty('readyState', 4);
-  await expect(page.getByTestId('example-notes')).toContainText('Gepubliceerd door beheerder');
+  await page.goto('./sessions?clubFilter=all');
+  await expect(
+    page
+      .getByTestId('session-list')
+      .locator('tr', { has: page.getByRole('link', { name: title, exact: true }) })
+      .getByTestId('example-badge'),
+  ).toBeVisible();
+  await page.goto(`./examples/${example.id}`);
+  await openFirstVideo(page);
+  await expect(page.getByTestId('notes')).toContainText('Gepubliceerd door beheerder');
   await expect(page.locator('body')).not.toContainText('Hidden original creator feedback');
   await expect(page.getByRole('button', { name: /Opslaan|Verwijderen|Delen/ })).toHaveCount(0);
   await layout(page);

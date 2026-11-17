@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { asc, eq, sql } from 'drizzle-orm';
+import { asc, count, eq, sql } from 'drizzle-orm';
 import type { Database } from '../db/client.ts';
 import { withTenant, type TenantContext } from '../db/tenant.ts';
 import {
@@ -13,6 +13,8 @@ import {
   annotation,
 } from '../db/schema.ts';
 import { lineupOf } from '../api/lineups.ts';
+
+/** A list row carries the same safe projection as the detail: no authors, e-mails or timestamps. */
 
 const exampleShape = z.object({
   points: z
@@ -71,12 +73,25 @@ export async function listExamples(db: Database, actor: TenantContext) {
             clubId: rowingSession.clubId,
             title: rowingSession.title,
             date: rowingSession.sessionDate,
+            boatType: rowingSession.boatType,
             clubName: club.name,
+            videoCount: count(video.id),
           })
           .from(rowingSession)
           .innerJoin(club, eq(club.id, rowingSession.clubId))
-          .where(eq(rowingSession.id, id.id));
-        return s;
+          .leftJoin(video, eq(video.sessionId, rowingSession.id))
+          .where(eq(rowingSession.id, id.id))
+          .groupBy(rowingSession.id, club.name);
+        if (!s) return undefined;
+        const lineup = await lineupOf(tx, id.id);
+        return {
+          ...s,
+          lineup: lineup.map((seat) => ({
+            seat: seat.seat,
+            rowerId: seat.rower.id,
+            displayName: seat.rower.displayName,
+          })),
+        };
       },
     );
     if (row) result.push(row);
@@ -100,6 +115,7 @@ export async function readExample(db: Database, scope: TenantContext, id: string
       .select({
         id: video.id,
         seq: video.seq,
+        durationMs: video.durationMs,
         status: video.status,
         fpsNum: video.fpsNum,
         fpsDen: video.fpsDen,

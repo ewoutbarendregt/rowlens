@@ -1,62 +1,39 @@
 import { lang } from '../i18n/language.ts';
 const en = {
-  selectExisting: 'Select existing training',
-  searchExisting: 'Training title',
-  searchExamples: 'Search trainings',
-  moreCandidates: 'More trainings',
-  noCandidates: 'No unpublished trainings found in this club.',
-  candidateVideos: (n: number) => `${String(n)} video(s)`,
-  selectedExample: (title: string, club: string) => `Publish “${title}” from ${club}?`,
   confirmPublication:
     'All signed-in users will be able to view this training, its videos, crew and analysis, including future changes. Your own existing and future notes and drawings become visible too; other authors’ feedback stays private. The original creator keeps ownership. Publication cannot be withdrawn here. Publish as an example?',
   publishExample: 'Publish example',
+  publishAsExample: 'Publish as example',
+  publishAsExampleHint:
+    'As a RowLens administrator you can make this training an example for every signed-in user. It then appears in everyone’s training list, marked Example.',
   publishingExample: 'Publishing example…',
   publishFailed: 'Could not publish. Check your permissions and connection, then try again.',
-  examplePublished:
-    'The training is available in the examples. If it was already published, its original publishing administrator is retained.',
-
   exampleExplanation: 'Example explanation',
   publicationNotice:
     'This is a public example for signed-in users. The publishing administrator’s own notes and drawings are included; feedback by other authors stays private.',
-  newExample: 'New example training',
-  createExample: 'Create example training',
-  createExampleFailed:
-    'Could not create the example. Check the club and your connection, then try again.',
-  editExample: 'Edit training',
-  renameExample: (title: string) => `Rename ${title}`,
-  exampleClub: 'Example training’s club',
-  chooseExampleClub: 'Choose a club',
-  exampleClubRequired:
-    'An active club is needed to create an example training. Add a club under Clubs first.',
   manageOriginal: 'Manage original training',
   help: 'Help',
-  examples: 'Example trainings',
-  example: 'Example training',
-  noExamples: 'No examples are available yet.',
-  exampleIntro:
-    'Explore how RowLens works. These examples are available to every signed-in user, independently of your club filters.',
+  exampleBadge: 'Example',
   readOnly:
     'This example is read-only. It includes the publishing administrator’s example notes and drawings; feedback by other authors stays private.',
   noClub:
-    'You do not have an active club membership yet. You can explore the examples below or choose a club under Clubs.',
-  video: (n: number) => `Video ${String(n)}`,
-  noVideo: 'There are no videos ready to play yet.',
+    'You do not have an active club membership yet. You can explore the examples in the list below or choose a club under Clubs.',
   primaryClub: 'Primary club',
   automaticClub: 'Automatic (first club by name)',
   primaryHint:
     'The training list starts with this club. You can still select another club or all clubs in the filters.',
   guideIntro:
-    'Start with an example, then use your own training to review a session together with your crew and coach.',
+    'Start with an example in your training list, marked Example, then use your own training to review a session together with your crew and coach.',
   sections: [
     [
       'trainings',
       'Find your training',
-      'As a rower you can view a training if you created it, appear in its lineup (including as cox), or have received access through individual or club-wide sharing. Coaches and club administrators can view all trainings in their club. Examples created by a RowLens administrator are available to every signed-in user. A shared note alone does not give access to another training.',
+      'As a rower you can view a training if you created it, appear in its lineup (including as cox), or have received access through individual or club-wide sharing. Coaches and club administrators can view all trainings in their club. Examples created or published by a RowLens administrator appear in every signed-in user’s training list, marked Example. A shared note alone does not give access to another training.',
     ],
     [
       'clubs',
       'Choose your club',
-      'In the account menu, select your primary club. The training filter starts with that club, or your only club. Without a primary choice, the first club by name is used. Select another club or All clubs in the filters when needed. Examples stay visible separately. Apply for another membership under Clubs.',
+      'In the account menu, select your primary club. The training filter starts with that club, or your only club. Without a primary choice, the first club by name is used. Select another club or All clubs in the filters when needed. Examples stay in the list whichever club you choose; the other filters apply to them too. Apply for another membership under Clubs.',
     ],
     [
       'create',
@@ -96,7 +73,7 @@ const en = {
     [
       'rights',
       'Understand editing rights',
-      'Rowers may edit their own trainings. Other trainings they participate in are read-only. Coaches and club administrators can edit club trainings. RowLens administrators manage the platform. Examples have a separate read-only viewer; administrators manage the original through its club context.',
+      'Rowers may edit their own trainings. Other trainings they participate in are read-only. Coaches and club administrators can edit club trainings. RowLens administrators manage the platform. Examples open read-only in the normal training and video pages. A training a RowLens administrator creates is an example; on another training they choose Publish as example. Administrators change the original through its club.',
     ],
     [
       'settings',
@@ -106,64 +83,41 @@ const en = {
   ] as [string, string, string][],
 };
 const nl: typeof en = {
-  selectExisting: 'Bestaande training selecteren',
-  searchExisting: 'Naam van de training',
-  searchExamples: 'Trainingen zoeken',
-  moreCandidates: 'Meer trainingen',
-  noCandidates: 'Geen ongepubliceerde trainingen gevonden in deze club.',
-  candidateVideos: (n: number) => `${String(n)} video(’s)`,
-  selectedExample: (title: string, club: string) => `“${title}” van ${club} publiceren?`,
   confirmPublication:
     'Alle ingelogde gebruikers kunnen deze training, video’s, opstelling en analyse bekijken, ook na latere wijzigingen. Ook jouw eigen bestaande en toekomstige notities en tekeningen worden zichtbaar; feedback van andere auteurs blijft privé. De oorspronkelijke maker blijft eigenaar. Je kunt de publicatie hier niet intrekken. Als voorbeeld publiceren?',
   publishExample: 'Voorbeeld publiceren',
+  publishAsExample: 'Publiceren als voorbeeld',
+  publishAsExampleHint:
+    'Als RowLens-beheerder kun je van deze training een voorbeeld maken voor iedereen die is ingelogd. Hij staat dan in ieders trainingslijst, met het label Voorbeeld.',
   publishingExample: 'Voorbeeld publiceren…',
   publishFailed:
     'Publiceren is niet gelukt. Controleer je rechten en verbinding en probeer opnieuw.',
-  examplePublished:
-    'De training staat bij de voorbeelden. Was deze al gepubliceerd, dan blijft de oorspronkelijke publicerende beheerder behouden.',
-
   exampleExplanation: 'Toelichting bij het voorbeeld',
   publicationNotice:
     'Dit is een voorbeeld voor alle ingelogde gebruikers. De eigen notities en tekeningen van de publicerende beheerder zijn daarin zichtbaar; feedback van andere auteurs blijft privé.',
-  newExample: 'Nieuwe voorbeeldtraining',
-  createExample: 'Voorbeeldtraining maken',
-  createExampleFailed:
-    'Het voorbeeld kon niet worden gemaakt. Controleer de club en je verbinding en probeer opnieuw.',
-  editExample: 'Training bewerken',
-  renameExample: (title: string) => `Naam wijzigen van ${title}`,
-  exampleClub: 'Club van de voorbeeldtraining',
-  chooseExampleClub: 'Kies een club',
-  exampleClubRequired:
-    'Voor een voorbeeldtraining is een actieve club nodig. Voeg eerst een club toe via Clubs.',
   manageOriginal: 'Originele training beheren',
   help: 'Uitleg',
-  examples: 'Voorbeeldtrainingen',
-  example: 'Voorbeeldtraining',
-  noExamples: 'Er zijn nog geen voorbeelden beschikbaar.',
-  exampleIntro:
-    'Ontdek hoe RowLens werkt. Deze voorbeelden zijn beschikbaar voor iedereen die is ingelogd, ongeacht je clubfilters.',
+  exampleBadge: 'Voorbeeld',
   readOnly:
     'Dit voorbeeld kun je alleen bekijken. De voorbeeldnotities en tekeningen van de publicerende beheerder zijn zichtbaar; feedback van andere auteurs blijft privé.',
   noClub:
-    'Je bent nog geen lid van een actieve club. Bekijk de voorbeelden hieronder of kies een club via Clubs.',
-  video: (n: number) => `Video ${String(n)}`,
-  noVideo: 'Er zijn nog geen video’s klaar om af te spelen.',
+    'Je bent nog geen lid van een actieve club. Bekijk de voorbeelden in de lijst hieronder of kies een club via Clubs.',
   primaryClub: 'Primaire club',
   automaticClub: 'Automatisch (eerste club op naam)',
   primaryHint:
     'De trainingslijst begint met deze club. Via de filters kun je ook een andere club of alle clubs kiezen.',
   guideIntro:
-    'Begin met een voorbeeld en gebruik daarna je eigen training om samen met je ploeg en coach terug te kijken.',
+    'Begin met een voorbeeld in je trainingslijst, met het label Voorbeeld, en gebruik daarna je eigen training om samen met je ploeg en coach terug te kijken.',
   sections: [
     [
       'trainings',
       'Vind je training',
-      'Als roeier zie je een training als je deze zelf hebt aangemaakt, in de opstelling staat (ook als stuurman), of toegang hebt gekregen via persoonlijk of clubbreed delen. Coaches en clubbeheerders zien alle trainingen van hun club. Voorbeelden van een RowLens-beheerder zijn voor iedereen die is ingelogd zichtbaar. Een gedeelde notitie alleen geeft geen toegang tot een andere training.',
+      'Als roeier zie je een training als je deze zelf hebt aangemaakt, in de opstelling staat (ook als stuurman), of toegang hebt gekregen via persoonlijk of clubbreed delen. Coaches en clubbeheerders zien alle trainingen van hun club. Voorbeelden die een RowLens-beheerder maakt of publiceert staan in de trainingslijst van iedereen die is ingelogd, met het label Voorbeeld. Een gedeelde notitie alleen geeft geen toegang tot een andere training.',
     ],
     [
       'clubs',
       'Kies je club',
-      'Kies in je accountmenu je primaire club. Het trainingsfilter begint met die club, of met je enige club. Zonder primaire keuze wordt de eerste club op naam gebruikt. Kies zo nodig een andere club of Alle clubs in het filter. Voorbeelden blijven apart zichtbaar. Via Clubs kun je lidmaatschap van een andere club aanvragen.',
+      'Kies in je accountmenu je primaire club. Het trainingsfilter begint met die club, of met je enige club. Zonder primaire keuze wordt de eerste club op naam gebruikt. Kies zo nodig een andere club of Alle clubs in het filter. Voorbeelden blijven in de lijst staan, welke club je ook kiest; de andere filters gelden ook voor voorbeelden. Via Clubs kun je lidmaatschap van een andere club aanvragen.',
     ],
     [
       'create',
@@ -203,7 +157,7 @@ const nl: typeof en = {
     [
       'rights',
       'Wie mag bewerken?',
-      'Roeiers mogen hun eigen trainingen bewerken. Andere trainingen waaraan ze deelnemen zijn alleen te bekijken. Coaches en clubbeheerders mogen clubtrainingen bewerken. RowLens-beheerders beheren het platform. Voorbeelden hebben een aparte kijkpagina; beheerders bewerken het origineel binnen de club.',
+      'Roeiers mogen hun eigen trainingen bewerken. Andere trainingen waaraan ze deelnemen zijn alleen te bekijken. Coaches en clubbeheerders mogen clubtrainingen bewerken. RowLens-beheerders beheren het platform. Voorbeelden open je alleen-lezen in de gewone trainings- en videopagina’s. Een training die een RowLens-beheerder maakt, is een voorbeeld; bij een andere training kiest de beheerder Publiceren als voorbeeld. Beheerders wijzigen het origineel binnen de club.',
     ],
     [
       'settings',

@@ -1,4 +1,5 @@
 import { helpStrings } from '../help/strings.ts';
+import { exampleMedia, loadExample, playable, type ExampleDetail } from '../help/example-data.ts';
 import { saveOwnPreference, useOwnSettings } from '../settings/controller.ts';
 import { settingsStrings } from '../settings/strings.ts';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -96,18 +97,51 @@ function isTyping(target: EventTarget | null): boolean {
   return target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName);
 }
 
-/** One of the club's own videos in the frame-accurate player (#49, #52). */
-export function VideoPage() {
+/** The video detail of an example, as the normal player needs it (no file name or sizes). */
+function exampleVideo(e: ExampleDetail, videoId: string): VideoDetail | null {
+  const v = e.videos.find((c) => c.id === videoId && playable(c));
+  if (v === undefined) return null;
+  return {
+    id: v.id,
+    sessionId: e.id,
+    canEdit: false,
+    sessionTitle: e.title,
+    isExample: true,
+    filename: '',
+    seq: v.seq,
+    recordedAt: null,
+    perspective: v.perspective,
+    status: v.status,
+    fpsNum: v.fpsNum,
+    fpsDen: v.fpsDen,
+    width: v.width,
+    height: v.height,
+    durationMs: v.durationMs ?? null,
+    // The example projection has rendition names only; the player needs no more.
+    renditions: v.renditions.map((name) => ({ name, width: 0, height: 0 })),
+    boatType: e.boatType,
+    lineup: e.lineup,
+  };
+}
+
+/**
+ * One of the club's own videos in the frame-accurate player (#49, #52). With `example`, a RowLens
+ * example's video (`/examples/:id/videos/:videoId`) in the same player, read-only, loaded through the
+ * example API only: no club roster, feedback or editing endpoints are called (ADR-0028).
+ */
+export function VideoPage({ example = false }: { example?: boolean }) {
   const t = sessionStrings();
   const nt = notesStrings();
-  const { id = '' } = useParams();
+  const params = useParams();
+  const id = (example ? params.videoId : params.id) ?? '';
+  const exampleId = example ? (params.id ?? '') : null;
   const auth = useAuth();
   const personal = useOwnSettings();
   const sourceIdentity =
     auth.state.kind === 'open'
       ? `${auth.state.user.id}:${auth.state.user.roles.join(',')}`
       : 'closed';
-  const sources = useSourceAnnotations(VIDEO_REUSE ? id : '', sourceIdentity);
+  const sources = useSourceAnnotations(VIDEO_REUSE && !example ? id : '', sourceIdentity);
   const rolesKey = auth.state.kind === 'open' ? auth.state.user.roles.join(',') : '';
   const [video, setVideo] = useState<VideoDetail | null>(null);
   const [failed, setFailed] = useState(false);
@@ -119,8 +153,8 @@ export function VideoPage() {
   const [notes, setNotes] = useState<Annotation[]>([]);
   const [momentRowers, setMomentRowers] = useState<MomentRowers[]>([]);
   const [momentShares, setMomentShares] = useState<MomentShares[]>([]);
-  const roster = useRoster(undefined, video?.sessionId ?? null);
-  const shareRoster = useRoster(undefined, video?.sessionId ?? null, true);
+  const roster = useRoster(undefined, example ? null : (video?.sessionId ?? null));
+  const shareRoster = useRoster(undefined, example ? null : (video?.sessionId ?? null), true);
   const [tool, setTool] = useState<DrawingKind | null>(null);
   const drawingFrame = useRef<number | null>(null);
   const [drawingControls, setDrawingControls] = useState<HTMLDivElement | null>(null);
@@ -143,6 +177,78 @@ export function VideoPage() {
   const [angleBusy, setAngleBusy] = useState(false);
   const [angleFailed, setAngleFailed] = useState(false);
   const [driveMiddle, setDriveMiddle] = useState(storedDriveMiddle);
+  const pendingJump = useRef<(() => void) | null>(null);
+  useEffect(
+    () => () => {
+      pendingJump.current?.();
+    },
+    [id],
+  );
+  /**
+   * A note's jump: when the picture is scrolled away, bring it back, seek once the video presents a
+   * frame again (at the latest after 300 ms), and seek again if the player still doesn't show the
+   * target after `seeked` and a paint (at most twice). Linux WebKit can acknowledge a seek made right
+   * after the reveal while keeping the old picture (BUG-070, ADR-0007; measured on Playwright's Linux
+   * WebKit). A newer jump or leaving the page cancels it; the frame shown still comes from the
+   * presented-frame callback, never from the requested number.
+   */
+  const jumpToNote = useCallback((f: number, reveal: boolean) => {
+    pendingJump.current?.();
+    pendingJump.current = null;
+    const stage = document.querySelector('.player__stage');
+    const box = stage?.getBoundingClientRect();
+    if (!reveal || box === undefined || (box.top >= 0 && box.bottom <= window.innerHeight)) {
+      player.current?.seekToFrame(f);
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const media = stage?.querySelector('video') ?? null;
+    let cancelled = false;
+    let timer: number | null = null;
+    let callback: number | null = null;
+    let paint: number | null = null;
+    let retries = 2;
+    const clear = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      if (callback !== null) media?.cancelVideoFrameCallback(callback);
+      if (paint !== null) cancelAnimationFrame(paint);
+      media?.removeEventListener('seeked', onSeeked);
+      timer = callback = paint = null;
+    };
+    const seek = (again = false) => {
+      if (cancelled) return;
+      clear();
+      media?.addEventListener('seeked', onSeeked, { once: true });
+      // A repeated seek moves 0.1 ms within the same frame (well inside its first quarter, also at
+      // 240 fps), so WebKit performs it instead of treating it as the position it already has.
+      if (again && media) media.currentTime += 0.0001;
+      else player.current?.seekToFrame(f);
+    };
+    function onSeeked() {
+      paint = requestAnimationFrame(() => {
+        paint = requestAnimationFrame(() => {
+          paint = null;
+          if (cancelled || frame.current === f || retries === 0) {
+            pendingJump.current = null;
+            return;
+          }
+          retries -= 1;
+          seek(true);
+        });
+      });
+    }
+    timer = window.setTimeout(() => {
+      seek();
+    }, 300);
+    if (media && typeof media.requestVideoFrameCallback === 'function')
+      callback = media.requestVideoFrameCallback(() => {
+        seek();
+      });
+    pendingJump.current = () => {
+      cancelled = true;
+      clear();
+    };
+  }, []);
   useEffect(() => {
     setNotesVisible(personal.preferences.notesVisible);
     setNoteHoldSeconds(personal.preferences.noteHoldSeconds);
@@ -189,6 +295,7 @@ export function VideoPage() {
   const feedbackScopeRef = useRef(feedbackScope);
   feedbackScopeRef.current = feedbackScope;
   const loadNotes = useCallback(() => {
+    if (example) return Promise.resolve();
     return api(`/api/videos/${id}/annotations`)
       .then((res) =>
         res.ok
@@ -209,7 +316,7 @@ export function VideoPage() {
       .catch(() => {
         // The player still works; the panel shows what it has.
       });
-  }, [id, feedbackScope]);
+  }, [id, feedbackScope, example]);
   useEffect(() => {
     setNotes([]);
     setMomentRowers([]);
@@ -218,6 +325,7 @@ export function VideoPage() {
   }, [loadNotes]);
 
   const loadMarks = useCallback(() => {
+    if (example) return;
     api(`/api/videos/${id}/strokes`)
       .then((res) => (res.ok ? (res.json() as Promise<{ marks: StrokeMark[] }>) : null))
       .then((body) => {
@@ -226,10 +334,11 @@ export function VideoPage() {
       .catch(() => {
         // The player still works; the strokes tab shows what it has.
       });
-  }, [id]);
+  }, [id, example]);
   useEffect(loadMarks, [loadMarks]);
 
   const loadAngles = useCallback(() => {
+    if (example) return;
     api(`/api/videos/${id}/angles`)
       .then((res) =>
         res.ok
@@ -244,11 +353,11 @@ export function VideoPage() {
       .catch(() => {
         // The player still works; the angles tab shows what it has.
       });
-  }, [id]);
+  }, [id, example]);
   useEffect(loadAngles, [loadAngles]);
 
   const loadAutoLine = useCallback(() => {
-    if (!AUTO_BOAT_LINE) return;
+    if (!AUTO_BOAT_LINE || example) return;
     api(`/api/videos/${id}/auto-boat-line`)
       .then((res) =>
         res.ok
@@ -263,7 +372,7 @@ export function VideoPage() {
       .catch(() => {
         // The coach's own boat lines still work.
       });
-  }, [id]);
+  }, [id, example]);
   useEffect(loadAutoLine, [loadAutoLine]);
   // While the worker is at it (after an upload or a changed boat line), look again now and then.
   const autoPending = autoLine?.status === 'queued' || autoLine?.status === 'running';
@@ -688,6 +797,43 @@ export function VideoPage() {
   );
 
   useEffect(() => {
+    if (exampleId === null) return;
+    let stale = false;
+    loadExample(exampleId)
+      .then((e) => {
+        if (stale) return;
+        const v = exampleVideo(e, id);
+        const clip = e.videos.find((c) => c.id === id);
+        if (v === null || clip === undefined) throw new Error();
+        setVideo(v);
+        // The publishing administrator's own notes and drawings, nobody else's (ADR-0030).
+        setNotes(
+          (clip.annotations ?? []).map((a) => ({
+            ...a,
+            authorName: helpStrings().exampleExplanation,
+            createdAt: '',
+          })),
+        );
+        setMarks(clip.marks);
+        setMeasures(clip.measures);
+        setBoatLines(clip.boatLines);
+        setAutoLine(clip.auto);
+        const small = clip.renditions.includes('play-540')
+          ? 'play-540'
+          : (clip.renditions[0] ?? null);
+        setRendition(
+          preferSmall() ? small : clip.renditions.includes('play-1080') ? 'play-1080' : small,
+        );
+      })
+      .catch(() => {
+        if (!stale) setFailed(true);
+      });
+    return () => {
+      stale = true;
+    };
+  }, [exampleId, id]);
+  useEffect(() => {
+    if (example) return;
     let stale = false;
     api(`/api/videos/${id}`)
       .then((res) => (res.ok ? (res.json() as Promise<VideoDetail>) : Promise.reject(new Error())))
@@ -704,7 +850,7 @@ export function VideoPage() {
     return () => {
       stale = true;
     };
-  }, [id, rolesKey]);
+  }, [id, rolesKey, example]);
   useEffect(() => {
     if (video !== null && !video.canEdit) {
       setTool(null);
@@ -722,7 +868,10 @@ export function VideoPage() {
   }
   if (video === null) return null;
 
-  const media = (name: string) => appUrl(`/api/videos/${video.id}/media/${name}`);
+  const media = (name: string) =>
+    exampleId === null
+      ? appUrl(`/api/videos/${video.id}/media/${name}`)
+      : exampleMedia(exampleId, video.id, name);
   // Display shape from the worker's metadata, known before the video loads: portrait phone video
   // gets its own laptop layout (video beside its controls).
   const aspect =
@@ -775,15 +924,24 @@ export function VideoPage() {
 
   return (
     <main className="page page--wide video-page">
-      {!video.canEdit && (
-        <p className="muted" data-testid="training-read-only">
-          {t.readOnly}
+      {example ? (
+        <p className="callout" data-testid="example-read-only">
+          {helpStrings().readOnly}
         </p>
+      ) : (
+        !video.canEdit && (
+          <p className="muted" data-testid="training-read-only">
+            {t.readOnly}
+          </p>
+        )
       )}
       {/* Mockup 1e: back, title and facts on the left; the lineup as columns on the right. */}
       <header className="video-head">
         <div className="video-head__main">
-          <Link className="video-head__back" to={`/sessions/${video.sessionId}`}>
+          <Link
+            className="video-head__back"
+            to={example ? `/examples/${video.sessionId}` : `/sessions/${video.sessionId}`}
+          >
             <Icon name="arrowLeft" size={14} /> {t.backToSession(video.sessionTitle)}
           </Link>
           {video.isExample && video.canEdit && (
@@ -961,7 +1119,7 @@ export function VideoPage() {
               aria-labelledby="side-tab-notes"
               hidden={sideTab !== 'notes'}
             >
-              {VIDEO_REUSE && (
+              {VIDEO_REUSE && !example && (
                 <SourceAnnotations
                   model={sources}
                   canEdit={video.canEdit}
@@ -996,17 +1154,7 @@ export function VideoPage() {
                 myRowerId={myRower?.id}
                 onForRowerChange={setForRower}
                 onRosterChanged={() => void roster.reload()}
-                onJump={(f, reveal) => {
-                  player.current?.seekToFrame(f);
-                  const stage = document.querySelector('.player__stage')?.getBoundingClientRect();
-                  if (
-                    reveal &&
-                    stage !== undefined &&
-                    (stage.top < 0 || stage.bottom > window.innerHeight)
-                  ) {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }
-                }}
+                onJump={jumpToNote}
                 onWriting={() => {
                   player.current?.pause();
                 }}

@@ -1,5 +1,4 @@
 import { HelpPage } from './help/HelpPage.tsx';
-import { ExamplePage } from './help/ExamplePage.tsx';
 import { AdmissionPage } from './admin/AdmissionPage.tsx';
 import { ClubsPage } from './clubs/ClubsPage.tsx';
 import { lazy, Suspense } from 'react';
@@ -37,12 +36,23 @@ export function App() {
           </RequireAuth>
         }
       />
+      {/* RowLens examples in the normal pages, read-only, for every signed-in account (ADR-0028). */}
       {UNIFIED_USERS && (
         <Route
           path="examples/:id"
           element={
             <RequireAuth accountOnly>
-              <ExamplePage />
+              <SessionPage key="example" example />
+            </RequireAuth>
+          }
+        />
+      )}
+      {UNIFIED_USERS && (
+        <Route
+          path="examples/:id/videos/:videoId"
+          element={
+            <RequireAuth accountOnly>
+              <VideoPage key="example" example />
             </RequireAuth>
           }
         />

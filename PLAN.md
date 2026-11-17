@@ -1,3 +1,9 @@
+## Examples in the training list — implemented locally (2026-11-17)
+
+Ewout's correction: admin videos belong in the normal list with normal (read-only) functionality,
+not in a separate corner under Uitleg. Approved "Ja, bouwen"; see
+docs/plans/examples-in-training-list.md. No migration; awaiting review, no deploy requested.
+
 ## Help management and example feedback — deployed (2026-11-16)
 
 Production **0.0.65 /sha-a42e2f1**, approved with “Merge en deploy”; #190/#191 merged and

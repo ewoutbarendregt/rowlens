@@ -239,6 +239,16 @@ describe('authenticated example API', () => {
     expect(list.json<{ examples: { id: string }[] }>().examples.map((s) => s.id)).toContain(
       example,
     );
+    // The overview card fields (boat, crew, video count) keep the same safe projection.
+    const row = list
+      .json<{ examples: Record<string, unknown>[] }>()
+      .examples.find((s) => s.id === example);
+    expect(Object.keys(row ?? {}).sort()).toEqual(
+      ['boatType', 'clubId', 'clubName', 'date', 'id', 'lineup', 'title', 'videoCount'].sort(),
+    );
+    expect(list.body).not.toMatch(
+      /email|originalFilename|authorUserId|createdByUserId|createdAt|Private/,
+    );
     const snapshot = await call(`/api/examples/${example}`);
     expect(snapshot.statusCode).toBe(200);
     expect(snapshot.body).not.toMatch(

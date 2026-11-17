@@ -36,6 +36,8 @@ export const DEFAULT_FILTERS: Filters = {
 
 export interface SessionRow {
   clubId?: string;
+  /** A RowLens example: listed whatever club is chosen; every other filter still applies. */
+  isExample?: boolean;
   createdByMe?: boolean;
   mySeat?: number | null;
   title: string;
@@ -105,7 +107,7 @@ export function applyFilters<T extends SessionRow>(rows: readonly T[], f: Filter
   const words = normalizeName(f.q).split(' ').filter(Boolean);
   const kept = rows.filter((r) => {
     if (f.created && r.createdByMe !== true) return false;
-    if (f.club !== null && r.clubId !== f.club) return false;
+    if (f.club !== null && r.clubId !== f.club && r.isExample !== true) return false;
     if (f.participating && (r.mySeat === undefined || r.mySeat === null)) return false;
     if (f.from !== null && r.date < f.from) return false;
     if (f.to !== null && r.date > f.to) return false;
@@ -179,4 +181,24 @@ export function defaultClubId(
       ?.id ??
     null
   );
+}
+
+/**
+ * The overview's one list: the viewer's own trainings plus every RowLens example. A training the
+ * viewer can already read through a club stays that row (with its own rights), marked as example;
+ * the other examples are added as read-only rows that open the example view.
+ */
+export function withExamples<T extends { id: string }, E extends { id: string }>(
+  own: readonly T[],
+  examples: readonly E[],
+  toRow: (example: E) => T,
+): (T & { isExample?: boolean; foreignExample?: boolean })[] {
+  const known = new Set(examples.map((e) => e.id));
+  const ids = new Set(own.map((s) => s.id));
+  return [
+    ...own.map((s) => (known.has(s.id) ? { ...s, isExample: true } : s)),
+    ...examples
+      .filter((e) => !ids.has(e.id))
+      .map((e) => ({ ...toRow(e), isExample: true, foreignExample: true })),
+  ];
 }

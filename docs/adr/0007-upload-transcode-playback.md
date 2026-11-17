@@ -138,7 +138,8 @@ confirmation of the original physical iPhone sequence remains necessary.
 ### Paused off-screen seeks (BUG-070, 2026-11-16)
 
 Linux WebKit/GStreamer can acknowledge a seek after a scroll-back in the same click handler while
-still displaying the old decoded picture. Example note/analysis jumps now reveal the stage and allow
+still displaying the old decoded picture. Note jumps (since 2026-11-17 on every video, examples
+included, in the normal video page) reveal the stage and allow
 one intervening paint (two animation-frame callbacks) before seeking; a newer jump or unmount
 cancels pending work. This is not a timer and does not set the displayed frame from the requested
 number. A synthetic canvas fingerprint checks that the actual decoded image changes.

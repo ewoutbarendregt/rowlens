@@ -47,3 +47,9 @@ There is no unpublish or publisher reassignment in this scope. Archiving still h
 No dependency, provider, external processing, production configuration or automatic rollout is added.
 The migration is compatible with earlier images: publication persists and earlier example viewers
 use their existing safe projection.
+
+## Amendment — publication from the training page (2026-11-17)
+
+The Help picker is removed. A RowLens administrator publishes the training they are viewing with
+"Publiceren als voorbeeld" and the same inline confirmation; the endpoint and every rule above are
+unchanged. The candidates search endpoint is no longer used by the client.
