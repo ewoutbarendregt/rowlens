@@ -1,4 +1,4 @@
-## Examples in the training list — local, not deployed (2026-11-17)
+## Examples in the training list — deployed 0.0.67 / sha-66b4692 (2026-11-17)
 
 RowLens examples appear as normal cards (label Voorbeeld) in every signed-in user's training list,
 under any club filter; search, dates, rower, boat and the checkboxes apply to them. Viewers outside

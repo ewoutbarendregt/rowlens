@@ -1,3 +1,10 @@
+### [BUG-074] CI dependency audit fails on picomatch ReDoS advisory — severity: medium
+**Location**: .github/workflows/ci.yml (`pnpm audit --audit-level high`); picomatch <=4.0.7 via typescript-eslint/tinyglobby/fdir (dev tooling)
+**Status**: open
+**Found**: 2026-11-17
+**Description**: Since 2026-11-17 the web job's last step fails on GHSA-fc5q-39xc-vjpf (high) for every branch, including main; all tests pass. No patched version exists. Not in the production bundle (lint tooling only). Ewout accepted merging/deploying #193 with this red step.
+**Fix**: Pending Ewout's decision (dependency/security change needs his explicit approval): wait for a patch, or a reviewed, time-limited audit exception for this advisory.
+
 ### [BUG-073] Admin creator select overflows the training page on iPhone — severity: low
 **Location**: apps/web/src/client/styles.css (`.creator`)
 **Status**: fixed
