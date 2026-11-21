@@ -2,11 +2,11 @@ import { lang } from '../i18n/language.ts';
 const en = {
   mappingConflict:
     'Could not link these names. Check the verified account and club membership, and resolve conflicting seats or measurements first.',
-  legacy: 'Link existing names',
+  legacy: 'Link names to accounts',
   legacyHint:
-    'First ensure this person has a verified account and club membership. Linking preserves existing feedback and measurements. Conflicting histories are refused.',
+    'Names added to a crew without an account. Once this person has a verified account and club membership, link the name: seats, feedback and measurements move to the account. Conflicting histories are refused.',
   link: 'Link to this user',
-  linkedQuestion: 'Confirm that these historical references belong to the selected user.',
+  linkedQuestion: 'Confirm that this name and its history belong to the selected user.',
   clubs: 'Clubs',
   archived: 'Archived',
   archive: 'Archive club',
@@ -55,11 +55,11 @@ const en = {
 const nl: typeof en = {
   mappingConflict:
     'Koppelen lukt niet. Controleer het geverifieerde account en clublidmaatschap en los botsende bezettingen of metingen eerst op.',
-  legacy: 'Bestaande namen koppelen',
+  legacy: 'Namen aan accounts koppelen',
   legacyHint:
-    'Zorg eerst dat deze persoon een geverifieerd account en clublidmaatschap heeft. Koppelen bewaart bestaande feedback en metingen. Conflicterende historie wordt geweigerd.',
+    'Namen die zonder account in een ploeg zijn gezet. Heeft deze persoon een geverifieerd account en clublidmaatschap, koppel dan de naam: plaatsen in de boot, feedback en metingen gaan mee naar het account. Conflicterende historie wordt geweigerd.',
   link: 'Aan deze gebruiker koppelen',
-  linkedQuestion: 'Bevestig dat deze historische verwijzingen bij de gekozen gebruiker horen.',
+  linkedQuestion: 'Bevestig dat deze naam en zijn geschiedenis bij de gekozen gebruiker horen.',
   clubs: 'Clubs',
   archived: 'Gearchiveerd',
   archive: 'Club archiveren',

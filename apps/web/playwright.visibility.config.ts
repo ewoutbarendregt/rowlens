@@ -5,7 +5,7 @@ if (!server || Array.isArray(server))
   throw new Error('Visibility tests require the isolated local server');
 export default defineConfig({
   ...base,
-  testMatch: 'training-visibility.spec.ts',
+  testMatch: ['training-visibility.spec.ts', 'crew-whole-club.spec.ts'],
   outputDir: 'test-results-visibility',
   projects: [
     {

@@ -67,6 +67,15 @@ image behavior available; old sessions are accepted by the unified guard without
 rights. The platform grant bootstrap is operator-only and audited, never inferred from allowlists.
 This records the approved architecture, not a completed security review or deployment authorization.
 
+## Amendment 2026-11-21 (BUG-075, Ewout: "Ja, losse namen toestaan", "Ja, bouwen")
+
+Crews come from the whole club: whoever may edit a training picks any verified member of the club,
+whatever their role, and may add a **name-only crew member** (display name only, no e-mail, no
+account, cannot sign in, never a sharing recipient). This narrows "no name-only dummy accounts":
+such a name is a roster entry, not an account. The club administrator links it to the person's
+verified account later (`rowlens_link_legacy_person`, audited); conflicting histories are refused.
+The roster itself stays hidden from rowers; the list is served only for an editable training.
+
 ## Alternatives considered
 
 - Only remove the menu: leaves duplicate identities and cannot satisfy account requests/multi-club.

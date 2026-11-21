@@ -232,6 +232,13 @@
       "when": 1795269947208,
       "tag": "0033_example_notes_for_members",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795282337525,
+      "tag": "0034_crew_whole_club",
+      "breakpoints": true
     }
   ]
 }

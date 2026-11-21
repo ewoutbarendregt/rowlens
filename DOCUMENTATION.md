@@ -1,3 +1,10 @@
+## [2026-11-21] — Crew from the whole club, name-only crew members, linking (BUG-075)
+
+**Session**: claude/fix/crew-pick-whole-club
+**Changed**: apps/web/src/server/db/migrations/0034_crew_whole_club.sql, apps/web/src/server/db/migrations/meta/_journal.json, apps/web/src/server/db/migrations/meta/0034_snapshot.json, apps/web/src/server/api/rowers.ts, apps/web/src/server/api/lineups.ts, apps/web/src/server/api/angles.ts, apps/web/src/client/rowers/RowerPicker.tsx, apps/web/src/client/rowers/useRoster.ts, apps/web/src/client/lineup/LineupCard.tsx, apps/web/src/client/clubs/strings.ts, apps/web/src/server/api/crew-picking.db.test.ts, apps/web/e2e/crew-whole-club.spec.ts, apps/web/playwright.visibility.config.ts, docs/adr/0021-unified-accounts-and-club-admission.md, BUGS.md, BUILD.md, TEST.md, FEATURES.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Whoever may edit a training now picks its crew from every verified member of the club (any role) plus name-only entries, and may add a name-only crew member from the seat (with the similar-name question). Lineup saves and angle measurements accept them; read access to the roster, trainings and notes is unchanged. The existing club-admin linking ("Namen aan accounts koppelen") moves a name and its history to an account later; its texts now cover crew names.
+**Prompts used**: "als roeier kan ik de opstelling van de ploeg niet aanpassen. ik kan geen roeiers toevoegen, alleen roeiers die al gebruikers zijn, maar dan zie ik maar twee mensen. Ik moet iedereen van de club kunnen selecteren en toevoegen als ik een nieuwe training maak"; answers "Alle clubleden (10)" and "Ja, losse namen toestaan"; "Ja, bouwen"; "het aan elkaar koppelen van een roeier aan een bestaand account door de clubbeheerder moet ook gebouwd of weer aangezet worden"
+
 ## [2026-11-21] — Deployed sha-1a36f75 (BUG-074 example notes)
 
 **Session**: claude/docs/deploy-sha-1a36f75

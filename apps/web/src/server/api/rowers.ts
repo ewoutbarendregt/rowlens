@@ -127,6 +127,20 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
       if (session === undefined) return null;
+      // Picking a crew (BUG-075): the whole club for whoever may edit this training.
+      if (opts.unifiedUsers && z.object({ crew: z.literal('true') }).safeParse(req.query).success) {
+        if (!session.writable) return null;
+        await tx.execute(sql`select rowlens_sync_account_targets()`);
+        const found = await tx.execute<{ id: string; display_name: string; mine: boolean }>(
+          sql`select id, display_name, mine from rowlens_crew_candidates(${session.id}) order by display_name`,
+        );
+        return found.rows.map((r) => ({
+          id: r.id,
+          displayName: r.display_name,
+          archivedAt: null,
+          userId: r.mine ? t.userId : null,
+        }));
+      }
       const crew = tx
         .select({ id: lineupSeat.rowerId })
         .from(lineupSeat)
@@ -160,6 +174,42 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
             mine: userId !== null && userId === t.userId,
           })),
         };
+  });
+
+  // A name-only crew member (BUG-075, amends ADR-0021): whoever may edit the training adds one.
+  app.post('/api/sessions/:id/rowers', { preHandler: guard }, async (req, reply) => {
+    const params = idParam.safeParse(req.params);
+    if (!opts.unifiedUsers || !params.success) return notFound(reply);
+    const body = newRower.omit({ email: true }).safeParse(req.body);
+    if (!body.success) return reply.code(400).send({ error: 'invalid_rower' });
+    const result = await withTenant(db, tenantOf(req), async (tx) => {
+      await tx.execute(sql`select rowlens_sync_account_targets()`);
+      const existing = await tx.execute<{ id: string; display_name: string }>(
+        sql`select id, display_name from rowlens_crew_candidates(${params.data.id})`,
+      );
+      const writable = await tx.execute<{ ok: boolean }>(
+        sql`select rowlens_can_edit_session(${params.data.id}) as ok`,
+      );
+      if (!writable.rows[0]?.ok) return null;
+      if (!body.data.confirmNew) {
+        const candidates = existing.rows
+          .filter((r) => similarNames(r.display_name, body.data.displayName))
+          .map((r) => ({ id: r.id, displayName: r.display_name, email: null, archivedAt: null }));
+        if (candidates.length > 0) return { candidates };
+      }
+      const added = await tx.execute<{ id: string; display_name: string }>(
+        sql`select id, display_name from rowlens_add_crew_name(${params.data.id}, ${body.data.displayName})`,
+      );
+      const row = added.rows[0];
+      return row === undefined
+        ? null
+        : { row: { id: row.id, displayName: row.display_name, email: null, archivedAt: null } };
+    });
+    if (result === null) return notFound(reply);
+    if ('candidates' in result) {
+      return reply.code(409).send({ error: 'similar', candidates: result.candidates });
+    }
+    return reply.code(201).send(result.row);
   });
 
   app.get(

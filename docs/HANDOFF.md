@@ -1,5 +1,15 @@
 # Handoff — 2026-11-21 (Claude)
 
+## Current work: BUG-075, crew from the whole club
+
+- Branch `claude/fix/crew-pick-whole-club` (worktree `/Users/ewout/src/rowlens-example-notes`), from
+  main fcb6bc2. PR open; not merged, not deployed. Adds migration **0034** (three definer functions,
+  no table or policy change). Production stays `sha-1a36f75`.
+- Ewout's choices: all club members (any role) are crew choices; name-only crew members allowed
+  (ADR-0021 amendment); club admins link a name to an account later (existing "Namen aan accounts
+  koppelen" under Beheer → Aanvragen). Production has 3 active name-only legacy entries that will
+  appear in the crew choices.
+
 ## Current work: BUG-074, example notes for members of the owning club
 
 - Branch `claude/fix/example-notes-for-members` (worktree `/Users/ewout/src/rowlens-example-notes`),

@@ -9,6 +9,8 @@ const MAX_OPTIONS = 8;
 
 interface RowerPickerProps {
   allowCreate?: boolean;
+  /** With unified accounts, a name is added to this training's crew choices (BUG-075). */
+  createIn?: string | undefined;
   /** The active roster to search in. */
   rowers: Rower[];
   value: { id: string; displayName: string } | null;
@@ -34,6 +36,7 @@ type Option = { kind: 'rower'; rower: Rower } | { kind: 'add'; name: string };
 export function RowerPicker({
   rowers,
   allowCreate = true,
+  createIn,
   value,
   onChange,
   onAdded,
@@ -42,7 +45,7 @@ export function RowerPicker({
   suggested,
 }: RowerPickerProps) {
   const { state: auth } = useAuth();
-  allowCreate = allowCreate && !(auth.kind === 'open' && auth.unified);
+  allowCreate = allowCreate && !(auth.kind === 'open' && auth.unified && createIn === undefined);
   const t = rowerStrings();
   const id = useId();
   const [open, setOpen] = useState(false);
@@ -83,7 +86,7 @@ export function RowerPicker({
   const add = async (name: string, confirmNew: boolean) => {
     setBusy(true);
     setError(false);
-    const result = await addRower(name, { confirmNew });
+    const result = await addRower(name, { confirmNew, sessionId: createIn });
     setBusy(false);
     if (result.kind === 'added') {
       onAdded(result.rower);
