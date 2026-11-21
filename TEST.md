@@ -1,3 +1,10 @@
+## 2026-11-21 — Example publisher notes for members of the owning club (claude/fix/example-notes-for-members)
+
+- New db case: a rower of the owning club, example shared with the club, `GET /api/videos/:id/annotations` returned 200 with **0** notes before the fix (reproduces BUG-074); after it, the publisher's note is returned and the other author's and the legacy note stay hidden. Training visibility db file 19/19.
+- Full web/DB **718/718** in 66 files; format, lint, typecheck pass.
+- Browser (built with `VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true`): visibility **15/15** (publish case extended: the creator opens the published training in the normal video page and sees "Gepubliceerd door beheerder" next to their own note; Chromium 1000×540, 1440×900, iPhone 13 WebKit), sharing **9/9**, unified **34/34**.
+- Not verified: Ewout's local dev stack (its database is behind `main`, without migrations 0029–0032), physical iPhone.
+
 ## 2026-11-17 — Examples in the training list (claude/feat/examples-in-training-list)
 
 - Full web/DB **717/717** in 66 files (new: 2 list/filter merge cases and the example list projection key/privacy assertion; removed: the separate viewer's drawing helper cases). A first run failed the ADR-0030 privacy assertion because `createdAt` was added to the projection; removed again (no timestamps).

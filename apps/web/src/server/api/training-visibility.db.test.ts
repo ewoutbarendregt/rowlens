@@ -414,3 +414,43 @@ describe('published example feedback', () => {
     ).toBe(404);
   });
 });
+
+describe('published example feedback for members of the owning club', () => {
+  const member = randomUUID();
+  const memberToken = randomUUID().replaceAll('-', '').repeat(2),
+    memberCsrf = randomUUID();
+  const asMember = (path: string) =>
+    app.inject({
+      url: withBasePath('/projects/rowlens', path),
+      headers: {
+        cookie: `rowlens_sid=${memberToken}; rowlens_csrf=${memberCsrf}`,
+        origin: 'http://localhost:3101',
+      },
+    });
+  beforeAll(async () => {
+    await asOwner(
+      "insert into app_user(id,email,display_name,verified_at) values($1,$2,'Synthetic',now())",
+      [member, `${member}@example.test`],
+    );
+    await asOwner("insert into membership(club_id,user_id,roles) values($1,$2,ARRAY['rower'])", [
+      clubs.b,
+      member,
+    ]);
+    await asOwner(
+      "insert into account_session(user_id,token_hash,csrf_hash,expires_at) values($1,$2,$3,now()+interval '1 day')",
+      [member, sha256(memberToken), sha256(memberCsrf)],
+    );
+    // The example is shared with the whole owning club, so its members open the normal pages.
+    await asOwner(
+      "insert into session_share(club_id,session_id,scope,shared_by_user_id) values($1,$2,'club',$3)",
+      [clubs.b, example, platform],
+    );
+  });
+  it('shows a rower of the owning club the publisher notes in the normal video page', async () => {
+    const r = await asMember(`/api/videos/${video}/annotations?club=${clubs.b}`);
+    expect(r.statusCode).toBe(200);
+    const body = r.json<{ annotations: { body: string | null }[] }>();
+    expect(body.annotations.map((a) => a.body)).toContain('Published note');
+    expect(r.body).not.toMatch(/Hidden sibling|Hidden legacy/);
+  });
+});

@@ -362,6 +362,14 @@ test('RowLens admin publishes an existing training from the training itself, wit
       .locator('tr', { has: page.getByRole('link', { name: title, exact: true }) })
       .getByTestId('example-badge'),
   ).toBeVisible();
+  // The creator opens their own training in the normal pages; the publisher's notes show there
+  // too, next to their own (BUG-074).
+  await page.getByTestId('session-list').getByRole('link', { name: title, exact: true }).click();
+  await expect(page.getByTestId('example-read-only')).toHaveCount(0);
+  await openFirstVideo(page);
+  await expect(page.getByTestId('notes')).toContainText('Gepubliceerd door beheerder');
+  await expect(page.getByTestId('notes')).toContainText('Hidden original creator feedback');
+  await page.screenshot({ path: info.outputPath('example-notes-normal-page.png'), fullPage: true });
   await page.goto(`./examples/${example.id}`);
   await openFirstVideo(page);
   await expect(page.getByTestId('notes')).toContainText('Gepubliceerd door beheerder');

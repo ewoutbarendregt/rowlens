@@ -1,3 +1,10 @@
+## [2026-11-21] — Example publisher notes visible to members of the owning club (BUG-074)
+
+**Session**: claude/fix/example-notes-for-members
+**Changed**: apps/web/src/server/db/schema.ts, apps/web/src/server/db/migrations/0033_example_notes_for_members.sql, apps/web/src/server/db/migrations/meta/_journal.json, apps/web/src/server/db/migrations/meta/0033_snapshot.json, apps/web/src/server/api/training-visibility.db.test.ts, apps/web/e2e/training-visibility.spec.ts, BUGS.md, BUILD.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: Members of the club that owns an example, who read the training through the normal pages, saw none of the RowLens admin's notes: the ordinary rower rule (only notes shared with or written by them) applied. The ordinary annotation read policy now also admits the publisher's annotations of a published example (`rowlens_published_example_annotation`), still only on videos the viewer may already see; nothing else about trainings, videos or other authors' notes changes.
+**Prompts used**: "als ik ben ingelogd als gewone gebruiker, dan kan ik de notities van de voorbeelden niet zien, terwijl dat juist wel de bedoeling is"; then "ik begrijp optie A niet goed. Ik wil gewoon dat de notities van de Rowlens beheerder voor iedereen zichtbaar zijn. verder moet er niets veranderen aan de rechtenstructuur"
+
 ## [2026-11-17] — Linux WebKit note jump on the normal video page
 
 **Session**: claude/feat/examples-in-training-list

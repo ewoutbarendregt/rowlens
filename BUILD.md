@@ -1,3 +1,11 @@
+## Example publisher notes in the normal pages (2026-11-21, BUG-074)
+
+`annotation_role_read` (ordinary branch) admits, besides the viewer's visible moments and own notes,
+annotations for which `rowlens_published_example_annotation(video, author)` holds: the video is in
+the current club, its training `is_example` in an active club, and the author is the frozen
+`example_publisher_user_id`. `rowlens_can_see_video` is still required, so who sees which training
+or video is unchanged; other authors' notes on an example stay private.
+
 ## Examples in the normal pages (2026-11-17)
 
 `SessionsPage` merges `/api/examples` into `/api/account/sessions` (`withExamples` in
