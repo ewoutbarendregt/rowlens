@@ -564,7 +564,7 @@ export const annotation = pgTable(
     rolePolicy(
       'annotation_role_read',
       'select',
-      sql`case when nullif(current_setting('app.example_session', true), '') is not null then rowlens_example_annotation(${t.videoId}, ${t.authorUserId}) else rowlens_can_see_video(${t.videoId}) and (rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me}) end`,
+      sql`case when nullif(current_setting('app.example_session', true), '') is not null then rowlens_example_annotation(${t.videoId}, ${t.authorUserId}) else rowlens_can_see_video(${t.videoId}) and (rowlens_can_see_moment(${t.videoId}, ${t.frame}) or ${t.authorUserId} = ${me} or rowlens_published_example_annotation(${t.videoId}, ${t.authorUserId})) end`,
     ),
     rolePolicy(
       'annotation_role_add',

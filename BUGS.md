@@ -1,4 +1,11 @@
-### [BUG-074] CI dependency audit fails on picomatch ReDoS advisory — severity: medium
+### [BUG-074] Rowers of the owning club don't see an example's notes — severity: medium
+**Location**: apps/web/src/server/db/migrations/0031_example_feedback.sql (`annotation_role_read`), apps/web/src/client/sessions/filter.ts (`withExamples`)
+**Status**: fixed
+**Found**: 2026-11-21
+**Description**: A member of the club that owns an example who can also read the training normally (shared with the club or with them, in the crew, or made it) opens it through the normal training/video pages and `/api/videos/:id/annotations`. There the normal rower rule applies (only notes shared with or written by them), so the publisher's notes and drawings are missing, although every other signed-in account sees them through `/api/examples/:id`. Reproduced by a db test: 200 with 0 notes for a rower of the owning club, example shared with the club.
+**Fix**: Migration 0033: the ordinary annotation read policy also admits the publisher's annotations of a published example (`rowlens_published_example_annotation`), only on videos the viewer already sees. Branch claude/fix/example-notes-for-members.
+
+### [BUG-075] CI dependency audit fails on picomatch ReDoS advisory — severity: medium
 **Location**: .github/workflows/ci.yml (`pnpm audit --audit-level high`); picomatch <=4.0.7 via typescript-eslint/tinyglobby/fdir (dev tooling)
 **Status**: open
 **Found**: 2026-11-17
