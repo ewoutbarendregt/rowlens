@@ -3,8 +3,8 @@
 ## Current work: BUG-074, example notes for members of the owning club
 
 - Branch `claude/fix/example-notes-for-members` (worktree `/Users/ewout/src/rowlens-example-notes`),
-  from main 66b4692. PR open; not merged, not deployed. Adds migration **0033** (RLS read policy on
-  `annotation` plus one helper function); deploying it runs that migration.
+  from main 66b4692. PR #195 merged as 1a36f75 and **deployed** 2026-11-21 (`sha-1a36f75`, migration
+  0033 applied: RLS read policy on `annotation` plus one helper function).
 - Ewout's rule: the RowLens admin's notes on an example are visible to everyone; nothing else in the
   permission structure changes.
 - Ewout's main checkout is on `codex/fix/club-editor-feedback` with uncommitted Codex work (including
@@ -44,7 +44,7 @@ Await Ewout's next task; do not infer a new implementation project from the back
 
 ## Production and completed scope
 
-- **Live:0.0.65 /sha-a42e2f1** at https://trustable.nl/projects/rowlens/.
+- **Live: sha-1a36f75** (2026-11-21, #195) at https://trustable.nl/projects/rowlens/.
 - #190 merged as ece7f78: immutable example publisher, safe read-only notes/drawings and corrected
   Linux WebKit paused-frame jumps. #191 merged as a42e2f1: Help create/edit/rename/existing selection.
 - Rower visibility remains creator/crew/explicit sharing; default club uses the saved primary club.
