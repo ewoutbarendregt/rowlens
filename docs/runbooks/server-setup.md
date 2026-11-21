@@ -100,6 +100,14 @@ role.
 
 ## Recent deployments
 
+- **2026-11-21 15:49 UTC — `sha-1a36f75`** ([#195](https://github.com/ewoutbarendregt/rowlens/pull/195):
+  RowLens admin's notes on examples visible to members of the owning club, BUG-074). Deploy run
+  [44921182532](https://github.com/ewoutbarendregt/rowlens/actions/runs/44921182532) succeeded;
+  migration 0033 applied (33 migrations, `rowlens_published_example_annotation` present).
+  `/health/ready` returned `sha-1a36f75` with `db: ok`; `rowlens-web` and `rowlens-worker` run that
+  tag; `https://trustable.nl/`, `https://api.trustable.nl/api/health` and AudioScribe returned 200;
+  trustable and AudioScribe containers untouched (up 13 days). Pre-deploy dump
+  `pre-deploy-20261121T154923Z-sha-1a36f75.dump`.
 - **2026-11-07 19:20 UTC — `sha-a47111c`** ([#159](https://github.com/ewoutbarendregt/rowlens/pull/159):
   explicit signup, optional club choice and global/club request review; lower documentation #158).
   PR CI [42403762182](https://github.com/ewoutbarendregt/rowlens/actions/runs/42403762182), main CI

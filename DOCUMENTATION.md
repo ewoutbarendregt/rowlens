@@ -1,3 +1,10 @@
+## [2026-11-21] — Deployed sha-1a36f75 (BUG-074 example notes)
+
+**Session**: claude/docs/deploy-sha-1a36f75
+**Changed**: DOCUMENTATION.md, docs/runbooks/server-setup.md, docs/HANDOFF.md
+**Summary**: Merged #195 as 1a36f75 and deployed `sha-1a36f75` (deploy run 44921182532). Verified read-only: `/health/ready` reports `sha-1a36f75` with `db` ok, migration 0033 applied (33 rows, helper function present), web and worker on the new tag, trustable.nl, its API and AudioScribe 200 and their containers untouched.
+**Prompts used**: "merge en deploy maar"
+
 ## [2026-11-21] — Example publisher notes visible to members of the owning club (BUG-074)
 
 **Session**: claude/fix/example-notes-for-members
