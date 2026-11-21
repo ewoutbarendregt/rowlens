@@ -225,6 +225,13 @@
       "when": 1794861433532,
       "tag": "0032_example_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795269947208,
+      "tag": "0033_example_notes_for_members",
+      "breakpoints": true
     }
   ]
 }

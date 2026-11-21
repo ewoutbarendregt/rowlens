@@ -1,3 +1,15 @@
+# Handoff — 2026-11-21 (Claude)
+
+## Current work: BUG-074, example notes for members of the owning club
+
+- Branch `claude/fix/example-notes-for-members` (worktree `/Users/ewout/src/rowlens-example-notes`),
+  from main 66b4692. PR open; not merged, not deployed. Adds migration **0033** (RLS read policy on
+  `annotation` plus one helper function); deploying it runs that migration.
+- Ewout's rule: the RowLens admin's notes on an example are visible to everyone; nothing else in the
+  permission structure changes.
+- Ewout's main checkout is on `codex/fix/club-editor-feedback` with uncommitted Codex work (including
+  a local 0027 migration) and a dev DB behind main; left untouched.
+
 # Handoff — 2026-11-17 (Claude)
 
 ## Current work: examples in the normal training list
