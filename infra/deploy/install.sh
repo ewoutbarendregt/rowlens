@@ -1,45 +1,35 @@
 #!/usr/bin/env bash
-# Installs the deploy entry point and compose file on trustable-prod and binds the RowLens CI key to it.
+# Installs the deploy entry point and the compose file in /opt/rowlens on the production server.
 #
-# Touches a shared component (deploy's authorized_keys): run only with Ewout's explicit approval.
-# Uses the management SSH alias (your own key), never the CI key. Idempotent; backs up authorized_keys.
+# Changes the server's RowLens setup: run only with Ewout's explicit approval, after showing the diff
+# (scripts/deploy.sh prod --dry-run prints it). Uses your own SSH alias (user deploy). Idempotent;
+# keeps the replaced files as *.bak-<timestamp>. Touches nothing outside /opt/rowlens.
 #
-#   infra/deploy/install.sh            # ROWLENS_SSH_HOST=trustable-prod by default
+#   infra/deploy/install.sh            # ROWLENS_SSH_HOST=trustable-contabo by default
 set -euo pipefail
 
-HOST="${ROWLENS_SSH_HOST:-trustable-prod}"
+HOST="${ROWLENS_SSH_HOST:-trustable-contabo}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PUBKEY_FILE="${ROWLENS_CI_PUBKEY:-$HOME/.ssh/rowlens_deploy.pub}"
-# The key's base64 body identifies its line in authorized_keys.
-KEY_BODY="$(awk '{print $2}' "$PUBKEY_FILE")"
-[[ "$KEY_BODY" =~ ^AAAA[0-9A-Za-z+/=]+$ ]] || { echo "unexpected public key in $PUBKEY_FILE" >&2; exit 1; }
 
-ssh "$HOST" 'install -d -m 750 /opt/rowlens/bin'
+# Every remote command gets -n: stdin never feeds a remote shell (see scripts/deploy.sh).
+ssh -n "$HOST" 'install -d -m 750 /opt/rowlens/bin'
 scp -q "$HERE/rowlens-deploy" "$HOST:/opt/rowlens/bin/rowlens-deploy.new"
 scp -q "$HERE/../compose/docker-compose.prod.yml" "$HOST:/opt/rowlens/docker-compose.yml.new"
 
-ssh "$HOST" bash -s -- "$KEY_BODY" <<'REMOTE'
-set -euo pipefail
-key="$1"
+# shellcheck disable=SC2016 # expanded on the server
+ssh -n "$HOST" 'set -euo pipefail
 cd /opt/rowlens
-chmod 750 bin/rowlens-deploy.new && mv bin/rowlens-deploy.new bin/rowlens-deploy
-chmod 640 docker-compose.yml.new && mv docker-compose.yml.new docker-compose.yml
-
-f="$HOME/.ssh/authorized_keys"
-want="restrict,command=\"/opt/rowlens/bin/rowlens-deploy\" ssh-ed25519 $key gh-actions-rowlens"
-count="$(grep -cF "$key" "$f" || true)"
-[[ "$count" == 1 ]] || { echo "expected exactly one authorized_keys line with the CI key, found $count" >&2; exit 1; }
-if grep -qxF "$want" "$f"; then
-  echo "authorized_keys: CI key already restricted"
-else
-  backup="$f.bak-$(date -u +%Y%m%dT%H%M%SZ)"
-  cp -p "$f" "$backup"
-  awk -v key="$key" -v want="$want" 'index($0, key) { print want; next } { print }' "$f" >"$f.tmp"
-  chmod 600 "$f.tmp" && mv "$f.tmp" "$f"
-  echo "authorized_keys: CI key restricted (backup: $backup); change:"
-  diff "$backup" "$f" | sed -E 's/(AAAA[0-9A-Za-z+/]{8})[0-9A-Za-z+/=]+/\1…/' || true
-fi
-
+ts="$(date -u +%Y%m%dT%H%M%SZ)"
+for pair in bin/rowlens-deploy:750 docker-compose.yml:640; do
+  f="${pair%%:*}" mode="${pair#*:}"
+  if [[ -f "$f" ]] && cmp -s "$f" "$f.new"; then
+    rm "$f.new"
+    echo "$f: unchanged"
+    continue
+  fi
+  [[ -f "$f" ]] && cp -p "$f" "$f.bak-$ts" && echo "$f: replaced (old copy: $f.bak-$ts)"
+  chmod "$mode" "$f.new" && mv "$f.new" "$f"
+done
 ls -l /opt/rowlens/bin/rowlens-deploy /opt/rowlens/docker-compose.yml
 /opt/rowlens/bin/rowlens-deploy status
-REMOTE
+echo INSTALL-OK' | tee /dev/stderr | grep -qx INSTALL-OK || { echo "install did not finish" >&2; exit 1; }

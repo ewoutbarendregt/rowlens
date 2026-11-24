@@ -16,7 +16,7 @@ setup() {
   mkdir -p "$ROWLENS_HOME" "$STUB_DIR"
   echo "services: {}" >"$ROWLENS_HOME/docker-compose.yml"
   echo "POSTGRES_PASSWORD=x" >"$ROWLENS_HOME/.env"
-  unset STUB_PULL_EXIT STUB_UP_FAIL_TAGS STUB_HEALTHY_TAGS STUB_DB_RUNNING STUB_HAS_MIGRATE \
+  unset STUB_MISSING_TAGS STUB_UP_FAIL_TAGS STUB_HEALTHY_TAGS STUB_DB_RUNNING STUB_HAS_MIGRATE \
     STUB_MIGRATE_EXIT STUB_IMAGE_TAGS SSH_ORIGINAL_COMMAND
 }
 
@@ -77,32 +77,29 @@ check "chained command not executed" test ! -e "$T/pwned"
 t "SSH_ORIGINAL_COMMAND drives the command when forced"
 setup
 export SSH_ORIGINAL_COMMAND="deploy sha-aaaaaaa" STUB_HEALTHY_TAGS="sha-aaaaaaa"
-run "token-123" ignored-args
+run "" ignored-args
 check "forced deploy succeeds" test "$code" -eq 0
 check "forced deploy recorded" test "$(state current-tag)" = sha-aaaaaaa
 
 # ---------------------------------------------------------------- deploys
-t "first deploy: login, pull, up, ready, logout; token never printed"
-setup
-export STUB_HEALTHY_TAGS="sha-aaaaaaa"
-run "secret-token-123" deploy sha-aaaaaaa
-check "exit 0" test "$code" -eq 0
-check "current tag" test "$(state current-tag)" = sha-aaaaaaa
-check "no previous tag" test -z "$(state previous-tag)"
-check "release.env" grep -qx "ROWLENS_TAG=sha-aaaaaaa" "$ROWLENS_HOME/state/release.env"
-check "token passed to docker login" grep -qx "secret-token-123" "$STUB_DIR/token-received"
-check "token not in output" bash -c '! grep -q secret-token-123 <<<"$1"' _ "$out"
-check "token not in docker args" bash -c '! grep -q secret-token-123 "$1"' _ "$STUB_DIR/calls"
-check "pulled with the new tag" grep -q "ROWLENS_TAG=sha-aaaaaaa docker compose .* pull" "$STUB_DIR/calls"
-check "logged out" grep -q "docker logout ghcr.io" "$STUB_DIR/calls"
-
-t "deploy without a token uses local images"
+t "first deploy: local images, no registry, up, ready"
 setup
 export STUB_HEALTHY_TAGS="sha-aaaaaaa"
 run "" deploy sha-aaaaaaa
 check "exit 0" test "$code" -eq 0
+check "current tag" test "$(state current-tag)" = sha-aaaaaaa
+check "no previous tag" test -z "$(state previous-tag)"
+check "release.env" grep -qx "ROWLENS_TAG=sha-aaaaaaa" "$ROWLENS_HOME/state/release.env"
+check "both images checked" grep -q "docker image inspect ghcr.io/ewoutbarendregt/rowlens-worker:sha-aaaaaaa" "$STUB_DIR/calls"
 check "no login" bash -c '! grep -q "docker login" "$1"' _ "$STUB_DIR/calls"
 check "no pull" bash -c '! grep -q " pull" "$1"' _ "$STUB_DIR/calls"
+check "up never pulls" grep -q "ROWLENS_TAG=sha-aaaaaaa docker compose .* up -d --remove-orphans --pull never" "$STUB_DIR/calls"
+
+t "stdin is never read: input after the command is left alone"
+setup
+export STUB_HEALTHY_TAGS="sha-aaaaaaa"
+run "echo leftover" deploy sha-aaaaaaa
+check "exit 0" test "$code" -eq 0
 
 t "second deploy keeps the first as previous and prunes older images"
 setup
@@ -140,13 +137,13 @@ check "exit 2" test "$code" -eq 2
 check "no current tag" test -z "$(state current-tag)"
 check "web stopped" grep -q "compose .* stop web" "$STUB_DIR/calls"
 
-t "pull failure changes nothing"
+t "an image that was not loaded changes nothing"
 setup
-export STUB_PULL_EXIT=1
-run "token" deploy sha-aaaaaaa
+export STUB_HEALTHY_TAGS="sha-aaaaaaa" STUB_MISSING_TAGS="sha-aaaaaaa"
+run "" deploy sha-aaaaaaa
 check "exit 2" test "$code" -eq 2
-check "no up" bash -c '! grep -q " up " "$1"' _ "$STUB_DIR/calls"
-check "logged out anyway" grep -q "docker logout ghcr.io" "$STUB_DIR/calls"
+check "says why" grep -q "is not on this host" <<<"$out"
+check "no backup, migrate or up" bash -c '! grep -Eq " (exec|run|up) " "$1"' _ "$STUB_DIR/calls"
 
 t "running database is backed up before deploying"
 setup

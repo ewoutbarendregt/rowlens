@@ -1,7 +1,9 @@
-# Runbook: RowLens on trustable-prod
+# Runbook: RowLens on the production server
 
-What exists on the server for RowLens, who changed it, and what is still to do. Every change to a shared
-component is approved by Ewout first (CLAUDE.md). Newest changes first.
+What exists on the server for RowLens, who changed it, and what is still to do. Production is
+`trustable-contabo` (144.91.87.103) since 2026-11-24; older sections describe the Hetzner host
+`trustable-prod`. Every change to a shared component is approved by Ewout first (AGENTS.md). Newest
+changes first.
 
 ## Help examples and publisher feedback deployed — 2026-11-16 21:43 UTC
 
@@ -46,7 +48,7 @@ Five public HTTP checks pass: readiness, trustable.nl, API health, AudioScribe a
 listing (WVIJburg). No production signup/email was sent. BUG-054 is fixed for this host; BUG-055
 and other maintenance findings remain open. No staging host was checked or modified.
 
-## Current state
+## Current state (Hetzner, until 2026-11-24)
 
 | Item | State | Changed by / when |
 |---|---|---|
@@ -90,13 +92,44 @@ role.
 `status` runs; `ls /`, `deploy sha-abc1234; id`, an interactive shell and `deploy latest` are refused
 (exit 64); remote port forwarding is refused. The other four keys are byte-identical to the backup.
 
-## Deploying (#25)
+## Deploying (local, since 2026-11-24)
 
-- **Deploy**: GitHub → Actions → **deploy** → Run workflow, tag `sha-<7>` (shown in the `images` run summary
-  after a merge to `main`).
-- **Status**: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy status`
-- **Roll back** to the previous release: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy rollback`
+Production is the Contabo VPS **144.91.87.103** (`ssh trustable-contabo`, user `deploy`, uid 1002)
+since 2026-11-24; the Hetzner host 46.225.212.217 (`trustable-prod`) is only a Caddy forwarder now,
+its app containers stopped. RowLens there: compose project `rowlens` in `/opt/rowlens`
+(`docker-compose.yml`, `.env`, `state/{current-tag,previous-tag,release.env}`, `bin/rowlens-deploy`,
+`backups/`, `media/` owned by uid 1000), web on `trustable_proxy` behind Caddy.
+
+Only on Ewout's explicit request, each time. From the repo on Ewout's Mac (Docker with buildx):
+
+```bash
+scripts/deploy.sh prod --dry-run                 # build + read-only preflight, changes nothing
+scripts/deploy.sh prod                           # deploy origin/main (asks for confirmation)
+scripts/deploy.sh prod --ref <sha|branch|tag>    # deploy another ref
+```
+
+It builds `ghcr.io/ewoutbarendregt/rowlens-{web,worker}:sha-<7>` for linux/amd64 from a temporary
+worktree (the names are only local tags; nothing is pushed to GHCR), loads them on the server with
+`docker save | gzip | ssh … docker load`, runs `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` with
+`ssh -n` (backup → migrate → `up --pull never` → readiness → keep or roll back), and checks the end
+marker, the running image tags and `https://trustable.nl/projects/rowlens/health/live`. The displayed
+release continues from the highest `org.opencontainers.image.version` label among the RowLens web
+images on the server (+1 for a new commit, unchanged for a redeploy; `ROWLENS_RELEASE_SEQ=<n>`
+overrides), see ADR-0027.
+
+Preflight warns when the server's `rowlens-deploy` or compose file differ from the ref (update them
+with `infra/deploy/install.sh`, approval required) and when the rollback target's images are not on
+the server.
+
+- **Status**: `ssh trustable-contabo /opt/rowlens/bin/rowlens-deploy status`
+- **Roll back** to the previous release: `ssh trustable-contabo /opt/rowlens/bin/rowlens-deploy rollback`
+  (only with Ewout's yes)
 - Pre-deploy database dumps: `/opt/rowlens/backups/pre-deploy-*.dump` (newest 10 kept).
+
+Until 2026-11-24 deploys ran from GitHub Actions (`images` pushed to GHCR, `deploy` SSHed to
+Hetzner with the forced-command CI key below). Those workflows are removed; the CI key and the
+`ROWLENS_SSH_PRIVATE_KEY` secret are not used any more, and the Contabo `deploy` user has no
+RowLens CI key.
 
 ## Recent deployments
 
@@ -205,5 +238,6 @@ ssh trustable-prod 'set -e; umask 027; f=/opt/rowlens/.env; test ! -e $f
 ## Follow-ups
 
 - Changes to `rowlens-deploy` or the prod compose file reach the server only by rerunning
-  `infra/deploy/install.sh` (approval required); CI can't change them.
-- Host and pinned host key live in the repo (`.github/workflows/deploy.yml`, `infra/deploy/known_hosts`).
+  `infra/deploy/install.sh` (approval required); a deploy never changes them.
+- The retired CI key (`gh-actions-rowlens`, Hetzner only) and the GitHub secret
+  `ROWLENS_SSH_PRIVATE_KEY` can be deleted (Ewout's call; Hetzner's `authorized_keys` is shared).

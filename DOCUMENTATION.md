@@ -1,3 +1,10 @@
+## [2026-11-24] — Local deploy to Contabo replaces the GitHub Actions deploy
+
+**Session**: claude/ci/local-deploy-contabo
+**Changed**: scripts/deploy.sh (new), infra/deploy/rowlens-deploy, infra/deploy/install.sh, infra/deploy/test/run.sh, infra/deploy/test/stub/docker, infra/deploy/known_hosts (removed), BUGS.md, PLAN.md, .github/workflows/deploy.yml (removed), .github/workflows/images.yml (removed), .github/workflows/ci.yml, .opencode/commands/deploy.md, AGENTS.md, README.md, BUILD.md, TEST.md, DOCUMENTATION.md, docs/HANDOFF.md, docs/adr/0002-hosting-and-isolation.md, docs/adr/0027-sequential-numeric-versions.md, docs/adr/README.md, docs/runbooks/server-setup.md
+**Summary**: Production moved from Hetzner to Contabo (`trustable-contabo`, 144.91.87.103) and Ewout no longer deploys from GitHub Actions. `scripts/deploy.sh prod [--ref] [--dry-run] [--yes]` builds both images for linux/amd64 from a temporary worktree, loads them with `docker save | ssh docker load` and runs the unchanged-in-spirit `rowlens-deploy deploy sha-<7>` with `ssh -n` (end marker, running tags and public URL checked afterwards). `rowlens-deploy` no longer logs in to GHCR: it checks that both images are on the host and closes stdin for `compose exec/run`. The `deploy` and `images` workflows and the pinned Hetzner host key are removed; CI checks stay. Builds use an anonymous Docker client config (BUG-076) and the script is parsed in full before it runs (BUG-075). Dry run only, nothing deployed; the server still runs the old (compatible) `rowlens-deploy` until `install.sh` is run with approval.
+**Prompts used**: Task from the parent session: "Replace RowLens' GitHub Actions deploys with a deploy that runs from this Mac to the Contabo prod server … Verify with a dry run against trustable-contabo … Do NOT deploy to prod and do NOT merge without Ewout's explicit go-ahead. Open a PR."
+
 ## [2026-11-21] — Deployed sha-1a36f75 (BUG-074 example notes)
 
 **Session**: claude/docs/deploy-sha-1a36f75
