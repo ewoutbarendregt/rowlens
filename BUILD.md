@@ -169,8 +169,8 @@ from root package.json and replaces the patch with github.run_number via scripts
 APP_RELEASE is validated and baked into Vite's __ROWLENS_RELEASE__ and public build-info.json;
 both image OCI version labels carry the same number. Runtime health/image SHA metadata is never
 substituted into the user label. Local builds without an override use the root version (0.0.0).
-Existing immutable image tags, health gates, manual deploy approval and release-please remain
-unchanged. Published but undeployed builds can cause gaps; a rollback displays its older release.
+Existing immutable image tags, health gates and manual deploy approval remain unchanged
+(release-please was removed 2026-11-24: it never ran successfully). Published but undeployed builds can cause gaps; a rollback displays its older release.
 
 ## Independent training video reuse (ADR-0026)
 
@@ -886,8 +886,8 @@ policy (PR title + branch name) · web (format, lint, typecheck, test, build, Pl
 edge (Playwright through the Caddy mirror) · worker (ruff,
 mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test;
 nothing is pushed) · deploy-script (shellcheck of `scripts/deploy.sh` and `infra/deploy`, stubbed unit
-tests, real-Docker rehearsal of `rowlens-deploy`). `release.yml`: release-please (changelog + semver
-tags). No workflow builds for or deploys to production (removed 2026-11-24).
+tests, real-Docker rehearsal of `rowlens-deploy`). There is no release workflow (release-please was
+removed 2026-11-24). No workflow builds for or deploys to production (removed 2026-11-24).
 
 ## Delivery (ADR-0002, #25; local since 2026-11-24)
 

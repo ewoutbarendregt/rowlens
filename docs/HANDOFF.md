@@ -20,7 +20,8 @@
 - GitHub secret `ROWLENS_SSH_PRIVATE_KEY` deleted 2026-11-24 (the repo has no Actions secrets left).
   The retired `gh-actions-rowlens` key stays in `deploy`'s `authorized_keys` on Hetzner
   `trustable-prod` (Ewout: leave it); its private half no longer exists in GitHub.
-- Left for Ewout: decide whether `release.yml` (release-please, fails on every merge) stays.
+- `release.yml` (release-please, failed on every merge because Actions may not open PRs) and its
+  config files were removed 2026-11-24 at Ewout's request. CI (`ci.yml`) is the only workflow.
 
 # Handoff — 2026-11-21 (Claude)
 
