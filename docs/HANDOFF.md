@@ -17,9 +17,10 @@
   pulls work; private `ghcr.io/ewoutbarendregt/*` images (trustable.nl, AudioScribe) need a fresh
   `docker login ghcr.io` before pulling or pushing from the Mac.
 - Not verified yet: the BUG-077 load check in a real deploy (the next deploy is its first run).
-- Left for Ewout: delete the GitHub secret `ROWLENS_SSH_PRIVATE_KEY` and the retired
-  `gh-actions-rowlens` key on Hetzner; decide whether `release.yml` (release-please, fails on every
-  merge) stays.
+- GitHub secret `ROWLENS_SSH_PRIVATE_KEY` deleted 2026-11-24 (the repo has no Actions secrets left).
+  The retired `gh-actions-rowlens` key stays in `deploy`'s `authorized_keys` on Hetzner
+  `trustable-prod` (Ewout: leave it); its private half no longer exists in GitHub.
+- Left for Ewout: decide whether `release.yml` (release-please, fails on every merge) stays.
 
 # Handoff — 2026-11-21 (Claude)
 
