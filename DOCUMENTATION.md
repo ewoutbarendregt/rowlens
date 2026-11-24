@@ -1,3 +1,10 @@
+## [2026-11-24] — Deploy stops on a broken image load (BUG-077)
+
+**Session**: claude/fix/077-docker-load-check
+**Changed**: scripts/deploy.sh, BUGS.md, TEST.md, DOCUMENTATION.md, docs/runbooks/server-setup.md, docs/HANDOFF.md
+**Summary**: `docker load` on the containerd store can report unpack errors and still exit 0. `scripts/deploy.sh` now treats such output as a failed load, checks that a container can be created from both images, retries the load once and otherwise stops before `rowlens-deploy` runs, with nothing changed on the server.
+**Prompts used**: "fix BUG-077"; then "run install.sh on the server" (ran 20:31 UTC: `rowlens-deploy` replaced by the #205 version, backup `rowlens-deploy.bak-20261124T203123Z`, compose unchanged, containers untouched)
+
 ## [2026-11-24] — Deployed sha-1b54aa5, the first local deploy to Contabo
 
 **Session**: claude/docs/log-deploy-sha-1b54aa5

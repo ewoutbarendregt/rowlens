@@ -110,7 +110,8 @@ scripts/deploy.sh prod --ref <sha|branch|tag>    # deploy another ref
 
 It builds `ghcr.io/ewoutbarendregt/rowlens-{web,worker}:sha-<7>` for linux/amd64 from a temporary
 worktree (the names are only local tags; nothing is pushed to GHCR), loads them on the server with
-`docker save | gzip | ssh … docker load`, runs `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` with
+`docker save | gzip | ssh … docker load` (a load with unpack errors, or whose images cannot create a
+container, is retried once and otherwise stops the deploy before anything changes, BUG-077), runs `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` with
 `ssh -n` (backup → migrate → `up --pull never` → readiness → keep or roll back), and checks the end
 marker, the running image tags and `https://trustable.nl/projects/rowlens/health/live`. The displayed
 release continues from the highest `org.opencontainers.image.version` label among the RowLens web
@@ -139,7 +140,10 @@ RowLens CI key.
   migrations unchanged (33). `/health/ready` returned `sha-1b54aa5` with `db: ok`; `rowlens-web`
   and `rowlens-worker` run that tag; `https://trustable.nl/`, `https://api.trustable.nl/api/health`,
   AudioScribe and RowLens returned 200. `docker load` printed unpack errors but the images work
-  (BUG-077). The server's `rowlens-deploy` is still the pre-#205 copy (compatible; `install.sh` not run).
+  (BUG-077).
+- **2026-11-24 20:31 UTC — `infra/deploy/install.sh`** (Ewout's request): `bin/rowlens-deploy`
+  replaced by the #205 version (no GHCR login/pull; old copy `bin/rowlens-deploy.bak-20261124T203123Z`),
+  `docker-compose.yml` unchanged. Containers untouched; server copy now byte-identical to the repo.
 - **2026-11-21 15:49 UTC — `sha-1a36f75`** ([#195](https://github.com/ewoutbarendregt/rowlens/pull/195):
   RowLens admin's notes on examples visible to members of the owning club, BUG-074). Deploy run
   [44921182532](https://github.com/ewoutbarendregt/rowlens/actions/runs/44921182532) succeeded;

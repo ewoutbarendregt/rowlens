@@ -1,9 +1,9 @@
 ### [BUG-077] `docker load` unpack errors do not stop the deploy — severity: low
 **Location**: scripts/deploy.sh (upload step, `gunzip | docker load`)
-**Status**: open
+**Status**: fixed
 **Found**: 2026-11-24
 **Description**: In the first local deploy (`sha-1b54aa5`), `docker load` on Contabo (containerd image store) printed "Error unpacking image … failed to extract layer … no such file or directory" (web) and "lease does not exist" (worker), yet exited 0 and both images were listed. The feelz and AudioScribe deploys ran on the same host minutes earlier, so concurrent containerd activity is a likely cause. Compose unpacked the images when creating the containers (ready took ~2.5 min) and production works, but the script would not notice a load that really failed until `up`, where `rowlens-deploy` rolls back.
-**Fix**: Proposed: treat "Error unpacking image" in the load output as fatal, or retry the load once, and check that a container can be created from both images before running `rowlens-deploy`.
+**Fix**: The upload counts only when `docker load` exits 0, its output has no unpack/extract errors, and `docker create --pull never --network none` succeeds for both images (forces every layer to unpack; the throwaway `rowlens-loadcheck-*` container is removed at once). Otherwise it loads once more, then stops before `rowlens-deploy` with nothing changed. Branch claude/fix/077-docker-load-check.
 
 ### [BUG-076] Local image builds fail on ghcr.io base images with "denied" — severity: medium
 **Location**: worker/Dockerfile:9 (`COPY --from=ghcr.io/astral-sh/uv:0.12`), scripts/deploy.sh (build step)

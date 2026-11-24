@@ -248,9 +248,38 @@ fi
 
 # ── 4. Upload ──────────────────────────────────────────────────────────────────────────────────
 log "Uploading images to $SSH_HOST"
-docker save "$WEB_IMAGE:$TAG" "$WORKER_IMAGE:$TAG" | gzip -1 |
-  ssh "${SSH_OPTS[@]}" "$SSH_HOST" 'gunzip | docker load'
-rssh "docker image inspect $WEB_IMAGE:$TAG $WORKER_IMAGE:$TAG >/dev/null" || die "Images did not arrive on $SSH_HOST"
+# `docker load` on a containerd image store can print "Error unpacking image …" and still exit 0
+# with the image listed (BUG-077, seen while other deploys ran on the host). So: a load counts only
+# if it exits 0 without such errors, and a container can then be created from both images (which
+# needs every layer unpacked). One retry; on failure nothing has changed on the server.
+upload_images() {
+  docker save "$WEB_IMAGE:$TAG" "$WORKER_IMAGE:$TAG" | gzip -1 |
+    ssh "${SSH_OPTS[@]}" "$SSH_HOST" 'gunzip | docker load' 2>&1 | tee "$WORK/load.log"
+}
+images_usable() {
+  local image name ok=0
+  for image in "$WEB_IMAGE:$TAG" "$WORKER_IMAGE:$TAG"; do
+    name="rowlens-loadcheck-${image##*/rowlens-}"
+    name="${name//:/-}"
+    # docker create unpacks the image without starting anything; the container is removed at once.
+    if rssh "docker rm -f $name >/dev/null 2>&1; docker create --pull never --network none --name $name $image >/dev/null < /dev/null && docker rm $name >/dev/null"; then
+      echo "Usable on $SSH_HOST: $image"
+    else
+      warn "$image cannot be used on $SSH_HOST"
+      rssh "docker rm -f $name >/dev/null 2>&1 || true"
+      ok=1
+    fi
+  done
+  return "$ok"
+}
+for attempt in 1 2; do
+  if upload_images && ! grep -qiE 'error (unpacking|processing)|failed to (extract|prepare)' "$WORK/load.log" &&
+    images_usable; then
+    break
+  fi
+  ((attempt < 2)) || die "Images did not load cleanly on $SSH_HOST (BUG-077, output above); nothing changed"
+  warn "image load on $SSH_HOST reported errors; loading again"
+done
 
 # ── 5. Deploy on the server ────────────────────────────────────────────────────────────────────
 log "Running rowlens-deploy deploy $TAG on $SSH_HOST"

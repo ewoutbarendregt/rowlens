@@ -3,14 +3,12 @@
 ## Current work: local deploys to Contabo
 
 - PR #205 merged as 1b54aa5 and **deployed** 2026-11-24 with `scripts/deploy.sh prod`
-  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077, open).
+  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077; fixed on claude/fix/077-docker-load-check: the deploy now checks the load and retries once).
 - Production is `trustable-contabo` (144.91.87.103, user `deploy`) since 2026-11-24, running
   `sha-1b54aa5` (0.0.69). Hetzner `trustable-prod` is only a Caddy forwarder.
 - Deploy now with `scripts/deploy.sh prod` from Ewout's Mac (only on his request); the `deploy` and
   `images` workflows are gone. PR checks run again (green on #205).
-- The server's `rowlens-deploy` is older than the repo's (it still has the GHCR-token
-  path, which is skipped when stdin is empty, so it works with `deploy.sh` as is). Reinstalling it is
-  `infra/deploy/install.sh` (needs Ewout's yes); the dry run prints the diff.
+- The server's `rowlens-deploy` was reinstalled from main with `install.sh` on 2026-11-24 (matches the repo).
 - Left for Ewout: delete the GitHub secret `ROWLENS_SSH_PRIVATE_KEY` and the retired
   `gh-actions-rowlens` key on Hetzner; decide whether `release.yml` (release-please, fails on every
   merge) stays.
