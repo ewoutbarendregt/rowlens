@@ -11,9 +11,9 @@ has() {
 }
 
 case "$1" in
-  login) cat >"$STUB_DIR/token-received"; exit 0 ;;
-  logout) exit 0 ;;
   image)
+    # `image inspect <image:tag>`: present unless the tag is in STUB_MISSING_TAGS.
+    if [[ "$2" == inspect ]]; then has "${3##*:}" "${STUB_MISSING_TAGS:-}" && exit 1; fi
     # shellcheck disable=SC2086 # one line per space-separated tag
     if [[ "$2" == ls && "$3" == *rowlens-web ]]; then printf '%s\n' ${STUB_IMAGE_TAGS:-}; fi
     exit 0
@@ -34,7 +34,7 @@ sub="$1"
 shift
 args="$*"
 case "$sub" in
-  pull) exit "${STUB_PULL_EXIT:-0}" ;;
+  pull) exit 0 ;;
   up)
     has "$ROWLENS_TAG" "${STUB_UP_FAIL_TAGS:-}" && exit 1
     echo "$ROWLENS_TAG" >"$STUB_DIR/running"

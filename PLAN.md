@@ -1,3 +1,8 @@
+## Local deploys to Contabo — PR open (2026-11-24)
+
+Production moved to Contabo; GitHub Actions no longer deploys or pushes images. `scripts/deploy.sh
+prod` builds and deploys from Ewout's Mac (ADR-0002). Dry run verified; no deploy requested.
+
 ## Examples in the training list — implemented locally (2026-11-17)
 
 Ewout's correction: admin videos belong in the normal list with normal (read-only) functionality,

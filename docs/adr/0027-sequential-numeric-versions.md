@@ -33,6 +33,15 @@ workflow identity/counter; a future replacement must carry forward a higher sequ
 The fixed root version is a development fallback, not the production release counter. No new
 permissions, dependencies, shared-server settings, tables or migrations are introduced.
 
+## Amendment (2026-11-24): local deploys
+
+The `images` workflow is removed; `scripts/deploy.sh` builds the images on Ewout's Mac (ADR-0002).
+It carries the sequence forward from production: the highest `org.opencontainers.image.version`
+among the RowLens web images on the server (current and previous release; 0.0.68 at the switch)
+plus one for a new commit, or the number an image of the same commit already has (redeploy).
+`ROWLENS_RELEASE_SEQ=<n>` overrides it. Because the previous release's image stays on the server,
+a rollback followed by a new deploy still continues above the rolled-back-from number.
+
 ## Alternatives considered
 
 Manual per-PR bumps can be missed and conflict across parallel PRs. A deployment-time counter

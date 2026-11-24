@@ -18,3 +18,15 @@ Status: a pilot with one club, live at https://trustable.nl/projects/rowlens. Wo
 corepack enable && pnpm install && pnpm test
 cd worker && uv sync && uv run pytest
 ```
+
+## Deploying
+
+Production deploys run from Ewout's Mac, never from GitHub Actions, and only when he asks:
+
+```bash
+scripts/deploy.sh prod --dry-run   # build both images + read-only preflight
+scripts/deploy.sh prod             # build, load on trustable-contabo, migrate, start, verify
+```
+
+How it works and how to roll back: [docs/runbooks/server-setup.md](docs/runbooks/server-setup.md#deploying-local-since-2026-11-24),
+[ADR-0002](docs/adr/0002-hosting-and-isolation.md).

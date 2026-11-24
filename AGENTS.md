@@ -6,7 +6,8 @@ opencode loads this file and then **skips `CLAUDE.md`**, so nothing here may dep
 
 RowLens is a multi-tenant web platform where rowing clubs upload session video, step through it
 frame by frame, discuss it between rowers and coaches, and get traceable, AI-supported technique
-analysis. Served at `https://trustable.nl/projects/rowlens` on the shared server `trustable-prod`.
+analysis. Served at `https://trustable.nl/projects/rowlens` on the shared server `trustable-contabo`
+(Contabo, since 2026-11-24; before that Hetzner `trustable-prod`).
 The product owner is **Ewout**; the head coach of the pilot club gives the rowing input.
 
 ## Start of every session
@@ -166,7 +167,7 @@ pnpm --filter @rowlens/web db:generate --name <slug>   # review the SQL; hand-wr
 pnpm --filter @rowlens/web db:migrate                  # can't (renamed keys, enum values, backfills)
 
 # Server, read-only
-ssh trustable-prod 'docker ps; df -h /'
+ssh trustable-contabo 'docker ps; df -h /'
 ```
 
 Testing notes:
@@ -178,22 +179,36 @@ Testing notes:
 - The local edge database is kept between runs: it accumulates test data, and its hourly upload
   limit can run out after many runs (restart `rowlens-edge-rowlens-web-1` to reset it).
 - `gh run watch` sometimes returns before the run ends: check with `gh run view <id>`.
-- psql over ssh: send the SQL on stdin (`ssh trustable-prod 'docker exec -i rowlens-db-1 sh -c
+- psql over ssh: send the SQL on stdin (`ssh trustable-contabo 'docker exec -i rowlens-db-1 sh -c
   "psql -U \$POSTGRES_USER -d \$POSTGRES_DB -tA"' <<'EOF' … EOF`), quoting inside `-c` breaks.
 
 ## Deploying (only on Ewout's request, each time)
 
-1. Merge the PR (`gh pr merge N --squash --delete-branch`) once its CI is green.
-2. Wait for the `images` and `ci` runs of the merge commit on `main` to succeed.
-3. `gh workflow run deploy.yml -f tag=sha-<7> -f check_public_url=true` and wait for it.
-4. Verify, read-only: `https://trustable.nl/projects/rowlens/health/ready` reports the new version
-   with `db` ok; `ssh trustable-prod 'docker ps'` shows `rowlens-web` and `rowlens-worker` on the
+Deploys run from Ewout's Mac with `scripts/deploy.sh`; GitHub Actions never deploys (2026-11-24).
+Production is `trustable-contabo` (144.91.87.103, user `deploy`); the old Hetzner host
+`trustable-prod` (46.225.212.217) is only a Caddy forwarder now.
+
+1. Merge the PR (`gh pr merge N --squash --delete-branch`) once its CI is green (or, while Actions
+   is blocked by billing, once the checks above passed locally and Ewout said merge).
+2. `scripts/deploy.sh prod --dry-run` (build + read-only preflight), then `scripts/deploy.sh prod`
+   (deploys `origin/main`; `--ref <ref>` for another commit, `--yes` skips the prompt). It builds
+   both images for linux/amd64 in a temporary worktree, loads them on the server and runs
+   `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` (backup → migrate → up → readiness → keep or
+   roll back), then checks the running tags and the public URL. Run it in the background: building
+   amd64 images on Apple silicon takes several minutes.
+3. Verify, read-only: `https://trustable.nl/projects/rowlens/health/ready` reports the new version
+   with `db` ok; `ssh trustable-contabo 'docker ps'` shows `rowlens-web` and `rowlens-worker` on the
    new tag and the trustable/AudioScribe containers untouched; `https://trustable.nl/`,
    `https://api.trustable.nl/api/health` and `https://trustable.nl/projects/audioscribe/` answer
    200. New migrations: check the count and any backfill jobs.
-5. Log it (see Project logs). Roll back: `ssh trustable-prod /opt/rowlens/bin/rowlens-deploy
+4. Log it (see Project logs). Roll back: `ssh trustable-contabo /opt/rowlens/bin/rowlens-deploy
    rollback` (only with Ewout's yes). The `release` workflow fails on every merge (Actions may not
    open PRs); that is known and harmless.
+
+SSH rule for any multi-step remote work: never pipe a script into `ssh host bash -s`
+(`docker compose exec/run` or a nested ssh swallow the rest of stdin and the script stops silently
+with exit 0). Upload it as a file and run it with `ssh -n`, give docker commands `< /dev/null`, and
+check an end marker plus the running image tag afterwards.
 
 ## Architecture (details in `docs/adr/` and `BUILD.md`)
 

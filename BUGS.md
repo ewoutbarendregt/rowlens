@@ -1,3 +1,17 @@
+### [BUG-076] Local image builds fail on ghcr.io base images with "denied" — severity: medium
+**Location**: worker/Dockerfile:9 (`COPY --from=ghcr.io/astral-sh/uv:0.12`), scripts/deploy.sh (build step)
+**Status**: fixed
+**Found**: 2026-11-24
+**Description**: The first local dry run built rowlens-web but failed the worker: `failed to fetch oauth token: denied`. Ewout's Mac has a ghcr.io token in Docker Desktop's keychain that GitHub now rejects (private and public ghcr images alike); the Docker CLI uses it even with an empty `DOCKER_CONFIG`, falling back to the keychain helper. Anonymous `curl` to ghcr.io works.
+**Fix**: `scripts/deploy.sh` builds with a throwaway client config whose credential helper never returns credentials, so base images are pulled anonymously; nothing in `~/.docker` or the keychain is read or changed. `docker logout ghcr.io` on the Mac would also clear it (Ewout's call). Branch claude/ci/local-deploy-contabo.
+
+### [BUG-075] Editing `scripts/deploy.sh` while it runs breaks the run, which can still exit 0 — severity: low
+**Location**: scripts/deploy.sh
+**Status**: fixed
+**Found**: 2026-11-24
+**Description**: bash reads a script while running it. Rewriting the file during a dry run made it die with a syntax error after the build, and the wrapper still reported exit 0. A real deploy could stop between upload and the server step.
+**Fix**: The script body is one `{ … exit; }` block, so bash parses all of it before running; a later edit can't change a running deploy. The server step is also guarded by its end marker and the image-tag check. Branch claude/ci/local-deploy-contabo.
+
 ### [BUG-074] Rowers of the owning club don't see an example's notes — severity: medium
 **Location**: apps/web/src/server/db/migrations/0031_example_feedback.sql (`annotation_role_read`), apps/web/src/client/sessions/filter.ts (`withExamples`)
 **Status**: fixed
