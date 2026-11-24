@@ -10,8 +10,8 @@ PR or ref to deploy: $ARGUMENTS
 Follow "Deploying" in AGENTS.md step by step. Deploys run from this Mac; GitHub Actions never
 deploys.
 
-1. `gh pr checks <N>` must be all green (or Actions is blocked by billing and the local checks
-   passed); then `gh pr merge <N> --squash --delete-branch`.
+1. `scripts/check.sh` must have passed on the PR's head commit (no GitHub Actions); then
+   `gh pr merge <N> --squash --delete-branch`.
 2. `scripts/deploy.sh prod --dry-run`, then `scripts/deploy.sh prod --yes` (deploys `origin/main`;
    `--ref <ref>` for another commit). Run it in the background; it prints `Deployed sha-<7>` at the
    end, or an error with the server's exit code.

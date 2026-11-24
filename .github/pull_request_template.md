@@ -4,9 +4,10 @@ Closes #
 
 ## How it was tested
 
-- [ ] `pnpm lint && pnpm typecheck && pnpm test` (web)
-- [ ] `uv run ruff check && uv run mypy && uv run pytest` (worker)
-- [ ] E2E / manual check (describe device + browser):
+RowLens has no GitHub Actions: run the checks locally on this PR's head commit.
+
+- [ ] `scripts/check.sh` (full) passed: paste the summary / `CHECKS-OK <sha>` line, or what failed and why
+- [ ] Manual check on the local stack (describe device + browser):
 
 ## Checklist
 

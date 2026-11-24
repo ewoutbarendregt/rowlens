@@ -1,3 +1,10 @@
+## [2026-11-24] — No GitHub Actions: local checks with scripts/check.sh
+
+**Session**: claude/ci/local-checks-no-actions
+**Changed**: scripts/check.sh (new), .github/workflows/ci.yml (removed), scripts/ci/changes.js (removed), scripts/ci/changes.test.js (removed), .github/pull_request_template.md, .opencode/commands/deploy.md, AGENTS.md, BUILD.md, README.md, TEST.md, BUGS.md, DOCUMENTATION.md, docs/HANDOFF.md
+**Summary**: RowLens no longer uses GitHub Actions at all. `scripts/check.sh` runs what `ci.yml` ran (policy, secrets, web incl. E2E and audit, worker, deploy, edge, images) with `--quick`, `--only <section>` and `--keep-going`, checks tools up front and stops at the first failure. The change-selection script was CI-only and is removed. Dependabot PRs no longer get checks. Full run: 31/32 steps ok; the edge failure was a load flake (BUG-078) that passed on rerun.
+**Prompts used**: Relayed by the parent session: Ewout: "no I want to no longer use github actions for rowlens"; the task: "Also delete `.github/workflows/ci.yml` … Add a local replacement, e.g. `scripts/check.sh` … Do NOT merge; Ewout decides."
+
 ## [2026-11-24] — Removed the release-please workflow
 
 **Session**: claude/ci/remove-release-workflow

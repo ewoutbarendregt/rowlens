@@ -19,6 +19,9 @@ corepack enable && pnpm install && pnpm test
 cd worker && uv sync && uv run pytest
 ```
 
+Checks run locally, not in GitHub Actions (RowLens uses none): `scripts/check.sh --quick` while
+working, `scripts/check.sh` (full) before a PR is merged.
+
 ## Deploying
 
 Production deploys run from Ewout's Mac, never from GitHub Actions, and only when he asks:

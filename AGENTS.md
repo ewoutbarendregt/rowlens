@@ -45,7 +45,7 @@ The product owner is **Ewout**; the head coach of the pilot club gives the rowin
   `infra/deploy/install.sh`, one-off database writes) are shown to Ewout first, with the exact
   command, and done after his yes.
 - **Never commit secrets**, `.env` files, personal data or media. Server secrets live in
-  `/opt/rowlens/.env`; CI secrets in GitHub Actions secrets. When a secret or e-mail address is
+  `/opt/rowlens/.env` (RowLens uses no GitHub Actions, so it has no CI secrets). When a secret or e-mail address is
   needed, Ewout types it into a **terminal prompt** (`read -s`), never into chat or onto a command
   line. His admin address lives only in the local `apps/web/.env` and the server's
   `AUTH_ADMIN_EMAILS`, never in the repository.
@@ -92,9 +92,11 @@ The product owner is **Ewout**; the head coach of the pilot club gives the rowin
    providers) get a **"Security review note"** in the PR.
 7. Unfinished features ship behind a feature flag (`apps/web/src/client/features.ts`, build-time
    `VITE_FEATURE_*`); we prototype on production.
-8. After pushing a PR, CI must be green before merging. If every job fails without a failed step,
-   it's GitHub billing (the run says "recent account payments have failed"): tell Ewout, it isn't
-   the code.
+8. **No GitHub Actions** (Ewout, 2026-11-24): there are no workflows, so PRs get no automatic
+   checks. Before a PR is merged, run `scripts/check.sh` (the full run) on the PR's head commit and
+   put its summary (the `CHECKS-OK <sha>` line, or what failed and why) in the PR. During work,
+   `scripts/check.sh --quick` (~1 min) or `--only <section>`. Dependabot PRs get no checks either:
+   never merge them unchecked (see the hard rule on bot changes).
 
 ### Stacked PRs
 
@@ -151,7 +153,11 @@ pnpm dev:down    # stops Postgres and worker (data stays in the Docker volume)
 # address (AUTH_ALLOWED_EMAILS in apps/web/.env, e.g. rowlens@localhost.test). Pipe `pnpm dev`
 # through `tee` to a file and read the code from it.
 
-# Checks before a PR
+# Checks before a PR: scripts/check.sh runs all of them (no GitHub Actions; see Workflow step 8)
+scripts/check.sh                 # full: policy, secrets, web (+E2E, audit), worker, deploy, edge, images
+scripts/check.sh --quick         # branch name, format, lint, typecheck, unit tests (~1 min)
+scripts/check.sh --only edge     # one section (policy|secrets|web|worker|deploy|edge|images)
+# The individual commands:
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test     # test = unit + db (Docker)
 pnpm --filter @rowlens/web exec vitest run --project unit           # unit only, without Docker
 (cd worker && uv run ruff check && uv run ruff format --check && uv run mypy && uv run pytest)
@@ -188,8 +194,8 @@ Deploys run from Ewout's Mac with `scripts/deploy.sh`; GitHub Actions never depl
 Production is `trustable-contabo` (144.91.87.103, user `deploy`); the old Hetzner host
 `trustable-prod` (46.225.212.217) is only a Caddy forwarder now.
 
-1. Merge the PR (`gh pr merge N --squash --delete-branch`) once its CI is green (or, while Actions
-   is blocked by billing, once the checks above passed locally and Ewout said merge).
+1. Merge the PR (`gh pr merge N --squash --delete-branch`) once `scripts/check.sh` passed on its
+   head commit and Ewout said merge.
 2. `scripts/deploy.sh prod --dry-run` (build + read-only preflight), then `scripts/deploy.sh prod`
    (deploys `origin/main`; `--ref <ref>` for another commit, `--yes` skips the prompt). It builds
    both images for linux/amd64 in a temporary worktree, loads them on the server and runs
