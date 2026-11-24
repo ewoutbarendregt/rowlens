@@ -1,3 +1,12 @@
+## 2026-11-24 — Image load check in deploy.sh, BUG-077 (claude/fix/077-docker-load-check)
+
+- Harness: the upload section of `scripts/deploy.sh` with an `ssh` shim that runs the remote command
+  against local Docker (two alpine images tagged as rowlens-web/worker) and injects faults.
+- clean load: exit 0, 1 load, both images usable. Unpack error once: warning, 2 loads, exit 0.
+  Unpack error every time: exit 1 after 2 loads. `docker create` fails: exit 1 after 2 loads.
+  No `rowlens-loadcheck-*` containers left behind. shellcheck clean.
+- Not run against production: the next real deploy exercises it.
+
 ## 2026-11-24 — Local deploy to Contabo (claude/ci/local-deploy-contabo)
 
 - `rowlens-deploy` stub tests (Ubuntu 24.04 container): **74 passed, 0 failed** (new: local images only, no login/pull, `up --pull never`; stdin left unread; a missing image changes nothing, exit 2).

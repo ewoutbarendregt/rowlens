@@ -110,7 +110,8 @@ scripts/deploy.sh prod --ref <sha|branch|tag>    # deploy another ref
 
 It builds `ghcr.io/ewoutbarendregt/rowlens-{web,worker}:sha-<7>` for linux/amd64 from a temporary
 worktree (the names are only local tags; nothing is pushed to GHCR), loads them on the server with
-`docker save | gzip | ssh … docker load`, runs `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` with
+`docker save | gzip | ssh … docker load` (a load with unpack errors, or whose images cannot create a
+container, is retried once and otherwise stops the deploy before anything changes, BUG-077), runs `/opt/rowlens/bin/rowlens-deploy deploy sha-<7>` with
 `ssh -n` (backup → migrate → `up --pull never` → readiness → keep or roll back), and checks the end
 marker, the running image tags and `https://trustable.nl/projects/rowlens/health/live`. The displayed
 release continues from the highest `org.opencontainers.image.version` label among the RowLens web

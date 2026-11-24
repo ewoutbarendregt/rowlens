@@ -3,7 +3,7 @@
 ## Current work: local deploys to Contabo
 
 - PR #205 merged as 1b54aa5 and **deployed** 2026-11-24 with `scripts/deploy.sh prod`
-  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077, open).
+  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077; fixed on claude/fix/077-docker-load-check: the deploy now checks the load and retries once).
 - Production is `trustable-contabo` (144.91.87.103, user `deploy`) since 2026-11-24, running
   `sha-1b54aa5` (0.0.69). Hetzner `trustable-prod` is only a Caddy forwarder.
 - Deploy now with `scripts/deploy.sh prod` from Ewout's Mac (only on his request); the `deploy` and
