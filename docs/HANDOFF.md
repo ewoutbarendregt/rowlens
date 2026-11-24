@@ -1,14 +1,22 @@
 # Handoff — 2026-11-24 (Claude)
 
-## Current work: local deploys to Contabo
+## State at the end of the session: local deploys to Contabo, done
 
-- PR #205 merged as 1b54aa5 and **deployed** 2026-11-24 with `scripts/deploy.sh prod`
-  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077; fixed on claude/fix/077-docker-load-check: the deploy now checks the load and retries once).
-- Production is `trustable-contabo` (144.91.87.103, user `deploy`) since 2026-11-24, running
-  `sha-1b54aa5` (0.0.69). Hetzner `trustable-prod` is only a Caddy forwarder.
-- Deploy now with `scripts/deploy.sh prod` from Ewout's Mac (only on his request); the `deploy` and
-  `images` workflows are gone. PR checks run again (green on #205).
-- The server's `rowlens-deploy` was reinstalled from main with `install.sh` on 2026-11-24 (matches the repo).
+- Production is `trustable-contabo` (144.91.87.103, user `deploy`), running **`sha-1b54aa5`
+  (0.0.69)**, deployed 2026-11-24 20:17 UTC with `scripts/deploy.sh prod` (first local deploy).
+  Hetzner `trustable-prod` is only a Caddy forwarder.
+- main is at 0501a1a and later: #205 (local deploy, 1b54aa5), #206 (deploy log), #207 (BUG-077 fix:
+  a `docker load` with unpack errors, or whose images cannot create a container, is retried once and
+  otherwise stops the deploy before `rowlens-deploy` runs). #207 is merged but not deployed; nothing
+  in it runs on the server, it only changes `scripts/deploy.sh` on the Mac.
+- Deploy with `scripts/deploy.sh prod` from Ewout's Mac, only on his request; the `deploy` and
+  `images` workflows are gone. PR checks run again (billing unblocked).
+- The server's `rowlens-deploy` was reinstalled from main with `infra/deploy/install.sh` (2026-11-24
+  20:31 UTC); it matches the repo, old copy `bin/rowlens-deploy.bak-20261124T203123Z`.
+- `docker logout ghcr.io` was run on Ewout's Mac (BUG-076's stale token is gone). Public ghcr.io
+  pulls work; private `ghcr.io/ewoutbarendregt/*` images (trustable.nl, AudioScribe) need a fresh
+  `docker login ghcr.io` before pulling or pushing from the Mac.
+- Not verified yet: the BUG-077 load check in a real deploy (the next deploy is its first run).
 - Left for Ewout: delete the GitHub secret `ROWLENS_SSH_PRIVATE_KEY` and the retired
   `gh-actions-rowlens` key on Hetzner; decide whether `release.yml` (release-please, fails on every
   merge) stays.

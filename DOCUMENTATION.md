@@ -1,3 +1,10 @@
+## [2026-11-24] — Session handoff: local deploys to Contabo
+
+**Session**: claude/docs/handoff-2026-11-24
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: HANDOFF rewritten for the end of the session: production on `sha-1b54aa5`, #205–#207 merged, `install.sh` run, `docker logout ghcr.io` on the Mac (private ghcr images need a fresh login), BUG-077 check not yet exercised by a real deploy.
+**Prompts used**: "docker logout ghcr.io"; "update HANDOFF and close the session"
+
 ## [2026-11-24] — Deploy stops on a broken image load (BUG-077)
 
 **Session**: claude/fix/077-docker-load-check
