@@ -1,3 +1,10 @@
+## [2026-11-24] — Deleted the GitHub deploy-key secret
+
+**Session**: claude/docs/handoff-secret-deleted
+**Changed**: docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: Deleted the unused repository secret `ROWLENS_SSH_PRIVATE_KEY` (no workflow on main referred to it). The `gh-actions-rowlens` public key stays on Hetzner `trustable-prod` at Ewout's request; HANDOFF updated.
+**Prompts used**: "delete the ROWLENS_SSH_PRIVATE_KEY secret"; "leave it"; "fix HANDOFF in a docs PR and merge it"
+
 ## [2026-11-24] — Session handoff: local deploys to Contabo
 
 **Session**: claude/docs/handoff-2026-11-24
