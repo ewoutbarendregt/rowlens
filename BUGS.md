@@ -1,3 +1,10 @@
+### [BUG-078] Edge `assign.spec` times out on the frame-5 note field under load — severity: low
+**Location**: apps/web/e2e/assign.spec.ts:42
+**Status**: open
+**Found**: 2026-11-24
+**Description**: In the first full `scripts/check.sh` run the edge E2E `assign a note to the whole crew…` timed out (30 s) waiting for the "Note at frame 5" field after five `.` presses: the note form opened at another frame or not at all. The Mac was busy (the edge stack builds after the full web E2E). Rerunning the edge section alone passed 42/42 (38 skipped). Probably the same family as the first-step-key load flakes noted on 2026-11-03.
+**Fix**: —
+
 ### [BUG-077] `docker load` unpack errors do not stop the deploy — severity: low
 **Location**: scripts/deploy.sh (upload step, `gunzip | docker load`)
 **Status**: fixed

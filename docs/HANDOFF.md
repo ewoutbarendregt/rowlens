@@ -10,7 +10,7 @@
   otherwise stops the deploy before `rowlens-deploy` runs). #207 is merged but not deployed; nothing
   in it runs on the server, it only changes `scripts/deploy.sh` on the Mac.
 - Deploy with `scripts/deploy.sh prod` from Ewout's Mac, only on his request; the `deploy` and
-  `images` workflows are gone. PR checks run again (billing unblocked).
+  `images` workflows are gone.
 - The server's `rowlens-deploy` was reinstalled from main with `infra/deploy/install.sh` (2026-11-24
   20:31 UTC); it matches the repo, old copy `bin/rowlens-deploy.bak-20261124T203123Z`.
 - `docker logout ghcr.io` was run on Ewout's Mac (BUG-076's stale token is gone). Public ghcr.io
@@ -21,7 +21,10 @@
   The retired `gh-actions-rowlens` key stays in `deploy`'s `authorized_keys` on Hetzner
   `trustable-prod` (Ewout: leave it); its private half no longer exists in GitHub.
 - `release.yml` (release-please, failed on every merge because Actions may not open PRs) and its
-  config files were removed 2026-11-24 at Ewout's request. CI (`ci.yml`) is the only workflow.
+  config files were removed 2026-11-24 at Ewout's request. - **No GitHub Actions at all** (Ewout, 2026-11-24; PR on `claude/ci/local-checks-no-actions`):
+  `ci.yml` is removed and `scripts/check.sh` runs the checks locally (`--quick` ~1 min, full ~17 min
+  on the Mac). Run the full check on a PR's head commit and put the summary in the PR before merging.
+  Dependabot PRs get no checks. Open flake: BUG-078 (edge `assign.spec` under load).
 
 # Handoff — 2026-11-21 (Claude)
 

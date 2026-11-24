@@ -1,3 +1,17 @@
+## 2026-11-24 — Local checks replace GitHub Actions (claude/ci/local-checks-no-actions)
+
+- `scripts/check.sh --quick` (policy, format, lint, typecheck, web/worker/deploy unit tests): all
+  13 steps ok, 52 s.
+- `scripts/check.sh --keep-going` (full, 1039 s on Ewout's Mac): 31 of 32 steps ok. gitleaks 278
+  commits, no leaks; web unit + db 718 passed (66 files); E2E smoke + player 51 passed / 109 skipped,
+  video reuse 6 + 34, unified/visibility/sharing 15 + 9 passed; `pnpm audit --audit-level high` ok
+  (3 moderate); worker ruff/mypy/pytest/pip-audit ok; deploy shellcheck, kernel parser, stub tests
+  74/0 (in ubuntu:24.04, no `flock` on macOS), rehearsal ok; images web + worker built for
+  linux/amd64 and smoke-tested. **Failed:** edge E2E, 1 failed (`assign.spec`, BUG-078) / 41 passed
+  / 38 skipped.
+- `scripts/check.sh --only edge` rerun: 42 passed / 38 skipped, ok (216 s).
+- Not covered locally as before: the Conventional Commit PR-title check (no automatic equivalent).
+
 ## 2026-11-24 — Image load check in deploy.sh, BUG-077 (claude/fix/077-docker-load-check)
 
 - Harness: the upload section of `scripts/deploy.sh` with an `ssh` shim that runs the remote command
@@ -660,7 +674,7 @@ and other maintenance findings remain open. No staging host was checked or modif
 | Integration | Vitest + Testcontainers Postgres, media in a temp dir | API routes, permissions, **tenant isolation**, RLS coverage, tus |
 | E2E | Playwright, viewports iPhone 15 / Pixel 8 / desktop, WebKit + Chromium | login, upload, playback controls, conversation |
 | Analysis eval | pytest + reference clips | accuracy deltas on pipeline changes (M2) |
-| Smoke | CI image build + `curl` health under base path | every PR |
+| Smoke | image build + `curl` health under base path (`scripts/check.sh --only images`) | every PR, run locally |
 
 Rules: every bug fix starts with a failing test; every new tenant table/route gets a cross-club test;
 E2E runs with `BASE_PATH=/projects/rowlens` behind a Caddy container that mirrors prod.

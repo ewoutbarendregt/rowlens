@@ -354,7 +354,7 @@ docs/adr/            Architecture Decision Records
 docs/analysis/       perspective validity rules
 docs/privacy/        processors and data flows
 scripts/github/      backlog/labels/milestones bootstrap
-.github/             CI, release, templates, Dependabot
+.github/             issue/PR templates, Dependabot (no workflows)
 ```
 
 ## Runtime architecture (proposed, ADR-0002…0008)
@@ -840,7 +840,7 @@ pause → seek → play, fullscreen with an iPhone CSS fallback, start/step meas
 (controls, keyboard, hold-to-repeat buttons), `strings.ts` (NL/EN until #34).
 
 - Demo page `/demo/player` exists only when `PLAYER_DEMO` (`src/client/features.ts`) is true: always in
-  `vite` dev, in builds only with `VITE_FEATURE_PLAYER_DEMO=true` (CI's E2E build). CI checks that a
+  `vite` dev, in builds only with `VITE_FEATURE_PLAYER_DEMO=true` (the E2E build). `scripts/check.sh` checks that a
   production build contains no demo code; `dropUnreachableChunks` in `vite.config.ts` removes chunks that
   Rolldown emits for eliminated dynamic imports.
 - Demo clips: `pnpm demo:media [clip …]` (ffmpeg in Docker, `scripts/demo-media/`) writes to the
@@ -880,14 +880,20 @@ the source of the #24 change). AudioScribe and the trustable.nl site are stand-i
 receive. `pnpm e2e:edge` runs the Playwright smoke + `e2e/edge.spec.ts` through it; `pnpm edge:down` stops
 it. Networks mirror ADR-0002 (only rowlens-web is on the proxy network). No TLS locally.
 
-## CI (`.github/workflows/ci.yml`)
+## Checks (`scripts/check.sh`, local; no GitHub Actions since 2026-11-24)
 
-policy (PR title + branch name) · web (format, lint, typecheck, test, build, Playwright smoke, audit) ·
-edge (Playwright through the Caddy mirror) · worker (ruff,
-mypy, pytest, pip-audit) · secrets (gitleaks) · images (build web + worker for linux/amd64, smoke test;
-nothing is pushed) · deploy-script (shellcheck of `scripts/deploy.sh` and `infra/deploy`, stubbed unit
-tests, real-Docker rehearsal of `rowlens-deploy`). There is no release workflow (release-please was
-removed 2026-11-24). No workflow builds for or deploys to production (removed 2026-11-24).
+RowLens uses no GitHub Actions at all: the `ci` workflow (and its change-selection script
+`scripts/ci/changes.js`) was replaced by `scripts/check.sh`, run on the developer's machine before a
+PR is merged. Sections, in order: policy (branch name; PR titles are no longer checked automatically)
+· secrets (gitleaks over the full history, local binary or Docker image) · web (format, lint,
+typecheck, unit + db tests, release-version generator, E2E clips, production bundle without demo code,
+Playwright smoke/player, video reuse, unified accounts/visibility/sharing, `pnpm audit`) · worker
+(ruff, mypy, pytest, pip-audit) · deploy (shellcheck, kernel parser, stubbed `rowlens-deploy` tests in
+Ubuntu when the host has no `flock`, real-Docker rehearsal) · edge (Playwright through the Caddy
+mirror) · images (build web + worker for linux/amd64, smoke tests; nothing pushed). `--quick` runs
+policy, format, lint, typecheck and the unit tests of web, worker and deploy; `--only` picks sections;
+`--keep-going` reports every failure. Tools are checked up front. Dependabot still opens PRs
+(`.github/dependabot.yml` is not Actions) but they get no checks.
 
 ## Delivery (ADR-0002, #25; local since 2026-11-24)
 
