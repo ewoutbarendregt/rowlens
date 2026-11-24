@@ -1,3 +1,10 @@
+## [2026-11-24] — Removed the release-please workflow
+
+**Session**: claude/ci/remove-release-workflow
+**Changed**: .github/workflows/release.yml (removed), release-please-config.json (removed), .release-please-manifest.json (removed), AGENTS.md, BUILD.md, docs/HANDOFF.md, DOCUMENTATION.md
+**Summary**: release-please failed on every merge (Actions may not open PRs) and never produced a release; the displayed version comes from `scripts/release-version.js` and the server's image labels (ADR-0027), not from it. Removed the workflow and its two config files, which nothing else read; `ci.yml` is now the only workflow.
+**Prompts used**: "remove release.yml"
+
 ## [2026-11-24] — Deleted the GitHub deploy-key secret
 
 **Session**: claude/docs/handoff-secret-deleted

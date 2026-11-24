@@ -202,8 +202,7 @@ Production is `trustable-contabo` (144.91.87.103, user `deploy`); the old Hetzne
    `https://api.trustable.nl/api/health` and `https://trustable.nl/projects/audioscribe/` answer
    200. New migrations: check the count and any backfill jobs.
 4. Log it (see Project logs). Roll back: `ssh trustable-contabo /opt/rowlens/bin/rowlens-deploy
-   rollback` (only with Ewout's yes). The `release` workflow fails on every merge (Actions may not
-   open PRs); that is known and harmless.
+   rollback` (only with Ewout's yes).
 
 SSH rule for any multi-step remote work: never pipe a script into `ssh host bash -s`
 (`docker compose exec/run` or a nested ssh swallow the rest of stdin and the script stops silently
