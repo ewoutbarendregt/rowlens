@@ -2,12 +2,13 @@
 
 ## Current work: local deploys to Contabo
 
-- Branch `claude/ci/local-deploy-contabo`, from main fcb6bc2; PR open. Not merged, nothing deployed.
+- PR #205 merged as 1b54aa5 and **deployed** 2026-11-24 with `scripts/deploy.sh prod`
+  (`sha-1b54aa5`, 0.0.69). `docker load` unpack errors did not stop it (BUG-077, open).
 - Production is `trustable-contabo` (144.91.87.103, user `deploy`) since 2026-11-24, running
-  `sha-1a36f75` (0.0.68). Hetzner `trustable-prod` is only a Caddy forwarder.
+  `sha-1b54aa5` (0.0.69). Hetzner `trustable-prod` is only a Caddy forwarder.
 - Deploy now with `scripts/deploy.sh prod` from Ewout's Mac (only on his request); the `deploy` and
-  `images` workflows are gone. GitHub Actions is blocked by billing, so PR checks fail without running.
-- After merging, the server's `rowlens-deploy` is older than the repo's (it still has the GHCR-token
+  `images` workflows are gone. PR checks run again (green on #205).
+- The server's `rowlens-deploy` is older than the repo's (it still has the GHCR-token
   path, which is skipped when stdin is empty, so it works with `deploy.sh` as is). Reinstalling it is
   `infra/deploy/install.sh` (needs Ewout's yes); the dry run prints the diff.
 - Left for Ewout: delete the GitHub secret `ROWLENS_SSH_PRIVATE_KEY` and the retired

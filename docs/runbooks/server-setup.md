@@ -133,6 +133,13 @@ RowLens CI key.
 
 ## Recent deployments
 
+- **2026-11-24 20:17 UTC — `sha-1b54aa5`** (0.0.69, [#205](https://github.com/ewoutbarendregt/rowlens/pull/205):
+  local deploy from Ewout's Mac replaces the GitHub Actions deploy). First run of
+  `scripts/deploy.sh prod`. Pre-deploy dump `pre-deploy-20261124T201512Z-sha-1b54aa5.dump`;
+  migrations unchanged (33). `/health/ready` returned `sha-1b54aa5` with `db: ok`; `rowlens-web`
+  and `rowlens-worker` run that tag; `https://trustable.nl/`, `https://api.trustable.nl/api/health`,
+  AudioScribe and RowLens returned 200. `docker load` printed unpack errors but the images work
+  (BUG-077). The server's `rowlens-deploy` is still the pre-#205 copy (compatible; `install.sh` not run).
 - **2026-11-21 15:49 UTC — `sha-1a36f75`** ([#195](https://github.com/ewoutbarendregt/rowlens/pull/195):
   RowLens admin's notes on examples visible to members of the owning club, BUG-074). Deploy run
   [44921182532](https://github.com/ewoutbarendregt/rowlens/actions/runs/44921182532) succeeded;
