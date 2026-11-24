@@ -140,7 +140,10 @@ RowLens CI key.
   migrations unchanged (33). `/health/ready` returned `sha-1b54aa5` with `db: ok`; `rowlens-web`
   and `rowlens-worker` run that tag; `https://trustable.nl/`, `https://api.trustable.nl/api/health`,
   AudioScribe and RowLens returned 200. `docker load` printed unpack errors but the images work
-  (BUG-077). The server's `rowlens-deploy` is still the pre-#205 copy (compatible; `install.sh` not run).
+  (BUG-077).
+- **2026-11-24 20:31 UTC — `infra/deploy/install.sh`** (Ewout's request): `bin/rowlens-deploy`
+  replaced by the #205 version (no GHCR login/pull; old copy `bin/rowlens-deploy.bak-20261124T203123Z`),
+  `docker-compose.yml` unchanged. Containers untouched; server copy now byte-identical to the repo.
 - **2026-11-21 15:49 UTC — `sha-1a36f75`** ([#195](https://github.com/ewoutbarendregt/rowlens/pull/195):
   RowLens admin's notes on examples visible to members of the owning club, BUG-074). Deploy run
   [44921182532](https://github.com/ewoutbarendregt/rowlens/actions/runs/44921182532) succeeded;
