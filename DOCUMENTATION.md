@@ -1,3 +1,10 @@
+## [2026-11-24] — Deployed sha-1b54aa5, the first local deploy to Contabo
+
+**Session**: claude/docs/log-deploy-sha-1b54aa5
+**Changed**: DOCUMENTATION.md, BUGS.md, docs/runbooks/server-setup.md, docs/HANDOFF.md
+**Summary**: Merged #205 as 1b54aa5 and deployed `sha-1b54aa5` (0.0.69) with `scripts/deploy.sh prod --yes`: build, upload, pre-deploy dump, migrations (still 33), up, ready at 20:17:56 UTC. Verified read-only: `/health/ready` reports `sha-1b54aa5` with `db` ok, web and worker on the new tag (worker ready, no web errors), trustable.nl, its API, AudioScribe and RowLens 200. `docker load` printed containerd unpack errors for both images but loaded them; the containers run fine (BUG-077).
+**Prompts used**: "merge en deploy maar"
+
 ## [2026-11-24] — Local deploy to Contabo replaces the GitHub Actions deploy
 
 **Session**: claude/ci/local-deploy-contabo
