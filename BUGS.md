@@ -19,6 +19,13 @@
 **Description**: A member of the club that owns an example who can also read the training normally (shared with the club or with them, in the crew, or made it) opens it through the normal training/video pages and `/api/videos/:id/annotations`. There the normal rower rule applies (only notes shared with or written by them), so the publisher's notes and drawings are missing, although every other signed-in account sees them through `/api/examples/:id`. Reproduced by a db test: 200 with 0 notes for a rower of the owning club, example shared with the club.
 **Fix**: Migration 0033: the ordinary annotation read policy also admits the publisher's annotations of a published example (`rowlens_published_example_annotation`), only on videos the viewer already sees. Branch claude/fix/example-notes-for-members.
 
+### [BUG-075] CI dependency audit fails on picomatch ReDoS advisory — severity: medium
+**Location**: .github/workflows/ci.yml (`pnpm audit --audit-level high`); picomatch <=4.0.7 via typescript-eslint/tinyglobby/fdir (dev tooling)
+**Status**: open
+**Found**: 2026-11-17
+**Description**: Since 2026-11-17 the web job's last step fails on GHSA-fc5q-39xc-vjpf (high) for every branch, including main; all tests pass. No patched version exists. Not in the production bundle (lint tooling only). Ewout accepted merging/deploying #193 with this red step.
+**Fix**: Pending Ewout's decision (dependency/security change needs his explicit approval): wait for a patch, or a reviewed, time-limited audit exception for this advisory.
+
 ### [BUG-073] Admin creator select overflows the training page on iPhone — severity: low
 **Location**: apps/web/src/client/styles.css (`.creator`)
 **Status**: fixed

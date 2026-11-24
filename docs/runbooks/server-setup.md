@@ -5,6 +5,21 @@ What exists on the server for RowLens, who changed it, and what is still to do. 
 `trustable-prod`. Every change to a shared component is approved by Ewout first (AGENTS.md). Newest
 changes first.
 
+## Examples in the training list deployed — 2026-11-17 20:28 UTC
+
+Ewout requested "merge en deploy" and, asked about the red dependency audit, answered "Ja, merge en
+deploy". [#193](https://github.com/ewoutbarendregt/rowlens/pull/193) squash-merged as 66b4692. Main
+images [44167704101](https://github.com/ewoutbarendregt/rowlens/actions/runs/44167704101) succeeded;
+main CI [44167704250](https://github.com/ewoutbarendregt/rowlens/actions/runs/44167704250) passed every
+test and E2E step and failed only `pnpm audit --audit-level high` on the new picomatch advisory
+GHSA-fc5q-39xc-vjpf (dev tooling via typescript-eslint, no patched version). Deploy
+[44169494655](https://github.com/ewoutbarendregt/rowlens/actions/runs/44169494655) with the public
+URL check succeeded: **0.0.67 / sha-66b4692**. Backup
+`/opt/rowlens/backups/pre-deploy-20261117T202754Z-sha-66b4692.dump`; no new migration (32), 3 examples.
+Readiness reports the new SHA with DB ok; only rowlens-web/worker changed tag, the 7 other containers
+kept their images and uptime. trustable.nl, API health, AudioScribe and RowLens return 200. Read-only
+verification; no configuration or one-off database change.
+
 ## Help examples and publisher feedback deployed — 2026-11-16 21:43 UTC
 
 Ewout requested “Merge en deploy”. #190/ece7f78 and #191/a42e2f1 are merged. #191's renewed
