@@ -47,10 +47,13 @@ interface LineupCardProps {
 export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardProps) {
   const t = lineupStrings();
   const { state: auth } = useAuth();
+  // With unified accounts whoever may edit the training adds a name-only crew member (BUG-077).
+  const unified = auth.kind === 'open' && auth.unified;
   const allowCreate =
-    auth.kind === 'open' && auth.user.roles.some((r) => r === 'coach' || r === 'admin');
+    unified ||
+    (auth.kind === 'open' && auth.user.roles.some((r) => r === 'coach' || r === 'admin'));
   const id = useId();
-  const roster = useRoster(undefined, sessionId);
+  const roster = useRoster(undefined, sessionId, false, unified);
   const [boat, setBoat] = useState<BoatClass | null>(boatType);
   const [seats, setSeats] = useState<Seats>(() => toMap(lineup));
   const [recent, setRecent] = useState<RecentLineup[] | null>(null);
@@ -203,6 +206,7 @@ export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardP
                     );
                   }}
                   allowCreate={allowCreate}
+                  createIn={unified ? sessionId : undefined}
                   onAdded={() => void roster.reload()}
                 />
               </li>

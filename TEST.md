@@ -7,6 +7,13 @@
 - Earlier attempts found: a transient `Connection closed` on the first ssh (now one multiplexed connection with retries), BUG-076 (stale ghcr.io keychain token) and BUG-075 (script edited mid-run).
 - Not verified: a real deploy (not requested), the upload/`docker load` step, the public URL check after a deploy. CI did not run (GitHub Actions blocked by billing).
 
+## 2026-11-21 — Crew from the whole club (claude/fix/crew-pick-whole-club)
+
+- New db file `crew-picking.db.test.ts` **7/7**: crew list = all verified members of any role + active name-only entries (not unverified, archived, other club; no e-mails); 404 for a member who may not edit and across clubs; lineup save with members the rower couldn't see before, refusal of another club's entries and archived names; adding a name (similar-name 409, trimmed, `user_id`/`email` null, confirmNew), refusals (non-editor, other club, empty name, nothing inserted); the roster stays hidden from a rower; club admin linking a crew name to an account (409 on a seat clash and an unverified account, 204 and the seat moves to the account).
+- Full web/DB **725/725** in 67 files; format, lint, typecheck pass.
+- Browser (built with `VITE_FEATURE_PLAYER_DEMO=true VITE_FEATURE_UNIFIED_USERS=true`): visibility **18/18** including the new `crew-whole-club.spec.ts` (a rower creates a training in Alpha, picks "Other Rower", adds "Gast …" from the seat, saves, reload keeps both, no horizontal scroll; Chromium 1000×540, 1440×900, iPhone 13 WebKit), unified **34/34**, sharing **9/9**. Legacy build: lineup/assign/permissions **4 passed**, 2 edge-only skipped.
+- Not verified: Ewout's local dev stack, physical iPhone, the club-admin linking screen in a browser (API covered by the db test).
+
 ## 2026-11-21 — Example publisher notes for members of the owning club (claude/fix/example-notes-for-members)
 
 - New db case: a rower of the owning club, example shared with the club, `GET /api/videos/:id/annotations` returned 200 with **0** notes before the fix (reproduces BUG-074); after it, the publisher's note is returned and the other author's and the legacy note stay hidden. Training visibility db file 19/19.

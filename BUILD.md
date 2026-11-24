@@ -1,3 +1,14 @@
+## Crew from the whole club (2026-11-21, BUG-077)
+
+With unified accounts, `LineupCard` loads `GET /api/sessions/:id/rowers?crew=true`, answered only
+when `rowlens_can_edit_session` holds, from the definer `rowlens_crew_candidates`: every active
+roster entry of the club that is linked to a verified member (any role) or has no account. The
+picker's "add" posts `POST /api/sessions/:id/rowers` (name only, the similar-name 409 first) →
+`rowlens_add_crew_name`. Lineup saves and angle measurements check `rowlens_crew_target` for new
+entries instead of reading `rower` under RLS, so the rower role policy (roster hidden from rowers)
+is unchanged. A name gets an account later through the club admin's existing
+`rowlens_link_legacy_person` ("Namen aan accounts koppelen" under Beheer → Aanvragen).
+
 ## Example publisher notes in the normal pages (2026-11-21, BUG-074)
 
 `annotation_role_read` (ordinary branch) admits, besides the viewer's visible moments and own notes,

@@ -12,6 +12,13 @@
 **Description**: bash reads a script while running it. Rewriting the file during a dry run made it die with a syntax error after the build, and the wrapper still reported exit 0. A real deploy could stop between upload and the server step.
 **Fix**: The script body is one `{ … exit; }` block, so bash parses all of it before running; a later edit can't change a running deploy. The server step is also guarded by its end marker and the image-tag check. Branch claude/ci/local-deploy-contabo.
 
+### [BUG-077] A rower can't pick club members or add names for a training's crew — severity: medium
+**Location**: apps/web/src/server/api/rowers.ts:116, apps/web/src/server/api/lineups.ts:115
+**Status**: fixed
+**Found**: 2026-11-21
+**Description**: With unified accounts a rower making a training saw only themselves and rowers from trainings they could already see (2 of the pilot club's 10 members), saving others failed, and adding a name was switched off. The crew should come from the whole club, and someone without an account can be added by name.
+**Fix**: Migration 0034 (`rowlens_crew_target`, `rowlens_crew_candidates`, `rowlens_add_crew_name`); `GET /api/sessions/:id/rowers?crew=true` and `POST /api/sessions/:id/rowers` for whoever may edit the training; lineups and angle measurements accept those crew members. Club admins link a name to an account later in Club administration (existing `rowlens_link_legacy_person`). Amends ADR-0021.
+
 ### [BUG-074] Rowers of the owning club don't see an example's notes — severity: medium
 **Location**: apps/web/src/server/db/migrations/0031_example_feedback.sql (`annotation_role_read`), apps/web/src/client/sessions/filter.ts (`withExamples`)
 **Status**: fixed

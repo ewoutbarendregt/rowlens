@@ -113,22 +113,25 @@ export const lineupRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
           .for('update');
         if (session === undefined) return null;
         const before = new Set((await lineupOf(tx, session.id)).map((s) => s.rower.id));
+        // Unified accounts (BUG-077): anyone new in a seat must be a crew target of this club;
+        // who already sat there may stay, archived or not.
+        if (opts.unifiedUsers) {
+          for (const id of rowerIds) {
+            if (before.has(id)) continue;
+            const valid = await tx.execute<{ ok: boolean }>(
+              sql`select rowlens_crew_target(${id}) as ok`,
+            );
+            if (!valid.rows[0]?.ok) return 'unknown_rower';
+          }
+        }
         const found =
-          rowerIds.size === 0
+          rowerIds.size === 0 || opts.unifiedUsers
             ? []
             : await tx
                 .select({ id: rower.id, archivedAt: rower.archivedAt })
                 .from(rower)
                 .where(inArray(rower.id, [...rowerIds]));
-        if (found.length !== rowerIds.size) return 'unknown_rower';
-        if (opts.unifiedUsers)
-          for (const id of rowerIds) {
-            if (before.has(id)) continue;
-            const valid = await tx.execute<{ ok: boolean }>(
-              sql`select rowlens_account_target(${id}) as ok`,
-            );
-            if (!valid.rows[0]?.ok) return 'unknown_rower';
-          }
+        if (!opts.unifiedUsers && found.length !== rowerIds.size) return 'unknown_rower';
         // An archived rower may stay where they sat, but can't be put in a seat anew.
         if (found.some((r) => r.archivedAt !== null && !before.has(r.id))) return 'archived_rower';
 

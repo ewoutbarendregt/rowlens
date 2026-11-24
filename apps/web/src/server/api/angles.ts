@@ -131,7 +131,7 @@ export const angleRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
       if (who === undefined) return 'unknown_rower' as const;
       if (opts.unifiedUsers) {
         const valid = await tx.execute<{ ok: boolean }>(
-          sql`select rowlens_account_target(${m.rowerId}) as ok`,
+          sql`select rowlens_crew_target(${m.rowerId}) as ok`,
         );
         if (!valid.rows[0]?.ok) return 'unknown_rower' as const;
       }

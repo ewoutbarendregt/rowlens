@@ -19,13 +19,20 @@ export type AddResult =
 
 export async function addRower(
   displayName: string,
-  options: { email?: string; confirmNew?: boolean } = {},
+  options: { email?: string; confirmNew?: boolean; sessionId?: string | undefined } = {},
 ): Promise<AddResult> {
   try {
-    const res = await api('/api/rowers', {
-      method: 'POST',
-      body: { displayName, email: options.email, confirmNew: options.confirmNew ?? false },
-    });
+    const confirmNew = options.confirmNew ?? false;
+    const res =
+      options.sessionId === undefined
+        ? await api('/api/rowers', {
+            method: 'POST',
+            body: { displayName, email: options.email, confirmNew },
+          })
+        : await api(`/api/sessions/${options.sessionId}/rowers`, {
+            method: 'POST',
+            body: { displayName, confirmNew },
+          });
     if (res.status === 201) return { kind: 'added', rower: (await res.json()) as Rower };
     if (res.status === 409) {
       const body = (await res.json()) as { error: string; candidates?: Rower[] };
@@ -43,6 +50,8 @@ export function useRoster(
   archived?: 'include' | 'only',
   sessionId?: string | null,
   sharing = false,
+  /** The whole club as crew choices for a training the member may edit (BUG-077). */
+  crew = false,
 ) {
   const [rowers, setRowers] = useState<Rower[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -57,7 +66,7 @@ export function useRoster(
       const res = await api(
         sessionId === undefined
           ? `/api/rowers${archived === undefined ? '' : `?archived=${archived}`}`
-          : `/api/sessions/${sessionId}/rowers${sharing ? '?sharing=true' : ''}`,
+          : `/api/sessions/${sessionId}/rowers${sharing ? '?sharing=true' : crew ? '?crew=true' : ''}`,
       );
       if (!res.ok) throw new Error();
       setRowers(((await res.json()) as { rowers: Rower[] }).rowers);
@@ -65,7 +74,7 @@ export function useRoster(
     } catch {
       setFailed(true);
     }
-  }, [archived, sessionId, sharing]);
+  }, [archived, sessionId, sharing, crew]);
 
   useEffect(() => {
     void reload();
