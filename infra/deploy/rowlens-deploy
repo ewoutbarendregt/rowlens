@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# rowlens-deploy — the only thing the RowLens CI key may run on the server (ADR-0002, #25).
+# rowlens-deploy — the server side of a RowLens deploy (ADR-0002, #25).
 #
-# Installed at /opt/rowlens/bin/rowlens-deploy by infra/deploy/install.sh, and bound to the CI key in
-# authorized_keys with `restrict,command="/opt/rowlens/bin/rowlens-deploy"`. CI can therefore only ask
-# for one of the commands below; the compose file stays on the server, so CI chooses *which image tag*
-# runs, never *how* it runs.
+# Installed at /opt/rowlens/bin/rowlens-deploy by infra/deploy/install.sh and run by scripts/deploy.sh
+# from Ewout's Mac (`ssh -n trustable-contabo /opt/rowlens/bin/rowlens-deploy deploy <tag>`), after it
+# has loaded the images with `docker load`. No registry: nothing is pulled. The compose file stays on
+# the server, so a deploy chooses *which image tag* runs, never *how* it runs. The script also still
+# validates SSH_ORIGINAL_COMMAND, so it can be bound to a key as a forced command.
 #
 # Commands (from SSH_ORIGINAL_COMMAND when forced, else from the arguments):
-#   deploy <tag>   GHCR token on stdin (may be empty to use images already on the host).
-#                  pull → DB backup → migrate (if defined) → up → readiness check → keep, or roll back.
+#   deploy <tag>   images must already be on the host (docker load).
+#                  DB backup → migrate (if defined) → up --pull never → readiness check → keep, or roll back.
 #   rollback       redeploy the previous tag (images are kept locally).
 #   status         print current/previous tag and container state.
 #
@@ -21,15 +22,12 @@ umask 027
 ROWLENS_HOME="${ROWLENS_HOME:-/opt/rowlens}"
 HEALTH_TIMEOUT="${ROWLENS_HEALTH_TIMEOUT:-90}"
 HEALTH_URL="${ROWLENS_HEALTH_URL:-http://127.0.0.1:3000/projects/rowlens/health/ready}"
-REGISTRY_USER="${ROWLENS_REGISTRY_USER:-ewoutbarendregt}"
 IMAGES=(ghcr.io/ewoutbarendregt/rowlens-web ghcr.io/ewoutbarendregt/rowlens-worker)
 KEEP_BACKUPS=10
 TAG_RE='^(sha-[0-9a-f]{7,40}|v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?)$'
 
 STATE="$ROWLENS_HOME/state"
 COMPOSE_FILE="$ROWLENS_HOME/docker-compose.yml"
-# Separate credential store: never touch the deploy user's ~/.docker (trustable's CD uses it).
-export DOCKER_CONFIG="$ROWLENS_HOME/.docker"
 
 log() { printf '%s rowlens-deploy: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2; }
 die() {
@@ -65,7 +63,7 @@ wait_ready() {
   while ((SECONDS < deadline)); do
     image="$(ROWLENS_TAG="$tag" compose ps --format '{{.Image}}' web 2>/dev/null || true)"
     if [[ "$image" == "ghcr.io/ewoutbarendregt/rowlens-web:$tag" ]] &&
-      ROWLENS_TAG="$tag" compose exec -T web wget -q -O /dev/null "$HEALTH_URL" 2>/dev/null; then
+      ROWLENS_TAG="$tag" compose exec -T web wget -q -O /dev/null "$HEALTH_URL" </dev/null 2>/dev/null; then
       return 0
     fi
     sleep 2
@@ -89,7 +87,7 @@ backup_db() {
   mkdir -p "$dir"
   local file
   file="$dir/pre-deploy-$(date -u +%Y%m%dT%H%M%SZ)-$tag.dump"
-  compose exec -T db pg_dump -U rowlens_owner -d rowlens -Fc >"$file"
+  compose exec -T db pg_dump -U rowlens_owner -d rowlens -Fc </dev/null >"$file"
   log "database backed up to $file"
   # Keep the newest $KEEP_BACKUPS pre-deploy dumps.
   find "$dir" -maxdepth 1 -name 'pre-deploy-*.dump' -printf '%T@ %p\n' | sort -rn |
@@ -105,7 +103,7 @@ migrate() {
   services="$(ROWLENS_TAG="$tag" compose --profile migrate config --services)" || return 1
   if grep -qx migrate <<<"$services"; then
     log "running migrations for $tag"
-    ROWLENS_TAG="$tag" compose --profile migrate run --rm migrate
+    ROWLENS_TAG="$tag" compose --profile migrate run --rm migrate </dev/null
   else
     log "no migrate service defined; skipping migrations"
   fi
@@ -122,25 +120,18 @@ prune_images() {
 }
 
 cmd_deploy() {
-  local tag="$1" token current previous
-  token=""
-  # Token arrives on stdin from CI; an interactive run (tty) has none.
-  [[ -t 0 ]] || token="$(head -c 4096 || true)"
+  local tag="$1" current previous image
   current="$(read_state current-tag)"
   previous="$(read_state previous-tag)"
   # Default for every compose call below; start_tag/wait_ready pass their own tag explicitly.
   export ROWLENS_TAG="$tag"
   log "deploying $tag (current: ${current:-none})"
 
-  if [[ -n "$token" ]]; then
-    printf '%s' "$token" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin >/dev/null
-    local pulled=0
-    ROWLENS_TAG="$tag" compose pull --quiet && pulled=1
-    docker logout ghcr.io >/dev/null 2>&1 || true
-    ((pulled)) || die 2 "pull failed for $tag; nothing changed"
-  else
-    log "no registry token given; using images already on the host"
-  fi
+  # scripts/deploy.sh loads the images first; `up --pull never` would otherwise fail late.
+  for image in "${IMAGES[@]}"; do
+    docker image inspect "$image:$tag" >/dev/null 2>&1 ||
+      die 2 "$image:$tag is not on this host (load it with scripts/deploy.sh); nothing changed"
+  done
 
   backup_db "$tag" || die 2 "pre-deploy database backup failed; nothing changed"
   migrate "$tag" || die 2 "migrations failed; containers not restarted (see the pre-deploy backup)"

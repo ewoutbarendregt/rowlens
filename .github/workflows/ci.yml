@@ -157,7 +157,8 @@ jobs:
           retention-days: 7
 
   deploy-script:
-    # The only command the CI key may run on the server: lint, unit tests, and a real rehearsal.
+    # The local deploy (scripts/deploy.sh) and the server side it runs (rowlens-deploy): lint, unit
+    # tests, and a real rehearsal. CI never deploys; deploys run from Ewout's Mac (ADR-0002).
     needs: [changes]
     if: needs.changes.outputs.full == 'true'
     runs-on: ubuntu-latest
@@ -165,7 +166,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: shellcheck
-        run: shellcheck -x infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker scripts/admin/fix-production-kernel-054.sh scripts/admin/test/fix-production-kernel-054.test.sh
+        run: shellcheck -x scripts/deploy.sh infra/deploy/rowlens-deploy infra/deploy/install.sh infra/deploy/test/*.sh infra/deploy/test/stub/docker scripts/admin/fix-production-kernel-054.sh scripts/admin/test/fix-production-kernel-054.test.sh
       - name: Kernel maintenance safety parser (no host changes)
         run: bash scripts/admin/test/fix-production-kernel-054.test.sh
       - name: Unit tests (stubbed docker)

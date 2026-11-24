@@ -1,6 +1,22 @@
+# Handoff — 2026-11-24 (Claude)
+
+## Current work: local deploys to Contabo
+
+- Branch `claude/ci/local-deploy-contabo`, from main fcb6bc2; PR open. Not merged, nothing deployed.
+- Production is `trustable-contabo` (144.91.87.103, user `deploy`) since 2026-11-24, running
+  `sha-1a36f75` (0.0.68). Hetzner `trustable-prod` is only a Caddy forwarder.
+- Deploy now with `scripts/deploy.sh prod` from Ewout's Mac (only on his request); the `deploy` and
+  `images` workflows are gone. GitHub Actions is blocked by billing, so PR checks fail without running.
+- After merging, the server's `rowlens-deploy` is older than the repo's (it still has the GHCR-token
+  path, which is skipped when stdin is empty, so it works with `deploy.sh` as is). Reinstalling it is
+  `infra/deploy/install.sh` (needs Ewout's yes); the dry run prints the diff.
+- Left for Ewout: delete the GitHub secret `ROWLENS_SSH_PRIVATE_KEY` and the retired
+  `gh-actions-rowlens` key on Hetzner; decide whether `release.yml` (release-please, fails on every
+  merge) stays.
+
 # Handoff — 2026-11-21 (Claude)
 
-## Current work: BUG-075, crew from the whole club
+## Current work: BUG-077, crew from the whole club
 
 - Branch `claude/fix/crew-pick-whole-club` (worktree `/Users/ewout/src/rowlens-example-notes`), from
   main fcb6bc2. PR open; not merged, not deployed. Adds migration **0034** (three definer functions,

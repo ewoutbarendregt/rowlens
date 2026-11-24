@@ -47,7 +47,7 @@ interface LineupCardProps {
 export function LineupCard({ sessionId, boatType, lineup, onSaved }: LineupCardProps) {
   const t = lineupStrings();
   const { state: auth } = useAuth();
-  // With unified accounts whoever may edit the training adds a name-only crew member (BUG-075).
+  // With unified accounts whoever may edit the training adds a name-only crew member (BUG-077).
   const unified = auth.kind === 'open' && auth.unified;
   const allowCreate =
     unified ||

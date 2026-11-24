@@ -9,7 +9,7 @@ const MAX_OPTIONS = 8;
 
 interface RowerPickerProps {
   allowCreate?: boolean;
-  /** With unified accounts, a name is added to this training's crew choices (BUG-075). */
+  /** With unified accounts, a name is added to this training's crew choices (BUG-077). */
   createIn?: string | undefined;
   /** The active roster to search in. */
   rowers: Rower[];

@@ -1,3 +1,12 @@
+## 2026-11-24 — Local deploy to Contabo (claude/ci/local-deploy-contabo)
+
+- `rowlens-deploy` stub tests (Ubuntu 24.04 container): **74 passed, 0 failed** (new: local images only, no login/pull, `up --pull never`; stdin left unread; a missing image changes nothing, exit 2).
+- Rehearsal against real Docker (`infra/deploy/test/rehearse.sh`): **passed**, 12 ok lines (first and second deploy, migrations, worker, RLS, backup, broken release → exit 3 and rollback, rollback, status). Run with an anonymous Docker client config because of BUG-076 on this Mac.
+- shellcheck (koalaman/shellcheck:stable) on `scripts/deploy.sh`, `infra/deploy/*`, test scripts and the kernel scripts: clean. `pnpm format:check`: clean.
+- `scripts/deploy.sh prod --dry-run` against `trustable-contabo` (origin/main fcb6bc2): preflight ok (docker 29.10.0, compose 5.8.0, 94G free, current `sha-1a36f75`, server `rowlens-deploy` and compose file identical to the ref), release 0.0.69, both images built for linux/amd64 (cold 80 s, cached 11 s), `DRY-RUN-OK`. Afterwards the server still ran `sha-1a36f75` with only its own two RowLens images; temporary worktree and SSH socket removed.
+- Earlier attempts found: a transient `Connection closed` on the first ssh (now one multiplexed connection with retries), BUG-076 (stale ghcr.io keychain token) and BUG-075 (script edited mid-run).
+- Not verified: a real deploy (not requested), the upload/`docker load` step, the public URL check after a deploy. CI did not run (GitHub Actions blocked by billing).
+
 ## 2026-11-21 — Crew from the whole club (claude/fix/crew-pick-whole-club)
 
 - New db file `crew-picking.db.test.ts` **7/7**: crew list = all verified members of any role + active name-only entries (not unverified, archived, other club; no e-mails); 404 for a member who may not edit and across clubs; lineup save with members the rower couldn't see before, refusal of another club's entries and archived names; adding a name (similar-name 409, trimmed, `user_id`/`email` null, confirmNew), refusals (non-editor, other club, empty name, nothing inserted); the roster stays hidden from a rower; club admin linking a crew name to an account (409 on a seat clash and an unverified account, 204 and the seat moves to the account).

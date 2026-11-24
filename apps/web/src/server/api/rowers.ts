@@ -127,7 +127,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         .from(rowingSession)
         .where(eq(rowingSession.id, params.data.id));
       if (session === undefined) return null;
-      // Picking a crew (BUG-075): the whole club for whoever may edit this training.
+      // Picking a crew (BUG-077): the whole club for whoever may edit this training.
       if (opts.unifiedUsers && z.object({ crew: z.literal('true') }).safeParse(req.query).success) {
         if (!session.writable) return null;
         await tx.execute(sql`select rowlens_sync_account_targets()`);
@@ -176,7 +176,7 @@ export const rowerRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts, 
         };
   });
 
-  // A name-only crew member (BUG-075, amends ADR-0021): whoever may edit the training adds one.
+  // A name-only crew member (BUG-077, amends ADR-0021): whoever may edit the training adds one.
   app.post('/api/sessions/:id/rowers', { preHandler: guard }, async (req, reply) => {
     const params = idParam.safeParse(req.params);
     if (!opts.unifiedUsers || !params.success) return notFound(reply);

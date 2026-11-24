@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { openLineup, openNewSession, signIn } from './helpers.ts';
 
-// BUG-075: a rower who makes a training picks the crew from the whole club and adds a name-only
+// BUG-077: a rower who makes a training picks the crew from the whole club and adds a name-only
 // crew member on the spot (amends ADR-0021). Runs on the unified visibility fixture.
 test.skip(process.env['E2E_UNIFIED'] !== 'true', 'Requires the isolated visibility configuration');
 
@@ -20,7 +20,7 @@ test('a rower picks any club member for the crew of a new training and adds a na
   await lineup.getByLabel('Boot', { exact: true }).selectOption('2x');
   await expect(lineup.getByTestId('seat')).toHaveCount(2);
 
-  // Bow: a club member in none of this rower's trainings, so unseen before BUG-075.
+  // Bow: a club member in none of this rower's trainings, so unseen before BUG-077.
   const bow = lineup.getByRole('combobox', { name: 'Boeg (1)' });
   await bow.fill('Other');
   await page.getByRole('option', { name: 'Other Rower' }).click();

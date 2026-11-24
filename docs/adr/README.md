@@ -3,7 +3,7 @@
 | # | Title | Status |
 |---|---|---|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | accepted |
-| [0002](0002-hosting-and-isolation.md) | Hosting on trustable-prod as an isolated Compose project | proposed |
+| [0002](0002-hosting-and-isolation.md) | Hosting as an isolated Compose project (Contabo since 2026-11-24; local deploys) | proposed |
 | [0003](0003-base-path.md) | Serve under `/projects/rowlens` without prefix stripping | proposed (origin accepted) |
 | [0004](0004-application-stack.md) | Application stack | proposed |
 | [0005](0005-tenancy-and-authorization.md) | Tenancy and authorization in the data-access layer | proposed |

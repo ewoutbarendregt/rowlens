@@ -12,7 +12,7 @@ import { withBasePath } from '../../shared/base-path.ts';
 import { connectDatabase, type DatabaseHandle } from '../db/client.ts';
 import { asOwner, createTwoClubs } from '../db/test/fixtures.ts';
 
-// BUG-075: whoever may edit a training picks its crew from the whole club and may add a name.
+// BUG-077: whoever may edit a training picks its crew from the whole club and may add a name.
 let app: FastifyInstance, h: DatabaseHandle, clubs: { a: string; b: string };
 let directory = '';
 const cookies = new Map<string, string>();

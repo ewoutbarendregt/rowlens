@@ -113,7 +113,7 @@ export const lineupRoutes: FastifyPluginCallback<ClubRouteOptions> = (app, opts,
           .for('update');
         if (session === undefined) return null;
         const before = new Set((await lineupOf(tx, session.id)).map((s) => s.rower.id));
-        // Unified accounts (BUG-075): anyone new in a seat must be a crew target of this club;
+        // Unified accounts (BUG-077): anyone new in a seat must be a crew target of this club;
         // who already sat there may stay, archived or not.
         if (opts.unifiedUsers) {
           for (const id of rowerIds) {

@@ -50,7 +50,7 @@ export function useRoster(
   archived?: 'include' | 'only',
   sessionId?: string | null,
   sharing = false,
-  /** The whole club as crew choices for a training the member may edit (BUG-075). */
+  /** The whole club as crew choices for a training the member may edit (BUG-077). */
   crew = false,
 ) {
   const [rowers, setRowers] = useState<Rower[] | null>(null);

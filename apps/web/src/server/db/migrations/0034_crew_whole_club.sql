@@ -1,4 +1,4 @@
--- BUG-075: whoever may edit a training picks its crew from the whole club: every verified member
+-- BUG-077: whoever may edit a training picks its crew from the whole club: every verified member
 -- (any role) plus name-only roster entries, and may add a name-only entry on the spot (amends
 -- ADR-0021). Read access to rosters, trainings and notes is unchanged: the list comes only from
 -- these functions, and only for a training the caller may edit.
