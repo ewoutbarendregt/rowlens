@@ -19,7 +19,7 @@ async function mutate(page: Page, method: string, path: string, data?: unknown) 
   });
 }
 
-test('real worker analyzes reused media independently and playback survives deletion of its source training', async ({
+test('real worker reuses processed media and playback survives deletion of its source training', async ({
   page,
 }, info) => {
   test.setTimeout(120000);
@@ -35,17 +35,6 @@ test('real worker analyzes reused media independently and playback survives dele
     sessionId: string;
     frameCount: number;
   };
-  await expect
-    .poll(
-      async () =>
-        ((await (await get(`/api/videos/${original}/auto-boat-line`)).json()) as { status: string })
-          .status,
-      { timeout: 60000 },
-    )
-    .toBe('done');
-  const sourceLine = (await (
-    await get(`/api/videos/${original}/auto-boat-line`)
-  ).json()) as unknown;
   const note = await mutate(page, 'POST', `/api/videos/${original}/annotations`, {
     kind: 'note',
     frame: 0,
@@ -63,14 +52,6 @@ test('real worker analyzes reused media independently and playback survives dele
   });
   expect(reused.status()).toBe(201);
   const entry = (await reused.json()) as { id: string };
-  await expect
-    .poll(
-      async () =>
-        ((await (await get(`/api/videos/${entry.id}/auto-boat-line`)).json()) as { status: string })
-          .status,
-      { timeout: 60000 },
-    )
-    .toBe('done');
   expect(
     ((await (await get(`/api/videos/${entry.id}`)).json()) as { frameCount: number }).frameCount,
   ).toBe(source.frameCount);
@@ -99,15 +80,6 @@ test('real worker analyzes reused media independently and playback survives dele
       })
     ).status(),
   ).toBe(200);
-  await expect
-    .poll(
-      async () =>
-        ((await (await get(`/api/videos/${entry.id}/auto-boat-line`)).json()) as { status: string })
-          .status,
-      { timeout: 60000 },
-    )
-    .toBe('done');
-  expect(await (await get(`/api/videos/${original}/auto-boat-line`)).json()).toEqual(sourceLine);
   expect((await mutate(page, 'DELETE', `/api/sessions/${source.sessionId}`)).status()).toBe(204);
   const playback = await page.request.get(
     withBasePath('/projects/rowlens', `/api/videos/${entry.id}/media/play-540`),

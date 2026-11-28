@@ -1,5 +1,12 @@
 # Handoff — 2026-11-24 (Claude)
 
+
+## Waterline removed (2026-11-28, PR open)
+
+Branch `claude/refactor/remove-video-preparation`: the automatic waterline (ADR-0018) is removed;
+after upload the worker only transcodes. Not merged, not deployed. `video_auto_boat_line` stays in
+the database unused; a later migration may drop it (and queued `video.boat_line` jobs) with Ewout's
+yes.
 ## State at the end of the session: local deploys to Contabo, done
 
 - Production is `trustable-contabo` (144.91.87.103, user `deploy`), running **`sha-1b54aa5`

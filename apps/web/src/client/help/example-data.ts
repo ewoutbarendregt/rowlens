@@ -1,4 +1,3 @@
-import type { AutoBoatLineState } from '../angles/AnglesPanel.tsx';
 import type { AngleMeasure, FrameBoatLine } from '../../shared/angles.ts';
 import type { StrokeMark } from '../../shared/strokes.ts';
 import type { BoatClass } from '../../shared/boats.ts';
@@ -27,7 +26,6 @@ export interface ExampleVideo {
   marks: StrokeMark[];
   measures: AngleMeasure[];
   boatLines: FrameBoatLine[];
-  auto: AutoBoatLineState | null;
   /** Older server images omit feedback; keep a rolling rollback readable. */
   annotations?: ExampleAnnotation[];
 }

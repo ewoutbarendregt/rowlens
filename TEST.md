@@ -1,3 +1,13 @@
+## 2026-11-28 — Automatic waterline removed (claude/refactor/remove-video-preparation)
+
+- format/lint/typecheck ok; web unit 416 passed (36 files); db 299 passed (30 files); worker
+  ruff/mypy ok, pytest 44 passed.
+- Local stack (`pnpm dev:up` + `pnpm dev`, worker rebuilt, types `["video.process"]`): uploaded
+  `e2e-30fps.webm` in a new training; ready after 3.3 s, only a `video.process` job (succeeded), no
+  `video_auto_boat_line` row, 0 `auto-boat-line` requests; video page opens on the Notes tab, the
+  Angles tab shows "Bootlijn tekenen".
+- Not run: local and edge E2E, iPhone WebKit.
+
 ## 2026-11-24 — Local checks replace GitHub Actions (claude/ci/local-checks-no-actions)
 
 - `scripts/check.sh --quick` (policy, format, lint, typecheck, web/worker/deploy unit tests): all
@@ -742,9 +752,9 @@ controls, private feedback, playback and own/staff editing, including iPhone Web
 | E2E edge (`e2e/edge.spec.ts`, via `pnpm e2e:edge`) | 6 through the Caddy mirror: 308 redirect, prefix kept, CSP + site headers, 16 MB chunk passes, AudioScribe prefix still stripped, trustable.nl still gets other paths | ✅ passing |
 | `infra/deploy/rowlens-deploy` unit (`test/run.sh`, stubbed docker, Ubuntu) | 77 checks (incl. the migrate check getting the tag on a first deploy, and a failing compose config stopping the deploy — BUG-009): input validation and forced-command injection, token handling, deploy/redeploy, rollback on unhealthy or failed `up`, first-deploy failure, pull failure, DB backup + retention, migrations, rollback/status, locking | ✅ passing |
 | `rowlens-deploy` rehearsal (`test/rehearse.sh`, real Docker) | first deploy, second deploy with real `pg_dump`, real migrations (journal written, `rowlens_app` without BYPASSRLS), broken release auto-rollback (exit 3), manual rollback, status | ✅ passing |
-| Boat line per frame (ADR-0018) | worker `test_waterline.py` (6: hull bottom bow to stern, out of the picture, a crewless streak refused, a far candidate refused while following, a coach's line restarts the following, work size); `angles.db.test.ts` (a boat line change queues one search, bow side, the worker's rerun keeps it, another club 404, cascade); `visibility.db.test.ts` (rower reads, can't set the bow, DB refuses; other coach 404); `angles.test.ts` (`resolveBoatLine`, `measureAt`); edge `boatline.spec.ts` (found in 100% of a drawn boat clip, dotted on the waterline, bow side, correction re-queues and finds again) | ✅ passing |
+| Boat line per frame (ADR-0018) | withdrawn 2026-11-28: `test_waterline.py` and `e2e/boatline.spec.ts` removed; `angles.db.test.ts` checks a boat line change queues no job and `auto-boat-line` is 404; `angles.test.ts` `measureAt` against the coach's line | ✅ passing |
 | `client/player/zoom.ts` | 4: clamp to 1–6× and to the picture's edges, zoom keeps the point under the cursor, pan and screen-to-picture mapping, viewBox of the view | ✅ passing |
-| Moving a saved drawing (#141, `e2e/angles.spec.ts`, `e2e/boatline.spec.ts`, edge) | a corner of a saved knee angle dragged straight down turns 90° into 180° in the picture and in the table, and the crew difference into 0°; the ends of the line the worker found are dragged, which leaves a coach's line on that frame that wins (`drawing--boat` in place of `drawing--auto`) | ✅ passing |
+| Moving a saved drawing (#141, `e2e/angles.spec.ts`) | a corner of a saved knee angle dragged straight down turns 90° into 180° in the picture and in the table, and the crew difference into 0° | ✅ passing |
 | E2E zoom (`player.spec.ts`, `drawing.spec.ts`) | + key and button to 225%, only the video transformed and the stage unmoved, frame keys and buttons still step, a drag pans without playing, level button / 0 back to the whole picture, − disabled at 100%; two-finger pinch (CDP multi-touch, mobile Chromium) zooms 3× without zooming the page; edge: a line tapped on the 225% view lands where tapped and is the middle 0.4/2.25 of the picture after reset (also with a finger on iPhone WebKit) | ✅ passing |
 | `client/player/frames.ts` | 24: round-trips for every frame at 24–240 fps and 59.94, presentation timestamps at 1 ms / 1/15360 / 1/90000 precision, clamping, ±seconds, time format, loop range and jump | ✅ passing |
 | E2E player (`e2e/player.spec.ts`, VP9 fixture, desktop + mobile Chromium) | 6: ±1 frame over 20 frames and back across keyframes (readout and `currentTime` agree), buttons ±1f/±0.1s/±1s and bounds, speed buttons, loop at 0.25×/0.5×/1× stays ≤ 1 frame past its end | ✅ passing |

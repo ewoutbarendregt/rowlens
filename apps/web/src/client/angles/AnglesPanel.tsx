@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   type AngleMeasure,
   type AngleTables,
-  type AutoBoatLines,
+  boatLineAt,
   type FrameBoatLine,
   type Joint,
   JOINT_POINTS,
@@ -10,16 +10,10 @@ import {
   measureAt,
   type Phase,
   PHASES,
-  resolveBoatLine,
 } from '../../shared/angles.ts';
 import type { Size } from '../../shared/geometry.ts';
 import { formatFrameTime } from '../player/frames.ts';
 import { angleStrings, leanText } from './strings.ts';
-
-/** The boat line found in every frame (ADR-0018), with where the worker is with it. */
-export interface AutoBoatLineState extends AutoBoatLines {
-  status: 'none' | 'queued' | 'running' | 'done' | 'failed';
-}
 
 /** What the picture is waiting for: the boat line, or a rower's joint. */
 export type Measuring = { kind: 'boat_line' } | { kind: 'joint'; rowerId: string; joint: Joint };
@@ -29,8 +23,6 @@ interface AnglesPanelProps {
   measures: readonly AngleMeasure[];
   /** Several per video, each from its frame on (a moving camera turns the boat). */
   boatLines: readonly FrameBoatLine[];
-  /** Null when the feature is off or not loaded yet. */
-  auto: AutoBoatLineState | null;
   fps: number;
   size: Size;
   /** The lineup first (seat · name), in boat order. */
@@ -47,7 +39,6 @@ interface AnglesPanelProps {
   onMeasure: (m: Measuring | null) => void;
   onDelete: (id: string) => void;
   onRemoveBoatLine: (frame: number) => void;
-  onBowSide: (side: 'left' | 'right') => void;
   onJump: (frame: number) => void;
 }
 
@@ -75,22 +66,8 @@ export function AnglesPanel(props: AnglesPanelProps) {
   const known = (id: string | null) => (props.rowers.some((r) => r.id === id) ? id : null);
   const chosen = known(active?.rowerId ?? rowerId);
   const jointNow = active?.joint ?? joint;
-  // The boat line that applies on the frame on screen: a coach's, or the one found there.
-  const auto = props.auto;
-  const here = resolveBoatLine(props.frame, props.boatLines, auto);
-  const foundFrames = auto?.frames.filter((f) => f !== null).length ?? 0;
-  const autoStatus =
-    auto === null || auto.status === 'none'
-      ? null
-      : auto.status === 'queued' || auto.status === 'running'
-        ? t.autoPending
-        : auto.status === 'failed'
-          ? t.autoFailed
-          : foundFrames === 0
-            ? t.autoNone
-            : t.autoShare(Math.round((100 * foundFrames) / Math.max(1, auto.frames.length)));
-  // Which end is the bow: asked only while no coach's line says it.
-  const askBow = props.canMeasure && foundFrames > 0 && props.boatLines.length === 0;
+  // The coach's boat line that applies on the frame on screen.
+  const here = boatLineAt(props.frame, props.boatLines);
   const refusedFor = (reason: string) =>
     props.tables.refused.filter((r) => r.reason === reason).length;
 
@@ -105,9 +82,7 @@ export function AnglesPanel(props: AnglesPanelProps) {
           <span className="muted" data-testid="boat-line-here">
             {here === null
               ? t.boatLineMissing
-              : here.source === 'auto'
-                ? t.autoHere
-                : t.boatLineFrom(here.frame, formatFrameTime(here.frame, props.fps))}
+              : t.boatLineFrom(here.frame, formatFrameTime(here.frame, props.fps))}
           </span>
         </span>
         {props.canMeasure && (
@@ -125,11 +100,9 @@ export function AnglesPanel(props: AnglesPanelProps) {
             >
               {here === null
                 ? t.drawBoatLine
-                : here.source === 'auto'
-                  ? t.correctBoatLine
-                  : here.frame === props.frame
-                    ? t.redrawBoatLine
-                    : t.newBoatLine}
+                : here.frame === props.frame
+                  ? t.redrawBoatLine
+                  : t.newBoatLine}
             </button>
           </span>
         )}
@@ -142,9 +115,7 @@ export function AnglesPanel(props: AnglesPanelProps) {
                   <button
                     type="button"
                     className="angles__value"
-                    aria-current={
-                      here?.source === 'coach' && line.frame === here.frame ? 'true' : undefined
-                    }
+                    aria-current={line.frame === here?.frame ? 'true' : undefined}
                     onClick={() => {
                       props.onJump(line.frame);
                     }}
@@ -168,31 +139,6 @@ export function AnglesPanel(props: AnglesPanelProps) {
               );
             })}
           </ul>
-        )}
-        {autoStatus !== null && (
-          <p className="muted angles__auto" data-testid="auto-boat-line">
-            {autoStatus}
-          </p>
-        )}
-        {askBow && (
-          <div className="angles__bow" role="group" aria-label={t.bowSideHint}>
-            <span>{t.bowSide}:</span>
-            {(['left', 'right'] as const).map((side) => (
-              <button
-                key={side}
-                type="button"
-                className="button--quiet"
-                aria-pressed={auto?.bowSide === side}
-                disabled={props.busy}
-                onClick={() => {
-                  props.onBowSide(side);
-                }}
-              >
-                {side === 'left' ? t.bowLeft : t.bowRight}
-              </button>
-            ))}
-            {auto?.bowSide === null && <span className="muted">{t.bowSideHint}</span>}
-          </div>
         )}
       </div>
 
@@ -285,7 +231,7 @@ export function AnglesPanel(props: AnglesPanelProps) {
           <h3>{t.onThisFrame}</h3>
           <ul>
             {onThisFrame.map((m) => {
-              const value = measureAt(m, props.size, props.boatLines, auto);
+              const value = measureAt(m, props.size, props.boatLines);
               const what = `${nameOf(m.rowerId)} · ${t.joints[m.joint]}`;
               return (
                 <li key={m.id} data-testid="angle-here">
@@ -387,9 +333,6 @@ export function AnglesPanel(props: AnglesPanelProps) {
       )}
       {refusedFor('no_boat_line') > 0 && (
         <p className="muted">{t.needBoatLine(refusedFor('no_boat_line'))}</p>
-      )}
-      {refusedFor('no_bow_side') > 0 && (
-        <p className="muted">{t.needBowSide(refusedFor('no_bow_side'))}</p>
       )}
     </section>
   );

@@ -1,8 +1,21 @@
 # ADR-0018: The boat line found in every frame, the coach's line wins
 
-- **Status**: accepted
+- **Status**: withdrawn (2026-11-28)
 - **Date**: 2026-11-04
 - **Deciders**: Ewout (product owner), Claude (lead engineer)
+
+## Withdrawn (2026-11-28)
+
+Ewout (2026-11-28): after an upload a video should simply be there to add notes to; finding the
+waterline is no longer needed. The worker job `video.boat_line`, `analysis/waterline.py`, the
+`auto-boat-line` API, the dotted line, the bow-side choice and the `AUTO_BOAT_LINE` build flag are
+removed, and so are the worker's `opencv-python-headless` and `numpy`. After upload the worker only
+makes the playback renditions (ADR-0007). A coach's own boat line (ADR-0017) stays for the upper
+body angle. The table `video_auto_boat_line` stays in the database, unused and unread; dropping it
+is a later, separate migration. Queued `video.boat_line` jobs in production are no longer claimed
+by any worker and stay queued, harmlessly.
+
+The rest of this ADR is the original decision, kept for the record.
 
 ## Context
 
