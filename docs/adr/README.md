@@ -19,7 +19,7 @@
 | [0015](0015-interface-language.md) | Dutch by default, with a language switch | accepted |
 | [0016](0016-stroke-marks.md) | Stroke marks by the coach, for the whole boat | accepted |
 | [0017](0017-angles-per-phase.md) | Angles per rower and phase, measured by the coach | accepted |
-| [0018](0018-boat-line-per-frame.md) | The boat line found in every frame, the coach's line wins | accepted |
+| [0018](0018-boat-line-per-frame.md) | The boat line found in every frame, the coach's line wins | withdrawn |
 | [0019](0019-user-settings-and-role-sets.md) | Central account preferences, additive role sets and admin editing | accepted |
 
 | [0020](0020-club-training-permissions.md) | Club-wide training reading with ownership and staff editing | accepted |

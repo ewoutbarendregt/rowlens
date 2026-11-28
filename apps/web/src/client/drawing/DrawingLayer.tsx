@@ -32,9 +32,8 @@ export interface Drawing {
   points: readonly Point[];
   /** Shown with the shape, e.g. the rower of an angle measurement (ADR-0017). */
   label?: string;
-  /** `measure`: an angle measurement; `boat`: a coach's boat line, dashed; `auto`: the boat line
-   * found by the worker, dotted (ADR-0018). */
-  variant?: 'measure' | 'boat' | 'auto';
+  /** `measure`: an angle measurement; `boat`: a coach's boat line, dashed. */
+  variant?: 'measure' | 'boat';
   /** The frame it belongs to: a note's frame, the frame a boat line starts at (#141). */
   frame?: number;
   /** The viewer may move it; the page knows that from the API and the role (#141). */
@@ -621,12 +620,7 @@ function Shape({
     // The boat line is a reference, not a drawing: dashed, in picture units like the rest.
     ...(drawing.variant === 'boat'
       ? { strokeDasharray: `${String(unit * 8)} ${String(unit * 6)}` }
-      : drawing.variant === 'auto'
-        ? {
-            strokeDasharray: `${String(unit * 2)} ${String(unit * 4)}`,
-            strokeLinecap: 'round' as const,
-          }
-        : {}),
+      : {}),
   };
   const halo = { strokeWidth: unit * 5 };
   if (b === undefined)

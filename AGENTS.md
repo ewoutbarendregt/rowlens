@@ -51,8 +51,8 @@ The product owner is **Ewout**; the head coach of the pilot club gives the rowin
   `AUTH_ADMIN_EMAILS`, never in the repository.
 - **Never send user video, names or e-mail addresses to an external AI provider** (ADR-0010). LLM
   input is pseudonymous structured metrics only, behind the per-club `ai_explanations` flag, and
-  the provider must be listed in `docs/privacy/processors.md`. Picture analysis runs in our own
-  worker (ADR-0018: OpenCV, no model).
+  the provider must be listed in `docs/privacy/processors.md`. Any picture analysis runs in our
+  own worker, never at an external provider.
 - **All data access goes through tenant-scoped repositories with a `TenantContext`**
   (`withTenant`, Postgres RLS, ADR-0005); never bypass the permission layer or RLS. Every new
   tenant table gets `club_id`, RLS, a tenant policy, restrictive role policies where rowers are
@@ -145,7 +145,7 @@ verified) and in `docs/runbooks/server-setup.md`. At the end of a session, updat
 cp apps/web/.env.example apps/web/.env   # local settings; Ewout adds SESSION_SECRET etc. himself
 
 # Local stack: the default place to try changes
-pnpm dev:up      # Postgres :5434 + worker (ffmpeg, OpenCV) in Docker, migrations; rebuilds the worker
+pnpm dev:up      # Postgres :5434 + worker (ffmpeg) in Docker, migrations; rebuilds the worker
 pnpm dev         # web with hot reload → http://localhost:5174/projects/rowlens/ (API :3100)
 pnpm dev:down    # stops Postgres and worker (data stays in the Docker volume)
 # Ports 5173/5433 belong to Ewout's local trustable.nl stack: don't use them.
@@ -221,7 +221,7 @@ check an end marker plus the running image tag afterwards.
 Caddy (trustable compose) ── /projects/rowlens/* (prefix kept) ──▶ rowlens-web :3000
                                                                    │  Fastify API + React SPA
                                                                    ▼
-                       rowlens_internal network:  db (Postgres 16, RLS) ◀── worker (Python, ffmpeg, OpenCV)
+                       rowlens_internal network:  db (Postgres 16, RLS) ◀── worker (Python, ffmpeg)
                                                   media on local disk        jobs via Postgres queue
 ```
 

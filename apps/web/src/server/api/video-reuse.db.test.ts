@@ -206,9 +206,8 @@ describe('independent reused video entries', () => {
       fpsNum: 30,
       assetId: source,
     });
-    expect(await asOwner(`select type from job where payload->>'videoId'=$1`, [a?.id])).toEqual([
-      { type: 'video.boat_line' },
-    ]);
+    // Already processed media: no worker job for the new entry.
+    expect(await asOwner(`select type from job where payload->>'videoId'=$1`, [a?.id])).toEqual([]);
     expect((await send('a', 'GET', `/api/videos/${a?.id ?? ''}/annotations`)).json()).toMatchObject(
       {
         annotations: [],
@@ -355,12 +354,6 @@ describe('independent reused video entries', () => {
     expect(await asOwner('select frame from video_boat_line where video_id=$1', [source])).toEqual(
       [],
     );
-    expect(
-      await asOwner('select video_id from video_auto_boat_line where video_id=$1', [id]),
-    ).toEqual([{ video_id: id }]);
-    expect(
-      await asOwner('select video_id from video_auto_boat_line where video_id=$1', [source]),
-    ).toEqual([]);
   });
 
   it('enforces archived-club and live membership boundaries', async () => {

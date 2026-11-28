@@ -1,3 +1,10 @@
+## [2026-11-28] — Removed the automatic waterline after upload
+
+**Session**: claude/refactor/remove-video-preparation
+**Changed**: worker/src/rowlens_worker/__main__.py, worker/src/rowlens_worker/video/process.py, worker/src/rowlens_worker/video/boat_line.py (removed), worker/src/rowlens_worker/analysis/ (removed), worker/tests/test_waterline.py (removed), worker/pyproject.toml, worker/uv.lock, apps/web/src/server/api/angles.ts, apps/web/src/server/repositories/video-reuse.ts, apps/web/src/server/repositories/examples.ts, apps/web/src/shared/angles.ts, apps/web/src/client/angles/AnglesPanel.tsx, apps/web/src/client/angles/strings.ts, apps/web/src/client/sessions/VideoPage.tsx, apps/web/src/client/drawing/DrawingLayer.tsx, apps/web/src/client/features.ts, apps/web/src/client/help/example-data.ts, apps/web/Dockerfile, apps/web/e2e/boatline.spec.ts (removed), apps/web/e2e/video-reuse-edge.spec.ts, apps/web/playwright.editing.config.ts, tests, docs/adr/0018-boat-line-per-frame.md, docs/adr/README.md, AGENTS.md, BUILD.md, FEATURES.md, TEST.md, docs/HANDOFF.md
+**Summary**: After an upload the worker only makes the playback renditions; the `video.boat_line` job, the waterline detector, the `auto-boat-line` API, the dotted line and bow-side choice, the build flag and the worker's OpenCV/numpy are gone (ADR-0018 withdrawn). The coach's own boat line for the upper body stays; the `video_auto_boat_line` table stays unused (Ewout chose not to drop it now).
+**Prompts used**: "verwijder de logica om een video voor te bewerken na de upload, wanneer de video is geupload moet ik simpelweg te zien zijn om notities toe te voegen. het bepalen van de waterlijn is niet meer nodig"; answers: "Alleen auto-waterlijn", "Laten staan".
+
 ## [2026-11-24] — No GitHub Actions: local checks with scripts/check.sh
 
 **Session**: claude/ci/local-checks-no-actions

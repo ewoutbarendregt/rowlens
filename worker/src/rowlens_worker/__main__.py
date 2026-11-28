@@ -18,12 +18,10 @@ from .db import connect
 from .errors import PermanentError, StopRequestedError
 from .media import MediaStore
 from .queue import Job, claim, fail, release, succeed
-from .video import boat_line
 from .video.process import Context, mark_failed, process_video
 
 HANDLERS: dict[str, Callable[[Context, Job], None]] = {
     "video.process": process_video,
-    boat_line.JOB_TYPE: boat_line.boat_line,
 }
 
 
@@ -31,8 +29,6 @@ def on_dead(ctx: Context, job: Job, reason: str) -> None:
     """What a job leaves behind when it gives up for good."""
     if job.type == "video.process":
         mark_failed(ctx, job, reason)
-    elif job.type == boat_line.JOB_TYPE:
-        boat_line.mark_failed(ctx, job)
 
 
 log = logging.getLogger("rowlens_worker")

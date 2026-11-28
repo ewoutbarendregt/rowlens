@@ -9,7 +9,6 @@ import {
   strokeMark,
   angleMeasure,
   videoBoatLine,
-  videoAutoBoatLine,
   annotation,
 } from '../db/schema.ts';
 import { lineupOf } from '../api/lineups.ts';
@@ -161,14 +160,6 @@ export async function readExample(db: Database, scope: TenantContext, id: string
         .from(videoBoatLine)
         .where(eq(videoBoatLine.videoId, v.id))
         .orderBy(asc(videoBoatLine.frame));
-      const [auto] = await tx
-        .select({
-          status: videoAutoBoatLine.status,
-          frames: videoAutoBoatLine.frames,
-          bowSide: videoAutoBoatLine.bowSide,
-        })
-        .from(videoAutoBoatLine)
-        .where(eq(videoAutoBoatLine.videoId, v.id));
       clips.push({
         ...v,
         annotations: annotations.map((a) => {
@@ -181,7 +172,6 @@ export async function readExample(db: Database, scope: TenantContext, id: string
         marks,
         measures,
         boatLines,
-        auto: auto ?? null,
       });
     }
     return { ...s, clubId: scope.clubId, lineup: await lineupOf(tx, id), videos: clips };

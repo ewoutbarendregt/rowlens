@@ -1,7 +1,7 @@
 import { and, asc, eq, gt, ilike, ne, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import type { Database, Tx } from '../db/client.ts';
-import { annotation, job, rowingSession, video, videoAnnotationReference } from '../db/schema.ts';
+import { annotation, rowingSession, video, videoAnnotationReference } from '../db/schema.ts';
 import { withTenant, type TenantContext } from '../db/tenant.ts';
 import { lockEditableSession, lockEditableVideo } from './training-access.ts';
 import { lockVideoAssets } from './video-assets.ts';
@@ -58,7 +58,7 @@ export function availableVideos(
   });
 }
 
-/** Same-club media reuse creates only a new entry and its own analysis job. */
+/** Same-club media reuse creates only a new entry; the media is already processed. */
 export function reuseVideo(
   db: Database,
   tenant: TenantContext,
@@ -102,14 +102,7 @@ export function reuseVideo(
         seq: (last?.seq ?? 0) + 1,
       })
       .returning({ id: video.id });
-    if (!entry) return null;
-    await tx.insert(job).values({
-      clubId: tenant.clubId,
-      type: 'video.boat_line',
-      payload: { videoId: entry.id },
-      idempotencyKey: `video.boat_line:${entry.id}`,
-    });
-    return entry;
+    return entry ?? null;
   });
 }
 
